@@ -1,0 +1,429 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Seed configuration
+// Run with: npm run prisma:seed
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String           @id @default(cuid())
+  email         String           @unique
+  username      String           @unique
+  password      String?          // Nullable cho OAuth users
+  avatar        String?
+  displayName   String?
+  bio           String?          @db.Text
+  role          UserRole         @default(USER)
+  isActive      Boolean          @default(true)
+  emailVerified Boolean          @default(false)
+  refreshToken  String?          // Optional: cho refresh token strategy
+  // OAuth fields
+  provider      String?          // 'local', 'google', 'facebook'
+  providerId    String?          // OAuth provider user ID
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  // Relations
+  uploadedChapters Chapter[]        @relation("ChapterUploader")
+  comments         Comment[]
+  favorites        Favorite[]
+  follows          Follow[]
+  ratings          Rating[]
+  readingHistory   ReadingHistory[]
+  authoredStories  Story[]          @relation("StoryAuthor")
+  viewLogs         ViewLog[]
+  approvalRequests ApprovalRequest[] @relation("ApprovalRequests")
+  reviewedApprovals ApprovalRequest[] @relation("ReviewedApprovals")
+  createdAds       Ad[]              @relation("AdCreator")
+
+  @@index([email])
+  @@index([username])
+  @@index([role])
+  @@index([isActive])
+  @@index([provider, providerId]) // Composite index cho OAuth lookup
+  @@map("users")
+}
+
+model Story {
+  id              String          @id @default(cuid())
+  title           String
+  slug            String          @unique
+  description     String?
+  coverImage      String?
+  authorId        String
+  authorName      String?
+  status          StoryStatus     @default(DRAFT)
+  isPublished     Boolean         @default(false)
+  viewCount       Int             @default(0)
+  likeCount       Int             @default(0)
+  followCount     Int             @default(0)
+  rating          Float           @default(0)
+  ratingCount     Int             @default(0)
+  country         String?
+  tags            String[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  lastChapterAt   DateTime?
+  chapters        Chapter[]
+  comments        Comment[]
+  favorites       Favorite[]
+  follows         Follow[]
+  ratings         Rating[]
+  author          User            @relation("StoryAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  storyCategories StoryCategory[]
+  storyTags       StoryTag[]
+  viewLogs        ViewLog[]
+  approvalRequests ApprovalRequest[] @relation("StoryApprovals")
+
+  @@index([slug])
+  @@index([authorId])
+  @@index([status])
+  @@index([isPublished])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([lastChapterAt])
+  @@index([country])
+  @@index([rating])
+  @@index([viewCount])
+  @@index([followCount])
+  @@map("stories")
+}
+
+model Chapter {
+  id             String           @id @default(cuid())
+  storyId        String
+  title          String
+  slug           String
+  content        String
+  images         String[]
+  order          Int
+  isPublished    Boolean          @default(false)
+  viewCount      Int              @default(0)
+  wordCount      Int              @default(0)
+  readingTime    Int              @default(0)
+  uploaderId     String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  story          Story            @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  uploader       User?            @relation("ChapterUploader", fields: [uploaderId], references: [id])
+  comments       Comment[]
+  readingHistory ReadingHistory[]
+  viewLogs       ViewLog[]
+  approvalRequests ApprovalRequest[] @relation("ChapterApprovals")
+
+  @@unique([storyId, slug])
+  @@index([storyId])
+  @@index([storyId, order])
+  @@index([slug])
+  @@index([isPublished])
+  @@index([createdAt])
+  @@map("chapters")
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  userId    String
+  storyId   String?
+  chapterId String?
+  content   String
+  parentId  String?
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  chapter   Chapter?  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("CommentReplies")
+  story     Story?    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([storyId])
+  @@index([chapterId])
+  @@index([parentId])
+  @@index([createdAt])
+  @@index([isDeleted])
+  @@map("comments")
+}
+
+model Follow {
+  id        String   @id @default(cuid())
+  userId    String
+  storyId   String
+  createdAt DateTime @default(now())
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, storyId])
+  @@index([userId])
+  @@index([storyId])
+  @@index([createdAt])
+  @@map("follows")
+}
+
+model Category {
+  id              String          @id @default(cuid())
+  name            String          @unique
+  slug            String          @unique
+  description     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  storyCategories StoryCategory[]
+
+  @@index([slug])
+  @@map("categories")
+}
+
+model ReadingHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  chapterId String
+  storyId   String?
+  progress  Int      @default(0)
+  lastRead  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chapterId])
+  @@index([userId])
+  @@index([userId, lastRead])
+  @@index([chapterId])
+  @@index([storyId])
+  @@map("reading_history")
+}
+
+model ViewLog {
+  id        String   @id @default(cuid())
+  storyId   String?
+  chapterId String?
+  userId    String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  story     Story?   @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([storyId])
+  @@index([chapterId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([ipAddress])
+  @@map("view_logs")
+}
+
+model StoryCategory {
+  id         String   @id @default(cuid())
+  storyId    String
+  categoryId String
+  createdAt  DateTime @default(now())
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  story      Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, categoryId])
+  @@index([storyId])
+  @@index([categoryId])
+  @@map("story_categories")
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  storyId   String
+  createdAt DateTime @default(now())
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, storyId])
+  @@index([userId])
+  @@index([storyId])
+  @@index([createdAt])
+  @@map("favorites")
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  userId    String
+  storyId   String
+  rating    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, storyId])
+  @@index([userId])
+  @@index([storyId])
+  @@index([rating])
+  @@index([createdAt])
+  @@map("ratings")
+}
+
+model Tag {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  storyTags StoryTag[]
+
+  @@index([slug])
+  @@map("tags")
+}
+
+model StoryTag {
+  id        String   @id @default(cuid())
+  storyId   String
+  tagId     String
+  createdAt DateTime @default(now())
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, tagId])
+  @@index([storyId])
+  @@index([tagId])
+  @@map("story_tags")
+}
+
+model Banner {
+  id        String    @id @default(cuid())
+  title     String
+  imageUrl  String
+  linkUrl   String?
+  position  String
+  isActive  Boolean   @default(true)
+  order     Int       @default(0)
+  startDate DateTime?
+  endDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([isActive])
+  @@index([position])
+  @@index([order])
+  @@map("banners")
+}
+
+model ContentReport {
+  id          String       @id @default(cuid())
+  userId      String?
+  storyId     String?
+  chapterId   String?
+  reportType  String
+  description String?
+  status      ReportStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([status])
+  @@index([storyId])
+  @@index([chapterId])
+  @@index([createdAt])
+  @@map("content_reports")
+}
+
+model ApprovalRequest {
+  id          String            @id @default(cuid())
+  userId      String
+  storyId     String?
+  chapterId   String?
+  type        ApprovalType
+  status      ApprovalStatus    @default(PENDING)
+  message     String?           @db.Text
+  adminNote   String?           @db.Text
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  user        User              @relation("ApprovalRequests", fields: [userId], references: [id], onDelete: Cascade)
+  story       Story?            @relation("StoryApprovals", fields: [storyId], references: [id], onDelete: Cascade)
+  chapter     Chapter?          @relation("ChapterApprovals", fields: [chapterId], references: [id], onDelete: Cascade)
+  reviewer    User?             @relation("ReviewedApprovals", fields: [reviewedBy], references: [id])
+
+  @@index([userId])
+  @@index([storyId])
+  @@index([chapterId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@map("approval_requests")
+}
+
+enum UserRole {
+  USER
+  AUTHOR
+  ADMIN
+}
+
+enum StoryStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  ONGOING
+  COMPLETED
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  REJECTED
+}
+
+enum ApprovalType {
+  STORY_PUBLISH
+  CHAPTER_PUBLISH
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Ad {
+  id          String    @id @default(cuid())
+  title       String?
+  description String?   @db.Text
+  imageUrl    String
+  linkUrl     String?
+  type        AdType    @default(BANNER)
+  position    AdPosition @default(BOTTOM)
+  isActive    Boolean   @default(true)
+  startDate   DateTime?
+  endDate     DateTime?
+  clickCount  Int       @default(0)
+  viewCount   Int       @default(0)
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   User?     @relation("AdCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([type])
+  @@index([position])
+  @@index([isActive])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([createdById])
+  @@map("ads")
+}
+
+enum AdType {
+  POPUP
+  BANNER
+  SIDEBAR
+}
+
+enum AdPosition {
+  TOP
+  BOTTOM
+  SIDEBAR_LEFT
+  SIDEBAR_RIGHT
+  INLINE
+}

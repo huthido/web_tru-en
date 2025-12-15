@@ -1,0 +1,267 @@
+{
+  "books": [
+    {
+      "id": "1",
+      "title": "101 cách cua đổ đại lão hàng xóm",
+      "author": "Đồng Vu",
+      "viewCount": 100,
+      "coverImage": "/Book cover.png",
+      "slug": "101-cach-cua-do-dai-lao-hang-xom",
+      "rating": 4,
+      "reviewCount": 1,
+      "genre": "Ngôn tình",
+      "publisher": "Đang cập nhật",
+      "status": "25/50",
+      "description": "Tống Thiên Thị luôn cảm thấy hàng xóm mới tới là người không dễ sống chung, bởi hắn không chỉ lạnh lùng mà lời nói ra cũng chẳng dễ lọt tai. Mãi cho đến một ngày cô bị hàng xóm chặn trên hành lang. Đôi mắt của luật sư Ôn sáng quắc: \"Trăm nhân ắt có quả, tôi chính là quả của em.\" Tống Thiên Thị nhìn người đàn ông ăn mặc chỉnh tề trước mặt, đột nhiên thay đổi quan điểm về anh. ... Cô cho rằng",
+      "comments": [
+        {
+          "id": "1",
+          "userName": "Harleen Quinzel",
+          "avatar": "https://i.pravatar.cc/150?img=1",
+          "content": "AMAZING!!!",
+          "timestamp": "11:22 PM"
+        }
+      ],
+      "chapters": [
+        {
+          "id": "1",
+          "number": 1,
+          "title": "Chương 1: Cuộc gặp gỡ đầu tiên",
+          "slug": "chuong-1",
+          "publishedAt": "2024-12-01T10:00:00Z"
+        },
+        {
+          "id": "2",
+          "number": 2,
+          "title": "Chương 2: Hàng xóm mới",
+          "slug": "chuong-2",
+          "publishedAt": "2024-12-02T10:00:00Z"
+        },
+        {
+          "id": "3",
+          "number": 3,
+          "title": "Chương 3: Sự thay đổi",
+          "slug": "chuong-3",
+          "publishedAt": "2024-12-03T10:00:00Z"
+        },
+        {
+          "id": "4",
+          "number": 4,
+          "title": "Chương 4: Những cảm xúc mới",
+          "slug": "chuong-4",
+          "publishedAt": "2024-12-04T10:00:00Z"
+        },
+        {
+          "id": "5",
+          "number": 5,
+          "title": "Chương 5: Bí mật được tiết lộ",
+          "slug": "chuong-5",
+          "publishedAt": "2024-12-05T10:00:00Z"
+        },
+        {
+          "id": "6",
+          "number": 6,
+          "title": "Chương 6: Khoảnh khắc đặc biệt",
+          "slug": "chuong-6",
+          "publishedAt": "2024-12-06T10:00:00Z"
+        },
+        {
+          "id": "7",
+          "number": 7,
+          "title": "Chương 7: Thử thách đầu tiên",
+          "slug": "chuong-7",
+          "publishedAt": "2024-12-07T10:00:00Z"
+        },
+        {
+          "id": "8",
+          "number": 8,
+          "title": "Chương 8: Hiểu lầm",
+          "slug": "chuong-8",
+          "publishedAt": "2024-12-08T10:00:00Z"
+        },
+        {
+          "id": "9",
+          "number": 9,
+          "title": "Chương 9: Hòa giải",
+          "slug": "chuong-9",
+          "publishedAt": "2024-12-09T10:00:00Z"
+        },
+        {
+          "id": "10",
+          "number": 10,
+          "title": "Chương 10: Tình cảm nảy nở",
+          "slug": "chuong-10",
+          "publishedAt": "2024-12-10T10:00:00Z"
+        },
+        {
+          "id": "11",
+          "number": 11,
+          "title": "Chương 11: Ngày đầu tiên",
+          "slug": "chuong-11",
+          "publishedAt": "2024-12-11T10:00:00Z"
+        },
+        {
+          "id": "12",
+          "number": 12,
+          "title": "Chương 12: Cuộc trò chuyện",
+          "slug": "chuong-12",
+          "publishedAt": "2024-12-12T10:00:00Z"
+        },
+        {
+          "id": "13",
+          "number": 13,
+          "title": "Chương 13: Bất ngờ",
+          "slug": "chuong-13",
+          "publishedAt": "2024-12-13T10:00:00Z"
+        },
+        {
+          "id": "14",
+          "number": 14,
+          "title": "Chương 14: Quyết định",
+          "slug": "chuong-14",
+          "publishedAt": "2024-12-14T10:00:00Z"
+        },
+        {
+          "id": "15",
+          "number": 15,
+          "title": "Chương 15: Hành trình mới",
+          "slug": "chuong-15",
+          "publishedAt": "2024-12-15T10:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Tỉnh giấc bỗng trở thành hung thủ...",
+      "author": "Tác giả B",
+      "viewCount": 98000,
+      "coverImage": "/Book1.png",
+      "slug": "tinh-giac-bong-tro-thanh-hung-thu"
+    },
+    {
+      "id": "3",
+      "title": "Ác quỷ khoác áo blouse",
+      "author": "Tác giả C",
+      "viewCount": 156000,
+      "coverImage": "/Book cover.png",
+      "slug": "ac-quy-khoac-ao-blouse"
+    },
+    {
+      "id": "4",
+      "title": "Khi anh chạy về phía em",
+      "author": "Tác giả D",
+      "viewCount": 89000,
+      "coverImage": "/Book cover.png",
+      "slug": "khi-anh-chay-ve-phia-em"
+    },
+    {
+      "id": "5",
+      "title": "Khơi nguồn phúc lạc",
+      "author": "Tác giả E",
+      "viewCount": 112000,
+      "coverImage": "/Book cover.png",
+      "slug": "khoi-nguon-phuc-lac"
+    },
+    {
+      "id": "6",
+      "title": "The Brothers Karamazov",
+      "author": "Fyodor Dostoevsky",
+      "viewCount": 245000,
+      "coverImage": "/Book cover.png",
+      "slug": "the-brothers-karamazov"
+    },
+    {
+      "id": "7",
+      "title": "The Sun Also Rises",
+      "author": "Ernest Hemingway",
+      "viewCount": 198000,
+      "coverImage": "/Book cover.png",
+      "slug": "the-sun-also-rises"
+    },
+    {
+      "id": "8",
+      "title": "THINK AGAIN",
+      "author": "Adam Grant",
+      "viewCount": 167000,
+      "coverImage": "/Book cover.png",
+      "slug": "think-again"
+    },
+    {
+      "id": "9",
+      "title": "VƯỢT QUA CHỨNG TỰ KỶ",
+      "author": "Raun K. Kaufman",
+      "viewCount": 134000,
+      "coverImage": "/Book cover.png",
+      "slug": "vuot-qua-chung-tu-ky"
+    },
+    {
+      "id": "10",
+      "title": "THẦN SỐ HỌC",
+      "author": "Tác giả F",
+      "viewCount": 102000,
+      "coverImage": "/Book cover.png",
+      "slug": "than-so-hoc"
+    },
+    {
+      "id": "11",
+      "title": "Dạy con đơn giản",
+      "author": "Tác giả G",
+      "viewCount": 78000,
+      "coverImage": "/Book cover.png",
+      "slug": "day-con-don-gian"
+    },
+    {
+      "id": "12",
+      "title": "NHỊN KHÔ",
+      "author": "Sergey Filonov",
+      "viewCount": 95000,
+      "coverImage": "/Book cover.png",
+      "slug": "nhin-kho"
+    }
+  ],
+  "newestBooks": ["1", "2", "3", "4", "5", "6", "7"],
+  "recommendedBooks": ["8", "9", "10", "11", "12"],
+  "bestOfMonth": ["3", "6", "8", "1", "2", "5"],
+  "topRated": ["6", "7", "3", "8", "9", "4"],
+  "mostLiked": ["1", "3", "6", "8", "2", "7"],
+  "favorites": ["1", "3", "6", "8", "2", "7", "4", "9"],
+  "readingHistory": [
+    {
+      "bookId": "1",
+      "lastReadAt": "2024-12-14T10:30:00Z",
+      "progress": 45,
+      "chapter": "Chương 25"
+    },
+    {
+      "bookId": "3",
+      "lastReadAt": "2024-12-13T15:20:00Z",
+      "progress": 78,
+      "chapter": "Chương 39"
+    },
+    {
+      "bookId": "6",
+      "lastReadAt": "2024-12-12T09:15:00Z",
+      "progress": 12,
+      "chapter": "Chương 6"
+    },
+    {
+      "bookId": "8",
+      "lastReadAt": "2024-12-11T14:45:00Z",
+      "progress": 90,
+      "chapter": "Chương 45"
+    },
+    {
+      "bookId": "2",
+      "lastReadAt": "2024-12-10T11:00:00Z",
+      "progress": 30,
+      "chapter": "Chương 15"
+    },
+    {
+      "bookId": "5",
+      "lastReadAt": "2024-12-09T16:30:00Z",
+      "progress": 60,
+      "chapter": "Chương 30"
+    }
+  ]
+}
+
