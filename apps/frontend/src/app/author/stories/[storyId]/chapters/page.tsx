@@ -27,7 +27,7 @@ export default function ChapterManagementPage() {
     const deleteMutation = useDeleteChapter(storySlug);
     const publishMutation = usePublishChapter(storySlug);
     const { toasts, showToast, removeToast } = useToast();
-    
+
     // Get approval requests to check status
     const { data: approvalsResponse } = useMyApprovals({ limit: 1000 });
     const approvals = approvalsResponse?.data || [];
@@ -345,12 +345,12 @@ export default function ChapterManagementPage() {
                                                             {(() => {
                                                                 const approvalStatus = getChapterApprovalStatus(chapter.id);
                                                                 const isPending = publishMutation.isPending;
-                                                                
+
                                                                 // If already published, don't show button
                                                                 if (chapter.isPublished) {
                                                                     return null;
                                                                 }
-                                                                
+
                                                                 // If approval is pending
                                                                 if (approvalStatus === 'PENDING') {
                                                                     return (
@@ -366,7 +366,7 @@ export default function ChapterManagementPage() {
                                                                         </button>
                                                                     );
                                                                 }
-                                                                
+
                                                                 // If approval is approved (but not published yet - edge case)
                                                                 if (approvalStatus === 'APPROVED') {
                                                                     return (
@@ -381,7 +381,7 @@ export default function ChapterManagementPage() {
                                                                         </button>
                                                                     );
                                                                 }
-                                                                
+
                                                                 // If approval is rejected, allow resubmit
                                                                 if (approvalStatus === 'REJECTED') {
                                                                     return (
@@ -409,7 +409,7 @@ export default function ChapterManagementPage() {
                                                                         </button>
                                                                     );
                                                                 }
-                                                                
+
                                                                 // No approval request yet - show normal publish button
                                                                 return (
                                                                     <button
@@ -511,9 +511,9 @@ export default function ChapterManagementPage() {
                     message={`Bạn có chắc chắn muốn xóa chương "${deleteModal.chapterTitle}"? Hành động này không thể hoàn tác.`}
                     confirmText="Xóa"
                     cancelText="Hủy"
-                    variant="danger"
+                    confirmColor="red"
                     onConfirm={confirmDelete}
-                    onCancel={() => setDeleteModal({ isOpen: false, chapterId: '', chapterTitle: '' })}
+                    onClose={() => setDeleteModal({ isOpen: false, chapterId: '', chapterTitle: '' })}
                 />
 
                 {/* Toast Notifications */}

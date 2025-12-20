@@ -701,7 +701,7 @@ export default function AdminAdsPage() {
                     title="Xóa quảng cáo"
                     message={`Bạn có chắc chắn muốn xóa quảng cáo "${deletingAd.title || 'Không có tiêu đề'}"?`}
                     onConfirm={handleDelete}
-                    onCancel={() => setDeletingAd(null)}
+                    onClose={() => setDeletingAd(null)}
                     isLoading={deleteMutation.isPending}
                 />
             )}
@@ -710,7 +710,7 @@ export default function AdminAdsPage() {
             {showBulkActionModal && bulkAction && (
                 <ConfirmModal
                     isOpen={showBulkActionModal}
-                    onCancel={() => {
+                    onClose={() => {
                         setShowBulkActionModal(false);
                         setBulkAction(null);
                     }}

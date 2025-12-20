@@ -563,7 +563,7 @@ export default function AdminUsersPage() {
             {showBanModal && banningUser && (
                 <ConfirmModal
                     isOpen={showBanModal}
-                    onCancel={() => {
+                    onClose={() => {
                         setShowBanModal(false);
                         setBanningUser(null);
                     }}
@@ -572,7 +572,7 @@ export default function AdminUsersPage() {
                     message={`Bạn có chắc chắn muốn khóa tài khoản "${banningUser.displayName || banningUser.username}"? Người dùng này sẽ không thể đăng nhập vào hệ thống.`}
                     confirmText="Khóa"
                     cancelText="Hủy"
-                    confirmButtonClassName="bg-red-500 hover:bg-red-600"
+                    confirmColor="red"
                     isLoading={updateMutation.isPending}
                 />
             )}
@@ -581,7 +581,7 @@ export default function AdminUsersPage() {
             {showBulkActionModal && bulkAction && (
                 <ConfirmModal
                     isOpen={showBulkActionModal}
-                    onCancel={() => {
+                    onClose={() => {
                         setShowBulkActionModal(false);
                         setBulkAction(null);
                     }}
@@ -590,7 +590,7 @@ export default function AdminUsersPage() {
                     message={`Bạn có chắc chắn muốn ${bulkAction === 'ban' ? 'khóa' : 'mở khóa'} ${selectedUsers.size} tài khoản đã chọn?`}
                     confirmText={bulkAction === 'ban' ? 'Khóa' : 'Mở khóa'}
                     cancelText="Hủy"
-                    confirmButtonClassName={bulkAction === 'ban' ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}
+                    confirmColor={bulkAction === 'ban' ? 'red' : 'green'}
                     isLoading={updateMutation.isPending}
                 />
             )}
