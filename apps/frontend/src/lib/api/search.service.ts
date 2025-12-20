@@ -37,38 +37,38 @@ export const searchService = {
     if (options?.status) params.append('status', options.status);
     if (options?.sortBy) params.append('sortBy', options.sortBy);
 
-    const response = await apiClient.get(`/search?${params.toString()}`);
+    const response = await apiClient.get<SearchResult>(`/search?${params.toString()}`);
     // Handle ApiResponse wrapper
-    if (response.data && response.data.data && response.data.meta) {
-      return response.data.data; // Already unwrapped
+    if ((response.data as any)?.data && (response.data as any)?.meta) {
+      return (response.data as any).data as SearchResult;
     }
     // If direct response
-    if (response.data && response.data.meta) {
-      return response.data;
+    if ((response.data as any)?.meta) {
+      return (response.data as unknown as SearchResult);
     }
     // Fallback
-    return response.data;
+    return (response.data as unknown as SearchResult);
   },
 
   async getSuggestions(query: string, limit: number = 10): Promise<SearchSuggestion[]> {
     try {
       const response = await apiClient.get(`/search/suggestions?q=${encodeURIComponent(query)}&limit=${limit}`);
-      
+
       // Debug: log response structure (development only)
       if (process.env.NODE_ENV === 'development') {
         console.log('Suggestions API Response:', response.data);
       }
-      
+
       // Check if direct array response first (most common case)
       if (Array.isArray(response.data)) {
         return response.data;
       }
-      
+
       // Handle ApiResponse wrapper (if wrapped in { success, data, ... })
       if (response.data && response.data.success !== undefined && Array.isArray(response.data.data)) {
         return response.data.data;
       }
-      
+
       // Fallback
       return [];
     } catch (error) {

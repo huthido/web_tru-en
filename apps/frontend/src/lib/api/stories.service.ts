@@ -96,7 +96,7 @@ export const storiesService = {
         });
         // Handle ApiResponse wrapper: response.data is ApiResponse, response.data.data is PaginatedResponse
         const apiResponse = response.data as any;
-        
+
         // If it's wrapped in ApiResponse format (has success, data, timestamp)
         if (apiResponse?.success !== undefined && apiResponse?.data) {
             // Check if data is already PaginatedResponse (has data array and meta)
@@ -111,12 +111,12 @@ export const storiesService = {
                 };
             }
         }
-        
+
         // If already PaginatedResponse format (has data array and meta)
         if (apiResponse?.data && Array.isArray(apiResponse.data) && apiResponse?.meta) {
             return apiResponse; // Already PaginatedResponse
         }
-        
+
         // Fallback: return as is (might be empty or error)
         return apiResponse || { data: [], meta: { page: 1, limit: 20, total: 0, totalPages: 0 } };
     },
@@ -222,7 +222,10 @@ export const storiesService = {
     // Like/Unlike
     likeStory: async (storyId: string): Promise<{ id: string; userId: string; storyId: string; createdAt: string }> => {
         const response = await apiClient.post<{ id: string; userId: string; storyId: string; createdAt: string }>(`/stories/${storyId}/like`);
-        return response.data;
+        if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+            return (response.data as any).data as { id: string; userId: string; storyId: string; createdAt: string };
+        }
+        return (response.data as unknown as { id: string; userId: string; storyId: string; createdAt: string });
     },
 
     unlikeStory: async (storyId: string): Promise<{ success: boolean }> => {
@@ -232,7 +235,10 @@ export const storiesService = {
 
     checkLiked: async (storyId: string): Promise<{ isLiked: boolean }> => {
         const response = await apiClient.get<{ isLiked: boolean }>(`/stories/${storyId}/like`);
-        return response.data;
+        if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'isLiked' in (response.data as any).data) {
+            return (response.data as any).data as { isLiked: boolean };
+        }
+        return (response.data as unknown as { isLiked: boolean });
     },
 
     getLikedStories: async (query?: { page?: number; limit?: number }): Promise<{ data: Array<{ id: string; userId: string; storyId: string; createdAt: string; story: Story }>; meta: any }> => {
@@ -240,7 +246,10 @@ export const storiesService = {
         if (query?.page) params.append('page', String(query.page));
         if (query?.limit) params.append('limit', String(query.limit));
         const response = await apiClient.get<{ data: Array<{ id: string; userId: string; storyId: string; createdAt: string; story: Story }>; meta: any }>(`/stories/users/me/liked?${params.toString()}`);
-        return response.data;
+        if ((response.data as any)?.data?.data && (response.data as any)?.data?.meta) {
+            return (response.data as any).data as { data: Array<{ id: string; userId: string; storyId: string; createdAt: string; story: Story }>; meta: any };
+        }
+        return (response.data as unknown as { data: Array<{ id: string; userId: string; storyId: string; createdAt: string; story: Story }>; meta: any });
     },
 };
 

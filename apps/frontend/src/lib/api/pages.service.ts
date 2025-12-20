@@ -30,22 +30,38 @@ export interface UpdatePageRequest {
 export const pagesService = {
     getAll: async (): Promise<Page[]> => {
         const response = await apiClient.get<ApiResponse<Page[]>>('/pages');
-        return response.data.data || response.data || [];
+        // Handle ApiResponse wrapper
+        if ((response.data as any)?.data && Array.isArray((response.data as any).data)) {
+            return (response.data as any).data as Page[];
+        }
+        if (Array.isArray(response.data)) {
+            return response.data as Page[];
+        }
+        return [];
     },
 
     getBySlug: async (slug: string): Promise<Page> => {
-        const response = await apiClient.get<ApiResponse<Page>>(`/pages/${slug}`);
-        return response.data.data || response.data;
+        const response = await apiClient.get<Page>(`/pages/${slug}`);
+        if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+            return (response.data as any).data as Page;
+        }
+        return (response.data as unknown as Page);
     },
 
     create: async (data: CreatePageRequest): Promise<Page> => {
-        const response = await apiClient.post<ApiResponse<Page>>('/pages', data);
-        return response.data.data || response.data;
+        const response = await apiClient.post<Page>('/pages', data);
+        if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+            return (response.data as any).data as Page;
+        }
+        return (response.data as unknown as Page);
     },
 
     update: async (slug: string, data: UpdatePageRequest): Promise<Page> => {
-        const response = await apiClient.patch<ApiResponse<Page>>(`/pages/${slug}`, data);
-        return response.data.data || response.data;
+        const response = await apiClient.patch<Page>(`/pages/${slug}`, data);
+        if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+            return (response.data as any).data as Page;
+        }
+        return (response.data as unknown as Page);
     },
 
     delete: async (slug: string): Promise<void> => {

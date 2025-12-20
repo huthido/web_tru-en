@@ -110,7 +110,7 @@ export function useToast() {
 // Global toast function that uses window event
 let globalToastHandler: ((message: string, type: ToastType) => void) | null = null;
 
-export function setGlobalToastHandler(handler: (message: string, type: ToastType) => void) {
+export function setGlobalToastHandler(handler: ((message: string, type: ToastType) => void) | null) {
   globalToastHandler = handler;
 }
 

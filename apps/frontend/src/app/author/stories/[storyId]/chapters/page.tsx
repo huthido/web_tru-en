@@ -126,7 +126,8 @@ export default function ChapterManagementPage() {
         try {
             const result = await publishMutation.mutateAsync(id);
             // Show success toast
-            const message = result?.data?.message || result?.message || 'Yêu cầu xuất bản đã được gửi thành công. Vui lòng chờ admin phê duyệt.';
+            // result is ApiResponse<Chapter>, so message is at result.message, not result.data.message
+            const message = result?.message || 'Yêu cầu xuất bản đã được gửi thành công. Vui lòng chờ admin phê duyệt.';
             showToast(message, 'success');
         } catch (error: any) {
             console.error('Error publishing chapter:', error);

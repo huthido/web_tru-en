@@ -73,7 +73,10 @@ export const usersService = {
     if (query?.isActive !== undefined) params.append('isActive', String(query.isActive));
 
     const response = await apiClient.get<{ data: User[]; meta: any }>(`/users?${params.toString()}`);
-    return response.data;
+    if ((response.data as any)?.data?.data && (response.data as any)?.data?.meta) {
+      return (response.data as any).data as { data: User[]; meta: any };
+    }
+    return (response.data as unknown as { data: User[]; meta: any });
   },
 
   /**
@@ -89,7 +92,10 @@ export const usersService = {
    */
   getStats: async (): Promise<UserStats> => {
     const response = await apiClient.get<UserStats>('/users/me/stats');
-    return response.data;
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'storiesCount' in (response.data as any).data) {
+      return (response.data as any).data as UserStats;
+    }
+    return (response.data as unknown as UserStats);
   },
 
   /**
@@ -97,7 +103,10 @@ export const usersService = {
    */
   getPublicProfile: async (userId: string): Promise<PublicProfile> => {
     const response = await apiClient.get<PublicProfile>(`/users/${userId}/public`);
-    return response.data;
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+      return (response.data as any).data as PublicProfile;
+    }
+    return (response.data as unknown as PublicProfile);
   },
 
   /**

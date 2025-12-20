@@ -90,11 +90,15 @@ export const commentsService = {
     const params = new URLSearchParams();
     if (page) params.append('page', page.toString());
     if (limit) params.append('limit', limit.toString());
-    
-    const response = await apiClient.get<{ success: boolean; data: CommentsResponse }>(
+
+    const response = await apiClient.get<CommentsResponse>(
       `/comments/stories/${storyId}?${params.toString()}`
     );
-    return response.data.data || response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'comments' in (response.data as any).data) {
+      return (response.data as any).data as CommentsResponse;
+    }
+    return (response.data as unknown as CommentsResponse);
   },
 
   // Get comments for a chapter
@@ -106,17 +110,25 @@ export const commentsService = {
     const params = new URLSearchParams();
     if (page) params.append('page', page.toString());
     if (limit) params.append('limit', limit.toString());
-    
-    const response = await apiClient.get<{ success: boolean; data: CommentsResponse }>(
+
+    const response = await apiClient.get<CommentsResponse>(
       `/comments/chapters/${chapterId}?${params.toString()}`
     );
-    return response.data.data || response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'comments' in (response.data as any).data) {
+      return (response.data as any).data as CommentsResponse;
+    }
+    return (response.data as unknown as CommentsResponse);
   },
 
   // Get single comment
   getComment: async (commentId: string): Promise<Comment> => {
-    const response = await apiClient.get<{ success: boolean; data: Comment }>(`/comments/${commentId}`);
-    return response.data.data || response.data;
+    const response = await apiClient.get<Comment>(`/comments/${commentId}`);
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+      return (response.data as any).data as Comment;
+    }
+    return (response.data as unknown as Comment);
   },
 
   // Create comment on story
@@ -124,11 +136,15 @@ export const commentsService = {
     storyId: string,
     data: CreateCommentRequest
   ): Promise<Comment> => {
-    const response = await apiClient.post<{ success: boolean; data: Comment }>(
+    const response = await apiClient.post<Comment>(
       `/comments/stories/${storyId}`,
       data
     );
-    return response.data.data || response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+      return (response.data as any).data as Comment;
+    }
+    return (response.data as unknown as Comment);
   },
 
   // Create comment on chapter
@@ -136,11 +152,15 @@ export const commentsService = {
     chapterId: string,
     data: CreateCommentRequest
   ): Promise<Comment> => {
-    const response = await apiClient.post<{ success: boolean; data: Comment }>(
+    const response = await apiClient.post<Comment>(
       `/comments/chapters/${chapterId}`,
       data
     );
-    return response.data.data || response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+      return (response.data as any).data as Comment;
+    }
+    return (response.data as unknown as Comment);
   },
 
   // Reply to a comment
@@ -148,11 +168,15 @@ export const commentsService = {
     commentId: string,
     data: CreateCommentRequest
   ): Promise<Comment> => {
-    const response = await apiClient.post<{ success: boolean; data: Comment }>(
+    const response = await apiClient.post<Comment>(
       `/comments/${commentId}/reply`,
       data
     );
-    return response.data.data || response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+      return (response.data as any).data as Comment;
+    }
+    return (response.data as unknown as Comment);
   },
 
   // Update comment
@@ -160,11 +184,15 @@ export const commentsService = {
     commentId: string,
     data: UpdateCommentRequest
   ): Promise<Comment> => {
-    const response = await apiClient.patch<{ success: boolean; data: Comment }>(
+    const response = await apiClient.patch<Comment>(
       `/comments/${commentId}`,
       data
     );
-    return response.data.data || response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+      return (response.data as any).data as Comment;
+    }
+    return (response.data as unknown as Comment);
   },
 
   // Delete comment
@@ -177,7 +205,14 @@ export const commentsService = {
     const response = await apiClient.get<{ success: boolean; data: { count: number } }>(
       `/comments/stories/${storyId}/count`
     );
-    return response.data.data?.count ?? 0;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data?.count !== undefined) {
+      return (response.data as any).data.count;
+    }
+    if ((response.data as any)?.count !== undefined) {
+      return (response.data as any).count;
+    }
+    return 0;
   },
 
   // Get comment count for chapter
@@ -185,7 +220,14 @@ export const commentsService = {
     const response = await apiClient.get<{ success: boolean; data: { count: number } }>(
       `/comments/chapters/${chapterId}/count`
     );
-    return response.data.data?.count ?? 0;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data?.count !== undefined) {
+      return (response.data as any).data.count;
+    }
+    if ((response.data as any)?.count !== undefined) {
+      return (response.data as any).count;
+    }
+    return 0;
   },
 
   // Admin: Get all comments
@@ -203,28 +245,32 @@ export const commentsService = {
     const response = await apiClient.get<AdminCommentsResponse | { success: boolean; data: AdminCommentsResponse }>(
       `/comments/admin/all?${params.toString()}`
     );
-    
+
     // Response structure from backend (no global ResponseInterceptor):
     // Direct: { data: [...], meta: {...} }
     // Or wrapped: { success: true, data: { data: [...], meta: {...} } }
-    
+
     // Check if response is wrapped
     if (response.data && typeof response.data === 'object' && 'success' in response.data) {
       // Wrapped format: { success: true, data: { data: [...], meta: {...} } }
       return (response.data as any).data as AdminCommentsResponse;
     }
-    
+
     // Direct format: { data: [...], meta: {...} }
     return response.data as AdminCommentsResponse;
   },
 
   // Admin: Moderate comment
   moderateComment: async (commentId: string, action: 'approve' | 'delete' | 'restore'): Promise<Comment> => {
-    const response = await apiClient.patch<{ success: boolean; data: Comment }>(
+    const response = await apiClient.patch<Comment>(
       `/comments/admin/${commentId}/moderate`,
       { action }
     );
-    return response.data.data || response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+      return (response.data as any).data as Comment;
+    }
+    return (response.data as unknown as Comment);
   },
 };
 

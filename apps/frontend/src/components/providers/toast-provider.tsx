@@ -36,7 +36,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     window.addEventListener('show-toast', handleToastEvent);
     return () => {
       window.removeEventListener('show-toast', handleToastEvent);
-      setGlobalToastHandler(null);
+      setGlobalToastHandler(() => {}); // Set to no-op function instead of null
     };
   }, []);
 

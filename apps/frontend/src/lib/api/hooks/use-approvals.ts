@@ -64,7 +64,11 @@ export const approvalsService = {
     const response = await apiClient.get<{ data: ApprovalRequest[]; meta: any }>(
       `/approvals?${params.toString()}`
     );
-    return response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data?.data && (response.data as any)?.data?.meta) {
+      return (response.data as any).data as { data: ApprovalRequest[]; meta: any };
+    }
+    return (response.data as unknown as { data: ApprovalRequest[]; meta: any });
   },
 
   /**
@@ -81,7 +85,11 @@ export const approvalsService = {
     const response = await apiClient.get<{ data: ApprovalRequest[]; meta: any }>(
       `/approvals/me?${params.toString()}`
     );
-    return response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data?.data && (response.data as any)?.data?.meta) {
+      return (response.data as any).data as { data: ApprovalRequest[]; meta: any };
+    }
+    return (response.data as unknown as { data: ApprovalRequest[]; meta: any });
   },
 
   /**

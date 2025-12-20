@@ -42,20 +42,26 @@ export interface UpdateSettingsRequest {
 
 export const settingsService = {
     get: async (): Promise<Settings> => {
-        const response = await apiClient.get<ApiResponse<Settings>>('/settings');
-        return response.data.data || response.data;
+        const response = await apiClient.get<Settings>('/settings');
+        if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+            return (response.data as any).data as Settings;
+        }
+        return (response.data as unknown as Settings);
     },
 
     update: async (data: UpdateSettingsRequest): Promise<Settings> => {
-        const response = await apiClient.patch<ApiResponse<Settings>>('/settings', data);
-        return response.data.data || response.data;
+        const response = await apiClient.patch<Settings>('/settings', data);
+        if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+            return (response.data as any).data as Settings;
+        }
+        return (response.data as unknown as Settings);
     },
 
     uploadLogo: async (file: File): Promise<string> => {
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await apiClient.post<ApiResponse<{ url: string }>>(
+        const response = await apiClient.post<{ url: string }>(
             '/settings/upload-logo',
             formData,
             {
@@ -64,14 +70,20 @@ export const settingsService = {
                 },
             }
         );
-        return response.data.data?.url || '';
+        if ((response.data as any)?.data?.url) {
+            return (response.data as any).data.url;
+        }
+        if ((response.data as any)?.url) {
+            return (response.data as any).url;
+        }
+        return '';
     },
 
     uploadFavicon: async (file: File): Promise<string> => {
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await apiClient.post<ApiResponse<{ url: string }>>(
+        const response = await apiClient.post<{ url: string }>(
             '/settings/upload-favicon',
             formData,
             {
@@ -80,6 +92,12 @@ export const settingsService = {
                 },
             }
         );
-        return response.data.data?.url || '';
+        if ((response.data as any)?.data?.url) {
+            return (response.data as any).data.url;
+        }
+        if ((response.data as any)?.url) {
+            return (response.data as any).url;
+        }
+        return '';
     },
 };

@@ -181,18 +181,18 @@ export interface UserWithStories extends User {
   authoredStories?: Story[];
 }
 
-export interface StoryWithChapters extends Story {
+export interface StoryWithChapters extends Omit<Story, 'tags'> {
   chapters?: Chapter[];
   author?: User;
   categories?: Category[];
-  tags?: Tag[];
+  tags?: Tag[] | string[];
 }
 
-export interface StoryWithDetails extends Story {
+export interface StoryWithDetails extends Omit<Story, 'tags'> {
   author?: User;
   chapters?: Chapter[];
   categories?: Category[];
-  tags?: Tag[];
+  tags?: Tag[] | string[];
   isFollowing?: boolean;
   isFavorite?: boolean;
   userRating?: number;

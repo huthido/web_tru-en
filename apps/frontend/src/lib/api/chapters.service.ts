@@ -89,8 +89,8 @@ export const chaptersService = {
     ): Promise<ApiResponse<Chapter> | Chapter> => {
         // First get all chapters to find by ID
         const allChapters = await chaptersService.getAll(storySlug);
-        const chapters = Array.isArray(allChapters) 
-            ? allChapters 
+        const chapters = Array.isArray(allChapters)
+            ? allChapters
             : (Array.isArray((allChapters as any).data) ? (allChapters as any).data : []);
         const chapter = chapters.find((ch: Chapter) => ch.id === chapterId);
         if (!chapter) {
@@ -137,10 +137,18 @@ export const chaptersService = {
         if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
         if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
-        const response = await apiClient.get<{ data: Chapter[]; meta: any }>(
+        const response = await apiClient.get<PaginatedResponse<Chapter>>(
             `/admin/chapters?${queryParams.toString()}`
         );
-        return response.data;
+        // Handle ApiResponse wrapper
+        if (response.data && 'data' in response.data && 'meta' in response.data) {
+            return response.data as unknown as PaginatedResponse<Chapter>;
+        }
+        // If wrapped in ApiResponse
+        if ((response.data as any)?.data?.data && (response.data as any)?.data?.meta) {
+            return (response.data as any).data as PaginatedResponse<Chapter>;
+        }
+        return (response.data as unknown as PaginatedResponse<Chapter>);
     },
 
     getChaptersStats: async (): Promise<{
@@ -149,16 +157,24 @@ export const chaptersService = {
         draft: number;
         totalViews: number;
     }> => {
-        const response = await apiClient.get('/admin/chapters/stats');
-        return response.data;
+        const response = await apiClient.get<{ total: number; published: number; draft: number; totalViews: number }>('/admin/chapters/stats');
+        // Handle ApiResponse wrapper
+        if ((response.data as any)?.data) {
+            return (response.data as any).data;
+        }
+        return (response.data as unknown as { total: number; published: number; draft: number; totalViews: number });
     },
 
     getChaptersChartData: async (days: number = 30): Promise<{
         labels: string[];
         data: number[];
     }> => {
-        const response = await apiClient.get(`/admin/chapters/chart-data?days=${days}`);
-        return response.data;
+        const response = await apiClient.get<{ labels: string[]; data: number[] }>(`/admin/chapters/chart-data?days=${days}`);
+        // Handle ApiResponse wrapper
+        if ((response.data as any)?.data) {
+            return (response.data as any).data;
+        }
+        return (response.data as unknown as { labels: string[]; data: number[] });
     },
 };
 

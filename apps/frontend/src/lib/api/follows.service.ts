@@ -29,7 +29,11 @@ export interface FollowResponse {
 export const followsService = {
   followStory: async (storyId: string): Promise<Follow> => {
     const response = await apiClient.post<Follow>(`/stories/${storyId}/follow`);
-    return response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'id' in (response.data as any).data) {
+      return (response.data as any).data as Follow;
+    }
+    return (response.data as unknown as Follow);
   },
 
   unfollowStory: async (storyId: string): Promise<{ success: boolean }> => {
@@ -39,7 +43,11 @@ export const followsService = {
 
   checkFollowing: async (storyId: string): Promise<FollowResponse> => {
     const response = await apiClient.get<FollowResponse>(`/stories/${storyId}/follow`);
-    return response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'isFollowing' in (response.data as any).data) {
+      return (response.data as any).data as FollowResponse;
+    }
+    return (response.data as unknown as FollowResponse);
   },
 
   getMyFollows: async (query?: { page?: number; limit?: number }): Promise<{ data: Follow[]; meta: any }> => {
@@ -47,7 +55,11 @@ export const followsService = {
     if (query?.page) params.append('page', String(query.page));
     if (query?.limit) params.append('limit', String(query.limit));
     const response = await apiClient.get<{ data: Follow[]; meta: any }>(`/users/me/follows?${params.toString()}`);
-    return response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data?.data && (response.data as any)?.data?.meta) {
+      return (response.data as any).data as { data: Follow[]; meta: any };
+    }
+    return (response.data as unknown as { data: Follow[]; meta: any });
   },
 
   getStoryFollowers: async (storyId: string, query?: { page?: number; limit?: number }): Promise<{ data: Follow[]; meta: any }> => {
@@ -55,7 +67,11 @@ export const followsService = {
     if (query?.page) params.append('page', String(query.page));
     if (query?.limit) params.append('limit', String(query.limit));
     const response = await apiClient.get<{ data: Follow[]; meta: any }>(`/stories/${storyId}/followers?${params.toString()}`);
-    return response.data;
+    // Handle ApiResponse wrapper
+    if ((response.data as any)?.data?.data && (response.data as any)?.data?.meta) {
+      return (response.data as any).data as { data: Follow[]; meta: any };
+    }
+    return (response.data as unknown as { data: Follow[]; meta: any });
   },
 };
 

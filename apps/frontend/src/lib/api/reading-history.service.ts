@@ -65,24 +65,36 @@ export const readingHistoryService = {
     if (query?.page) params.append('page', String(query.page));
     if (query?.limit) params.append('limit', String(query.limit));
     const response = await apiClient.get<{ data: ReadingHistory[]; meta: any }>(`/users/me/history?${params.toString()}`);
-    return response.data;
+    if ((response.data as any)?.data?.data && (response.data as any)?.data?.meta) {
+      return (response.data as any).data as { data: ReadingHistory[]; meta: any };
+    }
+    return (response.data as unknown as { data: ReadingHistory[]; meta: any });
   },
 
   getChapterProgress: async (chapterId: string): Promise<ChapterProgress> => {
     const response = await apiClient.get<ChapterProgress>(`/chapters/${chapterId}/progress`);
-    return response.data;
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'progress' in (response.data as any).data) {
+      return (response.data as any).data as ChapterProgress;
+    }
+    return (response.data as unknown as ChapterProgress);
   },
 
   getContinueReading: async (limit?: number): Promise<ReadingHistory[]> => {
     const params = new URLSearchParams();
     if (limit) params.append('limit', String(limit));
     const response = await apiClient.get<ReadingHistory[]>(`/users/me/continue-reading?${params.toString()}`);
-    return response.data;
+    if ((response.data as any)?.data && Array.isArray((response.data as any).data)) {
+      return (response.data as any).data as ReadingHistory[];
+    }
+    return (response.data as unknown as ReadingHistory[]);
   },
 
   clearHistory: async (): Promise<{ success: boolean; message: string }> => {
     const response = await apiClient.delete<{ success: boolean; message: string }>('/users/me/history');
-    return response.data;
+    if ((response.data as any)?.data && typeof (response.data as any).data === 'object' && 'success' in (response.data as any).data) {
+      return (response.data as any).data as { success: boolean; message: string };
+    }
+    return (response.data as unknown as { success: boolean; message: string });
   },
 };
 
