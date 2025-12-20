@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "prebuild": "npx prisma generate",
-    "build": "npx nest build",
+    "build": "node ../../node_modules/.bin/nest build || npx nest build",
     "build:render": "cd ../.. && npm install && cd apps/backend && npx prisma generate && npx nest build",
     "start": "node dist/main",
     "dev": "nest start --watch",
