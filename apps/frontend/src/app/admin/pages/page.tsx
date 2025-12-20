@@ -251,11 +251,10 @@ export default function AdminPagesPage() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span
-                                                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                                        page.isActive
+                                                    className={`px-2 py-1 text-xs font-medium rounded-full ${page.isActive
                                                             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                                                             : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {page.isActive ? 'Hoạt động' : 'Tắt'}
                                                 </span>
@@ -304,7 +303,7 @@ export default function AdminPagesPage() {
                     message={`Bạn có chắc muốn xóa trang "${deletingPage.title}"? Hành động này không thể hoàn tác.`}
                     confirmText="Xóa"
                     cancelText="Hủy"
-                    isDestructive
+                    confirmColor="red"
                 />
             )}
 

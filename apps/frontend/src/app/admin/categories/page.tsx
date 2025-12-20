@@ -520,7 +520,7 @@ export default function AdminCategoriesPage() {
                     message={`Bạn có chắc chắn muốn xóa thể loại "${deletingCategory.name}"? Hành động này không thể hoàn tác.`}
                     confirmText="Xóa"
                     cancelText="Hủy"
-                    isDestructive
+                    confirmColor="red"
                 />
             )}
         </AdminLayout>

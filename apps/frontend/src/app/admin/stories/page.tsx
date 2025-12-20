@@ -574,13 +574,14 @@ export default function AdminStoriesPage() {
             {/* Delete Confirmation Modal */}
             {deletingStory && (
                 <ConfirmModal
+                    isOpen={!!deletingStory}
                     title="Xác nhận xóa truyện"
                     message={`Bạn có chắc muốn xóa truyện "${deletingStory.title}"? Hành động này không thể hoàn tác.`}
                     confirmText="Xóa"
                     cancelText="Hủy"
+                    confirmColor="red"
                     onConfirm={async () => { await handleDelete() }}
                     onClose={() => { setDeletingStory(null) }}
-                    isOpen={!!deletingStory}
                     isLoading={deleteMutation.isPending}
                 />
             )}

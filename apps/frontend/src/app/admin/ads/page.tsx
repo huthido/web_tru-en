@@ -702,6 +702,9 @@ export default function AdminAdsPage() {
                     message={`Bạn có chắc chắn muốn xóa quảng cáo "${deletingAd.title || 'Không có tiêu đề'}"?`}
                     onConfirm={handleDelete}
                     onClose={() => setDeletingAd(null)}
+                    confirmText="Xóa"
+                    cancelText="Hủy"
+                    confirmColor="red"
                     isLoading={deleteMutation.isPending}
                 />
             )}
