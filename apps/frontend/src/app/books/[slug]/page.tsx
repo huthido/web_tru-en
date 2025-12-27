@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -17,6 +17,8 @@ import { LikeButton } from '@/components/stories/like-button';
 import { CommentSection } from '@/components/comments/comment-section';
 import { StarRating } from '@/components/stories/star-rating';
 import { PopupSupportContent } from '@/components/pages/popup-support-content';
+import { ArrowLeft, BookOpen, HeartHandshake, Share2 } from 'lucide-react';
+import { useToast } from '@/components/ui/toast';
 
 export default function BookDetailPage() {
   const params = useParams();
@@ -63,6 +65,39 @@ export default function BookDetailPage() {
     }
   };
 
+  const { showToast } = useToast();
+
+  const handleShare = async () => {
+    const storyUrl = `${window.location.origin}/books/${story?.slug}`;
+    const shareData = {
+      title: story?.title || 'Truyện',
+      text: story?.description || `Đọc truyện ${story?.title}`,
+      url: storyUrl,
+    };
+
+    try {
+      // Try Web Share API first (mobile)
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: Copy to clipboard
+        await navigator.clipboard.writeText(storyUrl);
+        showToast('Đã sao chép link vào clipboard!', 'success');
+      }
+    } catch (error: any) {
+      // User cancelled or error occurred
+      if (error.name !== 'AbortError') {
+        // Fallback: Copy to clipboard
+        try {
+          await navigator.clipboard.writeText(storyUrl);
+          showToast('Đã sao chép link vào clipboard!', 'success');
+        } catch (clipboardError) {
+          showToast('Không thể chia sẻ. Vui lòng thử lại!', 'error');
+        }
+      }
+    }
+  };
+
   // Get similar stories using the new API
   const { data: similarStoriesData } = useSimilarStories(story?.id || '', 10);
 
@@ -103,6 +138,10 @@ export default function BookDetailPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
 
+  // Pagination state for chapters
+  const [chaptersPage, setChaptersPage] = useState(1);
+  const [chaptersPerPage, setChaptersPerPage] = useState(3);
+
   // Related books scroll refs and state
   const relatedBooksScrollRef = useRef<HTMLDivElement>(null);
   const [isDraggingRelated, setIsDraggingRelated] = useState(false);
@@ -117,6 +156,18 @@ export default function BookDetailPage() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Reset to page 1 when chaptersPerPage changes
+  useEffect(() => {
+    setChaptersPage(1);
+  }, [chaptersPerPage]);
+
+  // Calculate pagination for chapters
+  const totalChapters = chapters?.length || 0;
+  const totalPages = Math.ceil(totalChapters / chaptersPerPage);
+  const startIndex = (chaptersPage - 1) * chaptersPerPage;
+  const endIndex = startIndex + chaptersPerPage;
+  const displayedChapters = chapters?.slice(startIndex, endIndex) || [];
 
   if (isLoading) {
     return (
@@ -252,16 +303,10 @@ export default function BookDetailPage() {
             onClick={handleBack}
             className="flex items-center gap-2 mb-6 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-all duration-300 hover:scale-105 active:scale-95 group"
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              className="stroke-currentColor transition-transform duration-300 group-hover:-translate-x-1"
-              strokeWidth="2"
-            >
-              <path d="M12.5 15L7.5 10L12.5 5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <ArrowLeft
+              size={20}
+              className="transition-transform duration-300 group-hover:-translate-x-1"
+            />
             <span className="text-sm font-medium">Trở lại</span>
           </button>
 
@@ -365,13 +410,7 @@ export default function BookDetailPage() {
                     href={`/stories/${story.slug}/chapters/${chapters[0].slug}`}
                     className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
                   >
-                    <svg width="20" height="20" className="md:w-[24px] md:h-[24px] stroke-white" viewBox="0 0 30 30" fill="none" strokeWidth="1.5">
-                      <path
-                        d="M1.875 5.625L15 3.75L28.125 5.625V15C28.125 20.625 15 26.25 15 26.25C15 26.25 1.875 20.625 1.875 15V5.625Z"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                    <BookOpen size={20} className="md:w-6 md:h-6" />
                     <span>Đọc truyện</span>
                   </Link>
                 ) : (
@@ -379,31 +418,31 @@ export default function BookDetailPage() {
                     disabled
                     className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-sm md:text-base font-medium cursor-not-allowed"
                   >
-                    <svg width="20" height="20" className="md:w-[24px] md:h-[24px] stroke-current" viewBox="0 0 30 30" fill="none" strokeWidth="1.5">
-                      <path
-                        d="M1.875 5.625L15 3.75L28.125 5.625V15C28.125 20.625 15 26.25 15 26.25C15 26.25 1.875 20.625 1.875 15V5.625Z"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                    <BookOpen size={20} className="md:w-6 md:h-6" />
                     <span>Chưa có chương</span>
                   </button>
                 )}
 
                 {/* Follow Button */}
-                <FollowButton storyId={story.id} showText={false} className="w-[36px] h-[36px] md:w-[40px] md:h-[40px] p-0 flex items-center justify-center" />
+                <FollowButton storyId={story.id} showText={false} className="w-[44px] h-[44px] md:w-[48px] md:h-[48px] p-0 flex items-center justify-center" />
 
                 {/* Like Button */}
-                <LikeButton storyId={story.id} likeCount={story.likeCount} showCount={false} className="w-[36px] h-[36px] md:w-[40px] md:h-[40px] p-0 flex items-center justify-center" />
+                <LikeButton storyId={story.id} likeCount={story.likeCount} showCount={false} className="w-[44px] h-[44px] md:w-[48px] md:h-[48px] p-0 flex items-center justify-center" />
+
+                {/* Share Button */}
+                <button
+                  onClick={handleShare}
+                  className="w-[44px] h-[44px] md:w-[48px] md:h-[48px] flex items-center justify-center bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg transition-all duration-300 hover:scale-105 active:scale-95"
+                  aria-label="Chia sẻ"
+                >
+                  <Share2 size={20} className="md:w-6 md:h-6" />
+                </button>
 
                 <button
                   onClick={() => setShowSupportModal(true)}
                   className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
                 >
-                  <svg width="20" height="20" className="md:w-[24px] md:h-[24px] stroke-white" viewBox="0 0 30 30" fill="none" strokeWidth="1.5">
-                    <rect x="1.875" y="5.625" width="26.25" height="22.5" rx="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M1.875 11.25H28.125" strokeLinecap="round" />
-                  </svg>
+                  <HeartHandshake size={20} className="md:w-6 md:h-6" />
                   <span className="hidden sm:inline">Ủng hộ làm phim</span>
                   <span className="sm:hidden">Ủng hộ</span>
                 </button>
@@ -439,12 +478,30 @@ export default function BookDetailPage() {
               ) : (
                 chapters && chapters.length > 0 ? (
                   <div className="mb-8">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                      Danh sách chương ({chapters.length})
-                    </h2>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden max-h-[600px] overflow-y-auto">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                        Danh sách chương ({totalChapters})
+                      </h2>
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm text-gray-600 dark:text-gray-400">
+                          Hiển thị:
+                        </label>
+                        <select
+                          value={chaptersPerPage}
+                          onChange={(e) => setChaptersPerPage(Number(e.target.value))}
+                          className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value={3}>3</option>
+                          <option value={5}>5</option>
+                          <option value={10}>10</option>
+                          <option value={20}>20</option>
+                          <option value={50}>50</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
                       <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                        {chapters.map((chapter: any) => (
+                        {displayedChapters.map((chapter: any) => (
                           <Link
                             key={chapter.id}
                             href={`/stories/${story.slug}/chapters/${chapter.slug}`}
@@ -484,6 +541,62 @@ export default function BookDetailPage() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                      <div className="mt-4 flex items-center justify-between">
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          Hiển thị {startIndex + 1} - {Math.min(endIndex, totalChapters)} trong tổng số {totalChapters} chương
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setChaptersPage(prev => Math.max(1, prev - 1))}
+                            disabled={chaptersPage === 1}
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                          >
+                            Trước
+                          </button>
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1)
+                              .filter(page => {
+                                // Show first page, last page, current page, and pages around current
+                                if (page === 1 || page === totalPages) return true;
+                                if (Math.abs(page - chaptersPage) <= 1) return true;
+                                return false;
+                              })
+                              .map((page, index, array) => {
+                                // Add ellipsis if there's a gap
+                                const prevPage = array[index - 1];
+                                const showEllipsis = prevPage && page - prevPage > 1;
+
+                                return (
+                                  <React.Fragment key={page}>
+                                    {showEllipsis && (
+                                      <span className="px-2 text-gray-500 dark:text-gray-400">...</span>
+                                    )}
+                                    <button
+                                      onClick={() => setChaptersPage(page)}
+                                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors duration-200 ${chaptersPage === page
+                                        ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                        : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                        }`}
+                                    >
+                                      {page}
+                                    </button>
+                                  </React.Fragment>
+                                );
+                              })}
+                          </div>
+                          <button
+                            onClick={() => setChaptersPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={chaptersPage === totalPages}
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                          >
+                            Sau
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="mb-8">

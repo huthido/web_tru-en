@@ -14,15 +14,19 @@ async function getStoryAndChapter(storySlug: string, chapterSlug: string) {
     ]);
 
     const story = storyResponse.data?.data || storyResponse.data;
-    const chapters = Array.isArray(chaptersResponse.data?.data) 
-      ? chaptersResponse.data.data 
+    const chapters = Array.isArray(chaptersResponse.data?.data)
+      ? chaptersResponse.data.data
       : (Array.isArray(chaptersResponse.data) ? chaptersResponse.data : []);
-    
+
     const chapter = chapters.find((ch: any) => ch.slug === chapterSlug);
 
     return { story, chapter };
-  } catch (error) {
-    console.error('Error fetching story/chapter for metadata:', error);
+  } catch (error: any) {
+    // Only log non-connection errors to reduce noise
+    // Connection errors (ECONNREFUSED) are expected when backend is not running
+    if (error?.code !== 'ECONNREFUSED' && error?.cause?.code !== 'ECONNREFUSED') {
+      console.error('Error fetching story/chapter for metadata:', error);
+    }
     return { story: null, chapter: null };
   }
 }
@@ -39,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   const chapterUrl = `${siteUrl}/stories/${params.storySlug}/chapters/${params.chapterSlug}`;
-  const description = chapter.content 
+  const description = chapter.content
     ? (chapter.content.length > 160 ? chapter.content.substring(0, 157) + '...' : chapter.content)
     : `Đọc ${chapter.title} - ${story.title}`;
 

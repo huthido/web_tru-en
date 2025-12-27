@@ -9,7 +9,7 @@ export function Footer() {
     const { data: settings } = useSettings();
 
     return (
-        <footer className="w-full bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 transition-colors duration-300">
+        <footer className="w-full bg-[#FDF2F8] dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
                 {/* Main Footer Content */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 mb-12">
@@ -48,9 +48,6 @@ export function Footer() {
                                 )}
                             </div>
                         </Link>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed transition-colors duration-300">
-                            {settings?.siteDescription || 'Nền tảng đọc truyện và sách trực tuyến hàng đầu. Khám phá thế giới văn học với hàng ngàn tác phẩm đa dạng từ các tác giả trong nước và quốc tế.'}
-                        </p>
                         {/* Thông tin liên hệ */}
                         {(settings?.siteEmail || settings?.sitePhone || settings?.siteAddress) && (
                             <div className="flex flex-col gap-2 mt-2">

@@ -8,6 +8,8 @@ interface Book {
   id: string;
   title: string;
   viewCount: number;
+  rating?: number;
+  ratingCount?: number;
   coverImage?: string | null;
   slug?: string;
   storyId?: string;
@@ -17,9 +19,10 @@ interface BookSectionProps {
   title: string;
   books: Book[];
   seeMoreLink?: string;
+  showLikeButton?: boolean;
 }
 
-export function BookSection({ title, books, seeMoreLink = '#' }: BookSectionProps) {
+export function BookSection({ title, books, seeMoreLink = '#', showLikeButton = true }: BookSectionProps) {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -117,37 +120,37 @@ export function BookSection({ title, books, seeMoreLink = '#' }: BookSectionProp
         }`}
     >
       {/* Section Header */}
-      <div className="flex items-center justify-between mb-4 px-6 md:px-6">
-        <h2 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-300">
+      <div className="flex items-center gap-3 mb-4 px-6 md:px-6 flex-wrap">
+        <h2 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-300 flex-shrink-0">
           {title}
         </h2>
         {seeMoreLink && (
           <Link
             href={seeMoreLink}
-            className="text-xs md:text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors duration-300 flex-shrink-0 ml-2"
+            className="text-xs md:text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors duration-300 flex-shrink-0 whitespace-nowrap"
           >
-            Xem thêm
+            (Xem thêm)
           </Link>
         )}
       </div>
 
       {/* Book List - Horizontal Scroll */}
-      <div
-        ref={scrollContainerRef}
-        className="overflow-x-auto ml-[16px] lg:ml-0 scrollbar-hide scroll-smooth snap-x snap-mandatory touch-pan-x cursor-grab select-none"
-        onMouseDown={handleMouseDown}
-        onMouseLeave={handleMouseLeave}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-        onWheel={handleWheel}
-        style={{
-          WebkitOverflowScrolling: 'touch',
-          scrollBehavior: 'smooth',
-        }}
-      >
-        <div className="flex gap-3 md:gap-4 px-6 md:px-6 pb-4 min-w-max">
-          {books.length > 0 ? (
-            books.map((book, index) => (
+      {books.length > 0 ? (
+        <div
+          ref={scrollContainerRef}
+          className="overflow-x-auto ml-[16px] lg:ml-0 scrollbar-hide scroll-smooth snap-x snap-mandatory touch-pan-x cursor-grab select-none"
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          onWheel={handleWheel}
+          style={{
+            WebkitOverflowScrolling: 'touch',
+            scrollBehavior: 'smooth',
+          }}
+        >
+          <div className="flex gap-3 md:gap-4 px-0 md:px-6 pb-4 min-w-max">
+            {books.map((book, index) => (
               <div
                 key={book.id}
                 className="transition-all duration-500 snap-start flex-shrink-0"
@@ -161,19 +164,24 @@ export function BookSection({ title, books, seeMoreLink = '#' }: BookSectionProp
                   id={book.id}
                   title={book.title}
                   viewCount={book.viewCount}
+                  rating={book.rating}
+                  ratingCount={book.ratingCount}
                   coverImage={book.coverImage}
                   slug={book.slug}
                   storyId={book.storyId}
+                  showLikeButton={showLikeButton}
                 />
               </div>
-            ))
-          ) : (
-            <div className="w-full py-8 text-center text-gray-500 dark:text-gray-400">
-              Chưa có sách nào
-            </div>
-          )}
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="px-6 md:px-6 ml-0">
+          <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+            Chưa có sách nào
+          </div>
+        </div>
+      )}
     </section>
   );
 }

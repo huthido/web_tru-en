@@ -18,8 +18,12 @@ async function getStory(slug: string) {
       return response.data;
     }
     return null;
-  } catch (error) {
-    console.error('Error fetching story for metadata:', error);
+  } catch (error: any) {
+    // Only log non-connection errors to reduce noise
+    // Connection errors (ECONNREFUSED) are expected when backend is not running
+    if (error?.code !== 'ECONNREFUSED' && error?.cause?.code !== 'ECONNREFUSED') {
+      console.error('Error fetching story for metadata:', error);
+    }
     return null;
   }
 }

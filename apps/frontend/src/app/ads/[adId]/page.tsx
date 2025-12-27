@@ -127,11 +127,19 @@ export default function AdPage() {
                             </div>
                         )}
 
-                        {/* Ad Content - Displayed like chapter content */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 md:p-8 lg:p-12 shadow-sm">
-                            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                        {/* Ad Content - Full width, no padding */}
+                        <div className="bg-white dark:bg-gray-800 rounded-[15px] shadow-sm overflow-hidden">
+                            {/* Sponsored Label */}
+                            <div className="w-full bg-gray-100 dark:bg-gray-700 px-4 py-2 text-left">
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                    Được tài trợ
+                                </span>
+                            </div>
+                            
+                            {/* Ad Image - Full width, no gaps */}
+                            <div className="w-full relative">
                                 {selectedAd.imageUrl ? (
-                                    <div className="w-full max-w-2xl">
+                                    <div className="w-full relative">
                                         {selectedAd.linkUrl ? (
                                             <a
                                                 href={selectedAd.linkUrl}
@@ -144,43 +152,45 @@ export default function AdPage() {
                                                     }
                                                 }}
                                             >
-                                                <div className="relative w-full h-[60vh] min-h-[400px] max-h-[800px]">
+                                                <div className="relative w-full h-[70vh] min-h-[500px]">
                                                     <Image
                                                         src={selectedAd.imageUrl}
                                                         alt={selectedAd.title || 'Quảng cáo'}
                                                         fill
-                                                        className="object-contain"
-                                                        sizes="(max-width: 768px) 100vw, 800px"
+                                                        className="object-cover"
+                                                        sizes="100vw"
+                                                        priority
                                                     />
                                                 </div>
                                             </a>
                                         ) : (
-                                            <div className="relative w-full h-[60vh] min-h-[400px] max-h-[800px]">
+                                            <div className="relative w-full h-[70vh] min-h-[500px]">
                                                 <Image
                                                     src={selectedAd.imageUrl}
                                                     alt={selectedAd.title || 'Quảng cáo'}
                                                     fill
-                                                    className="object-contain"
-                                                    sizes="(max-width: 768px) 100vw, 800px"
+                                                    className="object-cover"
+                                                    sizes="100vw"
+                                                    priority
                                                 />
                                             </div>
                                         )}
+                                        
+                                        {/* Continue Button - Overlay at bottom */}
+                                        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+                                            <button
+                                                onClick={handleContinue}
+                                                className="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 dark:from-blue-600 dark:to-indigo-600 dark:hover:from-blue-700 dark:hover:to-indigo-700 rounded-lg text-white font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
+                                            >
+                                                Tiếp tục đọc
+                                            </button>
+                                        </div>
                                     </div>
                                 ) : (
-                                    <div className="text-center text-gray-500 dark:text-gray-400">
+                                    <div className="text-center text-gray-500 dark:text-gray-400 py-20">
                                         <p>Không có hình ảnh quảng cáo</p>
                                     </div>
                                 )}
-
-                                {/* Continue Button */}
-                                <div className="mt-8 w-full max-w-2xl">
-                                    <button
-                                        onClick={handleContinue}
-                                        className="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 dark:from-blue-600 dark:to-indigo-600 dark:hover:from-blue-700 dark:hover:to-indigo-700 rounded-lg text-white font-semibold text-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
-                                    >
-                                        Tiếp tục đọc
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>

@@ -39,6 +39,8 @@ export default function Home() {
     title: story.title,
     author: story.authorName || story.author?.displayName || story.author?.username || 'N/A',
     viewCount: story.viewCount || 0,
+    rating: story.rating || 0,
+    ratingCount: story.ratingCount || 0,
     coverImage: story.coverImage,
     slug: story.slug,
     storyId: story.id,
@@ -150,19 +152,19 @@ export default function Home() {
 
               {/* Book Sections */}
               <Suspense fallback={<BookSectionSkeleton />}>
-                <BookSection title="MỚI NHẤT" books={newestBooksTransformed} seeMoreLink="/stories?sortBy=newest" />
+                <BookSection title="MỚI NHẤT" books={newestBooksTransformed} seeMoreLink="/stories?sortBy=newest" showLikeButton={false} />
               </Suspense>
               <Suspense fallback={<BookSectionSkeleton />}>
-                <BookSection title="SÁCH ĐƯỢC ĐỀ XUẤT" books={recommendedBooksTransformed} seeMoreLink="/stories?sortBy=popular" />
+                <BookSection title="SÁCH ĐƯỢC ĐỀ XUẤT" books={recommendedBooksTransformed} seeMoreLink="/stories?sortBy=popular" showLikeButton={false} />
               </Suspense>
               <Suspense fallback={<BookSectionSkeleton />}>
-                <BookSection title="TRUYỆN HAY NHẤT THÁNG" books={bestOfMonthTransformed} seeMoreLink="/stories?sortBy=viewCount" />
+                <BookSection title="TRUYỆN HAY NHẤT THÁNG" books={bestOfMonthTransformed} seeMoreLink="/stories?sortBy=viewCount" showLikeButton={false} />
               </Suspense>
               <Suspense fallback={<BookSectionSkeleton />}>
-                <BookSection title="TRUYỆN ĐƯỢC ĐÁNH GIÁ CAO" books={topRatedTransformed} seeMoreLink="/stories?sortBy=rating" />
+                <BookSection title="TRUYỆN ĐƯỢC ĐÁNH GIÁ CAO" books={topRatedTransformed} seeMoreLink="/stories?sortBy=rating" showLikeButton={false} />
               </Suspense>
               <Suspense fallback={<BookSectionSkeleton />}>
-                <BookSection title="TRUYỆN ĐƯỢC YÊU THÍCH" books={mostLikedTransformed} seeMoreLink="/stories?sortBy=popular" />
+                <BookSection title="TRUYỆN ĐƯỢC YÊU THÍCH" books={mostLikedTransformed} seeMoreLink="/stories?sortBy=popular" showLikeButton={false} />
               </Suspense>
             </>
           )}

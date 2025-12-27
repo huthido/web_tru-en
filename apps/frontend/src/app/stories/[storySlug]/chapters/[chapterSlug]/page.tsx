@@ -13,10 +13,10 @@ import { useStory } from '@/lib/api/hooks/use-stories';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useActiveAds, useTrackAdView, useTrackAdClick } from '@/lib/api/hooks/use-ads';
 import { AdType, AdPosition } from '@/lib/api/ads.service';
-import { 
-    markChapterCompleted, 
-    shouldShowPopup, 
-    getNextPopupAdIndex, 
+import {
+    markChapterCompleted,
+    shouldShowPopup,
+    getNextPopupAdIndex,
     getNextBannerAdIndex,
     updateChapterReadingTime,
     updateChapterScrollProgress,
@@ -25,6 +25,7 @@ import {
     getVisitCount
 } from '@/utils/reading-tracker';
 import { useSaveProgress, useChapterProgress } from '@/lib/api/hooks/use-reading-history';
+import { BookOpen } from 'lucide-react';
 
 export default function ChapterReadingPage() {
     const params = useParams();
@@ -67,7 +68,7 @@ export default function ChapterReadingPage() {
 
     // Extract chapter data
     const chapterData = (chapter as any)?.data || (chapter as any);
-    
+
     // Reading history hooks (must be after chapterData is defined)
     const saveProgress = useSaveProgress();
     const chapterId = chapterData?.id;
@@ -117,7 +118,7 @@ export default function ChapterReadingPage() {
     // Find current chapter by slug in sorted array (handle URL encoding)
     const currentChapterIndex = useMemo(() => {
         if (!sortedChapters.length || !chapterSlug) return -1;
-        
+
         // Normalize both slugs for comparison
         const normalizeSlug = (slug: string) => {
             try {
@@ -126,9 +127,9 @@ export default function ChapterReadingPage() {
                 return slug.toLowerCase().trim();
             }
         };
-        
+
         const normalizedChapterSlug = normalizeSlug(chapterSlug);
-        
+
         return sortedChapters.findIndex((ch: any) => {
             if (!ch.slug) return false;
             const normalizedChSlug = normalizeSlug(ch.slug);
@@ -142,14 +143,14 @@ export default function ChapterReadingPage() {
         if (currentChapterIndex < 0 || sortedChapters.length === 0) {
             return { prevChapter: null, nextChapter: null };
         }
-        
-        const prev = currentChapterIndex > 0 
-            ? sortedChapters[currentChapterIndex - 1] 
+
+        const prev = currentChapterIndex > 0
+            ? sortedChapters[currentChapterIndex - 1]
             : null;
         const next = currentChapterIndex < sortedChapters.length - 1
             ? sortedChapters[currentChapterIndex + 1]
             : null;
-        
+
         return { prevChapter: prev, nextChapter: next };
     }, [currentChapterIndex, sortedChapters]);
 
@@ -159,15 +160,15 @@ export default function ChapterReadingPage() {
 
         // Mark chapter as visited immediately when page loads
         const chapterId = `${storySlug}-${chapterSlug}`;
-        
+
         // Only track if we haven't tracked this specific chapter yet
         if (hasTrackedCompletion.current === chapterId) {
             return; // Already tracked this chapter
         }
-        
+
         const wasNewVisit = markChapterCompleted(chapterId); // Always mark visit (increments visitCount)
         hasTrackedCompletion.current = chapterId; // Mark this chapter as tracked
-        
+
         // Check if should redirect to ad page immediately (after visiting enough chapters)
         // Use popupInterval from ad if available, otherwise use default
         // Use popupAds directly to avoid dependency array size changes
@@ -178,18 +179,18 @@ export default function ChapterReadingPage() {
                 // Find ad with popupInterval (prefer ads with custom interval)
                 const adWithInterval = validAds.find((ad: any) => ad.popupInterval) || validAds[0];
                 const popupInterval = adWithInterval?.popupInterval || 3;
-                
+
                 // Check if should show popup (check immediately, no delay)
                 if (shouldShowPopup(chapterId, popupInterval)) {
                     // Select ad with rotation when popup is triggered
                     const adIndex = getNextPopupAdIndex(validAds.length);
                     const selectedAd = validAds[adIndex] || validAds[0];
-                    
+
                     if (selectedAd && selectedAd.imageUrl) {
                         // Redirect immediately to ad page
                         const returnUrl = `/stories/${storySlug}/chapters/${chapterSlug}`;
                         const adUrl = `/ads/${selectedAd.id}?return=${encodeURIComponent(returnUrl)}&story=${storySlug}&chapter=${chapterSlug}`;
-                        
+
                         // Log for debugging (development only)
                         if (process.env.NODE_ENV === 'development') {
                             console.log('Redirecting to ad page:', { adUrl, visitCount: getVisitCount() });
@@ -200,10 +201,10 @@ export default function ChapterReadingPage() {
                 }
             }
         }
-        
+
         // Start tracking reading time (only if not redirecting)
         chapterStartTimeRef.current = Date.now();
-        
+
         // Update reading time every 5 seconds
         readingTimeIntervalRef.current = setInterval(() => {
             if (chapterStartTimeRef.current > 0) {
@@ -212,7 +213,7 @@ export default function ChapterReadingPage() {
                 chapterStartTimeRef.current = Date.now(); // Reset for next interval
             }
         }, 5000);
-        
+
         return () => {
             if (readingTimeIntervalRef.current) {
                 clearInterval(readingTimeIntervalRef.current);
@@ -236,13 +237,13 @@ export default function ChapterReadingPage() {
         pendingAdRef.current = null;
         chapterStartTimeRef.current = 0;
         isRestoringScrollRef.current = false; // Reset restore flag
-        
+
         // Clear any pending save timeout
         if (saveProgressTimeoutRef.current) {
             clearTimeout(saveProgressTimeoutRef.current);
             saveProgressTimeoutRef.current = null;
         }
-        
+
         // Clear reading time interval
         if (readingTimeIntervalRef.current) {
             clearInterval(readingTimeIntervalRef.current);
@@ -253,11 +254,11 @@ export default function ChapterReadingPage() {
     // Initialize reading history when chapter loads (if user is logged in)
     useEffect(() => {
         if (!user || !chapterId || !chapterData || isLoadingProgress || hasInitializedHistory.current) return;
-        
+
         // If no saved progress exists (lastRead is null means no entry in database), initialize with 0% to create reading history entry
         // Check both: savedProgress is undefined/null OR lastRead is null
         const shouldInitialize = !savedProgress || savedProgress.lastRead === null;
-        
+
         if (shouldInitialize) {
             hasInitializedHistory.current = true;
             // Wait a bit to ensure chapter data is fully loaded
@@ -282,7 +283,7 @@ export default function ChapterReadingPage() {
                     }
                 );
             }, 500);
-            
+
             return () => clearTimeout(initTimer);
         } else if (savedProgress && savedProgress.progress !== undefined) {
             // Update last saved progress if we have saved data
@@ -298,24 +299,24 @@ export default function ChapterReadingPage() {
     // Restore scroll position from saved progress
     useEffect(() => {
         if (!contentRef.current || !savedProgress || !user || !chapterId) return;
-        
+
         const progress = savedProgress.progress || 0;
         if (progress > 0 && progress < 100) {
             // Set flag to prevent saving during restore
             isRestoringScrollRef.current = true;
-            
+
             // Calculate scroll position based on progress
             const scrollContainer = contentRef.current;
             const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
             const targetScroll = (progress / 100) * maxScroll;
-            
+
             // Smooth scroll to saved position
             setTimeout(() => {
                 scrollContainer.scrollTo({
                     top: targetScroll,
                     behavior: 'smooth'
                 });
-                
+
                 // Reset flag after scroll completes (smooth scroll takes ~500ms)
                 setTimeout(() => {
                     isRestoringScrollRef.current = false;
@@ -329,27 +330,27 @@ export default function ChapterReadingPage() {
         if (!contentRef.current || !user || !chapterId) return;
 
         const scrollContainer = contentRef.current;
-        
+
         const handleScroll = () => {
             if (!scrollContainer || !chapterId) return;
-            
+
             // Skip saving if we're restoring scroll position
             if (isRestoringScrollRef.current) return;
-            
+
             const scrollTop = scrollContainer.scrollTop;
             const scrollHeight = scrollContainer.scrollHeight;
             const clientHeight = scrollContainer.clientHeight;
-            
+
             // Calculate progress percentage (0-100)
             const maxScroll = scrollHeight - clientHeight;
             if (maxScroll <= 0) return;
-            
+
             const progress = Math.min(100, Math.max(0, Math.round((scrollTop / maxScroll) * 100)));
-            
+
             // Update scroll progress in tracker
             const chapterTrackerId = `${storySlug}-${chapterSlug}`;
             updateChapterScrollProgress(chapterTrackerId, progress);
-            
+
             // Save progress if changed (reduced threshold to 1% for better tracking)
             const progressDiff = Math.abs(progress - lastSavedProgressRef.current);
             if (progressDiff >= 1 || progress === 100) {
@@ -357,7 +358,7 @@ export default function ChapterReadingPage() {
                 if (saveProgressTimeoutRef.current) {
                     clearTimeout(saveProgressTimeoutRef.current);
                 }
-                
+
                 // Debounce: save after 1 second of no scrolling (reduced from 2s)
                 saveProgressTimeoutRef.current = setTimeout(() => {
                     if (user && chapterId) {
@@ -385,22 +386,22 @@ export default function ChapterReadingPage() {
         };
 
         scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
-        
+
         // Also save immediately when progress reaches 100%
         const checkAndSaveComplete = () => {
             if (!scrollContainer || !user || !chapterId) return;
-            
+
             // Skip saving if we're restoring scroll position
             if (isRestoringScrollRef.current) return;
-            
+
             const scrollTop = scrollContainer.scrollTop;
             const scrollHeight = scrollContainer.scrollHeight;
             const clientHeight = scrollContainer.clientHeight;
             const maxScroll = scrollHeight - clientHeight;
-            
+
             if (maxScroll > 0) {
                 const progress = Math.min(100, Math.max(0, Math.round((scrollTop / maxScroll) * 100)));
-                
+
                 // Save immediately if reached 100% or very close (>= 90%)
                 if (progress >= 90 && lastSavedProgressRef.current < 90) {
                     if (saveProgressTimeoutRef.current) {
@@ -553,9 +554,10 @@ export default function ChapterReadingPage() {
                                             localStorage.setItem('showChapterList', String(newState));
                                         }
                                     }}
-                                    className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors"
+                                    className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-gray-700 dark:text-gray-300 transition-colors"
+                                    aria-label={showChapterList ? 'Ẩn danh sách chương' : 'Hiện danh sách chương'}
                                 >
-                                    {showChapterList ? 'Ẩn' : 'Hiện'} danh sách chương
+                                    <BookOpen size={20} />
                                 </button>
 
                                 {/* Previous/Next Chapter Buttons */}
@@ -621,7 +623,7 @@ export default function ChapterReadingPage() {
                                         onClick={() => setFontSize(Math.max(12, fontSize - 2))}
                                         className="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-gray-700 dark:text-gray-300"
                                     >
-                                        A
+                                        -
                                     </button>
                                     <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[40px] text-center">
                                         {fontSize}px
@@ -630,7 +632,7 @@ export default function ChapterReadingPage() {
                                         onClick={() => setFontSize(Math.min(24, fontSize + 2))}
                                         className="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-gray-700 dark:text-gray-300 font-bold"
                                     >
-                                        A
+                                        +
                                     </button>
                                 </div>
                             </div>
@@ -655,20 +657,19 @@ export default function ChapterReadingPage() {
                                                     return slug.toLowerCase().trim();
                                                 }
                                             };
-                                            
+
                                             const normalizedChapterSlug = normalizeSlug(chapterSlug);
                                             const normalizedChSlug = ch.slug ? normalizeSlug(ch.slug) : '';
                                             const isActive = normalizedChSlug === normalizedChapterSlug;
-                                            
+
                                             return (
                                                 <Link
                                                     key={ch.id}
                                                     href={`/stories/${storySlug}/chapters/${ch.slug}`}
-                                                    className={`block px-3 py-2 rounded text-sm transition-colors ${
-                                                        isActive
-                                                            ? 'bg-blue-500 dark:bg-blue-600 text-white font-semibold shadow-sm'
-                                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                                                    }`}
+                                                    className={`block px-3 py-2 rounded text-sm transition-colors ${isActive
+                                                        ? 'bg-blue-500 dark:bg-blue-600 text-white font-semibold shadow-sm'
+                                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                                        }`}
                                                 >
                                                     {ch.title || `Chương ${ch.order || (index + 1)}`}
                                                 </Link>
@@ -689,7 +690,7 @@ export default function ChapterReadingPage() {
                                 <div
                                     className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap leading-relaxed"
                                     style={{
-                                        fontFamily: 'Georgia, "Times New Roman", serif',
+                                        fontFamily: 'var(--font-quicksand), Quicksand, sans-serif',
                                         maxWidth: '100%',
                                     }}
                                 >
