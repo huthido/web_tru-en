@@ -152,10 +152,10 @@ export default function Home() {
 
               {/* Book Sections */}
               <Suspense fallback={<BookSectionSkeleton />}>
-                <BookSection title="MỚI NHẤT" books={newestBooksTransformed} seeMoreLink="/stories?sortBy=newest" showLikeButton={false} />
+                <BookSection title="TRUYỆN MỚI NHẤT" books={newestBooksTransformed} seeMoreLink="/stories?sortBy=newest" showLikeButton={false} />
               </Suspense>
               <Suspense fallback={<BookSectionSkeleton />}>
-                <BookSection title="SÁCH ĐƯỢC ĐỀ XUẤT" books={recommendedBooksTransformed} seeMoreLink="/stories?sortBy=popular" showLikeButton={false} />
+                <BookSection title="TRUYỆN ĐƯỢC ĐỀ XUẤT" books={recommendedBooksTransformed} seeMoreLink="/stories?sortBy=popular" showLikeButton={false} />
               </Suspense>
               <Suspense fallback={<BookSectionSkeleton />}>
                 <BookSection title="TRUYỆN HAY NHẤT THÁNG" books={bestOfMonthTransformed} seeMoreLink="/stories?sortBy=viewCount" showLikeButton={false} />

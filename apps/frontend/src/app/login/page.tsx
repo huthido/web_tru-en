@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/components/providers/theme-provider';
 import { useSettings } from '@/lib/api/hooks/use-settings';
@@ -55,30 +56,21 @@ export default function LoginPage() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 md:gap-2.5 transition-all duration-300 hover:opacity-80 hover:scale-105 active:scale-95"
+          className="flex items-center transition-all duration-300 hover:opacity-80 hover:scale-105 active:scale-95"
         >
-          <h1 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-300">
-            HÙNG YÊU
-          </h1>
-          <div className="w-8 h-8 transition-transform duration-300 hover:rotate-12">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M26.6667 2.66667L26.6667 29.3333L16 24.1917L5.33333 29.3333L5.33333 2.66667L26.6667 2.66667Z"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-gray-900 dark:text-white transition-colors duration-300"
-              />
-              <path
-                d="M16 2.66667V24.1917"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-gray-900 dark:text-white transition-colors duration-300"
-              />
-            </svg>
+          <div className="relative w-16 h-16 md:w-20 md:h-20 transition-transform duration-300 hover:rotate-12">
+            <Image
+              src="/HUNGYEUDENLOGO.png"
+              alt="Logo"
+              fill
+              className="object-contain dark:hidden"
+            />
+            <Image
+              src="/HUNGYEULOGO.png"
+              alt="Logo"
+              fill
+              className="object-contain hidden dark:block"
+            />
           </div>
         </Link>
 
