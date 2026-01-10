@@ -41,6 +41,28 @@ export class AuthController {
     private configService: ConfigService
   ) { }
 
+  // 🍎 Helper: Create iOS-compatible cookie options
+  private createCookieOptions(req: Request | Response['req']) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendDomain = new URL(frontendUrl).hostname;
+    const backendHost = (req as any).get?.('host') || (req as any).headers?.host || '';
+    const backendDomain = backendHost.split(':')[0];
+    const isCrossOrigin = frontendDomain !== backendDomain;
+    const isHttps = frontendUrl.startsWith('https://') || (req as any).protocol === 'https';
+
+    // Extract root domain (e.g., "hungyeu.com" from "www.hungyeu.com")
+    const rootDomain = frontendDomain.replace(/^www\./, '');
+
+    return {
+      httpOnly: true,
+      secure: isHttps,
+      sameSite: (isCrossOrigin && isHttps ? 'none' : 'lax') as 'none' | 'lax',
+      path: '/',
+      // 🔥 CRITICAL for iOS: Set domain for cross-origin cookies
+      ...(isCrossOrigin && isHttps ? { domain: `.${rootDomain}` } : {}),
+    };
+  }
+
   @Public()
   @Post('register')
   @UseInterceptors(CookieInterceptor)
@@ -198,30 +220,16 @@ export class AuthController {
       // Complete email and get tokens
       const tokens = await this.authService.completeEmailWithCode(code, email);
 
-      // Set cookies with SIMPLE, FIXED settings (iOS Safari compatible)
-      // Frontend calls this endpoint, so cookies are set in FIRST-PARTY context
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      const frontendDomain = new URL(frontendUrl).hostname;
-      const backendDomain = res.req?.headers.host?.split(':')[0] || '';
-      const isCrossOrigin = frontendDomain !== backendDomain;
-      const isHttps = frontendUrl.startsWith('https://') || res.req?.protocol === 'https';
+      // 🍎 iOS Safari compatible cookie options
+      const cookieOptions = this.createCookieOptions(res.req);
 
-      // Cookie settings: FIXED for iOS Safari
-      // - SameSite=None + Secure=true for cross-origin with HTTPS
-      // - SameSite=Lax for same-origin or HTTP
       res.cookie('access_token', tokens.accessToken, {
-        httpOnly: true,
-        secure: isHttps,
-        sameSite: isCrossOrigin && isHttps ? 'none' : 'lax',
-        path: '/',
+        ...cookieOptions,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
       res.cookie('refresh_token', tokens.refreshToken, {
-        httpOnly: true,
-        secure: isHttps,
-        sameSite: isCrossOrigin && isHttps ? 'none' : 'lax',
-        path: '/',
+        ...cookieOptions,
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       });
 
@@ -291,30 +299,16 @@ export class AuthController {
       // Exchange code for tokens
       const tokens = await this.authService.exchangeCode(code);
 
-      // Set cookies with SIMPLE, FIXED settings (iOS Safari compatible)
-      // Frontend calls this endpoint, so cookies are set in FIRST-PARTY context
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      const frontendDomain = new URL(frontendUrl).hostname;
-      const backendDomain = req.get('host')?.split(':')[0] || '';
-      const isCrossOrigin = frontendDomain !== backendDomain;
-      const isHttps = frontendUrl.startsWith('https://') || req.protocol === 'https';
+      // 🍎 iOS Safari compatible cookie options
+      const cookieOptions = this.createCookieOptions(req);
 
-      // Cookie settings: FIXED for iOS Safari
-      // - SameSite=None + Secure=true for cross-origin with HTTPS
-      // - SameSite=Lax for same-origin or HTTP
       res.cookie('access_token', tokens.accessToken, {
-        httpOnly: true,
-        secure: isHttps,
-        sameSite: isCrossOrigin && isHttps ? 'none' : 'lax',
-        path: '/',
+        ...cookieOptions,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
       res.cookie('refresh_token', tokens.refreshToken, {
-        httpOnly: true,
-        secure: isHttps,
-        sameSite: isCrossOrigin && isHttps ? 'none' : 'lax',
-        path: '/',
+        ...cookieOptions,
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       });
 
