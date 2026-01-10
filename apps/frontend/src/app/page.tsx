@@ -76,7 +76,7 @@ export default function Home() {
           ) : (
             <>
               {/* Continue Reading Section - Only show if user is logged in and has reading history */}
-              {user && (isLoadingContinueReading || continueReading.length > 0) && (
+              {/* {user && (isLoadingContinueReading || continueReading.length > 0) && (
                 <div className="px-4 md:px-6 mb-8">
                   <div className="mx-auto">
                     <div className="flex items-center justify-between mb-6">
@@ -148,7 +148,7 @@ export default function Home() {
                     ) : null}
                   </div>
                 </div>
-              )}
+              )} */}
 
               {/* Book Sections */}
               <Suspense fallback={<BookSectionSkeleton />}>

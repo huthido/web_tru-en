@@ -10,7 +10,8 @@ import { useMyFollows } from '@/lib/api/hooks/use-follows';
 import { useLikedStories } from '@/lib/api/hooks/use-stories';
 import { useReadingHistory } from '@/lib/api/hooks/use-reading-history';
 import Link from 'next/link';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { ImageSizes } from '@/utils/image-utils';
 
 function LibraryContent() {
   const [activeTab, setActiveTab] = useState<'follows' | 'liked' | 'history'>('follows');
@@ -127,12 +128,15 @@ function LibraryContent() {
                             >
                               <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 mb-2">
                                 {story.coverImage ? (
-                                  <Image
+                                  <OptimizedImage
                                     src={story.coverImage}
                                     alt={story.title}
                                     fill
-                                    className="object-cover group-hover:scale-110 transition-transform duration-300"
-                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                    objectFit="cover"
+                                    sizes={ImageSizes.responsive}
+                                    quality={85}
+                                    placeholder="blur"
+                                    className="group-hover:scale-110 transition-transform duration-300"
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center">
@@ -184,12 +188,15 @@ function LibraryContent() {
                             >
                               <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 mb-2">
                                 {story.coverImage ? (
-                                  <Image
+                                  <OptimizedImage
                                     src={story.coverImage}
                                     alt={story.title}
                                     fill
-                                    className="object-cover group-hover:scale-110 transition-transform duration-300"
-                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                    objectFit="cover"
+                                    sizes={ImageSizes.responsive}
+                                    quality={85}
+                                    placeholder="blur"
+                                    className="group-hover:scale-110 transition-transform duration-300"
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center">
@@ -198,11 +205,6 @@ function LibraryContent() {
                                     </svg>
                                   </div>
                                 )}
-                                <div className="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2">
-                                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z" />
-                                  </svg>
-                                </div>
                               </div>
                               <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                 {story.title}
@@ -245,12 +247,15 @@ function LibraryContent() {
                             >
                               {item.story.coverImage && (
                                 <div className="relative w-20 h-28 md:w-24 md:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
-                                  <Image
+                                  <OptimizedImage
                                     src={item.story.coverImage}
                                     alt={item.story.title}
                                     fill
-                                    className="object-cover group-hover:scale-110 transition-transform duration-300"
-                                    sizes="96px"
+                                    objectFit="cover"
+                                    sizes={ImageSizes.bookThumbnail}
+                                    quality={85}
+                                    placeholder="blur"
+                                    className="group-hover:scale-110 transition-transform duration-300"
                                   />
                                 </div>
                               )}

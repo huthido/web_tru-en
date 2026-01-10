@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { shouldUnoptimizeImage, ImageSizes } from '@/utils/image-utils';
 import Link from 'next/link';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Header } from '@/components/layouts/header';
@@ -68,7 +69,7 @@ export default function BookDetailPage() {
   const { showToast } = useToast();
 
   const handleShare = async () => {
-    const storyUrl = `${window.location.origin}/books/${story?.slug}`;
+    const storyUrl = `${window.location.origin}/truyen/${story?.slug}`;
     const shareData = {
       title: story?.title || 'Truyện',
       text: story?.description || `Đọc truyện ${story?.title}`,
@@ -321,14 +322,17 @@ export default function BookDetailPage() {
             <div className="flex-shrink-0 w-full max-w-[300px] mx-auto lg:mx-0 lg:w-[300px] xl:w-[400px]">
               <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden shadow-xl group cursor-pointer transition-all duration-500 hover:shadow-2xl">
                 {story.coverImage ? (
-                  <Image
+                  <OptimizedImage
                     src={story.coverImage}
-                    unoptimized={story.coverImage.includes('images.unsplash.com') || story.coverImage.includes('cache.staticscdn.net')}
                     alt={story.title}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    sizes="(max-width: 1024px) 100vw, 400px"
+                    className="transition-transform duration-500 group-hover:scale-110"
+                    sizes={ImageSizes.bookDetail}
+                    objectFit="cover"
+                    quality={90}
+                    placeholder="blur"
                     priority
+                    unoptimized={shouldUnoptimizeImage(story.coverImage)}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
@@ -635,7 +639,7 @@ export default function BookDetailPage() {
                       {similarStories.map((relatedStory) => (
                         <Link
                           key={relatedStory.id}
-                          href={`/books/${relatedStory.slug}`}
+                          href={`/truyen/${relatedStory.slug}`}
                           className="group flex-shrink-0 w-[150px] transition-all duration-500 hover:scale-105 active:scale-95 snap-start"
                           style={{ touchAction: 'auto' }}
                         >
@@ -643,13 +647,16 @@ export default function BookDetailPage() {
                             {/* Book Cover - Fixed size */}
                             <div className="relative w-[150px] h-[200px] rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 shadow-md group-hover:shadow-2xl transition-all duration-500">
                               {relatedStory.coverImage ? (
-                                <Image
+                                <OptimizedImage
                                   src={relatedStory.coverImage}
-                                  unoptimized={relatedStory.coverImage.includes('images.unsplash.com') || relatedStory.coverImage.includes('cache.staticscdn.net')}
                                   alt={relatedStory.title}
                                   fill
-                                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                                  sizes="150px"
+                                  className="transition-transform duration-500 group-hover:scale-110"
+                                  sizes={ImageSizes.bookCard}
+                                  objectFit="cover"
+                                  quality={85}
+                                  placeholder="blur"
+                                  unoptimized={shouldUnoptimizeImage(relatedStory.coverImage)}
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">

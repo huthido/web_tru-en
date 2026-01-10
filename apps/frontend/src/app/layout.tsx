@@ -13,6 +13,7 @@ const quicksand = Quicksand({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
   variable: '--font-quicksand',
+  display: 'swap', // Prevent font preload warnings - ensures font doesn't block rendering
 });
 
 // Default metadata values (fallback)
@@ -47,9 +48,9 @@ export async function generateMetadata(): Promise<Metadata> {
     creator: DEFAULT_METADATA.author,
     publisher: DEFAULT_METADATA.author,
     icons: {
-      icon: siteFavicon ? [{ url: siteFavicon }] : undefined,
-      shortcut: siteFavicon ? [{ url: siteFavicon }] : undefined,
-      apple: siteFavicon ? [{ url: siteFavicon }] : undefined,
+      icon: siteFavicon ? [{ url: siteFavicon, type: 'image/png' }] : undefined,
+      shortcut: siteFavicon ? [{ url: siteFavicon, type: 'image/png' }] : undefined,
+      apple: siteFavicon ? [{ url: siteFavicon, type: 'image/png' }] : undefined,
     },
     openGraph: {
       type: 'website',

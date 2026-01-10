@@ -1,7 +1,8 @@
 'use client';
 
 import { memo, useState, useMemo } from 'react';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { ImageSizes } from '@/utils/image-utils';
 import { Comment } from '@/lib/api/comments.service';
 import { useAuth } from '@/contexts/auth-context';
 import { useReplyToComment, useUpdateComment, useDeleteComment } from '@/lib/api/hooks/use-comments';
@@ -90,12 +91,14 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
         <div className="flex-shrink-0 w-10 h-10">
           {comment.user.avatar ? (
             <div className="relative w-10 h-10 rounded-full overflow-hidden">
-              <Image
+              <OptimizedImage
                 src={comment.user.avatar}
                 alt={comment.user.displayName || comment.user.username}
                 fill
-                className="object-cover"
-                sizes="40px"
+                objectFit="cover"
+                sizes={ImageSizes.avatar}
+                quality={80}
+                placeholder="blur"
               />
             </div>
           ) : (

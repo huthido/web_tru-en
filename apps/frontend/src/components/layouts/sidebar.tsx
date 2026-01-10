@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { ImageSizes } from '@/utils/image-utils';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Clock, Bookmark, Heart, LayoutDashboard, Settings } from 'lucide-react';
+import { Home, Clock, Bookmark, Heart, LayoutDashboard, Settings, BookOpen } from 'lucide-react';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -17,6 +18,7 @@ export function Sidebar() {
   const isHistory = pathname === '/history';
   const isFavorites = pathname === '/favorites';
   const isFollows = pathname === '/follows';
+  const isStories = pathname === '/stories';
   const isAuthorDashboard = pathname?.startsWith('/author/dashboard');
   const isChapterManagement = pathname?.includes('/author/stories/') && pathname?.includes('/chapters');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -33,18 +35,20 @@ export function Sidebar() {
           {/* Logo - At top */}
           <Link
             href="/"
-            className="w-[60px] h-[60px] flex items-center justify-center transition-transform duration-300 hover:scale-110 active:scale-95 mb-12"
+            className="relative w-[60px] h-[60px] min-h-[60px] flex-shrink-0 flex items-center justify-center transition-transform duration-300 hover:scale-110 active:scale-95 mb-12"
+            style={{ minHeight: '60px' }}
           >
             {settings?.siteLogo ? (
-              <div className="relative w-full h-full">
-                <Image
-                  src={settings.siteLogo}
-                  alt={settings.siteName || 'Logo'}
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
+              <OptimizedImage
+                src={settings.siteLogo}
+                alt={settings.siteName || 'Logo'}
+                fill
+                objectFit="contain"
+                sizes={ImageSizes.logo}
+                quality={90}
+                placeholder="blur"
+                priority
+              />
             ) : (
               <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -81,6 +85,21 @@ export function Sidebar() {
               <Home
                 size={30}
                 className={isHome ? 'text-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
+              />
+            </Link>
+
+            {/* Stories */}
+            <Link
+              href="/stories"
+              className={`w-[50px] h-[50px] flex items-center justify-center rounded-[10px] transition-all duration-300 hover:scale-110 active:scale-95 ${isStories
+                ? 'bg-red-500 dark:bg-red-600'
+                : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+              aria-label="Danh sách truyện"
+            >
+              <BookOpen
+                size={30}
+                className={isStories ? 'text-white fill-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
+                fill={isStories ? 'currentColor' : 'none'}
               />
             </Link>
 
@@ -184,6 +203,21 @@ export function Sidebar() {
           </Link>
 
           <Link
+            href="/stories"
+            className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${isStories
+              ? 'bg-red-500 dark:bg-red-600'
+              : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+            aria-label="Danh sách truyện"
+          >
+            <BookOpen
+              size={24}
+              className={isStories ? 'text-white fill-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
+              fill={isStories ? 'currentColor' : 'none'}
+            />
+            <span className={`text-[10px] font-medium ${isStories ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>Truyện</span>
+          </Link>
+
+          <Link
             href="/history"
             className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${isHistory
               ? 'bg-red-500 dark:bg-red-600'
@@ -195,36 +229,6 @@ export function Sidebar() {
               className={isHistory ? 'text-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
             />
             <span className={`text-[10px] font-medium ${isHistory ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>Lịch sử</span>
-          </Link>
-
-          <Link
-            href="/follows"
-            className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${isFollows
-              ? 'bg-red-500 dark:bg-red-600'
-              : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-            aria-label="Đang theo dõi"
-          >
-            <Bookmark
-              size={24}
-              className={isFollows ? 'text-white fill-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-              fill={isFollows ? 'currentColor' : 'none'}
-            />
-            <span className={`text-[10px] font-medium ${isFollows ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>Theo dõi</span>
-          </Link>
-
-          <Link
-            href="/favorites"
-            className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${isFavorites
-              ? 'bg-red-500 dark:bg-red-600'
-              : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-            aria-label="Yêu thích"
-          >
-            <Heart
-              size={24}
-              className={isFavorites ? 'text-white fill-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-              fill={isFavorites ? 'currentColor' : 'none'}
-            />
-            <span className={`text-[10px] font-medium ${isFavorites ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>Yêu thích</span>
           </Link>
 
           {/* Author Dashboard - Only show for AUTHOR or ADMIN */}

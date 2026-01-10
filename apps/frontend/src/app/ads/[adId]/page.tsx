@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { shouldUnoptimizeImage, ImageSizes } from '@/utils/image-utils';
 import Link from 'next/link';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Header } from '@/components/layouts/header';
@@ -119,7 +120,7 @@ export default function AdPage() {
                         {storySlug && (
                             <div className="mb-6">
                                 <Link
-                                    href={`/books/${storySlug}`}
+                                    href={`/truyen/${storySlug}`}
                                     className="text-blue-500 hover:text-blue-600 dark:text-blue-400 mb-2 inline-block text-left"
                                 >
                                     ← Quay lại truyện
@@ -153,25 +154,31 @@ export default function AdPage() {
                                                 }}
                                             >
                                                 <div className="relative w-full h-[70vh] min-h-[500px]">
-                                                    <Image
+                                                    <OptimizedImage
                                                         src={selectedAd.imageUrl}
                                                         alt={selectedAd.title || 'Quảng cáo'}
                                                         fill
-                                                        className="object-cover"
-                                                        sizes="100vw"
+                                                        objectFit="cover"
+                                                        sizes={ImageSizes.adFull}
+                                                        quality={90}
+                                                        placeholder="blur"
                                                         priority
+                                                        unoptimized={shouldUnoptimizeImage(selectedAd.imageUrl)}
                                                     />
                                                 </div>
                                             </a>
                                         ) : (
                                             <div className="relative w-full h-[70vh] min-h-[500px]">
-                                                <Image
+                                                <OptimizedImage
                                                     src={selectedAd.imageUrl}
                                                     alt={selectedAd.title || 'Quảng cáo'}
                                                     fill
-                                                    className="object-cover"
-                                                    sizes="100vw"
+                                                    objectFit="cover"
+                                                    sizes={ImageSizes.adFull}
+                                                    quality={90}
+                                                    placeholder="blur"
                                                     priority
+                                                    unoptimized={shouldUnoptimizeImage(selectedAd.imageUrl)}
                                                 />
                                             </div>
                                         )}

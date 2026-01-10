@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { shouldUnoptimizeImage, ImageSizes } from '@/utils/image-utils';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Header } from '@/components/layouts/header';
 import { Footer } from '@/components/layouts/footer';
@@ -468,7 +469,7 @@ export default function ChapterReadingPage() {
                 return referrer;
             }
         }
-        return `/books/${storySlug}`;
+        return `/truyen/${storySlug}`;
     };
 
     const handleBack = () => {
@@ -503,7 +504,7 @@ export default function ChapterReadingPage() {
                                 Không tìm thấy chương
                             </h1>
                             <Link
-                                href={`/books/${storySlug}`}
+                                href={`/truyen/${storySlug}`}
                                 className="text-blue-500 hover:text-blue-600 dark:text-blue-400"
                             >
                                 Quay lại trang truyện
@@ -722,12 +723,15 @@ export default function ChapterReadingPage() {
                                             }}
                                         >
                                             <div className="relative w-full h-48 md:h-64">
-                                                <Image
+                                                <OptimizedImage
                                                     src={bottomAd.imageUrl}
                                                     alt={bottomAd.title || 'Quảng cáo'}
                                                     fill
-                                                    className="object-contain"
-                                                    sizes="(max-width: 768px) 100vw, 800px"
+                                                    objectFit="contain"
+                                                    sizes={ImageSizes.adBanner}
+                                                    quality={85}
+                                                    placeholder="blur"
+                                                    unoptimized={shouldUnoptimizeImage(bottomAd.imageUrl)}
                                                     onLoad={() => {
                                                         // Track ad view when image loads
                                                         if (bottomAd.id) {
@@ -739,12 +743,15 @@ export default function ChapterReadingPage() {
                                         </a>
                                     ) : (
                                         <div className="relative w-full h-48 md:h-64">
-                                            <Image
+                                            <OptimizedImage
                                                 src={bottomAd.imageUrl}
                                                 alt={bottomAd.title || 'Quảng cáo'}
                                                 fill
-                                                className="object-contain"
-                                                sizes="(max-width: 768px) 100vw, 800px"
+                                                objectFit="contain"
+                                                sizes={ImageSizes.adBanner}
+                                                quality={85}
+                                                placeholder="blur"
+                                                unoptimized={shouldUnoptimizeImage(bottomAd.imageUrl)}
                                                 onLoad={() => {
                                                     // Track ad view when image loads
                                                     if (bottomAd.id) {

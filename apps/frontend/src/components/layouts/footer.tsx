@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { ImageSizes } from '@/utils/image-utils';
 import { Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
 import { useSettings } from '@/lib/api/hooks/use-settings';
 
@@ -17,16 +18,17 @@ export function Footer() {
                     {/* Logo & About */}
                     <div className="flex flex-col gap-4 max-w-md">
                         <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
-                            <div className="w-[60px] h-[60px] flex items-center justify-center">
+                            <div className="relative w-[60px] h-[60px] min-h-[60px] flex-shrink-0 flex items-center justify-center" style={{ minHeight: '60px' }}>
                                 {settings?.siteLogo ? (
-                                    <div className="relative w-full h-full">
-                                        <Image
-                                            src={settings.siteLogo}
-                                            alt={settings.siteName || 'Logo'}
-                                            fill
-                                            className="object-contain"
-                                        />
-                                    </div>
+                                    <OptimizedImage
+                                        src={settings.siteLogo}
+                                        alt={settings.siteName || 'Logo'}
+                                        fill
+                                        objectFit="contain"
+                                        sizes={ImageSizes.logo}
+                                        quality={90}
+                                        placeholder="blur"
+                                    />
                                 ) : (
                                     <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path

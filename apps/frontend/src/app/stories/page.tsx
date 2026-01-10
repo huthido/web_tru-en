@@ -19,7 +19,8 @@ function StoriesContent() {
     const initialPage = parseInt(searchParams.get('page') || '1', 10);
     const initialSearch = searchParams.get('search') || '';
     const initialCategory = searchParams.get('category') || '';
-    const initialStatus = searchParams.get('status') || '';
+    // Default to PUBLISHED if no status in URL
+    const initialStatus = searchParams.get('status') || 'PUBLISHED';
     const initialSortBy = (searchParams.get('sortBy') as 'newest' | 'popular' | 'rating' | 'viewCount') || 'newest';
 
     // State
@@ -46,7 +47,8 @@ function StoriesContent() {
 
         if (search) params.search = search;
         if (selectedCategory) params.categories = [selectedCategory]; // Backend expects slug, not id
-        if (status) params.status = status;
+        // Always filter by published status for public stories page (default is PUBLISHED)
+        params.status = status || 'PUBLISHED';
 
         return params;
     }, [page, search, selectedCategory, status, sortBy]);
@@ -62,7 +64,8 @@ function StoriesContent() {
         if (page > 1) params.set('page', page.toString());
         if (search) params.set('search', search);
         if (selectedCategory) params.set('category', selectedCategory);
-        if (status) params.set('status', status);
+        // Only add status to URL if it's not the default PUBLISHED
+        if (status && status !== 'PUBLISHED') params.set('status', status);
         if (sortBy !== 'newest') params.set('sortBy', sortBy);
 
         const newUrl = params.toString() ? `/stories?${params.toString()}` : '/stories';
@@ -85,20 +88,22 @@ function StoriesContent() {
         if (urlPage !== page) setPage(urlPage);
         if (urlSearch !== search) setSearch(urlSearch);
         if (urlCategory !== selectedCategory) setSelectedCategory(urlCategory);
-        if (urlStatus !== status) setStatus(urlStatus);
+        // Default to PUBLISHED if no status in URL
+        const finalStatus = urlStatus || 'PUBLISHED';
+        if (finalStatus !== status) setStatus(finalStatus);
         if (urlSortBy !== sortBy) setSortBy(urlSortBy);
     }, [searchParams]);
 
     const handleResetFilters = () => {
         setSearch('');
         setSelectedCategory('');
-        setStatus('');
+        setStatus('PUBLISHED');
         setSortBy('newest');
         setPage(1);
     };
 
     const totalPages = meta?.totalPages || 1;
-    const hasActiveFilters = search || selectedCategory || status || sortBy !== 'newest';
+    const hasActiveFilters = search || selectedCategory || (status && status !== 'PUBLISHED') || sortBy !== 'newest';
 
     return (
         <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
@@ -197,7 +202,6 @@ function StoriesContent() {
                                             onChange={(e) => setStatus(e.target.value)}
                                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="">Tất cả</option>
                                             <option value="PUBLISHED">Đang phát hành</option>
                                             <option value="COMPLETED">Hoàn thành</option>
                                             <option value="ON_HOLD">Tạm dừng</option>

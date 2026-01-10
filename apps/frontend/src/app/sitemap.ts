@@ -65,7 +65,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const stories = await getAllStories();
 
   const storyUrls: MetadataRoute.Sitemap = stories.map((story) => ({
-    url: `${baseUrl}/books/${story.slug}`,
+    url: `${baseUrl}/truyen/${story.slug}`,
     lastModified: story.updatedAt ? new Date(story.updatedAt) : new Date(),
     changeFrequency: 'daily',
     priority: 0.8,

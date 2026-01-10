@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { ImageSizes } from '@/utils/image-utils';
 import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/components/providers/theme-provider';
 import { useSettings } from '@/lib/api/hooks/use-settings';
@@ -59,17 +60,27 @@ export default function LoginPage() {
           className="flex items-center transition-all duration-300 hover:opacity-80 hover:scale-105 active:scale-95"
         >
           <div className="relative w-16 h-16 md:w-20 md:h-20 transition-transform duration-300 hover:rotate-12">
-            <Image
+            <OptimizedImage
               src="/HUNGYEUDENLOGO.png"
               alt="Logo"
               fill
-              className="object-contain dark:hidden"
+              objectFit="contain"
+              sizes={ImageSizes.logo}
+              quality={90}
+              placeholder="blur"
+              priority
+              className="dark:hidden"
             />
-            <Image
+            <OptimizedImage
               src="/HUNGYEULOGO.png"
               alt="Logo"
               fill
-              className="object-contain hidden dark:block"
+              objectFit="contain"
+              sizes={ImageSizes.logo}
+              quality={90}
+              placeholder="blur"
+              priority
+              className="hidden dark:block"
             />
           </div>
         </Link>

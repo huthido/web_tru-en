@@ -190,7 +190,7 @@ export default function AuthorDashboardPage() {
                                                     {/* Cover Image */}
                                                     {story.coverImage && (
                                                         <Link
-                                                            href={`/books/${story.slug}`}
+                                                            href={`/truyen/${story.slug}`}
                                                             className="flex-shrink-0 w-24 h-32 md:w-32 md:h-40 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700"
                                                         >
                                                             <img
@@ -204,7 +204,7 @@ export default function AuthorDashboardPage() {
                                                     {/* Story Info */}
                                                     <div className="flex-1 min-w-0">
                                                         <Link
-                                                            href={`/books/${story.slug}`}
+                                                            href={`/truyen/${story.slug}`}
                                                             className="block mb-2"
                                                         >
                                                             <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors line-clamp-2">

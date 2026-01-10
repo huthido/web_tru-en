@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { shouldUnoptimizeImage, ImageSizes } from '@/utils/image-utils';
 import { ReadingHistory } from '@/lib/api/reading-history.service';
 
 interface ContinueReadingCardProps {
@@ -23,12 +24,16 @@ export function ContinueReadingCard({ history, className = '' }: ContinueReading
         {/* Cover Image */}
         {history.story.coverImage ? (
           <div className="relative w-20 h-28 md:w-24 md:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 shadow-md group-hover:shadow-lg transition-shadow duration-300">
-            <Image
+            <OptimizedImage
               src={history.story.coverImage}
               alt={history.story.title}
               fill
-              className="object-cover group-hover:scale-110 transition-transform duration-500"
-              sizes="96px"
+              className="group-hover:scale-110 transition-transform duration-500"
+              sizes={ImageSizes.bookThumbnail}
+              objectFit="cover"
+              quality={85}
+              placeholder="blur"
+              unoptimized={shouldUnoptimizeImage(history.story.coverImage)}
             />
           </div>
         ) : (

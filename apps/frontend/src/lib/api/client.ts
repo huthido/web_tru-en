@@ -110,7 +110,7 @@ class ApiClient {
                 currentPath === '/login' ||
                 currentPath === '/register' ||
                 currentPath === '/maintenance' ||
-                currentPath.startsWith('/books/') ||
+                currentPath.startsWith('/truyen/') ||
                 currentPath.startsWith('/stories/') ||
                 currentPath.startsWith('/search') ||
                 currentPath.startsWith('/categories') ||

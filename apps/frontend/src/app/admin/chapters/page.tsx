@@ -252,7 +252,7 @@ export default function AdminChaptersPage() {
                                                 <td className="px-4 py-3">
                                                     {chapter.story ? (
                                                         <Link
-                                                            href={`/books/${chapter.story.slug}`}
+                                                            href={`/truyen/${chapter.story.slug}`}
                                                             className="text-blue-600 dark:text-blue-400 hover:underline"
                                                         >
                                                             {chapter.story.title}

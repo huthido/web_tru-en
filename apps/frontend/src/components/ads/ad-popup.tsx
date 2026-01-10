@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { shouldUnoptimizeImage, ImageSizes } from '@/utils/image-utils';
 
 interface AdPopupProps {
     isOpen: boolean;
@@ -82,12 +83,15 @@ export function AdPopup({ isOpen, onClose, imageUrl, linkUrl, onLinkClick }: AdP
                     >
                         <div className="relative w-full h-[60vh] sm:h-[70vh] max-h-[600px] min-h-[300px]">
                             {imageUrl && !imageError ? (
-                                <Image
+                                <OptimizedImage
                                     src={imageUrl}
                                     alt="Quảng cáo"
                                     fill
-                                    className="object-contain"
-                                    sizes="(max-width: 768px) 90vw, 800px"
+                                    objectFit="contain"
+                                    sizes={ImageSizes.adPopup}
+                                    quality={85}
+                                    placeholder="blur"
+                                    unoptimized={shouldUnoptimizeImage(imageUrl)}
                                     onError={() => {
                                         console.error('Failed to load ad image:', imageUrl);
                                         setImageError(true);
@@ -103,12 +107,15 @@ export function AdPopup({ isOpen, onClose, imageUrl, linkUrl, onLinkClick }: AdP
                 ) : (
                     <div className="relative w-full h-[60vh] sm:h-[70vh] max-h-[600px] min-h-[300px]">
                         {imageUrl && !imageError ? (
-                            <Image
+                            <OptimizedImage
                                 src={imageUrl}
                                 alt="Quảng cáo"
                                 fill
-                                className="object-contain"
-                                sizes="(max-width: 768px) 90vw, 800px"
+                                objectFit="contain"
+                                sizes={ImageSizes.adPopup}
+                                quality={85}
+                                placeholder="blur"
+                                unoptimized={shouldUnoptimizeImage(imageUrl)}
                                 onError={() => {
                                     console.error('Failed to load ad image:', imageUrl);
                                     setImageError(true);

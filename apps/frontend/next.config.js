@@ -25,11 +25,13 @@ const nextConfig = {
         hostname: 'images.unsplash.com',
       },
     ],
-    // Image optimization settings
-    formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60,
+    // Image optimization settings - PRO MAX
+    formats: ['image/avif', 'image/webp'], // AVIF first (best compression), then WebP
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840], // Responsive breakpoints
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384], // Icon and thumbnail sizes
+    minimumCacheTTL: 31536000, // 1 year cache (images don't change often)
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   // Performance optimizations
   compress: true,

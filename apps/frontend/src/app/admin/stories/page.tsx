@@ -459,7 +459,7 @@ export default function AdminStoriesPage() {
                                                     )}
                                                     <div className="min-w-0 flex-1">
                                                         <Link
-                                                            href={`/books/${story.slug}`}
+                                                            href={`/truyen/${story.slug}`}
                                                             className="text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 truncate block"
                                                         >
                                                             {story.title}
@@ -516,7 +516,7 @@ export default function AdminStoriesPage() {
                                             <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Link
-                                                        href={`/books/${story.slug}`}
+                                                        href={`/truyen/${story.slug}`}
                                                         target="_blank"
                                                         className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                                                     >

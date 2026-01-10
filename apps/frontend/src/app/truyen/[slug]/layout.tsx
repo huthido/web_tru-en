@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  const storyUrl = `${siteUrl}/books/${story.slug}`;
+  const storyUrl = `${siteUrl}/truyen/${story.slug}`;
   const coverImage = story.coverImage || `${siteUrl}/default-cover.jpg`;
   const description = story.description 
     ? (story.description.length > 160 ? story.description.substring(0, 157) + '...' : story.description)

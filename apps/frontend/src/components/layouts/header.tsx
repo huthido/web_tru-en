@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { ImageSizes } from '@/utils/image-utils';
 import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/components/providers/theme-provider';
 import { useSearchSuggestions } from '@/lib/api/hooks/use-search';
@@ -24,7 +26,7 @@ export function Header() {
     if (searchQuery.trim().length >= 2) {
       // Navigate to first suggestion if available, otherwise do nothing
       if (suggestions && suggestions.length > 0) {
-        router.push(`/books/${suggestions[0].slug}`);
+        router.push(`/truyen/${suggestions[0].slug}`);
         setSearchQuery('');
         setShowSuggestions(false);
       }
@@ -32,7 +34,7 @@ export function Header() {
   };
 
   const handleSuggestionClick = (slug: string) => {
-    router.push(`/books/${slug}`);
+    router.push(`/truyen/${slug}`);
     setSearchQuery('');
     setShowSuggestions(false);
   };
@@ -117,10 +119,16 @@ export function Header() {
                     className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex items-center gap-3"
                   >
                     {suggestion.coverImage && (
-                      <img
+                      <OptimizedImage
                         src={suggestion.coverImage}
                         alt={suggestion.title}
-                        className="w-10 h-14 object-cover rounded flex-shrink-0"
+                        width={40}
+                        height={56}
+                        objectFit="cover"
+                        sizes={ImageSizes.bookThumbnail}
+                        quality={75}
+                        placeholder="blur"
+                        className="rounded flex-shrink-0"
                       />
                     )}
                     <div className="flex-1 min-w-0">
@@ -198,12 +206,16 @@ export function Header() {
                   className="flex items-center gap-1.5 md:gap-2.5 hover:opacity-80 transition-opacity duration-300"
                   aria-label="User menu"
                 >
-                  <div className="w-[36px] h-[36px] md:w-[40px] md:h-[40px] rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-2 border-gray-300 dark:border-gray-600 transition-all duration-300 hover:scale-105 cursor-pointer">
+                  <div className="relative w-[36px] h-[36px] md:w-[40px] md:h-[40px] rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-2 border-gray-300 dark:border-gray-600 transition-all duration-300 hover:scale-105 cursor-pointer">
                     {user.avatar ? (
-                      <img
+                      <OptimizedImage
                         src={user.avatar}
                         alt={user.displayName || user.username}
-                        className="w-full h-full object-cover"
+                        fill
+                        objectFit="cover"
+                        sizes={ImageSizes.avatar}
+                        quality={80}
+                        placeholder="blur"
                       />
                     ) : (
                       <span className="text-sm md:text-base font-semibold text-gray-600 dark:text-gray-300">

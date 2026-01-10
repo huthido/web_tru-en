@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { ImageSizes } from '@/utils/image-utils';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
@@ -154,12 +155,15 @@ function HistoryContent() {
                         {/* Story Cover */}
                         {item.story.coverImage && (
                           <div className="relative w-20 h-28 md:w-24 md:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
-                            <Image
+                            <OptimizedImage
                               src={item.story.coverImage}
                               alt={item.story.title}
                               fill
-                              className="object-cover transition-transform duration-300 group-hover:scale-110"
-                              sizes="96px"
+                              objectFit="cover"
+                              sizes={ImageSizes.bookThumbnail}
+                              quality={85}
+                              placeholder="blur"
+                              className="transition-transform duration-300 group-hover:scale-110"
                             />
                           </div>
                         )}

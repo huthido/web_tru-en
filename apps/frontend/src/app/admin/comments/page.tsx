@@ -372,7 +372,7 @@ export default function AdminCommentsPage() {
                                                     {comment.story ? (
                                                         <div>
                                                             <Link
-                                                                href={`/books/${comment.story.slug}`}
+                                                                href={`/truyen/${comment.story.slug}`}
                                                                 className="text-blue-600 hover:underline text-sm font-medium"
                                                                 target="_blank"
                                                             >
@@ -534,7 +534,7 @@ export default function AdminCommentsPage() {
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Truyện</label>
                                         <Link
-                                            href={`/books/${viewingComment.story?.slug}`}
+                                            href={`/truyen/${viewingComment.story?.slug}`}
                                             className="text-blue-600 hover:underline"
                                         >
                                             {viewingComment.story.title}

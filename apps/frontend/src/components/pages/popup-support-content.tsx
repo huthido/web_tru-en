@@ -2,7 +2,8 @@
 
 import { usePage } from '@/lib/api/hooks/use-pages';
 import { Loading } from '@/components/ui/loading';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
+import { ImageSizes } from '@/utils/image-utils';
 
 interface PopupSupportContentProps {
     onClose?: () => void;
@@ -46,12 +47,14 @@ export function PopupSupportContent({ onClose }: PopupSupportContentProps) {
                 {/* QR Code */}
                 <div className="flex justify-center mb-6">
                     <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-white p-2">
-                        <Image
+                        <OptimizedImage
                             src="/ungho.jpg"
                             alt="Mã QR ủng hộ"
                             fill
-                            className="object-contain"
-                            sizes="(max-width: 768px) 256px, 320px"
+                            objectFit="contain"
+                            sizes={ImageSizes.qrCode}
+                            quality={90}
+                            placeholder="blur"
                         />
                     </div>
                 </div>

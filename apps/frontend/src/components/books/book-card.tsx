@@ -2,9 +2,7 @@
 
 import { memo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { LikeButton } from '@/components/stories/like-button';
-import { FollowButton } from '@/components/stories/follow-button';
+import { OptimizedImage } from '@/components/ui/optimized-image';
 
 interface BookCardProps {
   id: string;
@@ -29,7 +27,7 @@ function formatViewCount(count: number): string {
   return count.toString();
 }
 
-export const BookCard = memo(function BookCard({ id, title, viewCount, rating, ratingCount, coverImage, slug, storyId, showLikeButton = true, iconType = 'like' }: BookCardProps) {
+export const BookCard = memo(function BookCard({ id, title, viewCount, rating, ratingCount, coverImage, slug, storyId }: BookCardProps) {
   // Calculate filled stars based on rating (0-5)
   // Clamp rating between 0 and 5, then round to nearest integer
   const filledStars = rating ? Math.max(0, Math.min(5, Math.round(rating))) : 0;
@@ -40,16 +38,19 @@ export const BookCard = memo(function BookCard({ id, title, viewCount, rating, r
         {/* Book Cover - Fixed size to ensure consistency */}
         <div className="relative w-[150px] h-[200px] rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 shadow-md group-hover:shadow-2xl transition-all duration-500">
           <Link
-            href={slug ? `/books/${slug}` : `/books/${id}`}
+            href={slug ? `/truyen/${slug}` : `/truyen/${id}`}
             className="absolute inset-0 z-10"
           >
             {coverImage ? (
-              <Image
+              <OptimizedImage
                 src={coverImage}
                 alt={title}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                className="transition-transform duration-500 group-hover:scale-110"
                 sizes="150px"
+                objectFit="cover"
+                quality={85}
+                placeholder="blur"
                 unoptimized={coverImage.includes('images.unsplash.com') || coverImage.includes('cache.staticscdn.net')}
               />
             ) : (
@@ -79,40 +80,11 @@ export const BookCard = memo(function BookCard({ id, title, viewCount, rating, r
               </div>
             )}
           </Link>
-          
-          {/* Icon Button - positioned on top right of book cover */}
-          {showLikeButton && storyId && iconType !== 'none' && (
-            <div 
-              className="absolute top-2 right-2 z-20" 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-            >
-              {iconType === 'follow' ? (
-                <FollowButton 
-                  storyId={storyId} 
-                  showText={false} 
-                  className="w-10 h-10 md:w-12 md:h-12 p-0 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg hover:bg-white dark:hover:bg-gray-800 transition-all"
-                />
-              ) : (
-                <LikeButton 
-                  storyId={storyId} 
-                  showCount={false} 
-                  className="w-10 h-10 md:w-12 md:h-12 p-0 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg hover:bg-white dark:hover:bg-gray-800 transition-all [&_svg]:text-red-500 [&_svg]:dark:text-red-400"
-                />
-              )}
-            </div>
-          )}
         </div>
 
         {/* Book Info */}
         <Link
-          href={slug ? `/books/${slug}` : `/books/${id}`}
+          href={slug ? `/truyen/${slug}` : `/truyen/${id}`}
           className="flex flex-col gap-1 w-[150px]"
         >
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 leading-tight">
