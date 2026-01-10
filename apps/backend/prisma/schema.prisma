@@ -468,8 +468,12 @@ model Settings {
   siteAddress              String?  @db.Text
   siteFacebook             String?
   siteTwitter              String?
+  siteX                    String?  // X (formerly Twitter)
   siteYoutube              String?
   siteInstagram            String?
+  siteTikTok               String?
+  siteLinkedIn             String?
+  siteThreads              String?
   maintenanceMode          Boolean  @default(false)
   maintenanceMessage       String?  @db.Text
   allowRegistration        Boolean  @default(true)

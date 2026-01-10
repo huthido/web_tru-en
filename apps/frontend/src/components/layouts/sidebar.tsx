@@ -23,8 +23,8 @@ export function Sidebar() {
   const isChapterManagement = pathname?.includes('/author/stories/') && pathname?.includes('/chapters');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Check if user is author or admin
-  const isAuthorOrAdmin = user && (user.role === 'AUTHOR' || user.role === 'ADMIN');
+  // All authenticated users can create stories
+  const canCreateStories = !!user;
   const isAdmin = user && user.role === 'ADMIN';
 
   return (
@@ -147,8 +147,8 @@ export function Sidebar() {
               />
             </Link>
 
-            {/* Author Dashboard - Only show for AUTHOR or ADMIN */}
-            {isAuthorOrAdmin && (
+            {/* Author Dashboard - Show for all authenticated users */}
+            {canCreateStories && (
               <Link
                 href="/author/dashboard"
                 className={`w-[50px] h-[50px] flex items-center justify-center rounded-[10px] transition-all duration-300 hover:scale-110 active:scale-95 ${isAuthorDashboard
@@ -231,8 +231,8 @@ export function Sidebar() {
             <span className={`text-[10px] font-medium ${isHistory ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>Lịch sử</span>
           </Link>
 
-          {/* Author Dashboard - Only show for AUTHOR or ADMIN */}
-          {isAuthorOrAdmin && (
+          {/* Author Dashboard - Show for all authenticated users */}
+          {canCreateStories && (
             <Link
               href="/author/dashboard"
               className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${isAuthorDashboard

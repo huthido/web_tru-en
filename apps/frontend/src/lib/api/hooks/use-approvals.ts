@@ -27,6 +27,7 @@ export interface ApprovalRequest {
   };
   user?: {
     id: string;
+    email: string;
     username: string;
     displayName?: string;
     avatar?: string;
@@ -44,6 +45,32 @@ export interface ReviewApprovalRequest {
 }
 
 export const approvalsService = {
+  /**
+   * Create approval request
+   */
+  create: async (data: {
+    storyId?: string;
+    chapterId?: string;
+    type: 'STORY_PUBLISH' | 'CHAPTER_PUBLISH';
+    message?: string;
+  }): Promise<ApprovalRequest> => {
+    // Determine the correct endpoint based on type
+    let endpoint: string;
+    if (data.storyId) {
+      endpoint = `/approvals/stories/${data.storyId}`;
+    } else if (data.chapterId) {
+      endpoint = `/approvals/chapters/${data.chapterId}`;
+    } else {
+      throw new Error('Either storyId or chapterId must be provided');
+    }
+    
+    const response = await apiClient.post(endpoint, {
+      type: data.type,
+      message: data.message,
+    });
+    return response.data?.data || response.data;
+  },
+
   /**
    * Get all approval requests (admin only)
    */
@@ -133,6 +160,21 @@ export const useMyApprovals = (query?: {
 };
 
 /**
+ * Create approval request mutation
+ */
+export const useCreateApprovalRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { storyId?: string; chapterId?: string; type: 'STORY_PUBLISH' | 'CHAPTER_PUBLISH'; message?: string }) =>
+      approvalsService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['approvals'] });
+      queryClient.invalidateQueries({ queryKey: ['stories'] });
+    },
+  });
+};
+
+/**
  * Review approval mutation (admin only)
  */
 export const useReviewApproval = () => {
@@ -142,6 +184,7 @@ export const useReviewApproval = () => {
       approvalsService.review(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['approvals'] });
+      queryClient.invalidateQueries({ queryKey: ['stories'] });
     },
   });
 };

@@ -29,6 +29,7 @@ export default function AdminApprovalsPage() {
     const [reviewingRequest, setReviewingRequest] = useState<ApprovalRequest | null>(null);
     const [reviewNote, setReviewNote] = useState('');
     const [reviewStatus, setReviewStatus] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
     const { data, isLoading } = useApprovals({
         page,
@@ -207,6 +208,28 @@ export default function AdminApprovalsPage() {
                                 </button>
                             </div>
                         )}
+                        <div className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                            <button
+                                onClick={() => setViewMode('list')}
+                                className={`px-3 py-2 text-sm font-medium transition-colors ${
+                                    viewMode === 'list'
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                }`}
+                            >
+                                List
+                            </button>
+                            <button
+                                onClick={() => setViewMode('grid')}
+                                className={`px-3 py-2 text-sm font-medium transition-colors ${
+                                    viewMode === 'grid'
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                }`}
+                            >
+                                Grid
+                            </button>
+                        </div>
                         <button
                             onClick={handleExportExcel}
                             className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
@@ -333,9 +356,9 @@ export default function AdminApprovalsPage() {
                         <p className="text-gray-500 dark:text-gray-400">Không có yêu cầu nào</p>
                     </div>
                 ) : (
-                    <div className="space-y-4">
+                    <>
                         {sortedRequests.filter(r => r.status === 'PENDING').length > 0 && (
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm mb-4">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -349,7 +372,118 @@ export default function AdminApprovalsPage() {
                                 </label>
                             </div>
                         )}
-                        {sortedRequests.map((request) => (
+                        
+                        {viewMode === 'grid' ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {sortedRequests.map((request) => (
+                                    <div
+                                        key={request.id}
+                                        className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 ${
+                                            request.status === 'PENDING' ? 'border-yellow-500' :
+                                            request.status === 'APPROVED' ? 'border-green-500' : 'border-red-500'
+                                        } ${selectedRequests.has(request.id) ? 'ring-2 ring-blue-500' : ''} overflow-hidden`}
+                                    >
+                                        {/* Cover Image */}
+                                        {request.story?.coverImage && (
+                                            <div className="relative w-full h-40 bg-gray-200 dark:bg-gray-700">
+                                                <Image
+                                                    src={request.story.coverImage}
+                                                    alt={request.story.title}
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                                                />
+                                                {request.status === 'PENDING' && (
+                                                    <div className="absolute top-2 left-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedRequests.has(request.id)}
+                                                            onChange={() => toggleSelectRequest(request.id)}
+                                                            className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div className="absolute top-2 right-2 flex gap-1">
+                                                    <span
+                                                        className={`px-2 py-1 text-xs rounded-full ${
+                                                            request.type === 'STORY_PUBLISH'
+                                                                ? 'bg-blue-500 text-white'
+                                                                : 'bg-green-500 text-white'
+                                                        }`}
+                                                    >
+                                                        {request.type === 'STORY_PUBLISH' ? 'Truyện' : 'Chương'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Content */}
+                                        <div className="p-4">
+                                            <h3 
+                                                className="text-base font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                                                onClick={() => {
+                                                    setViewingRequest(request);
+                                                    setShowViewModal(true);
+                                                }}
+                                            >
+                                                {request.story?.title || request.chapter?.title}
+                                            </h3>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                                {request.user?.displayName || request.user?.username}
+                                            </p>
+                                            
+                                            <span
+                                                className={`inline-block px-2 py-1 text-xs rounded-full mb-3 ${
+                                                    request.status === 'PENDING'
+                                                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                                        : request.status === 'APPROVED'
+                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                                }`}
+                                            >
+                                                {request.status === 'PENDING'
+                                                    ? 'Đang chờ'
+                                                    : request.status === 'APPROVED'
+                                                    ? 'Đã duyệt'
+                                                    : 'Đã từ chối'}
+                                            </span>
+                                            
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                                {new Date(request.createdAt).toLocaleString('vi-VN')}
+                                            </p>
+                                            
+                                            {/* Actions */}
+                                            {request.status === 'PENDING' && (
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setReviewingRequest(request);
+                                                            setReviewStatus('APPROVED');
+                                                            setReviewNote('');
+                                                        }}
+                                                        className="flex-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-medium transition-colors"
+                                                    >
+                                                        Duyệt
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setReviewingRequest(request);
+                                                            setReviewStatus('REJECTED');
+                                                            setReviewNote('');
+                                                        }}
+                                                        className="flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-medium transition-colors"
+                                                    >
+                                                        Từ chối
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {sortedRequests.map((request) => (
                             <div
                                 key={request.id}
                                 className={`bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border-l-4 ${
@@ -482,8 +616,10 @@ export default function AdminApprovalsPage() {
                                     </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
 
                 {/* Pagination */}

@@ -107,6 +107,50 @@ export class EmailService {
     }
 
     /**
+     * Send approval notification (approved)
+     */
+    async sendApprovalApprovedEmail(
+        email: string,
+        userName: string,
+        storyTitle: string,
+        storySlug: string,
+        adminNote?: string
+    ): Promise<void> {
+        const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+        const storyUrl = `${frontendUrl}/truyen/${storySlug}`;
+
+        const html = this.getApprovalApprovedTemplate(userName, storyTitle, storyUrl, adminNote);
+        const text = `Xin chào ${userName}!\n\nTruyện "${storyTitle}" của bạn đã được phê duyệt và xuất bản thành công!\n\nXem truyện tại: ${storyUrl}\n\n${adminNote ? `Ghi chú từ Admin: ${adminNote}\n\n` : ''}Trân trọng,\nĐội ngũ Web Truyện Tiến Hùng`;
+
+        await this.sendEmail({
+            to: email,
+            subject: `Truyện "${storyTitle}" đã được phê duyệt`,
+            html,
+            text,
+        });
+    }
+
+    /**
+     * Send approval notification (rejected)
+     */
+    async sendApprovalRejectedEmail(
+        email: string,
+        userName: string,
+        storyTitle: string,
+        reason?: string
+    ): Promise<void> {
+        const html = this.getApprovalRejectedTemplate(userName, storyTitle, reason);
+        const text = `Xin chào ${userName}!\n\nRất tiếc, truyện "${storyTitle}" của bạn chưa được phê duyệt.\n\n${reason ? `Lý do: ${reason}\n\n` : ''}Bạn có thể chỉnh sửa và gửi lại yêu cầu phê duyệt.\n\nTrân trọng,\nĐội ngũ Web Truyện Tiến Hùng`;
+
+        await this.sendEmail({
+            to: email,
+            subject: `Truyện "${storyTitle}" chưa được phê duyệt`,
+            html,
+            text,
+        });
+    }
+
+    /**
      * Send email (uses nodemailer if configured, otherwise logs to console)
      */
     private async sendEmail(options: EmailOptions): Promise<void> {
@@ -384,5 +428,141 @@ Verification URL: ${this.extractUrl(options.text || options.html)}
 </body>
 </html>
     `;
+    }
+
+    /**
+     * Approval approved email template
+     */
+    private getApprovalApprovedTemplate(userName: string, storyTitle: string, storyUrl: string, adminNote?: string): string {
+        return `
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truyện đã được phê duyệt</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background-color: #f5f5f5;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f5f5;">
+        <tr>
+            <td style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <tr>
+                        <td style="padding: 40px; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px 8px 0 0;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">
+                                Truyện đã được phê duyệt
+                            </h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px;">
+                            <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                                Xin chào <strong style="color: #111827;">${userName}</strong>,
+                            </p>
+                            <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                                Chúc mừng! Truyện <strong style="color: #111827;">"${storyTitle}"</strong> của bạn đã được phê duyệt và xuất bản thành công.
+                            </p>
+                            <p style="margin: 0 0 32px; color: #6b7280; font-size: 15px; line-height: 1.6;">
+                                Truyện của bạn giờ đã có thể được độc giả trên toàn hệ thống xem và theo dõi.
+                            </p>
+                            ${adminNote ? `
+                            <div style="margin: 0 0 32px; padding: 20px; background-color: #f3f4f6; border-left: 3px solid #3b82f6; border-radius: 4px;">
+                                <p style="margin: 0 0 8px; color: #111827; font-size: 14px; font-weight: 600;">
+                                    Ghi chú từ quản trị viên:
+                                </p>
+                                <p style="margin: 0; color: #4b5563; font-size: 14px; line-height: 1.5;">
+                                    ${adminNote}
+                                </p>
+                            </div>
+                            ` : ''}
+                            <table role="presentation" style="margin: 0; width: 100%;">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <a href="${storyUrl}"
+                                           style="display: inline-block; padding: 14px 40px; background-color: #3b82f6; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 500; border-radius: 6px; transition: background-color 0.2s;">
+                                            Xem truyện của bạn
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 24px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb; border-radius: 0 0 8px 8px;">
+                            <p style="margin: 0; color: #9ca3af; font-size: 13px; text-align: center;">
+                                Web Truyện Tiến Hùng &copy; 2026
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+        `;
+    }
+
+    /**
+     * Approval rejected email template
+     */
+    private getApprovalRejectedTemplate(userName: string, storyTitle: string, reason?: string): string {
+        return `
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truyện chưa được phê duyệt</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background-color: #f5f5f5;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f5f5;">
+        <tr>
+            <td style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <tr>
+                        <td style="padding: 40px; text-align: center; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 8px 8px 0 0;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">
+                                Yêu cầu phê duyệt bị từ chối
+                            </h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px;">
+                            <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                                Xin chào <strong style="color: #111827;">${userName}</strong>,
+                            </p>
+                            <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                                Rất tiếc, truyện <strong style="color: #111827;">"${storyTitle}"</strong> của bạn chưa được phê duyệt.
+                            </p>
+                            ${reason ? `
+                            <div style="margin: 0 0 32px; padding: 20px; background-color: #fef2f2; border-left: 3px solid #ef4444; border-radius: 4px;">
+                                <p style="margin: 0 0 8px; color: #111827; font-size: 14px; font-weight: 600;">
+                                    Lý do từ chối:
+                                </p>
+                                <p style="margin: 0; color: #4b5563; font-size: 14px; line-height: 1.5;">
+                                    ${reason}
+                                </p>
+                            </div>
+                            ` : ''}
+                            <p style="margin: 0; color: #6b7280; font-size: 15px; line-height: 1.6;">
+                                Bạn có thể chỉnh sửa nội dung truyện và gửi lại yêu cầu phê duyệt. Vui lòng đảm bảo nội dung tuân thủ các quy định của chúng tôi.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 24px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb; border-radius: 0 0 8px 8px;">
+                            <p style="margin: 0; color: #9ca3af; font-size: 13px; text-align: center;">
+                                Web Truyện Tiến Hùng &copy; 2026
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+        `;
     }
 }

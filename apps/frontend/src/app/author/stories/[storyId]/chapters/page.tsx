@@ -164,47 +164,49 @@ export default function ChapterManagementPage() {
                     <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                         <div className="max-w-7xl mx-auto">
                             {/* Header */}
-                            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8">
-                                <div>
-                                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                                        Quản lý chương
-                                    </h1>
-                                    {story && (
-                                        <p className="text-gray-600 dark:text-gray-400">
-                                            Truyện: {story.title}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="flex gap-3 mt-4 md:mt-0">
-                                    <Link
-                                        href={`/author/stories/${storySlug}/chapters/create`}
-                                        className="px-6 py-3 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-300 hover:scale-105 active:scale-95 inline-flex items-center justify-center gap-2"
-                                    >
-                                        <svg
-                                            width="20"
-                                            height="20"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
+                            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                                    <div>
+                                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                                            Quản lý chương
+                                        </h1>
+                                        {story && (
+                                            <p className="text-gray-600 dark:text-gray-400">
+                                                Truyện: <span className="font-medium text-gray-900 dark:text-white">{story.title}</span>
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-3 mt-4 md:mt-0">
+                                        <Link
+                                            href="/author/dashboard"
+                                            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
                                         >
-                                            <path d="M12 5v14M5 12h14" />
-                                        </svg>
-                                        Tạo chương mới
-                                    </Link>
-                                    <Link
-                                        href="/author/dashboard"
-                                        className="px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
-                                    >
-                                        Quay lại
-                                    </Link>
+                                            Quay lại
+                                        </Link>
+                                        <Link
+                                            href={`/author/stories/${storySlug}/chapters/create`}
+                                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
+                                        >
+                                            <svg
+                                                width="20"
+                                                height="20"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            >
+                                                <path d="M12 5v14M5 12h14" />
+                                            </svg>
+                                            Tạo chương mới
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Filters */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 md:p-6 mb-6 space-y-4">
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {/* Search */}
                                     <div>
@@ -218,7 +220,7 @@ export default function ChapterManagementPage() {
                                                 setSearch(e.target.value);
                                                 setPage(1);
                                             }}
-                                            placeholder="Tìm theo tên, nội dung..."
+                                            placeholder="Tìm theo tên..."
                                             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
                                     </div>
@@ -240,8 +242,8 @@ export default function ChapterManagementPage() {
                                             <option value="order-desc">Thứ tự: Giảm dần</option>
                                             <option value="title-asc">Tên: A-Z</option>
                                             <option value="title-desc">Tên: Z-A</option>
-                                            <option value="created-asc">Mới nhất: Cũ → Mới</option>
-                                            <option value="created-desc">Mới nhất: Mới → Cũ</option>
+                                            <option value="created-desc">Mới nhất</option>
+                                            <option value="created-asc">Cũ nhất</option>
                                         </select>
                                     </div>
 
@@ -266,10 +268,12 @@ export default function ChapterManagementPage() {
                                 </div>
 
                                 {/* Results count */}
-                                <div className="text-sm text-gray-600 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
-                                    Hiển thị {paginatedChapters.length} / {filteredAndSortedChapters.length} chương
-                                    {filteredAndSortedChapters.length !== allChapters.length && ` (trong tổng ${allChapters.length} chương)`}
-                                </div>
+                                {filteredAndSortedChapters.length > 0 && (
+                                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                        Hiển thị {paginatedChapters.length} / {filteredAndSortedChapters.length} chương
+                                        {filteredAndSortedChapters.length !== allChapters.length && ` (lọc từ ${allChapters.length} chương)`}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Chapters List */}

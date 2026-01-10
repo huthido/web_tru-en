@@ -151,7 +151,7 @@ export class StoriesController {
     @Post(':id/publish')
     @UseGuards(JwtAuthGuard)
     publish(@Param('id') id: string, @CurrentUser() user: any) {
-        return this.storiesService.publish(id, user.id);
+        return this.storiesService.publish(id, user.id, user.role);
     }
 
     @Patch(':id')

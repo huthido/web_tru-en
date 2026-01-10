@@ -53,6 +53,26 @@ export class UpdateSettingsDto {
   siteInstagram?: string;
 
   @IsOptional()
+  @ValidateIf((o) => o.siteX !== '' && o.siteX != null)
+  @IsUrl()
+  siteX?: string;
+
+  @IsOptional()
+  @ValidateIf((o) => o.siteTikTok !== '' && o.siteTikTok != null)
+  @IsUrl()
+  siteTikTok?: string;
+
+  @IsOptional()
+  @ValidateIf((o) => o.siteLinkedIn !== '' && o.siteLinkedIn != null)
+  @IsUrl()
+  siteLinkedIn?: string;
+
+  @IsOptional()
+  @ValidateIf((o) => o.siteThreads !== '' && o.siteThreads != null)
+  @IsUrl()
+  siteThreads?: string;
+
+  @IsOptional()
   @IsBoolean()
   maintenanceMode?: boolean;
 

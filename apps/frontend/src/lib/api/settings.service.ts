@@ -12,8 +12,12 @@ export interface Settings {
     siteAddress?: string;
     siteFacebook?: string;
     siteTwitter?: string;
+    siteX?: string;
     siteYoutube?: string;
     siteInstagram?: string;
+    siteTikTok?: string;
+    siteLinkedIn?: string;
+    siteThreads?: string;
     maintenanceMode: boolean;
     maintenanceMessage?: string;
     allowRegistration: boolean;
@@ -32,8 +36,12 @@ export interface UpdateSettingsRequest {
     siteAddress?: string;
     siteFacebook?: string;
     siteTwitter?: string;
+    siteX?: string;
     siteYoutube?: string;
     siteInstagram?: string;
+    siteTikTok?: string;
+    siteLinkedIn?: string;
+    siteThreads?: string;
     maintenanceMode?: boolean;
     maintenanceMessage?: string;
     allowRegistration?: boolean;

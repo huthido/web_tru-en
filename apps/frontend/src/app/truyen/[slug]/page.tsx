@@ -399,8 +399,24 @@ export default function BookDetailPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Trạng thái</p>
-                  <p className="text-base font-medium text-gray-900 dark:text-white">
-                    {story.isPublished ? 'Đã xuất bản' : 'Bản nháp'}
+                  <p className={`text-base font-medium ${
+                    !story.isPublished
+                      ? 'text-yellow-600 dark:text-yellow-400'
+                      : story.status === 'ONGOING'
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : story.status === 'COMPLETED'
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-gray-900 dark:text-white'
+                  }`}>
+                    {!story.isPublished
+                      ? 'Bản nháp'
+                      : story.status === 'ONGOING'
+                      ? 'Đang ra'
+                      : story.status === 'COMPLETED'
+                      ? 'Hoàn thành'
+                      : story.status === 'ARCHIVED'
+                      ? 'Lưu trữ'
+                      : 'Đã xuất bản'}
                   </p>
                 </div>
               </div>

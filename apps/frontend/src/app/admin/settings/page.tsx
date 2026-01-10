@@ -25,8 +25,12 @@ export default function AdminSettingsPage() {
         siteAddress: '',
         siteFacebook: '',
         siteTwitter: '',
+        siteX: '',
         siteYoutube: '',
         siteInstagram: '',
+        siteTikTok: '',
+        siteLinkedIn: '',
+        siteThreads: '',
         maintenanceMode: false,
         maintenanceMessage: '',
         allowRegistration: true,
@@ -48,8 +52,12 @@ export default function AdminSettingsPage() {
                 siteAddress: settings.siteAddress || '',
                 siteFacebook: settings.siteFacebook || '',
                 siteTwitter: settings.siteTwitter || '',
+                siteX: settings.siteX || '',
                 siteYoutube: settings.siteYoutube || '',
                 siteInstagram: settings.siteInstagram || '',
+                siteTikTok: settings.siteTikTok || '',
+                siteLinkedIn: settings.siteLinkedIn || '',
+                siteThreads: settings.siteThreads || '',
                 maintenanceMode: settings.maintenanceMode || false,
                 maintenanceMessage: settings.maintenanceMessage || '',
                 allowRegistration: settings.allowRegistration ?? true,
@@ -63,7 +71,26 @@ export default function AdminSettingsPage() {
             await updateMutation.mutateAsync(formData);
             showToast('Đã lưu cài đặt thành công', 'success');
         } catch (error: any) {
-            showToast(error?.response?.data?.error || 'Có lỗi xảy ra khi lưu cài đặt', 'error');
+            // Xử lý lỗi validation từ backend
+            const errorData = error?.response?.data;
+            let errorMessage = 'Có lỗi xảy ra khi lưu cài đặt';
+            
+            if (errorData) {
+                // Nếu lỗi là array (validation errors)
+                if (Array.isArray(errorData.error)) {
+                    errorMessage = errorData.error.join('. ');
+                } 
+                // Nếu lỗi là string
+                else if (typeof errorData.error === 'string') {
+                    errorMessage = errorData.error;
+                }
+                // Nếu có message
+                else if (errorData.message) {
+                    errorMessage = errorData.message;
+                }
+            }
+            
+            showToast(errorMessage, 'error');
         }
     };
 
@@ -286,6 +313,19 @@ export default function AdminSettingsPage() {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    X (Twitter) URL
+                                </label>
+                                <input
+                                    type="url"
+                                    value={formData.siteX}
+                                    onChange={(e) => setFormData({ ...formData, siteX: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    placeholder="https://x.com/..."
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     YouTube URL
                                 </label>
                                 <input
@@ -307,6 +347,45 @@ export default function AdminSettingsPage() {
                                     onChange={(e) => setFormData({ ...formData, siteInstagram: e.target.value })}
                                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                     placeholder="https://instagram.com/..."
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    TikTok URL
+                                </label>
+                                <input
+                                    type="url"
+                                    value={formData.siteTikTok}
+                                    onChange={(e) => setFormData({ ...formData, siteTikTok: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    placeholder="https://tiktok.com/@..."
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    LinkedIn URL
+                                </label>
+                                <input
+                                    type="url"
+                                    value={formData.siteLinkedIn}
+                                    onChange={(e) => setFormData({ ...formData, siteLinkedIn: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    placeholder="https://linkedin.com/company/..."
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Threads URL
+                                </label>
+                                <input
+                                    type="url"
+                                    value={formData.siteThreads}
+                                    onChange={(e) => setFormData({ ...formData, siteThreads: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    placeholder="https://threads.net/@..."
                                 />
                             </div>
                         </div>

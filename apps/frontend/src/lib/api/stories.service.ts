@@ -9,7 +9,7 @@ export interface Story {
     coverImage?: string;
     authorId: string;
     authorName?: string;
-    status: string;
+    status: 'DRAFT' | 'ONGOING' | 'COMPLETED' | 'PUBLISHED' | 'ARCHIVED';
     isPublished: boolean;
     viewCount: number;
     likeCount: number;
@@ -73,7 +73,7 @@ export interface UpdateStoryRequest {
     coverImage?: string;
     categoryIds?: string[];
     tags?: string[];
-    status?: string;
+    status?: 'DRAFT' | 'ONGOING' | 'COMPLETED' | 'PUBLISHED' | 'ARCHIVED';
     isPublished?: boolean;
     country?: string;
     isRecommended?: boolean;

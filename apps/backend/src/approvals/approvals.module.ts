@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { ApprovalsController } from './approvals.controller';
 import { ApprovalsService } from './approvals.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, EmailModule],
   controllers: [ApprovalsController],
   providers: [ApprovalsService],
   exports: [ApprovalsService],

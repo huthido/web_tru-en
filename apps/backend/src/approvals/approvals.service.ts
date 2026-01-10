@@ -3,8 +3,10 @@ import {
     NotFoundException,
     ForbiddenException,
     BadRequestException,
+    Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { CreateApprovalRequestDto } from './dto/create-approval-request.dto';
 import { ReviewApprovalDto } from './dto/review-approval.dto';
 import { ApprovalType, ApprovalStatus, UserRole, StoryStatus } from '@prisma/client';
@@ -12,7 +14,12 @@ import { getPaginationParams, createPaginatedResult } from '../common/utils/pagi
 
 @Injectable()
 export class ApprovalsService {
-    constructor(private prisma: PrismaService) { }
+    private readonly logger = new Logger(ApprovalsService.name);
+
+    constructor(
+        private prisma: PrismaService,
+        private emailService: EmailService,
+    ) { }
 
     async createRequest(
         userId: string,
@@ -24,13 +31,25 @@ export class ApprovalsService {
         if (storyId) {
             const story = await this.prisma.story.findUnique({
                 where: { id: storyId },
-                select: { id: true, authorId: true },
+                select: {
+                    id: true,
+                    authorId: true,
+                    coverImage: true,
+                    chapters: {
+                        select: { id: true },
+                    },
+                },
             });
             if (!story) {
                 throw new NotFoundException('Truyện không tồn tại');
             }
             if (story.authorId !== userId) {
                 throw new ForbiddenException('Bạn chỉ có thể yêu cầu publish truyện của chính mình');
+            }
+
+            // Check if story has at least 1 chapter
+            if (!story.chapters || story.chapters.length === 0) {
+                throw new BadRequestException('Truyện phải có ít nhất 1 chương trước khi gửi yêu cầu xuất bản');
             }
         }
 
@@ -84,6 +103,7 @@ export class ApprovalsService {
                         id: true,
                         title: true,
                         slug: true,
+                        coverImage: true,
                     },
                 },
                 chapter: {
@@ -292,6 +312,7 @@ export class ApprovalsService {
                 user: {
                     select: {
                         id: true,
+                        email: true,
                         username: true,
                         displayName: true,
                     },
@@ -302,11 +323,22 @@ export class ApprovalsService {
         // If approved, publish the story/chapter
         if (reviewDto.status === ApprovalStatus.APPROVED) {
             if (request.type === ApprovalType.STORY_PUBLISH && request.storyId) {
+                const currentStory = await this.prisma.story.findUnique({
+                    where: { id: request.storyId },
+                    select: { status: true },
+                });
+
+                // Nếu story đang DRAFT thì chuyển sang ONGOING
+                // Nếu đã có status khác (COMPLETED, ONGOING) thì giữ nguyên
+                const newStatus = currentStory?.status === StoryStatus.DRAFT
+                    ? StoryStatus.ONGOING
+                    : currentStory?.status;
+
                 await this.prisma.story.update({
                     where: { id: request.storyId },
                     data: {
                         isPublished: true,
-                        status: StoryStatus.PUBLISHED,
+                        status: newStatus,
                     },
                 });
             } else if (request.type === ApprovalType.CHAPTER_PUBLISH && request.chapterId) {
@@ -317,6 +349,32 @@ export class ApprovalsService {
                     },
                 });
             }
+        }
+
+        // Send email notification to user
+        try {
+            const user = updatedRequest.user;
+            if (user && updatedRequest.story) {
+                if (reviewDto.status === ApprovalStatus.APPROVED) {
+                    await this.emailService.sendApprovalApprovedEmail(
+                        user.email,
+                        user.displayName || user.username,
+                        updatedRequest.story.title,
+                        updatedRequest.story.slug,
+                        reviewDto.adminNote
+                    );
+                } else if (reviewDto.status === ApprovalStatus.REJECTED) {
+                    await this.emailService.sendApprovalRejectedEmail(
+                        user.email,
+                        user.displayName || user.username,
+                        updatedRequest.story.title,
+                        reviewDto.adminNote
+                    );
+                }
+            }
+        } catch (error) {
+            // Don't fail the approval if email fails
+            this.logger.error('Failed to send approval notification email:', error);
         }
 
         return updatedRequest;

@@ -294,6 +294,7 @@ export class ChaptersService {
                     select: {
                         id: true,
                         authorId: true,
+                        isPublished: true,
                     },
                 },
             },
@@ -303,25 +304,41 @@ export class ChaptersService {
             throw new NotFoundException('Chương không tồn tại');
         }
 
-        // Check permission - chỉ author của story mới có thể request publish
+        // Check permission - chỉ author của story hoặc admin mới có thể publish
         if (chapter.story.authorId !== userId) {
             const user = await this.prisma.user.findUnique({ where: { id: userId } });
-            // Admin can publish directly
-            if (user && user.role === UserRole.ADMIN) {
-                return this.prisma.chapter.update({
-                    where: { id },
-                    data: {
-                        isPublished: true,
-                    },
-                    include: chapterWithStoryInclude,
-                });
+            if (!user || user.role !== UserRole.ADMIN) {
+                throw new ForbiddenException('Bạn chỉ có thể xuất bản chương của chính mình');
             }
-            throw new ForbiddenException('Bạn chỉ có thể yêu cầu publish chương của chính mình');
         }
 
         // Check if chapter is already published
         if (chapter.isPublished) {
             throw new BadRequestException('Chương này đã được xuất bản');
+        }
+
+        // Nếu story đã được publish → Cho phép tự publish chapter (không cần approval)
+        if (chapter.story.isPublished) {
+            return this.prisma.chapter.update({
+                where: { id },
+                data: {
+                    isPublished: true,
+                },
+                include: chapterWithStoryInclude,
+            });
+        }
+
+        // Nếu story chưa publish → Cần approval (chỉ áp dụng cho non-admin)
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (user && user.role === UserRole.ADMIN) {
+            // Admin có thể publish chapter ngay cả khi story chưa publish
+            return this.prisma.chapter.update({
+                where: { id },
+                data: {
+                    isPublished: true,
+                },
+                include: chapterWithStoryInclude,
+            });
         }
 
         // Check if there's already a pending approval request
@@ -337,7 +354,7 @@ export class ChaptersService {
             throw new BadRequestException('Bạn đã có yêu cầu phê duyệt đang chờ xử lý cho chương này');
         }
 
-        // Create approval request for author
+        // Create approval request (chỉ khi story chưa publish và user không phải admin)
         const approvalRequest = await this.approvalsService.createRequest(
             userId,
             null,
@@ -349,7 +366,7 @@ export class ChaptersService {
         );
 
         return {
-            message: 'Yêu cầu xuất bản đã được gửi thành công. Vui lòng chờ admin phê duyệt.',
+            message: 'Truyện chưa được xuất bản. Yêu cầu phê duyệt đã được gửi thành công.',
             approvalRequest,
         };
     }

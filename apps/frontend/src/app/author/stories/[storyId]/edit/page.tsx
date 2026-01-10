@@ -31,7 +31,7 @@ export default function EditStoryPage() {
         coverImage: '',
         categoryIds: [] as string[],
         country: 'VN',
-        status: 'DRAFT' as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
+        status: 'DRAFT' as 'DRAFT' | 'ONGOING' | 'COMPLETED' | 'PUBLISHED' | 'ARCHIVED',
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -314,14 +314,16 @@ export default function EditStoryPage() {
                                         onChange={(e) =>
                                             setFormData({
                                                 ...formData,
-                                                status: e.target.value as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
+                                                status: e.target.value as 'DRAFT' | 'ONGOING' | 'COMPLETED' | 'PUBLISHED' | 'ARCHIVED',
                                             })
                                         }
                                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                                     >
                                         <option value="DRAFT">Bản nháp</option>
+                                        <option value="ONGOING">Đang ra</option>
+                                        <option value="COMPLETED">Hoàn thành</option>
                                         <option value="PUBLISHED">Đã xuất bản</option>
-                                        <option value="ARCHIVED">Đã lưu trữ</option>
+                                        <option value="ARCHIVED">Lưu trữ</option>
                                     </select>
                                 </div>
 

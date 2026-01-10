@@ -16,7 +16,7 @@ export default function AdminStoriesPage() {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(20);
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState<'PUBLISHED' | 'DRAFT' | 'ARCHIVED' | ''>('');
+    const [statusFilter, setStatusFilter] = useState<'DRAFT' | 'ONGOING' | 'COMPLETED' | 'PUBLISHED' | 'ARCHIVED' | ''>('');
     const [recommendedFilter, setRecommendedFilter] = useState<boolean | ''>('');
     const [sortBy, setSortBy] = useState<'createdAt' | 'title' | 'viewCount' | 'rating' | 'likeCount'>('createdAt');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -24,6 +24,7 @@ export default function AdminStoriesPage() {
     const [deletingStory, setDeletingStory] = useState<Story | null>(null);
     const [editingStory, setEditingStory] = useState<Story | null>(null);
     const [isRecommended, setIsRecommended] = useState(false);
+    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
     const { data, isLoading } = useStories({
         page,
@@ -312,9 +313,11 @@ export default function AdminStoriesPage() {
                                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                                 <option value="">Tất cả trạng thái</option>
-                                <option value="PUBLISHED">Đã xuất bản</option>
                                 <option value="DRAFT">Bản nháp</option>
-                                <option value="ARCHIVED">Đã lưu trữ</option>
+                                <option value="ONGOING">Đang ra</option>
+                                <option value="COMPLETED">Hoàn thành</option>
+                                <option value="PUBLISHED">Đã xuất bản</option>
+                                <option value="ARCHIVED">Lưu trữ</option>
                             </select>
                             <select
                                 value={recommendedFilter === '' ? '' : recommendedFilter ? 'true' : 'false'}
@@ -361,11 +364,7 @@ export default function AdminStoriesPage() {
                                     Đổi trạng thái đề xuất
                                 </button>
                                 <button
-                                    onClick={() => {
-                                        if (confirm(`Bạn có chắc muốn xóa ${selectedStories.size} truyện?`)) {
-                                            handleBulkDelete();
-                                        }
-                                    }}
+                                    onClick={() => setShowBulkDeleteModal(true)}
                                     className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                                 >
                                     Xóa đã chọn
@@ -486,13 +485,26 @@ export default function AdminStoriesPage() {
                                                 {story.authorName || story.author?.displayName || story.author?.username || 'N/A'}
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${story.status === 'PUBLISHED' && story.isPublished
-                                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                                    : story.status === 'DRAFT'
+                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                                    !story.isPublished
                                                         ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                                                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                                                        : story.status === 'ONGOING'
+                                                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                                        : story.status === 'COMPLETED'
+                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                        : story.status === 'ARCHIVED'
+                                                        ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                                                        : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                                                     }`}>
-                                                    {story.status === 'PUBLISHED' && story.isPublished ? 'Đã xuất bản' : story.status}
+                                                    {!story.isPublished
+                                                        ? 'Bản nháp'
+                                                        : story.status === 'ONGOING'
+                                                        ? 'Đang ra'
+                                                        : story.status === 'COMPLETED'
+                                                        ? 'Hoàn thành'
+                                                        : story.status === 'ARCHIVED'
+                                                        ? 'Lưu trữ'
+                                                        : 'Đã xuất bản'}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -523,11 +535,7 @@ export default function AdminStoriesPage() {
                                                         Xem
                                                     </Link>
                                                     <button
-                                                        onClick={() => {
-                                                            if (confirm('Bạn có chắc muốn xóa truyện này?')) {
-                                                                setDeletingStory(story);
-                                                            }
-                                                        }}
+                                                        onClick={() => setDeletingStory(story)}
                                                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                                                     >
                                                         Xóa
@@ -571,7 +579,7 @@ export default function AdminStoriesPage() {
                 )}
             </div>
 
-            {/* Delete Confirmation Modal */}
+            {/* Delete Single Story Modal */}
             {deletingStory && (
                 <ConfirmModal
                     isOpen={!!deletingStory}
@@ -585,6 +593,21 @@ export default function AdminStoriesPage() {
                     isLoading={deleteMutation.isPending}
                 />
             )}
+
+            {/* Bulk Delete Modal */}
+            <ConfirmModal
+                isOpen={showBulkDeleteModal}
+                title="Xác nhận xóa nhiều truyện"
+                message={`Bạn có chắc muốn xóa ${selectedStories.size} truyện đã chọn? Hành động này không thể hoàn tác.`}
+                confirmText="Xóa tất cả"
+                cancelText="Hủy"
+                confirmColor="red"
+                onConfirm={() => {
+                    handleBulkDelete();
+                    setShowBulkDeleteModal(false);
+                }}
+                onClose={() => setShowBulkDeleteModal(false)}
+            />
         </AdminLayout>
     );
 }

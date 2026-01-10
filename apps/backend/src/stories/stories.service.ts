@@ -21,6 +21,44 @@ import { StoryStatus, UserRole } from '@prisma/client';
 export class StoriesService {
   constructor(private prisma: PrismaService) { }
 
+  // Rate limiting check for all users
+  private async checkRateLimits(userId: string, userRole: UserRole) {
+    // Check draft limit
+    const draftCount = await this.prisma.story.count({
+      where: {
+        authorId: userId,
+        isPublished: false,
+        status: StoryStatus.DRAFT,
+      },
+    });
+
+    // Draft limits based on role
+    const draftLimit = userRole === UserRole.ADMIN ? 999 : (userRole === UserRole.AUTHOR ? 50 : 3);
+
+    if (draftCount >= draftLimit) {
+      throw new BadRequestException(`Bạn đã đạt giới hạn ${draftLimit} truyện nháp. Vui lòng hoàn thành hoặc xóa truyện cũ.`);
+    }
+
+    // Check daily limit (for all roles)
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const todayStories = await this.prisma.story.count({
+      where: {
+        authorId: userId,
+        createdAt: {
+          gte: todayStart,
+        },
+      },
+    });
+
+    const dailyLimit = userRole === UserRole.ADMIN ? 999 : (userRole === UserRole.AUTHOR ? 20 : 5);
+
+    if (todayStories >= dailyLimit) {
+      throw new BadRequestException(`Bạn chỉ có thể tạo tối đa ${dailyLimit} truyện mỗi ngày.`);
+    }
+  }
+
   async findAll(query: StoryQueryDto, userId?: string) {
     const { page, limit, skip } = getPaginationParams({
       page: query.page,
@@ -259,10 +297,11 @@ export class StoriesService {
   }
 
   async create(userId: string, userRole: UserRole, createStoryDto: CreateStoryDto) {
-    // Chỉ AUTHOR và ADMIN mới tạo được story
-    if (userRole !== UserRole.AUTHOR && userRole !== UserRole.ADMIN) {
-      throw new ForbiddenException('Chỉ tác giả và admin mới có quyền tạo truyện');
-    }
+    // Tất cả user đều có thể tạo truyện (USER, AUTHOR, ADMIN)
+    // Nhưng chỉ ADMIN mới có thể tự publish mà không cần approval
+
+    // Rate limiting cho tất cả roles
+    await this.checkRateLimits(userId, userRole);
     const baseSlug = generateSlug(createStoryDto.title);
 
     const slugExists = async (slug: string) => {
@@ -593,10 +632,18 @@ export class StoriesService {
     });
   }
 
-  async publish(id: string, userId: string) {
+  async publish(id: string, userId: string, userRole: UserRole) {
     const story = await this.prisma.story.findUnique({
       where: { id },
-      select: { id: true, authorId: true, isPublished: true },
+      select: {
+        id: true,
+        authorId: true,
+        isPublished: true,
+        status: true,
+        chapters: {
+          select: { id: true },
+        },
+      },
     });
 
     if (!story) {
@@ -607,12 +654,23 @@ export class StoriesService {
       throw new ForbiddenException('Bạn không có quyền publish truyện này');
     }
 
+    // Chỉ ADMIN mới có thể tự publish
+    // USER và AUTHOR phải gửi approval request
+    if (userRole !== UserRole.ADMIN) {
+      throw new ForbiddenException('Bạn cần gửi yêu cầu phê duyệt để xuất bản truyện. Chỉ Admin mới có thể tự xuất bản.');
+    }
+
+    // Check if story has at least 1 chapter
+    if (!story.chapters || story.chapters.length === 0) {
+      throw new BadRequestException('Truyện phải có ít nhất 1 chương trước khi xuất bản');
+    }
+
     try {
       return await this.prisma.story.update({
         where: { id },
         data: {
           isPublished: true,
-          status: StoryStatus.PUBLISHED,
+          status: story.status === StoryStatus.DRAFT ? StoryStatus.ONGOING : story.status,
         },
         include: storyInclude,
       });
@@ -623,7 +681,7 @@ export class StoriesService {
           where: { id },
           data: {
             isPublished: true,
-            status: StoryStatus.PUBLISHED,
+            status: story.status === StoryStatus.DRAFT ? StoryStatus.ONGOING : story.status,
           },
           select: safeStorySelect,
         });
@@ -1179,7 +1237,7 @@ export class StoriesService {
 
     // Get category IDs
     const categoryIds = story.storyCategories.map(sc => sc.categoryId);
-    
+
     // Get tag IDs
     const tagIds = story.storyTags.map(st => st.tagId);
 
