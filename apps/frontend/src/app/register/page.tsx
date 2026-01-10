@@ -10,7 +10,7 @@ import { Loading } from '@/components/ui/loading';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register, isRegistering } = useAuth();
+  const { register, isRegistering, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { data: settings, isLoading: settingsLoading } = useSettings();
   const [formData, setFormData] = useState({
@@ -25,6 +25,14 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  // Redirect to home if already authenticated
+  useEffect(() => {
+    // Đợi auth check hoàn thành
+    if (!isAuthLoading && isAuthenticated) {
+      router.replace('/');
+    }
+  }, [isAuthenticated, isAuthLoading, router]);
 
   // Loading animation on mount
   useEffect(() => {
@@ -86,13 +94,18 @@ export default function RegisterPage() {
     }
   };
 
-  // Show loading while checking settings
-  if (isLoading || settingsLoading) {
+  // Show loading while checking settings or auth
+  if (isLoading || settingsLoading || isAuthLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         <Loading />
       </div>
     );
+  }
+
+  // Don't render register form if already authenticated (will redirect)
+  if (isAuthenticated) {
+    return null;
   }
 
   // If registration is not allowed, show message (will redirect via useEffect)

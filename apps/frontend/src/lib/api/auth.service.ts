@@ -9,9 +9,17 @@ export interface RegisterRequest {
   displayName?: string;
 }
 
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  requiresVerification: boolean;
+  email: string;
+}
+
 export interface LoginRequest {
   emailOrUsername: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export interface ChangePasswordRequest {
@@ -53,8 +61,8 @@ export interface UserProfile {
 }
 
 export const authService = {
-  register: async (data: RegisterRequest): Promise<ApiResponse<AuthResponse>> => {
-    const response = await apiClient.post<AuthResponse>('/auth/register', data);
+  register: async (data: RegisterRequest): Promise<ApiResponse<RegisterResponse>> => {
+    const response = await apiClient.post<RegisterResponse>('/auth/register', data);
     return response.data;
   },
 
@@ -85,6 +93,16 @@ export const authService = {
 
   updateEmail: async (email: string): Promise<ApiResponse<{ user: AuthResponse['user'] }>> => {
     const response = await apiClient.post<{ user: AuthResponse['user'] }>('/auth/update-email', { email });
+    return response.data;
+  },
+
+  exchange: async (code: string): Promise<ApiResponse> => {
+    const response = await apiClient.post('/auth/exchange', { code });
+    return response.data;
+  },
+
+  completeEmail: async (code: string, email: string): Promise<ApiResponse> => {
+    const response = await apiClient.post('/auth/complete-email', { code, email });
     return response.data;
   },
 };

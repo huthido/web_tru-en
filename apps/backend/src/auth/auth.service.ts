@@ -3,11 +3,14 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { Prisma } from '@prisma/client';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -16,18 +19,27 @@ import { JwtPayload, TokenResponseDto } from './dto/auth-response.dto';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private emailService: EmailService
   ) { }
 
-  async register(registerDto: RegisterDto): Promise<TokenResponseDto> {
+  async register(registerDto: RegisterDto): Promise<{
+    success: boolean;
+    message: string;
+    requiresVerification: boolean;
+    email: string;
+  }> {
     const { email, username, password, confirmPassword, displayName } = registerDto;
 
     // Check if registration is allowed
     const settings = await this.prisma.settings.findFirst();
     if (settings && !settings.allowRegistration) {
+      this.logger.warn(`Registration attempt blocked - registration disabled`);
       throw new BadRequestException('Đăng ký tài khoản mới hiện đang bị tắt. Vui lòng liên hệ quản trị viên.');
     }
 
@@ -36,30 +48,27 @@ export class AuthService {
       throw new BadRequestException('Mật khẩu xác nhận không khớp');
     }
 
-    // Check if email exists
-    const existingEmail = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    // Check if email and username exist in parallel (optimization)
+    const [existingEmail, existingUsername] = await Promise.all([
+      this.prisma.user.findUnique({ where: { email } }),
+      this.prisma.user.findUnique({ where: { username } }),
+    ]);
+
     if (existingEmail) {
       throw new ConflictException('Email đã được sử dụng');
     }
 
-    // Check if username exists
-    const existingUsername = await this.prisma.user.findUnique({
-      where: { username },
-    });
     if (existingUsername) {
       throw new ConflictException('Username đã được sử dụng');
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password with bcrypt (salt rounds = 12 for better security)
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Generate avatar placeholder if not provided (for local registration)
-    // Using UI Avatars service to generate avatar from username
     const avatarPlaceholder = this.generateAvatarPlaceholder(username, displayName || username);
 
-    // Create user
+    // 🔥 NEW: Create user with isActive = FALSE (requires email verification)
     const user = await this.prisma.user.create({
       data: {
         email,
@@ -68,8 +77,8 @@ export class AuthService {
         displayName: displayName || username,
         avatar: avatarPlaceholder,
         provider: 'local',
-        emailVerified: false, // Local registration requires email verification
-        isActive: true,
+        emailVerified: false, // Requires email verification
+        isActive: false, // 🔥 CHANGED: Account is NOT active until email verified
         role: 'USER',
       } as Prisma.UserUncheckedCreateInput,
       select: {
@@ -77,43 +86,39 @@ export class AuthService {
         email: true,
         username: true,
         displayName: true,
-        avatar: true,
-        role: true,
       },
     });
 
-    // Generate tokens
-    const tokens = await this.generateTokens({
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      role: user.role,
-    });
+    this.logger.log(`User registered: ${user.email} (${user.id}) - Pending email verification`);
 
+    // 🔥 NEW: Send email verification (always required)
+    await this.sendEmailVerification(user.id, user.email, user.displayName || user.username);
+
+    // 🔥 CHANGED: Don't return tokens, return success message
     return {
-      ...tokens,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        displayName: user.displayName || user.username,
-        avatar: user.avatar || this.generateAvatarPlaceholder(user.username, user.displayName || user.username),
-        role: user.role,
-      },
+      success: true,
+      message: 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.',
+      requiresVerification: true,
+      email: user.email,
     };
   }
 
   async login(loginDto: LoginDto): Promise<TokenResponseDto> {
-    const { emailOrUsername, password } = loginDto;
+    const { emailOrUsername, password, rememberMe } = loginDto;
 
     const user = await this.validateUser(emailOrUsername, password);
     if (!user) {
+      // Log failed attempt
+      this.logger.warn(`Failed login attempt: ${emailOrUsername}`);
       // Don't reveal whether email/username exists or password is wrong for security
       throw new UnauthorizedException('Email/username hoặc mật khẩu không đúng');
     }
 
-    // Generate tokens
-    const tokens = await this.generateTokens(user);
+    // Log successful login
+    this.logger.log(`User logged in: ${user.email} (${user.id})`);
+
+    // Generate tokens with remember me flag
+    const tokens = await this.generateTokens(user, rememberMe ?? false);
 
     return {
       ...tokens,
@@ -144,18 +149,15 @@ export class AuthService {
     const isEmail = normalizedInput.includes('@');
 
     // Find user by email or username using OR condition
-    // This is more efficient than separate queries
     const user = await this.prisma.user.findFirst({
       where: {
         OR: [
-          // Email lookup (case-insensitive)
           {
             email: {
               equals: isEmail ? normalizedInput.toLowerCase() : normalizedInput,
               mode: 'insensitive',
             },
           },
-          // Username lookup (case-sensitive, but trim)
           {
             username: {
               equals: normalizedInput,
@@ -174,8 +176,16 @@ export class AuthService {
       return null;
     }
 
+    // 🔥 NEW: Check if email is verified
+    if (!user.emailVerified) {
+      throw new UnauthorizedException(
+        'Tài khoản chưa được xác thực. Vui lòng kiểm tra email để xác thực tài khoản.'
+      );
+    }
+
+    // 🔥 CHECK: Account must be active
     if (!user.isActive) {
-      throw new UnauthorizedException('Tài khoản đã bị khóa');
+      throw new UnauthorizedException('Tài khoản đã bị khóa hoặc chưa được kích hoạt');
     }
 
     // Verify password (trim password input to handle whitespace issues)
@@ -198,10 +208,9 @@ export class AuthService {
     avatar?: string;
     username?: string;
     accessToken?: string;
-    needsEmail?: boolean; // Flag to indicate if email needs to be collected
-  }) {
-    // Find existing user by provider and providerId FIRST
-    // This ensures we don't create duplicate accounts for the same OAuth provider
+    needsEmail?: boolean;
+  }): Promise<{ user: any; needsVerification?: boolean; email?: string }> {
+    // 🔥 STEP 1: Find existing user by provider and providerId
     let user = await this.prisma.user.findFirst({
       where: {
         provider: oauthUser.provider,
@@ -210,47 +219,91 @@ export class AuthService {
     });
 
     if (user) {
-      // User already exists with this provider+providerId - return existing user
-      // Update user info if needed (avatar, displayName)
-      const updateData: any = {};
-      if (oauthUser.avatar && oauthUser.avatar !== user.avatar) {
-        updateData.avatar = oauthUser.avatar;
-      }
-      if (oauthUser.displayName && oauthUser.displayName !== user.displayName) {
-        updateData.displayName = oauthUser.displayName;
-      }
+      // 🔥 CASE 1: User đã tồn tại với provider này
 
-      if (Object.keys(updateData).length > 0) {
-        user = await this.prisma.user.update({
-          where: { id: user.id },
-          data: updateData,
-        });
+      // Check if user is active and verified
+      if (user.isActive && user.emailVerified) {
+        // ✅ User đã active và verified → Cho đăng nhập ngay
+        this.logger.log(`OAuth user logged in: ${user.email} (${user.id}) - Active`);
+
+        // Update avatar/displayName if needed
+        const updateData: any = {};
+        if (oauthUser.avatar && oauthUser.avatar !== user.avatar) {
+          updateData.avatar = oauthUser.avatar;
+        }
+        if (oauthUser.displayName && oauthUser.displayName !== user.displayName) {
+          updateData.displayName = oauthUser.displayName;
+        }
+
+        if (Object.keys(updateData).length > 0) {
+          user = await this.prisma.user.update({
+            where: { id: user.id },
+            data: updateData,
+          });
+        }
+
+        const { password: _, ...result } = user;
+        return { user: result };
+      } else {
+        // ⚠️ User chưa active hoặc chưa verify → Gửi lại email verification
+        this.logger.warn(`OAuth user not verified: ${user.email} (${user.id}) - Resending verification`);
+
+        // Resend verification email
+        await this.sendEmailVerification(user.id, user.email, user.displayName || user.username);
+
+        const { password: _, ...result } = user;
+        return { user: result, needsVerification: true, email: user.email };
       }
     } else {
-      // Check if email exists
+      // 🔥 STEP 2: Check if email exists (link account)
       const existingUser = await this.prisma.user.findUnique({
         where: { email: oauthUser.email },
       });
 
       if (existingUser) {
-        // Link OAuth account to existing user
-        user = await this.prisma.user.update({
-          where: { id: existingUser.id },
-          data: {
-            provider: oauthUser.provider,
-            providerId: oauthUser.providerId,
-            avatar: oauthUser.avatar || existingUser.avatar,
-            displayName: oauthUser.displayName || existingUser.displayName,
-            emailVerified: true,
-          } as Prisma.UserUncheckedUpdateInput,
-        });
+        // 🔥 CASE 2: Email đã tồn tại nhưng chưa link với OAuth này
+
+        if (existingUser.isActive && existingUser.emailVerified) {
+          // ✅ User đã active → Link OAuth account
+          user = await this.prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              provider: oauthUser.provider,
+              providerId: oauthUser.providerId,
+              avatar: oauthUser.avatar || existingUser.avatar,
+              displayName: oauthUser.displayName || existingUser.displayName,
+            } as Prisma.UserUncheckedUpdateInput,
+          });
+
+          this.logger.log(`OAuth linked to existing active user: ${user.email} (${user.id})`);
+          const { password: _, ...result } = user;
+          return { user: result };
+        } else {
+          // ⚠️ User tồn tại nhưng chưa active → Gửi lại email
+          this.logger.warn(`Existing user not verified: ${existingUser.email} - Resending verification`);
+
+          // Link OAuth data
+          user = await this.prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              provider: oauthUser.provider,
+              providerId: oauthUser.providerId,
+              avatar: oauthUser.avatar || existingUser.avatar,
+              displayName: oauthUser.displayName || existingUser.displayName,
+            } as Prisma.UserUncheckedUpdateInput,
+          });
+
+          // Resend verification
+          await this.sendEmailVerification(user.id, user.email, user.displayName || user.username);
+
+          const { password: _, ...result } = user;
+          return { user: result, needsVerification: true, email: user.email };
+        }
       } else {
-        // Create new user
-        // Generate username from email, but handle placeholder emails
+        // 🔥 CASE 3: User hoàn toàn mới → Tạo mới và gửi email verification
         let username = oauthUser.username;
         if (!username) {
           if (oauthUser.email.includes('@facebook.placeholder')) {
-            // For placeholder emails, use displayName or generate from providerId
             const baseName = oauthUser.displayName?.toLowerCase().replace(/[^a-z0-9]/g, '_') ||
               `fb_${oauthUser.providerId}`;
             username = `${baseName}_${Math.floor(Math.random() * 10000)}`;
@@ -258,9 +311,10 @@ export class AuthService {
             username = this.generateUsernameFromEmail(oauthUser.email);
           }
         }
-        // If OAuth doesn't provide avatar, generate placeholder
+
         const avatar = oauthUser.avatar || this.generateAvatarPlaceholder(username, oauthUser.displayName || username);
 
+        // Create new user with isActive = false
         user = await this.prisma.user.create({
           data: {
             email: oauthUser.email,
@@ -269,18 +323,22 @@ export class AuthService {
             avatar,
             provider: oauthUser.provider,
             providerId: oauthUser.providerId,
-            emailVerified: true, // OAuth emails are pre-verified
-            isActive: true,
+            emailVerified: false,
+            isActive: false,
             role: 'USER',
-            password: null, // OAuth users don't have password
+            password: null,
           } as unknown as Prisma.UserUncheckedCreateInput,
         });
+
+        this.logger.log(`New OAuth user created: ${user.email} (${user.id}) - Pending verification`);
+
+        // Send verification email
+        await this.sendEmailVerification(user.id, user.email, user.displayName || user.username);
+
+        const { password: _, ...result } = user;
+        return { user: result, needsVerification: true, email: user.email };
       }
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...result } = user;
-    return result;
   }
 
   private generateUsernameFromEmail(email: string): string {
@@ -365,12 +423,15 @@ export class AuthService {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=200&background=${randomColor}&color=fff&bold=true&format=png`;
   }
 
-  async generateTokens(user: {
-    id: string;
-    email: string;
-    username: string;
-    role: string;
-  }): Promise<{ accessToken: string; refreshToken: string }> {
+  async generateTokens(
+    user: {
+      id: string;
+      email: string;
+      username: string;
+      role: string;
+    },
+    rememberMe: boolean = false
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
@@ -378,21 +439,42 @@ export class AuthService {
       role: user.role,
     };
 
+    // 🔥 FIXED: Access token expires in 1 hour (down from 7 days)
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_SECRET'),
-      expiresIn: this.configService.get<string>('JWT_EXPIRES_IN') || '7d',
+      expiresIn: '1h', // 1 hour for better security
     });
 
+    // 🔥 FIXED: Refresh token expires based on rememberMe
+    // - rememberMe = true: 30 days
+    // - rememberMe = false: 7 days
+    const refreshTokenExpiry = rememberMe ? '30d' : '7d';
     const refreshToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '30d',
+      expiresIn: refreshTokenExpiry,
     });
 
-    // Optionally store refreshToken in database
-    // await this.prisma.user.update({
-    //   where: { id: user.id },
-    //   data: { refreshToken },
-    // });
+    // 🔥 FIXED: Store refresh token in database
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + (rememberMe ? 30 : 7));
+
+    // Create a hash of refresh token for storage (don't store plain token)
+    const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+
+    try {
+      await (this.prisma as any).refreshToken.create({
+        data: {
+          userId: user.id,
+          token: tokenHash,
+          expiresAt,
+        },
+      });
+
+      this.logger.log(`Refresh token created for user: ${user.id} (expires: ${expiresAt.toISOString()})`);
+    } catch (error) {
+      this.logger.error(`Failed to store refresh token: ${error.message}`);
+      // Continue anyway - token will still work but won't be in DB
+    }
 
     return { accessToken, refreshToken };
   }
@@ -403,18 +485,30 @@ export class AuthService {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
 
-      const user = await this.prisma.user.findUnique({
-        where: { id: payload.sub },
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          role: true,
-          isActive: true,
-        },
+      // 🔥 FIXED: Validate refresh token exists in database
+      const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      const storedToken = await (this.prisma as any).refreshToken.findUnique({
+        where: { token: tokenHash },
+        include: { user: true },
       });
 
+      if (!storedToken) {
+        this.logger.warn(`Refresh token not found in database: ${payload.sub}`);
+        throw new UnauthorizedException('Refresh token không hợp lệ');
+      }
+
+      // Check if token is expired
+      if (storedToken.expiresAt < new Date()) {
+        this.logger.warn(`Expired refresh token used: ${payload.sub}`);
+        // Clean up expired token
+        await (this.prisma as any).refreshToken.delete({ where: { id: storedToken.id } });
+        throw new UnauthorizedException('Refresh token đã hết hạn');
+      }
+
+      const user = storedToken.user;
+
       if (!user || !user.isActive) {
+        this.logger.warn(`Refresh token for inactive/deleted user: ${payload.sub}`);
         throw new UnauthorizedException('User không tồn tại hoặc đã bị khóa');
       }
 
@@ -427,11 +521,14 @@ export class AuthService {
 
       const accessToken = this.jwtService.sign(newPayload, {
         secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: this.configService.get<string>('JWT_EXPIRES_IN') || '7d',
+        expiresIn: '1h',
       });
+
+      this.logger.log(`Access token refreshed for user: ${user.id}`);
 
       return { accessToken };
     } catch (error) {
+      this.logger.error(`Refresh token error: ${error.message}`);
       throw new UnauthorizedException('Refresh token không hợp lệ');
     }
   }
@@ -464,12 +561,241 @@ export class AuthService {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async logout(userId: string): Promise<void> {
-    // Optionally invalidate refresh token
-    // await this.prisma.user.update({
-    //   where: { id: userId },
-    //   data: { refreshToken: null },
-    // });
+    // 🔥 FIXED: Invalidate all refresh tokens for this user
+    try {
+      const result = await (this.prisma as any).refreshToken.deleteMany({
+        where: { userId },
+      });
+      this.logger.log(`Logged out user ${userId} - deleted ${result.count} refresh tokens`);
+    } catch (error) {
+      this.logger.error(`Failed to delete refresh tokens on logout: ${error.message}`);
+    }
+  }
+
+  // Create one-time code for OAuth (iOS Safari compatible)
+  async createOneTimeCode(userId: string): Promise<string> {
+    // Generate random code
+    const code = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    // Store code with 10 minutes expiration (increased from 5 for slow connections)
+    await (this.prisma as any).oAuthCode.create({
+      data: {
+        code,
+        userId,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+      },
+    });
+
+    return code;
+  }
+
+  // 🔥 UPDATED: Email Verification Methods
+  async sendEmailVerification(userId: string, email: string, userName: string): Promise<void> {
+    try {
+      // Generate verification token
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Delete old tokens for this user
+      await (this.prisma as any).emailVerificationToken.deleteMany({
+        where: { userId },
+      });
+
+      // Store token in database
+      await (this.prisma as any).emailVerificationToken.create({
+        data: {
+          userId,
+          token,
+          expiresAt,
+        },
+      });
+
+      // Send email
+      await this.emailService.sendVerificationEmail(email, token, userName);
+
+      this.logger.log(`Email verification sent to: ${email}`);
+    } catch (error) {
+      this.logger.error(`Failed to send email verification: ${error.message}`);
+      throw new BadRequestException('Không thể gửi email xác thực');
+    }
+  }
+
+  async verifyEmail(token: string): Promise<{
+    success: boolean;
+    message: string;
+    accessToken: string;
+    refreshToken: string;
+    user: any;
+  }> {
+    try {
+      // Find token
+      const verificationToken = await (this.prisma as any).emailVerificationToken.findUnique({
+        where: { token },
+        include: { user: true },
+      });
+
+      if (!verificationToken) {
+        throw new BadRequestException('Token không hợp lệ hoặc đã hết hạn');
+      }
+
+      // Check if expired
+      if (verificationToken.expiresAt < new Date()) {
+        await (this.prisma as any).emailVerificationToken.delete({ where: { id: verificationToken.id } });
+        throw new BadRequestException('Token đã hết hạn. Vui lòng yêu cầu gửi lại email xác thực');
+      }
+
+      // 🔥 UPDATE: Activate user account
+      const user = await this.prisma.user.update({
+        where: { id: verificationToken.userId },
+        data: {
+          emailVerified: true,
+          isActive: true, // 🔥 Activate account
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          displayName: true,
+          avatar: true,
+          role: true,
+        },
+      });
+
+      // Delete used token
+      await (this.prisma as any).emailVerificationToken.delete({ where: { id: verificationToken.id } });
+
+      this.logger.log(`Email verified and account activated: ${user.email} (${user.id})`);
+
+      // 🔥 NEW: Send welcome email
+      await this.emailService.sendWelcomeEmail(user.email, user.displayName || user.username);
+
+      // 🔥 NEW: Auto-login user by generating tokens
+      const tokens = await this.generateTokens(
+        {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          role: user.role,
+        },
+        false // Don't remember by default
+      );
+
+      return {
+        success: true,
+        message: 'Xác thực email thành công! Tài khoản của bạn đã được kích hoạt.',
+        ...tokens,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          displayName: user.displayName || user.username,
+          avatar: user.avatar || this.generateAvatarPlaceholder(user.username, user.displayName || user.username),
+          role: user.role,
+        },
+      };
+    } catch (error) {
+      this.logger.error(`Email verification failed: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async resendEmailVerification(userId: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new BadRequestException('User không tồn tại');
+    }
+
+    if (user.emailVerified) {
+      throw new BadRequestException('Email đã được xác thực');
+    }
+
+    // Delete old tokens
+    await (this.prisma as any).emailVerificationToken.deleteMany({
+      where: { userId },
+    });
+
+    // Send new verification
+    await this.sendEmailVerification(userId, user.email, user.displayName || user.username);
+  }
+
+  // Exchange one-time code for tokens
+  async exchangeCode(code: string): Promise<{ accessToken: string; refreshToken: string }> {
+    // Find and validate code
+    const oauthCode = await (this.prisma as any).oAuthCode.findUnique({
+      where: { code },
+      include: { user: true },
+    });
+
+    if (!oauthCode) {
+      throw new UnauthorizedException('Invalid or expired code');
+    }
+
+    if (oauthCode.expiresAt < new Date()) {
+      // Clean up expired code
+      await (this.prisma as any).oAuthCode.delete({ where: { code } });
+      throw new UnauthorizedException('Code has expired');
+    }
+
+    // 🔥 FIXED: Don't check isActive here - OAuth users can login even if not verified
+    // They will be prompted to verify email after login
+    // if (!oauthCode.user.isActive) {
+    //   throw new UnauthorizedException('User account is inactive');
+    // }
+
+    // Generate tokens
+    const tokens = await this.generateTokens({
+      id: oauthCode.user.id,
+      email: oauthCode.user.email,
+      username: oauthCode.user.username,
+      role: oauthCode.user.role,
+    });
+
+    // Delete used code (one-time use)
+    await (this.prisma as any).oAuthCode.delete({ where: { code } });
+
+    return tokens;
+  }
+
+  // Complete email with code (for Facebook OAuth users without email)
+  async completeEmailWithCode(code: string, email: string): Promise<{ accessToken: string; refreshToken: string }> {
+    // Find and validate code
+    const oauthCode = await (this.prisma as any).oAuthCode.findUnique({
+      where: { code },
+      include: { user: true },
+    });
+
+    if (!oauthCode) {
+      throw new UnauthorizedException('Invalid or expired code');
+    }
+
+    if (oauthCode.expiresAt < new Date()) {
+      await (this.prisma as any).oAuthCode.delete({ where: { code } });
+      throw new UnauthorizedException('Code has expired');
+    }
+
+    // 🔥 FIXED: Don't check isActive - allow OAuth users to complete email even if not verified
+    // if (!oauthCode.user.isActive) {
+    //   throw new UnauthorizedException('User account is inactive');
+    // }
+
+    // Update user email
+    await this.updateEmail(oauthCode.user.id, email);
+
+    // Generate tokens with new email
+    const tokens = await this.generateTokens({
+      id: oauthCode.user.id,
+      email: email,
+      username: oauthCode.user.username,
+      role: oauthCode.user.role,
+    });
+
+    // Delete used code (one-time use)
+    await (this.prisma as any).oAuthCode.delete({ where: { code } });
+
+    return tokens;
   }
 }

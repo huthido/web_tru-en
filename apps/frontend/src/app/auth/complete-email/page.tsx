@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
 import { useQueryClient } from '@tanstack/react-query';
+import { authService } from '@/lib/api/auth.service';
 import Link from 'next/link';
 
 export default function CompleteEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { updateEmail } = useAuth();
   const queryClient = useQueryClient();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -17,8 +16,8 @@ export default function CompleteEmailPage() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    if (!token) {
+    const code = searchParams.get('code');
+    if (!code) {
       router.push('/login');
     }
   }, [searchParams, router]);
@@ -40,16 +39,30 @@ export default function CompleteEmailPage() {
     setIsSubmitting(true);
 
     try {
-      await updateEmail(email);
-      setIsSuccess(true);
+      const code = searchParams.get('code');
+      if (!code) {
+        throw new Error('Code is missing');
+      }
 
-      // Invalidate auth query để fetch user mới
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      // Complete email with code (cookies will be set by backend)
+      await authService.completeEmail(code, email);
 
-      // Redirect về home sau 2 giây
-      setTimeout(() => {
-        router.push('/');
-      }, 2000);
+      // Wait a bit for cookies to be set
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Verify auth by calling getMe
+      const response = await authService.getMe();
+      if (response?.data?.user) {
+        queryClient.setQueryData(['auth', 'me'], response.data.user);
+        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+        
+        setIsSuccess(true);
+        setTimeout(() => {
+          router.push('/');
+        }, 2000);
+      } else {
+        throw new Error('Failed to get user data');
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
       setIsSubmitting(false);

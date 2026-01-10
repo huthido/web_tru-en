@@ -29,17 +29,20 @@ model User {
   updatedAt     DateTime @updatedAt
 
   // Relations
-  uploadedChapters  Chapter[]         @relation("ChapterUploader")
-  comments          Comment[]
-  favorites         Favorite[]
-  follows           Follow[]
-  ratings           Rating[]
-  readingHistory    ReadingHistory[]
-  authoredStories   Story[]           @relation("StoryAuthor")
-  viewLogs          ViewLog[]
-  approvalRequests  ApprovalRequest[] @relation("ApprovalRequests")
-  reviewedApprovals ApprovalRequest[] @relation("ReviewedApprovals")
-  createdAds        Ad[]              @relation("AdCreator")
+  uploadedChapters        Chapter[]                @relation("ChapterUploader")
+  comments                Comment[]
+  favorites               Favorite[]
+  follows                 Follow[]
+  ratings                 Rating[]
+  readingHistory          ReadingHistory[]
+  authoredStories         Story[]                  @relation("StoryAuthor")
+  viewLogs                ViewLog[]
+  approvalRequests        ApprovalRequest[]        @relation("ApprovalRequests")
+  reviewedApprovals       ApprovalRequest[]        @relation("ReviewedApprovals")
+  createdAds              Ad[]                     @relation("AdCreator")
+  oauthCodes              OAuthCode[]
+  emailVerificationTokens EmailVerificationToken[]
+  refreshTokens           RefreshToken[]
 
   @@index([email])
   @@index([username])
@@ -475,4 +478,61 @@ model Settings {
   updatedAt                DateTime @updatedAt
 
   @@map("settings")
+}
+
+model OAuthCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("oauth_codes")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("email_verification_tokens")
+}
+
+model LoginAttempt {
+  id         String   @id @default(cuid())
+  identifier String // Email or username or IP
+  type       String // 'email', 'username', 'ip'
+  successful Boolean  @default(false)
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([identifier, createdAt])
+  @@index([ipAddress, createdAt])
+  @@index([createdAt])
+  @@map("login_attempts")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
 }

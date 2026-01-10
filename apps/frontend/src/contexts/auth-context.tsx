@@ -16,7 +16,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (emailOrUsername: string, password: string) => Promise<void>;
+  login: (emailOrUsername: string, password: string, rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   register: (data: {
     email: string;
@@ -47,8 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoggingOut,
   } = useAuthHook();
 
-  const login = async (emailOrUsername: string, password: string) => {
-    await loginFn({ emailOrUsername, password });
+  const login = async (emailOrUsername: string, password: string, rememberMe?: boolean) => {
+    await loginFn({ emailOrUsername, password, rememberMe });
   };
 
   const logout = async () => {
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user: user || null,
+        user: user as User | null,
         isAuthenticated,
         isLoading,
         login,

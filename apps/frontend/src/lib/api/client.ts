@@ -20,6 +20,8 @@ export interface PaginatedResponse<T> {
 
 class ApiClient {
   private client: AxiosInstance;
+  private isRefreshing = false;
+  private refreshSubscribers: Array<(success: boolean) => void> = [];
 
   constructor() {
     // Get base URL from env, default to localhost:3001
@@ -44,7 +46,6 @@ class ApiClient {
     this.client.interceptors.request.use(
       (config) => {
         // Cookies are automatically sent with withCredentials: true
-        // No need to manually add token to headers
         return config;
       },
       (error) => {
@@ -52,7 +53,7 @@ class ApiClient {
       }
     );
 
-    // Response interceptor
+    // 🔥 FIXED: Simplified response interceptor - no more race conditions
     this.client.interceptors.response.use(
       (response: AxiosResponse<ApiResponse>) => {
         return response;
@@ -60,83 +61,103 @@ class ApiClient {
       async (error) => {
         const originalRequest = error.config;
 
-        // Skip redirect for auth endpoints (login, register, refresh, me)
-        // These endpoints handle their own errors and shouldn't trigger token refresh
-        const isAuthEndpoint = originalRequest?.url?.includes('/auth/login') ||
-          originalRequest?.url?.includes('/auth/register') ||
-          originalRequest?.url?.includes('/auth/me') ||
-          originalRequest?.url?.includes('/auth/refresh');
-
         // Handle 401 - Unauthorized
         if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
+          // Skip refresh for login/register/refresh endpoints
+          const skipRefreshPaths = ['/auth/login', '/auth/register', '/auth/refresh'];
+          const isSkipPath = skipRefreshPaths.some(path => originalRequest?.url?.includes(path));
 
-          // Don't try to refresh for auth endpoints
-          if (isAuthEndpoint) {
+          if (isSkipPath) {
             return Promise.reject(error);
           }
 
-          try {
-            // Try to refresh token
-            const refreshResponse = await axios.post(
-              `${this.client.defaults.baseURL}/auth/refresh`,
-              {},
-              { withCredentials: true }
-            );
+          // 🔥 FIX: Prevent multiple refresh requests
+          if (!this.isRefreshing) {
+            this.isRefreshing = true;
+            originalRequest._retry = true;
 
-            if (refreshResponse.data?.data?.accessToken) {
-              // Retry original request
-              return this.client(originalRequest);
-            }
-          } catch (refreshError) {
-            // Refresh failed - only redirect if we're on a protected route
-            // Public routes (homepage, book details, reading, search, categories) don't need auth
-            if (typeof window !== 'undefined' && !isAuthEndpoint) {
-              const currentPath = window.location.pathname;
+            try {
+              // Try to refresh token
+              const refreshResponse = await axios.post(
+                `${this.client.defaults.baseURL}/auth/refresh`,
+                {},
+                { withCredentials: true }
+              );
 
-              // Define protected routes that require authentication
-              const protectedRoutes = [
-                '/library',
-                '/profile',
-                '/history',
-                '/favorites',
-                '/follows',
-                '/author',
-              ];
-
-              // Define public routes that don't need authentication
-              const isPublicRoute =
-                currentPath === '/' ||
-                currentPath === '/login' ||
-                currentPath === '/register' ||
-                currentPath === '/maintenance' ||
-                currentPath.startsWith('/truyen/') ||
-                currentPath.startsWith('/stories/') ||
-                currentPath.startsWith('/search') ||
-                currentPath.startsWith('/categories') ||
-                currentPath.startsWith('/auth/');
-
-              // Only redirect if we're on a protected route
-              const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
-
-              if (isProtectedRoute && !isPublicRoute) {
-                window.location.href = '/login';
+              if (refreshResponse.data?.success) {
+                this.isRefreshing = false;
+                // Notify all subscribers
+                this.onRefreshSuccess();
+                // Retry original request
+                return this.client(originalRequest);
+              } else {
+                // Refresh returned success: false
+                throw new Error('Refresh failed');
               }
-              // For public routes, just reject the error - components will handle it gracefully
+            } catch (refreshError) {
+              this.isRefreshing = false;
+              this.onRefreshFailure();
+              // 🔥 Only logout on refresh failure
+              this.handleAuthFailure();
+              return Promise.reject(refreshError);
             }
-            return Promise.reject(refreshError);
+          } else {
+            // 🔥 Queue requests while refreshing
+            return new Promise((resolve, reject) => {
+              this.subscribeTokenRefresh((success: boolean) => {
+                if (success) {
+                  resolve(this.client(originalRequest));
+                } else {
+                  reject(error);
+                }
+              });
+            });
           }
-        }
-
-        // Handle 403 - Forbidden
-        if (error.response?.status === 403) {
-          // Could show a toast or redirect
-          console.error('Access forbidden');
         }
 
         return Promise.reject(error);
       }
     );
+  }
+
+  // 🔥 NEW: Token refresh queue management
+  private subscribeTokenRefresh(callback: (success: boolean) => void) {
+    this.refreshSubscribers.push(callback);
+  }
+
+  private onRefreshSuccess() {
+    this.refreshSubscribers.forEach(callback => callback(true));
+    this.refreshSubscribers = [];
+  }
+
+  private onRefreshFailure() {
+    this.refreshSubscribers.forEach(callback => callback(false));
+    this.refreshSubscribers = [];
+  }
+
+  // 🔥 FIXED: Handle auth failure - only logout/redirect when truly unauthorized
+  private handleAuthFailure() {
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+
+      // Define protected routes that require auth
+      const protectedRoutes = ['/library', '/profile', '/history', '/favorites', '/follows', '/author'];
+      const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
+
+      // Define public routes that don't need auth
+      const publicRoutes = ['/', '/login', '/register', '/maintenance', '/truyen/', '/stories/', '/search', '/categories', '/auth/'];
+      const isPublicRoute = publicRoutes.some(route => currentPath === route || currentPath.startsWith(route));
+
+      // 🔥 CRITICAL FIX: Only dispatch logout event if on protected route
+      // Don't dispatch on public routes to prevent unnecessary redirects
+      if (isProtectedRoute && !isPublicRoute) {
+        // Dispatch logout event
+        window.dispatchEvent(new CustomEvent('auth:logout', { detail: { reason: 'refresh_failed' } }));
+        // Redirect to login
+        window.location.href = '/login';
+      }
+      // If on public route, do nothing - let the page continue to load
+    }
   }
 
   public get<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> {
@@ -173,4 +194,3 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient();
-

@@ -13,72 +13,34 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
-      const token = searchParams.get('token');
+      const code = searchParams.get('code');
 
-      if (token) {
-        try {
-          // Token được set trong cookie từ backend qua redirect response
-          // Đợi một chút để đảm bảo cookie được set (đặc biệt trên mobile)
-          await new Promise(resolve => setTimeout(resolve, 1200));
-
-          // Thử gọi getMe trực tiếp để đảm bảo cookie đã được set và xác thực thành công
-          let authSuccess = false;
-          let retries = 0;
-          const maxRetries = 8;
-          let userData = null;
-
-          while (retries < maxRetries && !authSuccess) {
-            try {
-              const response = await authService.getMe();
-              if (response?.data?.user) {
-                authSuccess = true;
-                userData = response.data.user;
-                queryClient.setQueryData(['auth', 'me'], userData);
-              }
-            } catch {
-              retries++;
-              if (retries < maxRetries) {
-                const delay = 1000 + (retries * 300);
-                await new Promise(resolve => setTimeout(resolve, delay));
-              } else {
-                queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-              }
-            }
-          }
-
-          // Invalidate và refetch queries để đảm bảo state được sync
-          queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-
-          if (authSuccess && userData) {
-            await queryClient.refetchQueries({ queryKey: ['auth', 'me'] });
-            await new Promise(resolve => setTimeout(resolve, 300));
-
-            // Verify lại một lần nữa trước khi redirect
-            try {
-              const finalCheck = await authService.getMe();
-              if (!finalCheck?.data?.user) {
-                throw new Error('Final verification failed');
-              }
-            } catch {
-              // Continue anyway - cookie may be set
-            }
-          }
-
-          // Redirect về home - sẽ refetch lại user data khi component mount
-          setStatus('success');
-          await new Promise(resolve => setTimeout(resolve, 500));
-          router.replace('/');
-        } catch {
-          setStatus('error');
-          setTimeout(() => {
-            router.push('/login');
-          }, 2000);
-        }
-      } else {
+      if (!code) {
+        // No code provided, redirect immediately
         setStatus('error');
-        setTimeout(() => {
-          router.push('/login');
-        }, 2000);
+        router.replace('/login?error=no_code');
+        return;
+      }
+
+      try {
+        // Exchange code for tokens (cookies will be set by backend)
+        await authService.exchange(code);
+
+        // Wait for cookies to be set
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        // Invalidate all queries to force fresh fetch
+        await queryClient.invalidateQueries();
+
+        setStatus('success');
+        // Small delay to show success message
+        await new Promise(resolve => setTimeout(resolve, 300));
+        router.replace('/');
+      } catch (error) {
+        console.error('OAuth callback error:', error);
+        setStatus('error');
+        // 🔥 FIXED: Redirect immediately, no setTimeout
+        router.replace('/login?error=oauth_failed');
       }
     };
 

@@ -11,7 +11,7 @@ import { useSettings } from '@/lib/api/hooks/use-settings';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoggingIn } = useAuth();
+  const { login, isLoggingIn, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { data: settings } = useSettings();
   const [formData, setFormData] = useState({
@@ -24,6 +24,32 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
+  // 🔥 CRITICAL: Block redirect khi auth đang resolving
+  // Redirect to home if already authenticated (but only after auth check complete)
+  // CHỈ redirect khi:
+  // 1. Auth check hoàn thành (!isAuthLoading && !isLoading)
+  // 2. Không đang trong quá trình login (!isLoggingIn)
+  // 3. Đã authenticated (isAuthenticated)
+  // 4. Vẫn ở trang login (tránh redirect khi đã chuyển trang)
+  useEffect(() => {
+    // 🔥 CHẶN redirect khi auth đang resolving
+    if (isAuthLoading || isLoading || isLoggingIn) {
+      return;
+    }
+
+    // Chỉ redirect khi đã chắc chắn authenticated
+    if (isAuthenticated) {
+      const timer = setTimeout(() => {
+        // Chỉ redirect nếu vẫn còn ở trang login (tránh redirect lại khi đã ở home)
+        if (typeof window !== 'undefined' && window.location.pathname === '/login') {
+          router.replace('/');
+        }
+      }, 100); // Giảm delay xuống 100ms vì đã block redirect khi loading
+
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, isAuthLoading, isLoading, isLoggingIn, router]);
+
   // Loading animation on mount
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 300);
@@ -35,19 +61,26 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      await login(formData.emailOrUsername, formData.password);
+      // 🔥 FIXED: Pass rememberMe to login
+      await login(formData.emailOrUsername, formData.password, rememberMe);
       // Redirect is handled by use-auth hook
     } catch (err: any) {
       setError(err.response?.data?.error || 'Đăng nhập thất bại');
     }
   };
 
-  if (isLoading) {
+  // Show loading while checking auth or initial loading
+  if (isLoading || isAuthLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
+  }
+
+  // Don't render login form if already authenticated (will redirect)
+  if (isAuthenticated) {
+    return null;
   }
 
   return (

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { authService, LoginRequest, RegisterRequest, ChangePasswordRequest } from '../auth.service';
@@ -6,121 +7,73 @@ export const useAuth = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // Get current user
+  // 🔥 SIMPLIFIED: Listen for logout event from interceptor
+  useEffect(() => {
+    const handleLogout = () => {
+      queryClient.setQueryData(['auth', 'me'], null);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('auth:logout', handleLogout);
+      return () => window.removeEventListener('auth:logout', handleLogout);
+    }
+  }, [queryClient]);
+
+  // 🔥 FIXED: Get current user - only fetch when needed
   const { data: userData, isLoading, error } = useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
       try {
         const response = await authService.getMe();
         return response.data?.user;
-      } catch (err: any) {
-        // If 401 or 404, user is not authenticated - return null silently
-        if (err?.response?.status === 401 || err?.response?.status === 404) {
+      } catch (error: any) {
+        // If 401, return null instead of throwing
+        if (error.response?.status === 401) {
           return null;
         }
-        // For other errors, throw to be handled by React Query
-        throw err;
+        throw error;
       }
     },
-    retry: false,
-    retryOnMount: true, // Retry on mount to refetch after login redirect
-    refetchOnWindowFocus: true, // Refetch on window focus to keep user data fresh
-    refetchOnReconnect: true, // Refetch on reconnect
-    staleTime: 0, // Set to 0 to always refetch on mount after invalidate (important for mobile after login)
-    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+    retry: false, // Don't retry on error
+    retryOnMount: false,
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnReconnect: false, // Don't refetch on reconnect
+    staleTime: 10 * 60 * 1000, // 10 minutes - data stays fresh longer
+    gcTime: 15 * 60 * 1000, // 15 minutes
+    placeholderData: (previousData) => previousData,
+    throwOnError: false,
   });
 
-  // Register mutation
+  // 🔥 SIMPLIFIED: Register mutation - redirect to success page
   const registerMutation = useMutation({
     mutationFn: (data: RegisterRequest) => authService.register(data),
-    onSuccess: async () => {
-      try {
-        // Đợi một chút để đảm bảo cookie được set (đặc biệt trên mobile)
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Thử gọi getMe trực tiếp để đảm bảo cookie đã được set
-        let retries = 0;
-        const maxRetries = 3;
-        let success = false;
-
-        while (retries < maxRetries && !success) {
-          try {
-            await authService.getMe();
-            success = true;
-          } catch {
-            retries++;
-            if (retries < maxRetries) {
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          }
-        }
-
-        // Refetch user data và đợi cho nó hoàn thành
+    onSuccess: async (response) => {
+      // 🔥 NEW: Redirect to registration success page instead of home
+      if (response.data?.requiresVerification) {
+        router.replace(`/auth/registration-success?email=${encodeURIComponent(response.data.email)}`);
+      } else {
+        // Fallback: if no verification required, redirect to home
         await queryClient.refetchQueries({ queryKey: ['auth', 'me'] });
-
-        // Đợi thêm một chút để đảm bảo state được cập nhật trước khi redirect
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-        // Use replace instead of push to avoid adding to history
-        router.replace('/');
-      } catch {
         router.replace('/');
       }
     },
   });
 
-  // Login mutation
+  // 🔥 FIXED: Login mutation - wait for cookies then invalidate all queries
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => authService.login(data),
     onSuccess: async () => {
-      try {
-        // Đợi một chút để đảm bảo cookie được set (đặc biệt trên mobile - có thể cần thời gian lâu hơn)
-        await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait for cookies to be set by the interceptor
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-        // Thử gọi getMe trực tiếp để đảm bảo cookie đã được set và xác thực thành công
-        // Retry logic để handle trường hợp cookie chưa kịp set trên mobile
-        let retries = 0;
-        const maxRetries = 5; // Tăng số lần retry cho mobile
-        let success = false;
-        let userData = null;
+      // Invalidate all queries to force fresh fetch with new auth
+      await queryClient.invalidateQueries();
 
-        while (retries < maxRetries && !success) {
-          try {
-            const response = await authService.getMe();
-            if (response?.data?.user) {
-              success = true;
-              userData = response.data.user;
-              // Set user data vào cache ngay lập tức để components có thể sử dụng
-              queryClient.setQueryData(['auth', 'me'], userData);
-            }
-          } catch (err: any) {
-            retries++;
-            if (retries < maxRetries) {
-              // Đợi thêm một chút rồi thử lại (tăng delay cho mỗi lần retry trên mobile)
-              await new Promise(resolve => setTimeout(resolve, 800 + (retries * 200)));
-            } else {
-              queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-            }
-          }
-        }
+      // Wait a bit more to ensure queries start fetching
+      await new Promise(resolve => setTimeout(resolve, 200));
 
-        // Nếu đã xác thực thành công, invalidate và refetch queries để đảm bảo tất cả components được cập nhật
-        if (success) {
-          // Invalidate để đánh dấu query là stale, đảm bảo refetch khi component mount
-          queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-          // Refetch để đảm bảo data được sync
-          await queryClient.refetchQueries({ queryKey: ['auth', 'me'] });
-        }
-
-        // Đợi thêm một chút để đảm bảo state được cập nhật và cache được sync
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Use replace instead of push to avoid adding to history
-        router.replace('/');
-      } catch {
-        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-        router.replace('/');
-      }
+      // Redirect to home
+      router.replace('/');
     },
   });
 
@@ -142,7 +95,6 @@ export const useAuth = () => {
   const updateEmailMutation = useMutation({
     mutationFn: (email: string) => authService.updateEmail(email),
     onSuccess: async () => {
-      // Refetch user data after updating email
       await queryClient.refetchQueries({ queryKey: ['auth', 'me'] });
     },
   });
@@ -168,4 +120,3 @@ export const useAuth = () => {
     isUpdatingEmail: updateEmailMutation.isPending,
   };
 };
-

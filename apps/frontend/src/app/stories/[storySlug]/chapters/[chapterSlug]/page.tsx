@@ -280,7 +280,7 @@ export default function ChapterReadingPage() {
             const initTimer = setTimeout(() => {
                 // Log for debugging (development only)
                 if (process.env.NODE_ENV === 'development') {
-                    console.log('Initializing reading history:', { chapterId, userId: user.id, savedProgress });
+                    console.log('Initializing reading history:', { chapterId, userId: (user as any).id, savedProgress });
                 }
                 saveProgress.mutate(
                     { chapterId, progress: 0 },
@@ -422,7 +422,7 @@ export default function ChapterReadingPage() {
                     if (user && chapterId) {
                         // Log for debugging (development only)
                         if (process.env.NODE_ENV === 'development') {
-                            console.log('Saving reading progress:', { chapterId, progress, userId: user.id, lastSaved: lastSavedProgressRef.current });
+                            console.log('Saving reading progress:', { chapterId, progress, userId: (user as any).id, lastSaved: lastSavedProgressRef.current });
                         }
                         saveProgress.mutate(
                             { chapterId, progress },

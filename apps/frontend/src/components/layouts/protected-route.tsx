@@ -14,25 +14,48 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
   const hasRedirected = useRef(false);
+  const checkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Prevent multiple redirects
     if (hasRedirected.current) return;
 
-    if (!isLoading && !isAuthenticated) {
-      hasRedirected.current = true;
-      router.push('/login');
-      return;
+    // 🔥 CRITICAL: Block redirect khi auth đang resolving
+    // CHẶN redirect khi isLoading để tránh loop
+    // Chỉ redirect khi auth check hoàn thành và chắc chắn không có auth
+    if (checkTimeoutRef.current) {
+      clearTimeout(checkTimeoutRef.current);
     }
 
-    if (!isLoading && isAuthenticated && requiredRole) {
-      const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
-      if (user && !roles.includes(user.role as UserRole)) {
-        hasRedirected.current = true;
-        router.push('/');
+    checkTimeoutRef.current = setTimeout(() => {
+      // 🔥 CHẶN redirect khi auth đang resolving
+      if (isLoading) {
         return;
       }
-    }
+
+      // Chỉ redirect khi đã chắc chắn không có auth (sau khi auth check hoàn thành)
+      if (!isAuthenticated) {
+        hasRedirected.current = true;
+        router.push('/login');
+        return;
+      }
+
+      // Check role permission if required
+      if (requiredRole) {
+        const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+        if (user && !roles.includes(user.role as UserRole)) {
+          hasRedirected.current = true;
+          router.push('/');
+          return;
+        }
+      }
+    }, 100); // Đợi 100ms để đảm bảo auth state đã được update
+
+    return () => {
+      if (checkTimeoutRef.current) {
+        clearTimeout(checkTimeoutRef.current);
+      }
+    };
   }, [isAuthenticated, isLoading, user, requiredRole, router]);
 
   if (isLoading) {

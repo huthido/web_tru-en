@@ -1,11 +1,14 @@
-import { Injectable, NestMiddleware, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, NestMiddleware, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class MaintenanceMiddleware implements NestMiddleware {
+  private readonly logger = new Logger(MaintenanceMiddleware.name);
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
@@ -13,6 +16,13 @@ export class MaintenanceMiddleware implements NestMiddleware {
   ) { }
 
   async use(req: Request, res: Response, next: NextFunction) {
+    // CRITICAL: Skip maintenance check for auth endpoints
+    // Auth endpoints (login, register, me, refresh, etc.) must work regardless of maintenance mode
+    // This prevents blocking authentication flow
+    if (req.path.startsWith('/api/auth')) {
+      return next();
+    }
+
     // Skip maintenance check for settings endpoint (needed to get maintenance status)
     if (req.path === '/api/settings') {
       return next();
@@ -25,7 +35,19 @@ export class MaintenanceMiddleware implements NestMiddleware {
 
     try {
       // Get settings from database
-      const settings = await this.prisma.settings.findFirst();
+      let settings;
+      try {
+        settings = await this.prisma.settings.findFirst();
+      } catch (dbError: any) {
+        // If database is unavailable, assume maintenance mode is off
+        // This allows the app to continue functioning even when database is down
+        if (dbError.code === 'P1001' || dbError.code === 'P1002' || dbError.message?.includes('Can\'t reach database')) {
+          console.warn('Database unavailable in maintenance middleware, assuming maintenance mode is off');
+          return next(); // Continue without blocking
+        }
+        // Re-throw other database errors
+        throw dbError;
+      }
 
       // If maintenance mode is enabled
       if (settings?.maintenanceMode) {
