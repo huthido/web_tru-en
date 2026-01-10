@@ -45,10 +45,14 @@ const nextConfig = {
     optimizePackageImports: ['@tanstack/react-query', 'axios'],
   },
   async rewrites() {
+    // 🍎 iOS Safari Fix: Proxy API requests to same domain
+    // This makes cookies work as first-party cookies!
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/:path*`,
+        destination: `${backendUrl}/:path*`, // Remove /api duplication
       },
     ];
   },

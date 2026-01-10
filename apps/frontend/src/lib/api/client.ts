@@ -24,10 +24,18 @@ class ApiClient {
   private refreshSubscribers: Array<(success: boolean) => void> = [];
 
   constructor() {
-    // Get base URL from env, default to localhost:3001
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    // 🍎 iOS Safari Fix: Use relative path in production to avoid cross-origin cookies
+    // In production: Frontend will proxy /api to backend via Next.js rewrites
+    // In development: Use full backend URL
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const apiUrl = isDevelopment 
+      ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001')
+      : ''; // Use relative path in production
+
     // Ensure baseURL ends with /api since backend has global prefix 'api'
-    const baseURL = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
+    const baseURL = isDevelopment
+      ? (apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`)
+      : '/api'; // Relative path - will be proxied by Next.js
 
     this.client = axios.create({
       baseURL,
