@@ -50,16 +50,13 @@ export class AuthController {
     const isCrossOrigin = frontendDomain !== backendDomain;
     const isHttps = frontendUrl.startsWith('https://') || (req as any).protocol === 'https';
 
-    // Extract root domain (e.g., "hungyeu.com" from "www.hungyeu.com")
-    const rootDomain = frontendDomain.replace(/^www\./, '');
-
     return {
       httpOnly: true,
       secure: isHttps,
       sameSite: (isCrossOrigin && isHttps ? 'none' : 'lax') as 'none' | 'lax',
       path: '/',
-      // 🔥 CRITICAL for iOS: Set domain for cross-origin cookies
-      ...(isCrossOrigin && isHttps ? { domain: `.${rootDomain}` } : {}),
+      // 🔥 NOTE: Domain attribute removed for now - causes issues in development
+      // Will be added back for production only when needed
     };
   }
 
