@@ -163,14 +163,24 @@ export const chaptersService = {
         totalViews: number;
     }> => {
         const response = await apiClient.get<any>('/admin/chapters/stats');
-        
+
         // Handle ApiResponse wrapper (if exists)
         if (response.data?.success !== undefined && response.data?.data) {
-            return response.data.data;
+            return response.data.data as {
+                total: number;
+                published: number;
+                draft: number;
+                totalViews: number;
+            };
         }
-        
+
         // Return direct data
-        return response.data;
+        return (response.data as unknown) as {
+            total: number;
+            published: number;
+            draft: number;
+            totalViews: number;
+        };
     },
 
     getChaptersChartData: async (days: number = 30): Promise<{
@@ -178,14 +188,20 @@ export const chaptersService = {
         data: number[];
     }> => {
         const response = await apiClient.get<any>(`/admin/chapters/chart-data?days=${days}`);
-        
+
         // Handle ApiResponse wrapper (if exists)
         if (response.data?.success !== undefined && response.data?.data) {
-            return response.data.data;
+            return response.data.data as {
+                labels: string[];
+                data: number[];
+            };
         }
-        
+
         // Return direct data
-        return response.data;
+        return (response.data as unknown) as {
+            labels: string[];
+            data: number[];
+        };
     },
 };
 
