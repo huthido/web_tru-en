@@ -53,6 +53,9 @@ export default function CreateChapterPage() {
                 content: formData.content.trim(),
             });
 
+            // Wait a bit to ensure cache is updated before navigation
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
             router.push(`/author/stories/${storySlug}/chapters`);
         } catch (error: any) {
             console.error('Error creating chapter:', error);

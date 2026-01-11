@@ -31,10 +31,13 @@ async function getStory(slug: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const story = await getStory(params.slug);
 
+  // If data is not available (e.g., during build or API unavailable),
+  // return a generic title instead of error message
+  // Client-side will handle the actual error display
   if (!story) {
     return {
-      title: 'Truyện không tìm thấy',
-      description: 'Trang truyện không tồn tại',
+      title: params.slug,
+      description: 'Đang tải thông tin truyện...',
     };
   }
 

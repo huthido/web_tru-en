@@ -22,6 +22,7 @@ export const useChapters = (storySlug: string) => {
         },
         enabled: !!storySlug,
         staleTime: 5 * 60 * 1000,
+        refetchOnMount: 'always', // Always refetch on mount to ensure fresh data
     });
 };
 
@@ -44,9 +45,14 @@ export const useCreateChapter = (storySlug: string) => {
     return useMutation({
         mutationFn: (data: CreateChapterRequest) =>
             chaptersService.create(storySlug, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['chapters', storySlug] });
-            queryClient.invalidateQueries({ queryKey: ['story', storySlug] });
+        onSuccess: async () => {
+            // Invalidate and refetch immediately
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['chapters', storySlug], refetchType: 'active' }),
+                queryClient.invalidateQueries({ queryKey: ['story', storySlug], refetchType: 'active' }),
+            ]);
+            // Ensure refetch happens
+            await queryClient.refetchQueries({ queryKey: ['chapters', storySlug] });
         },
     });
 };

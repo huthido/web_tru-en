@@ -28,7 +28,7 @@ export function AdSidebar({ position, className = '' }: AdSidebarProps) {
     const allSidebarAds: Ad[] = useMemo(() => {
         return (sidebarLeftAds as Ad[])
             .filter((ad: Ad) => ad.imageUrl && ad.isActive)
-            .slice(0, 3); // Giới hạn tối đa 3 ads
+            .slice(0, 2); // Giới hạn tối đa 2 ads
     }, [sidebarLeftAds]);
 
     // Track ad IDs string for dependency

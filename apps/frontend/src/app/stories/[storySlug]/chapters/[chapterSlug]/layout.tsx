@@ -8,6 +8,8 @@ type Props = {
 
 async function getStoryAndChapter(storySlug: string, chapterSlug: string) {
   try {
+    // Add timeout for production builds
+    // If API is not available during build, this will timeout gracefully
     const [storyResponse, chaptersResponse] = await Promise.all([
       apiClient.get(`/stories/${storySlug}`),
       apiClient.get(`/stories/${storySlug}/chapters`),
@@ -22,11 +24,16 @@ async function getStoryAndChapter(storySlug: string, chapterSlug: string) {
 
     return { story, chapter };
   } catch (error: any) {
+    // In production, if API is not available during build, return null
+    // Client-side will handle the error display
     // Only log non-connection errors to reduce noise
-    // Connection errors (ECONNREFUSED) are expected when backend is not running
-    if (error?.code !== 'ECONNREFUSED' && error?.cause?.code !== 'ECONNREFUSED') {
+    if (error?.code !== 'ECONNREFUSED' && 
+        error?.cause?.code !== 'ECONNREFUSED' && 
+        error?.name !== 'AbortError' &&
+        error?.code !== 'ETIMEDOUT') {
       console.error('Error fetching story/chapter for metadata:', error);
     }
+    // Return null to let client-side handle the error
     return { story: null, chapter: null };
   }
 }
@@ -34,10 +41,13 @@ async function getStoryAndChapter(storySlug: string, chapterSlug: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { story, chapter } = await getStoryAndChapter(params.storySlug, params.chapterSlug);
 
+  // If data is not available (e.g., during build or API unavailable),
+  // return a generic title instead of error message
+  // Client-side will handle the actual error display
   if (!story || !chapter) {
     return {
-      title: 'Chương không tìm thấy',
-      description: 'Chương truyện không tồn tại',
+      title: `Chương ${params.chapterSlug} - ${params.storySlug}`,
+      description: 'Đang tải nội dung chương...',
     };
   }
 

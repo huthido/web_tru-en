@@ -9,7 +9,7 @@ import { Footer } from '@/components/layouts/footer';
 import { Loading } from '@/components/ui/loading';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { useMyStories, useDeleteStory, usePublishStory } from '@/lib/api/hooks/use-stories';
-import { useCreateApprovalRequest } from '@/lib/api/hooks/use-approvals';
+import { useCreateApprovalRequest, useMyApprovals } from '@/lib/api/hooks/use-approvals';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { UserRole } from '@shared/types';
@@ -40,8 +40,21 @@ export default function AuthorDashboardPage() {
         storyTitle: '',
     });
 
+    // Get approval requests to check story approval status
+    const { data: approvalsResponse } = useMyApprovals({ limit: 1000 });
+    const approvals = approvalsResponse?.data || [];
+
     const stories: Story[] = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
     const meta = data?.meta;
+
+    // Helper function to check if story has pending approval
+    const getStoryApprovalStatus = (storyId: string) => {
+        return approvals.find((approval: any) => 
+            approval.storyId === storyId && 
+            approval.type === 'STORY_PUBLISH' &&
+            approval.status === 'PENDING'
+        );
+    };
 
     const handleDelete = (id: string, title: string) => {
         setDeleteModal({ isOpen: true, storyId: id, storyTitle: title });
@@ -282,7 +295,7 @@ export default function AuthorDashboardPage() {
                                         {stories.map((story) => (
                                             <div
                                                 key={story.id}
-                                                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-200 dark:border-gray-700"
+                                                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col h-full"
                                             >
                                                 {/* Cover Image */}
                                                 <Link href={`/truyen/${story.slug}`} className="block relative h-56 overflow-hidden bg-gray-100 dark:bg-gray-700">
@@ -299,8 +312,11 @@ export default function AuthorDashboardPage() {
                                                     )}
                                                     {/* Status Badge */}
                                                     <div className="absolute top-2 right-2">
-                                                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                                            !story.isPublished
+                                                        {(() => {
+                                                            const pendingApproval = getStoryApprovalStatus(story.id);
+                                                            const statusClass = pendingApproval
+                                                                ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200'
+                                                                : !story.isPublished
                                                                 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200'
                                                                 : story.status === 'ONGOING'
                                                                 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200'
@@ -308,9 +324,10 @@ export default function AuthorDashboardPage() {
                                                                 ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200'
                                                                 : story.status === 'ARCHIVED'
                                                                 ? 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-200'
-                                                                : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200'
-                                                        }`}>
-                                                            {!story.isPublished
+                                                                : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200';
+                                                            const statusText = pendingApproval
+                                                                ? 'Đang chờ phê duyệt'
+                                                                : !story.isPublished
                                                                 ? 'Nháp'
                                                                 : story.status === 'ONGOING'
                                                                 ? 'Đang ra'
@@ -318,19 +335,24 @@ export default function AuthorDashboardPage() {
                                                                 ? 'Hoàn thành'
                                                                 : story.status === 'ARCHIVED'
                                                                 ? 'Lưu trữ'
-                                                                : 'Xuất bản'}
-                                                        </span>
+                                                                : 'Xuất bản';
+                                                            return (
+                                                                <span className={`px-2 py-1 rounded text-xs font-medium ${statusClass}`}>
+                                                                    {statusText}
+                                                                </span>
+                                                            );
+                                                        })()}
                                                     </div>
                                                 </Link>
 
                                                 {/* Content */}
-                                                <div className="p-4">
+                                                <div className="p-4 flex flex-col flex-1">
                                                     <Link href={`/truyen/${story.slug}`}>
-                                                        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                                        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2 line-clamp-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                                             {story.title}
                                                         </h3>
                                                     </Link>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-1 flex-1">
                                                         {story.description || 'Chưa có mô tả'}
                                                     </p>
 
@@ -429,8 +451,11 @@ export default function AuthorDashboardPage() {
                                                                     {story.title}
                                                                 </h3>
                                                             </Link>
-                                                            <span className={`ml-2 px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
-                                                                !story.isPublished
+                                                            {(() => {
+                                                                const pendingApproval = getStoryApprovalStatus(story.id);
+                                                                const statusClass = pendingApproval
+                                                                    ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200'
+                                                                    : !story.isPublished
                                                                     ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200'
                                                                     : story.status === 'ONGOING'
                                                                     ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200'
@@ -438,9 +463,10 @@ export default function AuthorDashboardPage() {
                                                                     ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200'
                                                                     : story.status === 'ARCHIVED'
                                                                     ? 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-200'
-                                                                    : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200'
-                                                            }`}>
-                                                                {!story.isPublished
+                                                                    : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200';
+                                                                const statusText = pendingApproval
+                                                                    ? 'Đang chờ phê duyệt'
+                                                                    : !story.isPublished
                                                                     ? 'Nháp'
                                                                     : story.status === 'ONGOING'
                                                                     ? 'Đang ra'
@@ -448,8 +474,13 @@ export default function AuthorDashboardPage() {
                                                                     ? 'Hoàn thành'
                                                                     : story.status === 'ARCHIVED'
                                                                     ? 'Lưu trữ'
-                                                                    : 'Xuất bản'}
-                                                            </span>
+                                                                    : 'Xuất bản';
+                                                                return (
+                                                                    <span className={`ml-2 px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${statusClass}`}>
+                                                                        {statusText}
+                                                                    </span>
+                                                                );
+                                                            })()}
                                                         </div>
                                                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
                                                             {story.description || 'Chưa có mô tả'}

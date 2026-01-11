@@ -43,14 +43,8 @@ export default function ChapterReadingPage() {
     const { user } = useAuth();
 
     const [fontSize, setFontSize] = useState(16);
-    // Load showChapterList state from localStorage, default to true (always show)
-    const [showChapterList, setShowChapterList] = useState(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('showChapterList');
-            return saved !== 'false'; // Default to true if not explicitly set to false
-        }
-        return true; // Default to true
-    });
+    // Mặc định danh sách chương luôn được bật (hiển thị) khi vào trang
+    const [showChapterList, setShowChapterList] = useState(true);
     const [chapterSearchTerm, setChapterSearchTerm] = useState('');
     const [isChapterCompleted, setIsChapterCompleted] = useState(false);
     const [showFloatingMenu, setShowFloatingMenu] = useState(false);
@@ -656,12 +650,7 @@ export default function ChapterReadingPage() {
                             <div className="flex items-center gap-4 flex-wrap">
                                 <button
                                     onClick={() => {
-                                        const newState = !showChapterList;
-                                        setShowChapterList(newState);
-                                        // Save to localStorage to persist across page reloads
-                                        if (typeof window !== 'undefined') {
-                                            localStorage.setItem('showChapterList', String(newState));
-                                        }
+                                        setShowChapterList(!showChapterList);
                                     }}
                                     className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-gray-700 dark:text-gray-300 transition-colors"
                                     aria-label={showChapterList ? 'Ẩn danh sách chương' : 'Hiện danh sách chương'}
