@@ -14,6 +14,8 @@ export interface EmailOptions {
 export class EmailService {
     private readonly logger = new Logger(EmailService.name);
     private transporter: Transporter | null = null;
+    private emailUser: string | null = null;
+    private emailHost: string | null = null;
 
     constructor(private configService: ConfigService) {
         this.initializeTransporter();
@@ -27,6 +29,11 @@ export class EmailService {
         const emailPort = this.configService.get<number>('EMAIL_PORT');
         const emailUser = this.configService.get<string>('EMAIL_USER');
         const emailPassword = this.configService.get<string>('EMAIL_PASSWORD');
+        const emailFrom = this.configService.get<string>('EMAIL_FROM');
+
+        // Store for later use
+        this.emailHost = emailHost || null;
+        this.emailUser = emailUser || null;
 
         // Check if email is configured
         if (!emailHost || !emailUser || !emailPassword) {
@@ -36,10 +43,20 @@ export class EmailService {
             this.logger.warn('  EMAIL_PORT=587');
             this.logger.warn('  EMAIL_USER=your-email@gmail.com');
             this.logger.warn('  EMAIL_PASSWORD=your-app-password');
-            this.logger.warn('  EMAIL_FROM=noreply@yourwebsite.com');
+            this.logger.warn('  EMAIL_FROM=your-email@gmail.com (should match EMAIL_USER for Gmail)');
             this.logger.warn('');
             this.logger.warn('📧 For Gmail: https://support.google.com/accounts/answer/185833');
             return;
+        }
+
+        // 🔥 IMPORTANT: For Gmail SMTP, EMAIL_FROM must match EMAIL_USER
+        const isGmail = emailHost.includes('gmail.com');
+        if (isGmail && emailFrom && emailFrom !== emailUser) {
+            this.logger.warn('⚠️ WARNING: Using Gmail SMTP but EMAIL_FROM does not match EMAIL_USER');
+            this.logger.warn(`   EMAIL_USER: ${emailUser}`);
+            this.logger.warn(`   EMAIL_FROM: ${emailFrom}`);
+            this.logger.warn('   Gmail requires FROM address to match authenticated account.');
+            this.logger.warn('   Will use EMAIL_USER as FROM address instead.');
         }
 
         try {
@@ -83,7 +100,7 @@ export class EmailService {
 
         await this.sendEmail({
             to: email,
-            subject: '🎉 Xác thực tài khoản - Web Truyện Tiến Hùng',
+            subject: '🎉 Xác thực tài khoản - Web Truyện HungYeu',
             html,
             text,
         });
@@ -100,7 +117,7 @@ export class EmailService {
 
         await this.sendEmail({
             to: email,
-            subject: '🎊 Chào mừng bạn đến với Web Truyện Tiến Hùng!',
+            subject: '🎊 Chào mừng bạn đến với Web Truyện HungYeu!',
             html,
             text,
         });
@@ -276,15 +293,30 @@ export class EmailService {
      * Send email (uses nodemailer if configured, otherwise logs to console)
      */
     private async sendEmail(options: EmailOptions): Promise<void> {
-        const emailFrom = this.configService.get<string>('EMAIL_FROM') ||
-            this.configService.get<string>('EMAIL_USER') ||
-            'noreply@hungyeu.com';
+        // 🔥 FIX: For Gmail SMTP, FROM must match EMAIL_USER
+        const isGmail = this.emailHost?.includes('gmail.com') || false;
+        let emailFrom: string;
+
+        if (isGmail) {
+            // Gmail requires FROM to match authenticated account (EMAIL_USER)
+            emailFrom = this.emailUser || this.configService.get<string>('EMAIL_USER') || 'noreply@hungyeu.com';
+            const configuredFrom = this.configService.get<string>('EMAIL_FROM');
+            if (configuredFrom && configuredFrom !== emailFrom) {
+                this.logger.warn(`⚠️ Gmail SMTP: Using EMAIL_USER (${emailFrom}) instead of EMAIL_FROM (${configuredFrom})`);
+            }
+        } else {
+            // For other SMTP servers, use EMAIL_FROM if available
+            emailFrom = this.configService.get<string>('EMAIL_FROM') ||
+                this.emailUser ||
+                this.configService.get<string>('EMAIL_USER') ||
+                'noreply@hungyeu.com';
+        }
 
         // If transporter is configured, send real email
         if (this.transporter) {
             try {
                 const info = await this.transporter.sendMail({
-                    from: `"Web Truyện Tiến Hùng" <${emailFrom}>`,
+                    from: `"Web Truyện HungYeu" <${emailFrom}>`,
                     to: options.to,
                     subject: options.subject,
                     text: options.text,
@@ -304,6 +336,7 @@ export class EmailService {
 📧 EMAIL (DEVELOPMENT MODE - NOT SENT)
 ═══════════════════════════════════════════════════════════
 To: ${options.to}
+From: ${emailFrom}
 Subject: ${options.subject}
 ───────────────────────────────────────────────────────────
 ${options.text || 'See HTML content below'}
@@ -344,7 +377,7 @@ Verification URL: ${this.extractUrl(options.text || options.html)}
                     <tr>
                         <td style="padding: 32px 40px; border-bottom: 1px solid #e0e0e0;">
                             <h1 style="margin: 0; color: #1976d2; font-size: 24px; font-weight: 500; letter-spacing: 0.5px;">
-                                Web Truyện Tiến Hùng
+                                Web Truyện HungYeu
                             </h1>
                         </td>
                     </tr>
@@ -361,7 +394,7 @@ Verification URL: ${this.extractUrl(options.text || options.html)}
                             </p>
                             
                             <p style="margin: 0 0 24px; color: #757575; font-size: 16px; line-height: 1.6;">
-                                Cảm ơn bạn đã đăng ký tài khoản tại Web Truyện Tiến Hùng. 
+                                Cảm ơn bạn đã đăng ký tài khoản tại Web Truyện HungYeu. 
                                 Để hoàn tất quá trình đăng ký, vui lòng xác nhận địa chỉ email của bạn bằng cách nhấp vào nút bên dưới.
                             </p>
                             
@@ -454,7 +487,7 @@ Verification URL: ${this.extractUrl(options.text || options.html)}
                                 </svg>
                             </div>
                             <h1 style="margin: 0; color: #1976d2; font-size: 24px; font-weight: 500; letter-spacing: 0.5px;">
-                                Web Truyện Tiến Hùng
+                                Web Truyện HungYeu
                             </h1>
                         </td>
                     </tr>
@@ -477,7 +510,7 @@ Verification URL: ${this.extractUrl(options.text || options.html)}
                             <!-- Features List -->
                             <div style="margin: 32px 0; padding: 24px; background-color: #fafafa; border-radius: 4px;">
                                 <h3 style="margin: 0 0 16px; color: #212121; font-size: 16px; font-weight: 500;">
-                                    Bắt đầu với Web Truyện Tiến Hùng
+                                    Bắt đầu với Web Truyện HungYeu
                                 </h3>
                                 <table role="presentation" style="width: 100%;">
                                     <tr>
@@ -612,7 +645,7 @@ Verification URL: ${this.extractUrl(options.text || options.html)}
                     <tr>
                         <td style="padding: 24px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb; border-radius: 0 0 8px 8px;">
                             <p style="margin: 0; color: #9ca3af; font-size: 13px; text-align: center;">
-                                Web Truyện Tiến Hùng &copy; 2026
+                                Web Truyện HungYeu &copy; 2026
                             </p>
                         </td>
                     </tr>
@@ -675,7 +708,7 @@ Verification URL: ${this.extractUrl(options.text || options.html)}
                     <tr>
                         <td style="padding: 24px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb; border-radius: 0 0 8px 8px;">
                             <p style="margin: 0; color: #9ca3af; font-size: 13px; text-align: center;">
-                                Web Truyện Tiến Hùng &copy; 2026
+                                Web Truyện HungYeu &copy; 2026
                             </p>
                         </td>
                     </tr>
