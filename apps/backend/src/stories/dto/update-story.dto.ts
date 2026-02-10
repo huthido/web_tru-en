@@ -4,7 +4,6 @@ import {
   MaxLength,
   IsOptional,
   IsArray,
-  IsUrl,
   IsEnum,
   IsBoolean,
 } from 'class-validator';
@@ -23,7 +22,7 @@ export class UpdateStoryDto {
   description?: string;
 
   @IsOptional()
-  @IsUrl({}, { message: 'Ảnh bìa phải là URL hợp lệ' })
+  @IsString({ message: 'Ảnh bìa phải là chuỗi hợp lệ' })
   coverImage?: string;
 
   @IsOptional()

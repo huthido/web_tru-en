@@ -9,11 +9,13 @@ import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/components/providers/theme-provider';
 import { useSearchSuggestions } from '@/lib/api/hooks/use-search';
 import { NotificationBell } from '@/components/notifications/notification-bell';
+import { useSettings } from '@/lib/api/hooks/use-settings';
 
 export function Header() {
   const { user, isAuthenticated, isLoading, logout, isLoggingOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
+  const { data: settings } = useSettings();
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -25,17 +27,17 @@ export function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedQuery = searchQuery.trim();
-    
+
     // Validate: require at least 2 characters
     if (!trimmedQuery) {
       return; // Don't navigate if empty
     }
-    
+
     if (trimmedQuery.length < 2) {
       // Optionally show feedback
       return;
     }
-    
+
     // Navigate to search results page with query
     router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
     setShowSuggestions(false);
@@ -78,6 +80,25 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full h-[60px] flex items-center justify-between px-3 md:px-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 transition-colors duration-300">
+      {/* Mobile Logo */}
+      <Link href="/" className="md:hidden mr-3 shrink-0 flex items-center">
+        {settings?.siteLogo ? (
+          <OptimizedImage
+            src={settings.siteLogo}
+            alt={settings.siteName || 'Logo'}
+            width={32}
+            height={32}
+            objectFit="contain"
+            className="w-8 h-8"
+          />
+        ) : (
+          <svg width="32" height="32" viewBox="0 0 60 60" fill="none" className="text-primary w-8 h-8">
+            <path d="M50 5L50 55L30 45.3594L10 55L10 5L50 5Z" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M30 5V45.3594" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </Link>
+
       {/* Search Bar */}
       <div ref={searchRef} className="flex-1 max-w-md mr-2 md:mr-4 relative">
         <form onSubmit={handleSearch}>

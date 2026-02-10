@@ -171,7 +171,8 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => {
-              window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/google`;
+              const apiUrl = process.env.NODE_ENV === 'development' ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') : '';
+              window.location.href = `${apiUrl}/api/auth/google`;
             }}
             className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] border-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-white dark:bg-gray-800 border-gray-900 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md group"
           >
@@ -204,7 +205,8 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => {
-              window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/facebook`;
+              const apiUrl = process.env.NODE_ENV === 'development' ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') : '';
+              window.location.href = `${apiUrl}/api/auth/facebook`;
             }}
             className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] border-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-transparent dark:bg-gray-800 border-gray-900 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md group"
           >

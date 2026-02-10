@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
+import * as express from 'express';
+import * as path from 'path';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -17,10 +19,16 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   // Security
-  app.use(helmet());
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }));
 
   // Cookie parser for HTTP-only cookies
   app.use(cookieParser());
+
+  // Serve uploaded files statically (for local storage fallback)
+  const uploadsPath = path.join(process.cwd(), 'uploads');
+  app.use('/uploads', express.static(uploadsPath));
 
   // CORS
   const corsOrigin = configService.get('CORS_ORIGIN');

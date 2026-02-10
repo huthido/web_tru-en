@@ -98,19 +98,19 @@ function SearchContent() {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         const trimmed = tempQuery.trim();
-        
+
         // Validate: require at least 2 characters
         if (!trimmed) {
             // Don't do anything if empty
             return;
         }
-        
+
         if (trimmed.length < 2) {
             // Optionally show a toast or alert
             alert('Vui lòng nhập ít nhất 2 ký tự để tìm kiếm');
             return;
         }
-        
+
         setQuery(trimmed);
     };
 
@@ -139,7 +139,7 @@ function SearchContent() {
                             </h1>
                             {query ? (
                                 <p className="text-gray-600 dark:text-gray-400">
-                                    Kết quả tìm kiếm cho: <span className="font-semibold text-gray-900 dark:text-white">"{query}"</span>
+                                    Kết quả tìm kiếm cho: <span className="font-semibold text-gray-900 dark:text-white">&quot;{query}&quot;</span>
                                 </p>
                             ) : (
                                 <p className="text-gray-600 dark:text-gray-400">
@@ -350,7 +350,7 @@ function SearchContent() {
                                     Không tìm thấy kết quả
                                 </h3>
                                 <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                                    Không tìm thấy truyện nào phù hợp với từ khóa "{query}". Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc.
+                                    Không tìm thấy truyện nào phù hợp với từ khóa &quot;{query}&quot;. Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc.
                                 </p>
                                 <div className="flex items-center justify-center gap-3">
                                     <button

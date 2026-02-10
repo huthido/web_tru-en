@@ -28,9 +28,9 @@ export function ConfirmModal({
   if (!isOpen) return null;
 
   const confirmColorClasses = {
-    red: 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700',
-    blue: 'bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700',
-    green: 'bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700',
+    red: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:bg-destructive dark:text-destructive-foreground dark:hover:bg-destructive/90',
+    blue: 'bg-secondary text-secondary-foreground hover:bg-secondary/90 dark:bg-secondary dark:text-secondary-foreground dark:hover:bg-secondary/90',
+    green: 'bg-success text-success-foreground hover:bg-success/90 dark:bg-success dark:text-success-foreground dark:hover:bg-success/90',
   };
 
   return (
@@ -42,7 +42,12 @@ export function ConfirmModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full overflow-hidden z-10 animate-in zoom-in-95 duration-200">
+      <div
+        className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full overflow-hidden z-10 animate-in zoom-in-95 duration-200"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
         {/* Header */}
         <div className="px-6 pt-6 pb-4">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">

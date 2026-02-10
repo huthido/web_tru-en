@@ -17,7 +17,7 @@ import { FollowButton } from '@/components/stories/follow-button';
 import { LikeButton } from '@/components/stories/like-button';
 import { CommentSection } from '@/components/comments/comment-section';
 import { StarRating } from '@/components/stories/star-rating';
-import { PopupSupportContent } from '@/components/pages/popup-support-content';
+import { DonateAuthorModal } from '@/components/stories/donate-author-modal';
 import { ArrowLeft, BookOpen, HeartHandshake, Share2, Megaphone } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 
@@ -135,7 +135,7 @@ export default function BookDetailPage() {
 
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showDonateModal, setShowDonateModal] = useState(false);
 
   // Pagination state for chapters
   const [chaptersPage, setChaptersPage] = useState(1);
@@ -443,11 +443,11 @@ export default function BookDetailPage() {
 
                 {/* Support Buttons */}
                 <button
-                  onClick={() => setShowSupportModal(true)}
+                  onClick={() => setShowDonateModal(true)}
                   className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
                 >
                   <HeartHandshake size={20} className="md:w-6 md:h-6" />
-                  <span className="hidden sm:inline">Ủng hộ làm phim</span>
+                  <span className="hidden sm:inline">Ủng hộ tác giả</span>
                   <span className="sm:hidden">Ủng hộ</span>
                 </button>
 
@@ -779,57 +779,15 @@ export default function BookDetailPage() {
         <Footer />
       </div>
 
-      {/* Support Modal */}
-      {showSupportModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
-          onClick={() => setShowSupportModal(false)}
-        >
-          <div
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                Ủng hộ HÙNG YÊU
-              </h2>
-              <button
-                onClick={() => setShowSupportModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-                aria-label="Đóng"
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-500 dark:text-gray-400"
-                >
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <PopupSupportContent />
-
-            {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-end">
-              <button
-                onClick={() => setShowSupportModal(false)}
-                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-300 hover:scale-105 active:scale-95"
-              >
-                Đóng
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Donate Author Modal */}
+      <DonateAuthorModal
+        isOpen={showDonateModal}
+        onClose={() => setShowDonateModal(false)}
+        authorId={story.authorId}
+        authorName={story.authorName || story.author?.displayName || story.author?.username || 'Tác giả'}
+        storyId={story.id}
+        storyTitle={story.title}
+      />
     </div>
   );
 }

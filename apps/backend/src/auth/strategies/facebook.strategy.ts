@@ -13,8 +13,8 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
     private authService: AuthService
   ) {
     super({
-      clientID: configService.get<string>('FACEBOOK_APP_ID'),
-      clientSecret: configService.get<string>('FACEBOOK_APP_SECRET'),
+      clientID: configService.get<string>('FACEBOOK_APP_ID') || 'MISSING_APP_ID',
+      clientSecret: configService.get<string>('FACEBOOK_APP_SECRET') || 'MISSING_APP_SECRET',
       callbackURL: configService.get<string>('FACEBOOK_CALLBACK_URL') || '/api/auth/facebook/callback',
       scope: 'email', // Request email permission
       profileFields: ['emails', 'name', 'picture', 'id'], // Include id for fallback
@@ -57,12 +57,12 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
       };
 
       const result = await this.authService.validateOAuthUser(user);
-      
-      this.logger.log(`Facebook OAuth result: ${JSON.stringify({ 
-        email: result.email || result.user?.email, 
-        needsVerification: result.needsVerification 
+
+      this.logger.log(`Facebook OAuth result: ${JSON.stringify({
+        email: result.email || result.user?.email,
+        needsVerification: result.needsVerification
       })}`);
-      
+
       done(null, result);
     } catch (error) {
       this.logger.error(`Facebook OAuth validation error: ${error.message}`, error.stack);

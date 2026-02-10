@@ -11,13 +11,14 @@ import { useStory } from '@/lib/api/hooks/use-stories';
 import { chaptersService } from '@/lib/api/chapters.service';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Loading } from '@/components/ui/loading';
+import { RichTextEditor } from '@/components/editor/rich-text-editor';
 
 export default function EditChapterPage() {
     const params = useParams();
     const router = useRouter();
     const storyIdOrSlug = params.storyId as string;
     const chapterId = params.chapterId as string;
-    
+
     const { data: story, isLoading: storyLoading } = useStory(storyIdOrSlug);
     const storySlug = story?.slug || storyIdOrSlug;
     const updateMutation = useUpdateChapter(storySlug);
@@ -36,10 +37,10 @@ export default function EditChapterPage() {
             try {
                 // Get chapter by ID
                 const response = await chaptersService.getById(storySlug, chapterId);
-                const chapterData = Array.isArray(response) 
-                    ? response[0] 
+                const chapterData = Array.isArray(response)
+                    ? response[0]
                     : ((response as any).data || response);
-                
+
                 if (chapterData && chapterData.id) {
                     setChapter(chapterData);
                     setFormData({
@@ -94,8 +95,8 @@ export default function EditChapterPage() {
             router.push(`/author/stories/${storySlug}/chapters`);
         } catch (error: any) {
             console.error('Error updating chapter:', error);
-            setErrors({ 
-                submit: error?.response?.data?.error || 'Có lỗi xảy ra khi cập nhật chương' 
+            setErrors({
+                submit: error?.response?.data?.error || 'Có lỗi xảy ra khi cập nhật chương'
             });
         }
     };
@@ -191,19 +192,20 @@ export default function EditChapterPage() {
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Nội dung chương <span className="text-red-500">*</span>
                                     </label>
-                                    <textarea
+                                    <RichTextEditor
                                         value={formData.content}
-                                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                                        rows={20}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm leading-relaxed"
+                                        onChange={(val) => setFormData({ ...formData, content: val })}
                                         placeholder="Nhập nội dung chương (tối thiểu 100 ký tự)..."
+                                        uploadEndpoint="/api/chapters/upload-image"
+                                        uploadFolder="chapter-images"
+                                        listImagesEndpoint="/api/chapters/my-images"
                                     />
                                     <div className="mt-2 flex items-center justify-between">
                                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                                            {formData.content.length} ký tự {formData.content.length < 100 && `(cần thêm ${100 - formData.content.length} ký tự nữa)`}
+                                            {formData.content.replace(/<[^>]*>/g, '').length} ký tự {formData.content.replace(/<[^>]*>/g, '').length < 100 && `(cần thêm ${100 - formData.content.replace(/<[^>]*>/g, '').length} ký tự nữa)`}
                                         </p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                                            Khoảng {Math.ceil(formData.content.length / 2000)} trang
+                                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                                            Hỗ trợ chèn ảnh
                                         </p>
                                     </div>
                                     {errors.content && (

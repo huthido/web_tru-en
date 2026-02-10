@@ -45,3 +45,11 @@ docker-compose.override.yml
 *.pem
 .cache/
 
+# PWA (next-pwa generated files)
+**/public/sw.js
+**/public/sw.js.map
+**/public/workbox-*.js
+**/public/workbox-*.js.map
+
+# Uploaded files (local storage)
+uploads/

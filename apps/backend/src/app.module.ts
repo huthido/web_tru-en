@@ -21,6 +21,7 @@ import { SearchModule } from './search/search.module';
 import { PagesModule } from './pages/pages.module';
 import { SettingsModule } from './settings/settings.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { WalletModule } from './wallet/wallet.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { MiddlewareModule } from './common/middleware/middleware.module';
 import { MaintenanceMiddleware } from './common/middleware/maintenance.middleware';
@@ -70,6 +71,7 @@ import { HealthController } from './health/health.controller';
     PagesModule,
     SettingsModule,
     NotificationsModule,
+    WalletModule,
     MiddlewareModule, // Must be imported to provide MaintenanceMiddleware
   ],
   controllers: [HealthController],

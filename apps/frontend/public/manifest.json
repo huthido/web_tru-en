@@ -1,0 +1,31 @@
+{
+    "name": "Web Truyện HungYeu",
+    "short_name": "HungYeu",
+    "description": "Nền tảng đọc truyện và tiểu thuyết trực tuyến",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#FFF2F8",
+    "theme_color": "#ec4899",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/HUNGYEULOGO.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/HUNGYEULOGO.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "books",
+        "entertainment",
+        "lifestyle"
+    ],
+    "lang": "vi",
+    "dir": "ltr"
+}

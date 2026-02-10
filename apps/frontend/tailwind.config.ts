@@ -15,24 +15,45 @@ const config: Config = {
       colors: {
         background: 'var(--background)',
         foreground: 'var(--foreground)',
-      },
-      keyframes: {
-        'slide-in-right': {
-          '0%': {
-            opacity: '0',
-            transform: 'translateX(30px)',
-          },
-          '100%': {
-            opacity: '1',
-            transform: 'translateX(0)',
-          },
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
         },
       },
-      animation: {
-        'slide-in-right': 'slide-in-right 0.3s ease-out',
+    },
+    keyframes: {
+      'slide-in-right': {
+        '0%': {
+          opacity: '0',
+          transform: 'translateX(30px)',
+        },
+        '100%': {
+          opacity: '1',
+          transform: 'translateX(0)',
+        },
       },
     },
+    animation: {
+      'slide-in-right': 'slide-in-right 0.3s ease-out',
+    },
   },
+
   plugins: [],
 };
 

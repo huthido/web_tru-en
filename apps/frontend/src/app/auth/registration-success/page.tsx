@@ -29,7 +29,8 @@ export default function RegistrationSuccessPage() {
     setMessage('');
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/resend-verification`, {
+      const apiUrl = process.env.NODE_ENV === 'development' ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') : '';
+      const response = await fetch(`${apiUrl}/api/auth/resend-verification`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -109,7 +110,7 @@ export default function RegistrationSuccessPage() {
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2 text-gray-400">3.</span>
-                  <span>Nhấp vào nút "Xác thực email" trong email</span>
+                  <span>Nhấp vào nút &quot;Xác thực email&quot; trong email</span>
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2 text-gray-400">4.</span>

@@ -7,6 +7,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -17,6 +18,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -27,6 +29,7 @@
     opacity: 0;
     transform: translateX(30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -36,11 +39,41 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Semantic Colors - HSL for opacity support */
+  --primary: 330 81% 60%;
+  /* #ec4899 Pink-500 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 217 91% 60%;
+  /* #3b82f6 Blue-500 */
+  --secondary-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  /* #ef4444 Red-500 */
+  --destructive-foreground: 0 0% 100%;
+  --success: 142 71% 45%;
+  /* #22c55e Green-500 */
+  --success-foreground: 0 0% 100%;
+  --muted: 220 14% 96%;
+  /* #f3f4f6 */
+  --muted-foreground: 215 16% 47%;
+  /* #6b7280 */
 }
 
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+  /* Semantic Colors Dark */
+  --primary: 330 81% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 217 91% 60%;
+  --secondary-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 142 71% 45%;
+  --success-foreground: 0 0% 100%;
+  --muted: 217 33% 17%;
+  /* #1f2937 */
+  --muted-foreground: 215 20% 65%;
+  /* #9ca3af */
 }
 
 * {
@@ -234,6 +267,7 @@ body {
     0% {
       transform: translateX(-100%);
     }
+
     100% {
       transform: translateX(100%);
     }
@@ -247,6 +281,7 @@ body {
     from {
       opacity: 0;
     }
+
     to {
       opacity: 1;
     }
@@ -257,6 +292,7 @@ body {
       transform: translateY(1rem);
       opacity: 0;
     }
+
     to {
       transform: translateY(0);
       opacity: 1;
@@ -268,6 +304,7 @@ body {
       transform: scale(0);
       opacity: 0;
     }
+
     to {
       transform: scale(1);
       opacity: 1;
@@ -291,6 +328,7 @@ body {
       opacity: 0;
       transform: translateY(-8px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -347,4 +385,49 @@ body {
 
 .dark .chapter-list-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.7);
+}
+
+/* Chapter HTML content styles */
+.chapter-html-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5rem auto;
+  border-radius: 8px;
+}
+
+.chapter-html-content p {
+  margin-bottom: 1rem;
+  text-align: justify;
+  line-height: 2;
+}
+
+.chapter-html-content h1,
+.chapter-html-content h2,
+.chapter-html-content h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+.chapter-html-content blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #6b7280;
+}
+
+.dark .chapter-html-content blockquote {
+  border-left-color: #4b5563;
+  color: #9ca3af;
+}
+
+/* Quill editor height for chapter editing */
+.ql-container.ql-snow {
+  min-height: 400px;
+}
+
+.ql-editor {
+  min-height: 400px;
 }

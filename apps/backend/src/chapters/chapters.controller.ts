@@ -8,8 +8,12 @@ import {
     Param,
     Query,
     UseGuards,
+    UseInterceptors,
+    UploadedFile,
     NotFoundException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { ChaptersService } from './chapters.service';
 import { CreateChapterDto } from './dto/create-chapter.dto';
 import { UpdateChapterDto } from './dto/update-chapter.dto';
@@ -20,6 +24,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserRole } from '@prisma/client';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Controller('stories/:storySlug/chapters')
 export class ChaptersController {
@@ -104,13 +109,19 @@ export class ChaptersController {
     unpublish(@Param('id') id: string, @CurrentUser() user: any) {
         return this.chaptersService.unpublish(id, user.id);
     }
+
+    @Post(':id/buy')
+    @UseGuards(JwtAuthGuard)
+    buy(@Param('id') id: string, @CurrentUser() user: any) {
+        return this.chaptersService.buyChapter(user.id, id);
+    }
 }
 
 @Controller('admin/chapters')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 export class AdminChaptersController {
-    constructor(private readonly chaptersService: ChaptersService) {}
+    constructor(private readonly chaptersService: ChaptersService) { }
 
     @Get()
     async getAllChapters(
@@ -141,6 +152,72 @@ export class AdminChaptersController {
     @Get('chart-data')
     async getChaptersChartData(@Query('days') days?: string) {
         return this.chaptersService.getChaptersChartData(days ? parseInt(days) : 30);
+    }
+}
+
+@Controller('chapters')
+export class ChapterUploadController {
+    constructor(private readonly cloudinaryService: CloudinaryService) { }
+
+    @Post('upload-image')
+    @UseGuards(JwtAuthGuard)
+    @UseInterceptors(
+        FileInterceptor('file', {
+            storage: memoryStorage(),
+            limits: {
+                fileSize: 5 * 1024 * 1024, // 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                if (file.mimetype.startsWith('image/')) {
+                    cb(null, true);
+                } else {
+                    cb(new Error('Only image files are allowed'), false);
+                }
+            },
+        })
+    )
+    async uploadImage(
+        @UploadedFile() file: Express.Multer.File | undefined,
+        @CurrentUser() user: any,
+    ) {
+        if (!file) {
+            throw new Error('No file uploaded');
+        }
+
+        const imageUrl = await this.cloudinaryService.uploadImage(file, 'chapter-images', user.id);
+
+        return {
+            success: true,
+            data: { url: imageUrl },
+            message: 'Image uploaded successfully',
+            timestamp: new Date().toISOString(),
+        };
+    }
+
+    @Get('my-images')
+    @UseGuards(JwtAuthGuard)
+    async getMyImages(
+        @CurrentUser() user: any,
+        @Query('folder') folder?: string,
+    ) {
+        const images = await this.cloudinaryService.getUserImages(user.id, folder || 'chapter-images');
+        return {
+            success: true,
+            data: images,
+        };
+    }
+
+    @Delete('images/:id')
+    @UseGuards(JwtAuthGuard)
+    async deleteImage(
+        @Param('id') id: string,
+        @CurrentUser() user: any,
+    ) {
+        await this.cloudinaryService.deleteUserImage(user.id, id);
+        return {
+            success: true,
+            message: 'Image deleted successfully',
+        };
     }
 }
 

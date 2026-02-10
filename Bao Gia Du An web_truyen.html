@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Giá Dự Án Web Truyện HungYeu</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mermaid.js for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .prose h1 { @apply text-3xl font-bold mb-6 text-gray-900 border-b pb-4; }
+        .prose h2 { @apply text-2xl font-semibold mt-10 mb-4 text-gray-800 bg-blue-50 p-3 rounded-lg; }
+        .prose h3 { @apply text-xl font-medium mt-6 mb-3 text-gray-700; }
+        .prose p { @apply text-gray-600 mb-4 leading-relaxed; }
+        .prose table { @apply w-full text-left border-collapse my-6 shadow-sm rounded-lg overflow-hidden; }
+        .prose th { @apply bg-gray-100 p-3 font-semibold text-gray-700 border-b border-gray-200; }
+        .prose td { @apply p-3 border-b border-gray-100 text-gray-600; }
+        .prose tr:hover { @apply bg-gray-50; }
+        .alert { @apply p-4 rounded-lg my-6 border-l-4; }
+        .alert-important { @apply bg-blue-50 border-blue-500 text-blue-700; }
+        .alert-note { @apply bg-gray-50 border-gray-400 text-gray-700; }
+        .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+        .badge-success { @apply bg-green-100 text-green-800; }
+    </style>
+</head>
+<body class="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl p-8 sm:p-12 prose">
+        
+        <header class="text-center mb-12">
+            <h1 class="border-none pb-0 mb-2">Báo Giá Dự Án Web Truyện HungYeu</h1>
+            <p class="text-gray-500 italic">Ngày lập: 10/02/2026 | Phiên bản: 1.0.0</p>
+        </header>
+
+        <section id="overview">
+            <h2>1. Tổng Quan Quy Mô Dự Án</h2>
+            <h3>Thống Kê Code Hiện Tại</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Thành phần</th>
+                        <th>Số file</th>
+                        <th>Dung lượng</th>
+                        <th>Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="font-medium text-gray-900">Backend (NestJS)</td>
+                        <td>120 files</td>
+                        <td>390 KB</td>
+                        <td>23 modules, 34 DB models</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-gray-900">Frontend (Next.js)</td>
+                        <td>139 files</td>
+                        <td>1,380 KB</td>
+                        <td>26+ pages, 12 admin pages</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-gray-900">Mobile (React Native)</td>
+                        <td>30 files</td>
+                        <td>82 KB</td>
+                        <td>Đang phát triển cơ bản</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-gray-900">Database (Prisma)</td>
+                        <td>781 dòng</td>
+                        <td>24 KB</td>
+                        <td>34 models, PostgreSQL</td>
+                    </tr>
+                    <tr class="bg-gray-50 font-bold">
+                        <td>TỔNG CỘNG</td>
+                        <td>289+ files</td>
+                        <td>~1.85 MB</td>
+                        <td>Full-stack monorepo</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Kiến Trúc Hệ Thống</h3>
+            <div class="mermaid py-4 bg-gray-50 rounded-xl flex justify-center">
+                graph TB
+                subgraph Client["Phía Client"]
+                    Web["🌐 Next.js 14 PWA"]
+                    Mobile["📱 React Native"]
+                end
+                
+                subgraph Server["Phía Server"]
+                    API["🔧 NestJS API"]
+                    DB["🗄️ PostgreSQL"]
+                    Storage["📁 Cloudinary / Local"]
+                end
+                
+                subgraph ThirdParty["Bên thứ 3"]
+                    OAuth["🔐 Google/Facebook OAuth"]
+                    Email["📧 Nodemailer SMTP"]
+                end
+                
+                Web --> API
+                Mobile --> API
+                API --> DB
+                API --> Storage
+                API --> OAuth
+                API --> Email
+            </div>
+        </section>
+
+        <section id="modules">
+            <h2>2. Phân Tích Chi Tiết Từng Module</h2>
+            <div class="space-y-6">
+                <div class="border rounded-xl p-5 hover:border-blue-300 transition-colors">
+                    <h3 class="mt-0">Module 1: Authentication & Authorization</h3>
+                    <p>JWT + Refresh Token, Google/Facebook OAuth, Role-based Access Control (Admin/Author/User), Email verification.</p>
+                    <div class="flex justify-end"><span class="badge badge-success">Ước tính: 15-20 man-days</span></div>
+                </div>
+                <div class="border rounded-xl p-5 hover:border-blue-300 transition-colors">
+                    <h3 class="mt-0">Module 2: Quản lý Truyện (Stories)</h3>
+                    <p>CRUD truyện, Slug, Canvas Image Compression, Categories/Tags Management, Draft/Published states, Full-text Search.</p>
+                    <div class="flex justify-end"><span class="badge badge-success">Ước tính: 20-25 man-days</span></div>
+                </div>
+                <div class="border rounded-xl p-5 hover:border-blue-300 transition-colors">
+                    <h3 class="mt-0">Module 3: Quản lý Chương (Chapters)</h3>
+                    <p>Custom Quill Editor, Image Gallery, Resize & Align toolbar, Order Chapters by Drag&Drop.</p>
+                    <div class="flex justify-end"><span class="badge badge-success">Ước tính: 15-20 man-days</span></div>
+                </div>
+                <div class="border rounded-xl p-5 hover:border-blue-300 transition-colors">
+                    <h3 class="mt-0">Module 4: Hệ thống Đọc & Kinh Tế</h3>
+                    <p>Responsive Reader, History, Follow/Likes, Wallet, Coin Packages, Chapter Purchase, Donations.</p>
+                    <div class="flex justify-end"><span class="badge badge-success">Ước tính: 35-45 man-days</span></div>
+                </div>
+                <div class="border rounded-xl p-5 hover:border-blue-300 transition-colors">
+                    <h3 class="mt-0">Module 5: Admin Panel & Ads</h3>
+                    <p>Dashboard Charts, User/Story Moderation, Notification broadcast, Dynamic Site Settings, Ads System (Popup/Banner).</p>
+                    <div class="flex justify-end"><span class="badge badge-success">Ước tính: 30-40 man-days</span></div>
+                </div>
+                <div class="border rounded-xl p-5 hover:border-blue-300 transition-colors">
+                    <h3 class="mt-0">Module 6: Mobile App (React Native)</h3>
+                    <p>Cross-platform iOS/Android, Token-based Auth, Main Story/Reading screens.</p>
+                    <div class="flex justify-end"><span class="badge badge-success">Ước tính: 25-35 man-days</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing">
+            <h2>3. Báo Giá Theo Thị Trường</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Phương án</th>
+                        <th>Độ hoàn thiện</th>
+                        <th>Đơn giá</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Freelancer</strong></td>
+                        <td>1 người quản lý</td>
+                        <td>279 - 498 Triệu VNĐ</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Team nhỏ (2-3 người)</strong></td>
+                        <td>Fullstack + Designer + QA</td>
+                        <td>176 - 414 Triệu VNĐ</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Agency / Công ty</strong></td>
+                        <td>Quy trình chuyên nghiệp</td>
+                        <td>558 - 2.4 Tỷ VNĐ</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="alert alert-important">
+                <p class="font-bold mb-1 underline text-lg">Gói Đề Xuất (Giá Hợp Lý):</p>
+                <ul class="list-disc pl-5">
+                    <li><strong>Gói Cơ Bản (Web + Admin):</strong> 200 - 350 Triệu VNĐ</li>
+                    <li><strong>Gói Đầy Đủ (Web + Mobile):</strong> 300 - 500 Triệu VNĐ</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="ops-cost">
+            <h2>4. Chi Phí Vận Hành</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hạng mục</th>
+                        <th>Min/Tháng</th>
+                        <th>Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>VPS (Cloud)</td>
+                        <td>120.000đ</td>
+                        <td>Chạy Docker/Database</td>
+                    </tr>
+                    <tr>
+                        <td>Domain</td>
+                        <td>25.000đ</td>
+                        <td>Duy trì hàng năm</td>
+                    </tr>
+                    <tr>
+                        <td>Cloudinary</td>
+                        <td>Miễn phí</td>
+                        <td>Tối đa 25GB ảnh</td>
+                    </tr>
+                    <tr class="font-bold">
+                        <td>TỔNG VẬN HÀNH</td>
+                        <td>~150.000đ / tháng</td>
+                        <td>Chi phí duy trì hệ thống</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <footer class="mt-12 pt-8 border-t text-center text-gray-500 text-sm">
+            <p>Báo giá mang tính chất tham khảo dựa trên quy mô code thực tế.</p>
+            <p>&copy; 2026 HungYeu Project Analysis</p>
+        </footer>
+    </div>
+</body>
+</html>

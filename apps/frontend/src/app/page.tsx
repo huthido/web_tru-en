@@ -29,7 +29,7 @@ export default function Home() {
   const { data: recommendedBooks = [], isLoading: isLoadingRecommended } = useRecommendedStories(15);
   const { data: topRated = [], isLoading: isLoadingTopRated } = useTopRatedStories(20);
   const { data: mostLiked = [], isLoading: isLoadingMostLiked } = useMostLikedStories(15);
-  const { data: continueReading = [], isLoading: isLoadingContinueReading } = useContinueReading(3);
+  const { data: continueReading = [], isLoading: isLoadingContinueReading } = useContinueReading(3, !!user);
 
   const isLoading = isLoadingNewest || isLoadingBestOfMonth || isLoadingRecommended || isLoadingTopRated || isLoadingMostLiked;
 

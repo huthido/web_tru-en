@@ -12,6 +12,7 @@ import { UserRole } from '@shared/types';
 import { Loading } from '@/components/ui/loading';
 import { storiesService } from '@/lib/api/stories.service';
 import { useToastContext } from '@/components/providers/toast-provider';
+import { compressImage } from '@/lib/utils/compress-image';
 
 export default function EditStoryPage() {
     const params = useParams();
@@ -73,11 +74,18 @@ export default function EditStoryPage() {
         setErrors({});
 
         try {
+            // Compress image before upload
+            const compressedFile = await compressImage(file, {
+                maxWidth: 1200,
+                maxHeight: 1200,
+                quality: 0.85,
+            });
+
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('file', compressedFile);
             formData.append('folder', 'stories');
 
-            const response = await storiesService.uploadCover(file);
+            const response = await storiesService.uploadCover(compressedFile);
             const imageUrl = (response as any)?.data?.coverImage || (response as any)?.coverImage || '';
 
             setFormData((prev) => ({ ...prev, coverImage: imageUrl }));

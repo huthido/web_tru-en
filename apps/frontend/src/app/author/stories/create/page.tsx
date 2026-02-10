@@ -9,6 +9,7 @@ import { useCreateStory } from '@/lib/api/hooks/use-stories';
 import { useCategories } from '@/lib/api/hooks/use-categories';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { storiesService } from '@/lib/api/stories.service';
+import { compressImage } from '@/lib/utils/compress-image';
 
 export default function CreateStoryPage() {
     const router = useRouter();
@@ -48,7 +49,14 @@ export default function CreateStoryPage() {
         setErrors({});
 
         try {
-            const response = await storiesService.uploadCover(file);
+            // Compress image before upload
+            const compressedFile = await compressImage(file, {
+                maxWidth: 1200,
+                maxHeight: 1200,
+                quality: 0.85,
+            });
+
+            const response = await storiesService.uploadCover(compressedFile);
             if (response.data?.coverImage) {
                 setFormData({ ...formData, coverImage: response.data.coverImage });
             }
@@ -72,7 +80,7 @@ export default function CreateStoryPage() {
 
         try {
             // Tags = category names (from selected categories)
-            const selectedCategories = categories.filter((cat: any) => 
+            const selectedCategories = categories.filter((cat: any) =>
                 formData.categoryIds.includes(cat.id)
             );
             const tags = selectedCategories.map((cat: any) => cat.name);

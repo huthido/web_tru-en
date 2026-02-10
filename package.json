@@ -8,12 +8,13 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:backend": "npm run dev --workspace=apps/backend",
-    "dev:frontend": "npm run dev --workspace=apps/frontend",
-    "build:backend": "cd apps/backend && npx prisma generate && npm run build",
-    "build:frontend": "npm run build --workspace=apps/frontend",
-    "build:render": "cd apps/backend && npx prisma generate && npm run build",
-    "lint": "npm run lint --workspaces",
+    "dev": "concurrently -n backend,frontend -c blue,green \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+    "dev:backend": "pnpm --filter backend dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build:backend": "cd apps/backend && pnpm prisma generate && pnpm run build",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:render": "cd apps/backend && pnpm prisma generate && pnpm run build",
+    "lint": "pnpm -r lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
@@ -21,7 +22,10 @@
     "@nestjs/cli": "^10.2.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
     "@types/multer": "^2.0.0",
+    "babel-loader": "^10.0.0",
+    "concurrently": "^9.2.1",
     "prettier": "^3.2.5",
     "typescript": "^5.3.3"
   },

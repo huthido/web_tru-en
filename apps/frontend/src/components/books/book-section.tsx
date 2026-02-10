@@ -90,17 +90,32 @@ export function BookSection({
   }, []);
 
   // Update scroll indicators on mount and scroll
+  // Update scroll indicators on mount and scroll
   useEffect(() => {
     if (!scrollContainerRef.current) return;
 
     updateScrollIndicators();
 
     const container = scrollContainerRef.current;
+
+    // Native wheel handler with passive: false to allow preventing default
+    const handleWheelNative = (e: WheelEvent) => {
+      // Check if shift key is pressed or if it's a horizontal scroll
+      if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        e.preventDefault();
+        e.stopPropagation();
+        const delta = e.deltaY || e.deltaX;
+        container.scrollLeft += delta;
+      }
+    };
+
     container.addEventListener('scroll', updateScrollIndicators);
+    container.addEventListener('wheel', handleWheelNative, { passive: false });
     window.addEventListener('resize', updateScrollIndicators);
 
     return () => {
       container.removeEventListener('scroll', updateScrollIndicators);
+      container.removeEventListener('wheel', handleWheelNative);
       window.removeEventListener('resize', updateScrollIndicators);
     };
   }, [updateScrollIndicators, books.length]);
@@ -237,18 +252,7 @@ export function BookSection({
     scrollContainerRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  // Handle wheel scroll (horizontal) - simple and direct
-  const handleWheel = (e: React.WheelEvent) => {
-    if (!scrollContainerRef.current) return;
-    // Check if shift key is pressed or if it's a horizontal scroll
-    if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-      e.preventDefault();
-      e.stopPropagation();
-      const delta = e.deltaY || e.deltaX;
-      scrollContainerRef.current.scrollLeft += delta;
-      updateScrollIndicators();
-    }
-  };
+
 
   // Smooth scroll to next/prev
   const scrollToNext = useCallback(() => {
@@ -349,7 +353,6 @@ export function BookSection({
           onMouseLeave={handleMouseLeave}
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
-          onWheel={handleWheel}
           onKeyDown={(e) => {
             const container = scrollContainerRef.current;
             if (!container) return;

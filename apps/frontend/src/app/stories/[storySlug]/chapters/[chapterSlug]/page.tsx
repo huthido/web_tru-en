@@ -103,9 +103,76 @@ export default function ChapterReadingPage() {
         return bottomAdsList[adIndex] || bottomAdsList[0] || null;
     }, [bottomAdsList]);
 
+    // Detect if content is HTML (from rich text editor) vs plain text
+    const isHtmlContent = useMemo(() => {
+        if (!chapterData?.content) return false;
+        return /<(?:p|img|br|h[1-6]|ul|ol|li|strong|em|blockquote)\b/i.test(chapterData.content);
+    }, [chapterData?.content]);
+
     // Process content with inline ads
     const contentWithAds = useMemo(() => {
         if (!chapterData?.content) return [];
+
+        if (isHtmlContent) {
+            // HTML content from rich text editor
+            const content = chapterData.content;
+            const pCount = (content.match(/<\/p>/gi) || []).length;
+
+            if (pCount <= 5 || !Array.isArray(inlineAds) || inlineAds.length === 0) {
+                return [
+                    <div
+                        key="html-content"
+                        className="chapter-html-content"
+                        dangerouslySetInnerHTML={{ __html: content }}
+                    />
+                ];
+            }
+
+            // Split content by </p> tags and insert ads every 5 paragraphs
+            const parts = content.split('</p>');
+            const result: React.ReactNode[] = [];
+            let paragraphCount = 0;
+            let currentHtml = '';
+
+            parts.forEach((part: string, index: number) => {
+                if (index < parts.length - 1) {
+                    currentHtml += part + '</p>';
+                    paragraphCount++;
+
+                    if (paragraphCount % 5 === 0 && paragraphCount < pCount) {
+                        result.push(
+                            <div
+                                key={`html-${index}`}
+                                className="chapter-html-content"
+                                dangerouslySetInnerHTML={{ __html: currentHtml }}
+                            />
+                        );
+                        result.push(
+                            <div key={`ad-${index}`} className="my-8">
+                                <AdBanner position={AdPosition.INLINE} />
+                            </div>
+                        );
+                        currentHtml = '';
+                    }
+                } else {
+                    currentHtml += part;
+                }
+            });
+
+            if (currentHtml.trim()) {
+                result.push(
+                    <div
+                        key="html-last"
+                        className="chapter-html-content"
+                        dangerouslySetInnerHTML={{ __html: currentHtml }}
+                    />
+                );
+            }
+
+            return result;
+        }
+
+        // Plain text content - original logic
         const allLines = chapterData.content.split('\n');
         const paragraphs = allLines.filter((p: string) => p.trim().length > 0);
         let paragraphCount = 0;
@@ -138,7 +205,7 @@ export default function ChapterReadingPage() {
         });
 
         return result;
-    }, [chapterData?.content]);
+    }, [chapterData?.content, isHtmlContent]);
 
     // Extract chapters array from response
     // useChapters hook already handles the response format, so chaptersResponse should be an array

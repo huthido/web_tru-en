@@ -13,11 +13,14 @@ import { UserRole, ApprovalType, ApprovalStatus } from '@prisma/client';
 import { ApprovalsService } from '../approvals/approvals.service';
 import { getPaginationParams, createPaginatedResult } from '../common/utils/pagination.util';
 
+import { WalletService } from '../wallet/wallet.service';
+
 @Injectable()
 export class ChaptersService {
     constructor(
         private prisma: PrismaService,
-        private approvalsService: ApprovalsService
+        private approvalsService: ApprovalsService,
+        private walletService: WalletService
     ) { }
 
     async findAll(storyId: string, includeUnpublished: boolean = false) {
@@ -75,19 +78,60 @@ export class ChaptersService {
             throw new NotFoundException('Chương không tồn tại');
         }
 
-        // Check if user can view unpublished chapter
+        // 1. Check if user can view unpublished chapter
         if (!chapter.isPublished) {
-            if (!userId || chapter.story.authorId !== userId) {
-                const user = userId
-                    ? await this.prisma.user.findUnique({ where: { id: userId } })
-                    : null;
-                if (!user || user.role !== UserRole.ADMIN) {
-                    throw new ForbiddenException('Bạn không có quyền xem chương này');
+            const isAuthor = userId && story.authorId === userId;
+            let isAllowed = isAuthor;
+
+            if (!isAllowed && userId) {
+                const user = await this.prisma.user.findUnique({ where: { id: userId } });
+                if (user && user.role === UserRole.ADMIN) {
+                    isAllowed = true;
+                }
+            }
+
+            if (!isAllowed) {
+                throw new ForbiddenException('Chương này chưa được xuất bản');
+            }
+        }
+
+        // 2. Check premium access (Price > 0)
+        if (chapter.price > 0) {
+            const isAuthor = userId && story.authorId === userId;
+            let isAllowed = isAuthor;
+
+            if (!isAllowed && userId) {
+                const user = await this.prisma.user.findUnique({ where: { id: userId } });
+                if (user && user.role === UserRole.ADMIN) {
+                    isAllowed = true;
+                }
+            }
+
+            if (!isAllowed) {
+                if (!userId) {
+                    throw new ForbiddenException('Vui lòng đăng nhập để mua chương này');
+                }
+
+                const purchase = await this.prisma.chapterPurchase.findUnique({
+                    where: {
+                        userId_chapterId: {
+                            userId,
+                            chapterId: chapter.id,
+                        },
+                    },
+                });
+
+                if (!purchase) {
+                    throw new ForbiddenException({
+                        message: 'Bạn cần mua chương này để đọc tiếp',
+                        code: 'PAYMENT_REQUIRED',
+                        price: chapter.price,
+                    });
                 }
             }
         }
 
-        // Calculate word count and reading time if not set
+        // 3. Calculate word count and reading time if not set
         if (!chapter.wordCount || chapter.wordCount === 0) {
             const wordCount = chapter.content.split(/\s+/).length;
             const readingTime = Math.ceil(wordCount / 200); // Assume 200 words per minute
@@ -554,6 +598,61 @@ export class ChaptersService {
             labels,
             data,
         };
+    }
+
+    async buyChapter(userId: string, chapterId: string) {
+        const chapter = await this.prisma.chapter.findUnique({
+            where: { id: chapterId },
+        });
+
+        if (!chapter) {
+            throw new NotFoundException('Chương không tồn tại');
+        }
+
+        if (chapter.price <= 0) {
+            return { message: 'Chương này miễn phí', success: true };
+        }
+
+        // Check if already purchased
+        const existing = await this.prisma.chapterPurchase.findUnique({
+            where: {
+                userId_chapterId: {
+                    userId,
+                    chapterId,
+                },
+            },
+        });
+
+        if (existing) {
+            return { message: 'Bạn đã mua chương này rồi', success: true };
+        }
+
+        // Execute payment (deduct coins)
+        // Note: Ideally this should be an atomic distributed transaction.
+        // For now we rely on WalletService.pay atomicity and follow with purchase record creation.
+        // If purchase creation fails, we should ideally refund (manual compensation).
+        try {
+            await this.walletService.pay(
+                userId,
+                chapter.price,
+                `Mua chương: ${chapter.title}`,
+                chapter.id
+            );
+
+            // Record purchase
+            await this.prisma.chapterPurchase.create({
+                data: {
+                    userId,
+                    chapterId,
+                    pricePaid: chapter.price,
+                },
+            });
+
+            return { success: true, message: 'Mua chương thành công' };
+        } catch (error: any) {
+            // Pass strict errors from WalletService (e.g. Insufficient balance)
+            throw error;
+        }
     }
 }
 

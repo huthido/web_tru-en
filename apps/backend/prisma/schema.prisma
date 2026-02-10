@@ -47,6 +47,11 @@ model User {
   emailVerificationTokens EmailVerificationToken[]
   refreshTokens           RefreshToken[]
   createdNotifications    Notification[]           @relation("NotificationCreator")
+  wallet                  UserWallet?
+  chapterPurchases        ChapterPurchase[]
+  sentDonations           AuthorDonation[]         @relation("DonationSender")
+  receivedDonations       AuthorDonation[]         @relation("DonationReceiver")
+  uploadedImages          UserImage[]
 
   @@index([email])
   @@index([username])
@@ -127,7 +132,10 @@ model Chapter {
   comments         Comment[]
   readingHistory   ReadingHistory[]
   viewLogs         ViewLog[]
+
   approvalRequests ApprovalRequest[] @relation("ChapterApprovals")
+  price            Int               @default(0) // Coin price to unlock
+  purchases        ChapterPurchase[]
 
   @@unique([storyId, slug])
   @@index([storyId])
@@ -670,4 +678,103 @@ model NotificationRecipient {
   @@index([userId, isRead])
   @@index([notificationId])
   @@map("notification_recipients")
+}
+
+model UserWallet {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  balance   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions CoinTransaction[]
+
+  @@map("user_wallets")
+}
+
+model CoinTransaction {
+  id          String   @id @default(cuid())
+  walletId    String
+  amount      Int      // Positive for deposit, negative for spend
+  type        TransactionType
+  description String
+  referenceId String?  // ID of the order or chapter
+  createdAt   DateTime @default(now())
+  wallet      UserWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("coin_transactions")
+}
+
+model CoinPackage {
+  id          String   @id @default(cuid())
+  name        String
+  coinAmount  Int
+  priceVND    Int
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("coin_packages")
+}
+
+model ChapterPurchase {
+  id        String   @id @default(cuid())
+  userId    String
+  chapterId String
+  pricePaid Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chapterId])
+  @@index([userId])
+  @@index([chapterId])
+  @@index([createdAt])
+  @@map("chapter_purchases")
+}
+
+enum TransactionType {
+  DEPOSIT
+  PURCHASE_CHAPTER
+  ADMIN_ADJUST
+  REFUND
+  BONUS
+  DONATE_AUTHOR
+}
+
+model AuthorDonation {
+  id        String   @id @default(cuid())
+  userId    String
+  authorId  String
+  storyId   String?
+  amount    Int
+  message   String?  @db.Text
+  createdAt DateTime @default(now())
+  user      User     @relation("DonationSender", fields: [userId], references: [id], onDelete: Cascade)
+  author    User     @relation("DonationReceiver", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([authorId])
+  @@index([storyId])
+  @@index([createdAt])
+  @@map("author_donations")
+}
+
+model UserImage {
+  id        String   @id @default(cuid())
+  userId    String
+  url       String
+  folder    String   // 'chapter-images', 'story-covers', etc.
+  filename  String
+  size      Int      // file size in bytes
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, folder])
+  @@index([userId, createdAt])
+  @@map("user_images")
 }

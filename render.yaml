@@ -2,8 +2,9 @@ services:
   - type: web
     name: web-truyen-backend
     env: node
-    buildCommand: npm install && cd apps/backend && npm install && npx prisma generate && npm run build
-    startCommand: cd apps/backend && npm run start:prod
+    # Build from root to handle monorepo dependencies
+    buildCommand: pnpm install && cd apps/backend && pnpm prisma generate && pnpm run build
+    startCommand: cd apps/backend && pnpm run start:prod
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV

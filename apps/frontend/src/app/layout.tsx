@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Quicksand } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/providers/theme-provider';
+import InstallPrompt from '@/components/pwa/install-prompt';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { AuthProvider } from '@/contexts/auth-context';
 import { ToastProvider } from '@/components/providers/toast-provider';
@@ -92,8 +93,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={quicksand.variable}>
+    <html lang="vi" suppressHydrationWarning className={quicksand.variable}>
       <head>
+        {/* PWA Meta Tags */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#ec4899" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="HungYeu" />
+        <link rel="apple-touch-icon" href="/HUNGYEULOGO.png" />
         {/* 🔥 Google AdSense Script - Must be in HTML tĩnh để Google bot có thể verify */}
         {/* Script tag này sẽ được render trực tiếp vào HTML tĩnh, Google bot sẽ thấy được */}
         <script
@@ -116,6 +124,7 @@ export default function RootLayout({
             </AuthProvider>
           </QueryProvider>
         </ErrorBoundary>
+        <InstallPrompt />
       </body>
     </html>
   );

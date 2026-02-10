@@ -9,10 +9,11 @@ export const useReadingHistory = (query?: { page?: number; limit?: number }) => 
   });
 };
 
-export const useContinueReading = (limit?: number) => {
+export const useContinueReading = (limit?: number, enabled: boolean = true) => {
   return useQuery({
     queryKey: ['reading-history', 'continue-reading', limit],
     queryFn: () => readingHistoryService.getContinueReading(limit),
+    enabled,
     staleTime: 30 * 1000, // 30 seconds
   });
 };

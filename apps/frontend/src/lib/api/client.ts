@@ -28,7 +28,7 @@ class ApiClient {
     // In production: Frontend will proxy /api to backend via Next.js rewrites
     // In development: Use full backend URL
     const isDevelopment = process.env.NODE_ENV === 'development';
-    const apiUrl = isDevelopment 
+    const apiUrl = isDevelopment
       ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001')
       : ''; // Use relative path in production
 
@@ -156,15 +156,13 @@ class ApiClient {
       const publicRoutes = ['/', '/login', '/register', '/maintenance', '/truyen/', '/stories/', '/search', '/categories', '/auth/'];
       const isPublicRoute = publicRoutes.some(route => currentPath === route || currentPath.startsWith(route));
 
-      // 🔥 CRITICAL FIX: Only dispatch logout event if on protected route
-      // Don't dispatch on public routes to prevent unnecessary redirects
+      // 🔥 CRITICAL FIX: Always dispatch logout event to clear state
+      window.dispatchEvent(new CustomEvent('auth:logout', { detail: { reason: 'refresh_failed' } }));
+
+      // Only redirect to login if on protected route
       if (isProtectedRoute && !isPublicRoute) {
-        // Dispatch logout event
-        window.dispatchEvent(new CustomEvent('auth:logout', { detail: { reason: 'refresh_failed' } }));
-        // Redirect to login
         window.location.href = '/login';
       }
-      // If on public route, do nothing - let the page continue to load
     }
   }
 
