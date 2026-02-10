@@ -82,9 +82,13 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter(loggerService));
 
   const port = configService.get('PORT') || 3001;
-  await app.listen(port);
+  const host = '0.0.0.0'; // 🔥 Required for Render/Docker to detect the open port
 
-  console.log(`Backend server running on: http://localhost:${port}/api`);
+  await app.listen(port, host);
+
+  const url = await app.getUrl();
+  console.log(`🚀 Backend server is ready and listening on: ${url}`);
+  console.log(`Environment: ${configService.get('NODE_ENV') || 'development'}`);
 }
 
 bootstrap();
