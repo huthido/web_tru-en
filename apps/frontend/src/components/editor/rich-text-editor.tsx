@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback, useRef, useState, useEffect } from 'react';
+import { useMemo, useCallback, useRef, useState, useEffect, createElement } from 'react';
 import dynamic from 'next/dynamic';
 import { compressImage } from '@/lib/utils/compress-image';
 import 'react-quill/dist/quill.snow.css';
@@ -397,17 +397,17 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
             )}
 
             <div className="relative">
-                {/* @ts-ignore - ref typing issue with dynamic import on Vercel */}
-                <DynamicReactQuill
-                    ref={quillRef}
-                    theme="snow"
-                    value={value}
-                    onChange={onChange}
-                    modules={modules}
-                    formats={formats}
-                    placeholder={placeholder || 'Nhập nội dung...'}
-                    className="bg-white dark:bg-gray-700"
-                />
+                {/* Use createElement to completely bypass JSX type checking for the ref prop */}
+                {createElement(DynamicReactQuill, {
+                    ref: quillRef,
+                    theme: "snow",
+                    value: value,
+                    onChange: onChange,
+                    modules: modules,
+                    formats: formats,
+                    placeholder: placeholder || 'Nhập nội dung...',
+                    className: "bg-white dark:bg-gray-700"
+                } as any)}
 
                 {/* Image Resize Toolbar */}
                 {selectedImage && resizeToolbar && (
