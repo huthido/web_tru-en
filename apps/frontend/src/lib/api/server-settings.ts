@@ -3,7 +3,7 @@
  * This is used in server components and cannot use the client-side apiClient
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://web-tru-en-tvby.onrender.com';
 const BASE_URL = API_URL.endsWith('/api') ? API_URL : `${API_URL}/api`;
 
 export interface ServerSettings {

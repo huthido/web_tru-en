@@ -122,7 +122,7 @@ const nextConfig = {
   async rewrites() {
     // 🍎 iOS Safari Fix: Proxy API requests to same domain
     // This makes cookies work as first-party cookies!
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://web-tru-en-tvby.onrender.com';
 
     return [
       {
