@@ -6,7 +6,7 @@ import { compressImage } from '@/lib/utils/compress-image';
 import 'react-quill/dist/quill.snow.css';
 
 // Dynamically import ReactQuill to avoid SSR issues
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false }) as any;
+const DynamicReactQuill = dynamic(() => import('react-quill'), { ssr: false }) as any;
 
 interface RichTextEditorProps {
     value: string;
@@ -397,7 +397,8 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
             )}
 
             <div className="relative">
-                <ReactQuill
+                {/* @ts-ignore - ref typing issue with dynamic import on Vercel */}
+                <DynamicReactQuill
                     ref={quillRef}
                     theme="snow"
                     value={value}
