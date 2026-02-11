@@ -6,11 +6,7 @@ import { compressImage } from '@/lib/utils/compress-image';
 import 'react-quill/dist/quill.snow.css';
 
 // Dynamically import ReactQuill to avoid SSR issues
-const ReactQuill = dynamic(async () => {
-    const { default: RQ } = await import('react-quill');
-    // eslint-disable-next-line react/display-name
-    return ({ forwardedRef, ...props }: any) => <RQ ref={forwardedRef} {...props} />;
-}, { ssr: false });
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false }) as any;
 
 interface RichTextEditorProps {
     value: string;
@@ -402,7 +398,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
 
             <div className="relative">
                 <ReactQuill
-                    forwardedRef={quillRef}
+                    ref={quillRef}
                     theme="snow"
                     value={value}
                     onChange={onChange}
