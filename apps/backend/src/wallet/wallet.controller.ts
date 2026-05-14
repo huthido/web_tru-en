@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
-import { WalletService } from './wallet.service';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Request, BadRequestException } from '@nestjs/common';
+import { WalletService, DONATION_PLATFORM_FEE_PERCENT } from './wallet.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
 import { User } from '@prisma/client';
@@ -46,5 +46,26 @@ export class WalletController {
     @Get('author-donations/:authorId')
     async getAuthorDonationStats(@Param('authorId') authorId: string) {
         return this.walletService.getAuthorDonationStats(authorId);
+    }
+
+    /**
+     * Preview the platform fee for a given donation amount.
+     * Public so the UI can show "Tác giả nhận: X coin · Phí: Y coin" before user confirms.
+     *   GET /api/wallet/donate/preview?amount=100
+     */
+    @Public()
+    @Get('donate/preview')
+    previewDonation(@Query('amount') amountRaw?: string) {
+        const amount = Number(amountRaw);
+        if (!Number.isInteger(amount) || amount <= 0) {
+            throw new BadRequestException('amount phải là số nguyên dương');
+        }
+        const { fee, net } = WalletService.splitDonation(amount);
+        return {
+            amount,
+            platformFee: fee,
+            netAmount: net,
+            platformFeePercent: DONATION_PLATFORM_FEE_PERCENT,
+        };
     }
 }

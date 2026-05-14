@@ -2,9 +2,29 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransactionType } from '@prisma/client';
 
+/**
+ * Platform fee charged on author donations, in percent (integer).
+ * 2 = platform keeps 2% of every donation, author receives 98%.
+ * Change here to adjust rev-share — fee is always rounded UP so the platform
+ * is never short-changed on rounding (author receives at most amount-1 coins
+ * for small donations).
+ */
+export const DONATION_PLATFORM_FEE_PERCENT = 2;
+
 @Injectable()
 export class WalletService {
     constructor(private prisma: PrismaService) { }
+
+    /**
+     * Split a donation into platform fee + net author payout.
+     * Fee is rounded UP, so for amount=1 you'd get fee=1, net=0 (invalid donation).
+     * Callers must verify net > 0 before crediting the author.
+     */
+    static splitDonation(amount: number): { fee: number; net: number } {
+        const fee = Math.ceil((amount * DONATION_PLATFORM_FEE_PERCENT) / 100);
+        const net = amount - fee;
+        return { fee, net };
+    }
 
     // Get wallet balance, create if not exists
     async getBalance(userId: string) {
@@ -89,10 +109,25 @@ export class WalletService {
         });
     }
 
-    // Donate coins to an author (Transactional)
+    // Donate coins to an author (Transactional).
+    // The platform keeps DONATION_PLATFORM_FEE_PERCENT (default 2%), the rest goes
+    // to the author. Both the gross `amount` and the breakdown are persisted on
+    // AuthorDonation for accurate revenue reporting.
     async donateToAuthor(userId: string, authorId: string, amount: number, storyId?: string, message?: string) {
-        if (amount <= 0) throw new BadRequestException('Số coin phải lớn hơn 0');
+        if (!Number.isInteger(amount) || amount <= 0) {
+            throw new BadRequestException('Số coin phải là số nguyên dương');
+        }
         if (userId === authorId) throw new BadRequestException('Bạn không thể ủng hộ chính mình');
+
+        const { fee, net } = WalletService.splitDonation(amount);
+        if (net <= 0) {
+            // For 2% fee this only blocks amount=1. We keep the message generic so it
+            // stays correct if the fee % is tuned later.
+            const minAmount = Math.ceil(100 / (100 - DONATION_PLATFORM_FEE_PERCENT));
+            throw new BadRequestException(
+                `Số coin tối thiểu để ủng hộ là ${minAmount} (sau khi trừ ${DONATION_PLATFORM_FEE_PERCENT}% phí nền tảng)`,
+            );
+        }
 
         // Verify author exists
         const author = await this.prisma.user.findUnique({ where: { id: authorId } });
@@ -105,75 +140,78 @@ export class WalletService {
                 throw new BadRequestException('Số dư không đủ để ủng hộ');
             }
 
-            // 2. Deduct from sender
+            // 2. Deduct full amount from sender (they pay the gross — fee is invisible to them)
             const updatedSenderWallet = await tx.userWallet.update({
                 where: { userId },
                 data: { balance: { decrement: amount } },
             });
 
-            // 3. Deposit to author (upsert to create wallet if not exists)
-            await tx.userWallet.upsert({
+            // 3. Credit only `net` to the author. The `fee` is retained by the platform
+            //    (tracked on AuthorDonation.platformFee — no platform wallet is credited
+            //    so the fee effectively reduces the circulating coin supply).
+            const authorWallet = await tx.userWallet.upsert({
                 where: { userId: authorId },
-                update: { balance: { increment: amount } },
-                create: { userId: authorId, balance: amount },
+                update: { balance: { increment: net } },
+                create: { userId: authorId, balance: net },
             });
 
-            // 4. Create sender transaction record
+            // 4. Sender transaction: full negative amount
             await tx.coinTransaction.create({
                 data: {
                     walletId: updatedSenderWallet.id,
                     amount: -amount,
                     type: TransactionType.DONATE_AUTHOR,
-                    description: `Ủng hộ tác giả ${author.displayName || author.username}`,
+                    description: `Ủng hộ tác giả ${author.displayName || author.username} (phí nền tảng ${fee} coin)`,
                     referenceId: authorId,
                 },
             });
 
-            // 5. Create author transaction record
-            const authorWallet = await tx.userWallet.findUnique({ where: { userId: authorId } });
-            if (authorWallet) {
-                await tx.coinTransaction.create({
-                    data: {
-                        walletId: authorWallet.id,
-                        amount: amount,
-                        type: TransactionType.DONATE_AUTHOR,
-                        description: `Nhận ủng hộ từ người dùng`,
-                        referenceId: userId,
-                    },
-                });
-            }
+            // 5. Author transaction: net only
+            await tx.coinTransaction.create({
+                data: {
+                    walletId: authorWallet.id,
+                    amount: net,
+                    type: TransactionType.DONATE_AUTHOR,
+                    description: `Nhận ủng hộ từ người dùng (đã trừ ${fee} coin phí nền tảng ${DONATION_PLATFORM_FEE_PERCENT}%)`,
+                    referenceId: userId,
+                },
+            });
 
-            // 6. Create donation record
+            // 6. Donation record — store gross + fee + net for reporting
             const donation = await tx.authorDonation.create({
                 data: {
                     userId,
                     authorId,
                     storyId: storyId || null,
-                    amount,
+                    amount, // gross
+                    platformFee: fee,
+                    netAmount: net,
                     message: message || null,
                 },
             });
 
             return {
                 donation,
+                fee,
+                net,
                 newBalance: updatedSenderWallet.balance,
             };
         });
     }
 
-    // Get author donation stats
+    // Get author donation stats.
+    // Returns gross (paid by donors), net (actually received by author), and total
+    // platform fee retained. `totalCoins` kept for backward compatibility — equals
+    // net (what the author truly received). Use `totalGross` to show donors' total.
     async getAuthorDonationStats(authorId: string) {
-        const [totalDonations, donationCount, recentDonors] = await Promise.all([
-            // Total coins received
+        const [aggregate, donationCount, recentDonors] = await Promise.all([
             this.prisma.authorDonation.aggregate({
                 where: { authorId },
-                _sum: { amount: true },
+                _sum: { amount: true, netAmount: true, platformFee: true },
             }),
-            // Total number of donations
             this.prisma.authorDonation.count({
                 where: { authorId },
             }),
-            // Recent donors
             this.prisma.authorDonation.findMany({
                 where: { authorId },
                 orderBy: { createdAt: 'desc' },
@@ -186,12 +224,24 @@ export class WalletService {
             }),
         ]);
 
+        const totalGross = aggregate._sum.amount || 0;
+        const totalNet = aggregate._sum.netAmount || 0;
+        const totalFee = aggregate._sum.platformFee || 0;
+
         return {
-            totalCoins: totalDonations._sum.amount || 0,
+            // What the author actually received (formerly `totalCoins` — keep alias for FE compat)
+            totalCoins: totalNet,
+            totalNet,
+            // Gross amount donors paid (always >= totalNet)
+            totalGross,
+            totalPlatformFee: totalFee,
+            platformFeePercent: DONATION_PLATFORM_FEE_PERCENT,
             donationCount,
             recentDonors: recentDonors.map(d => ({
                 id: d.id,
-                amount: d.amount,
+                amount: d.amount,          // gross — what the donor paid
+                netAmount: d.netAmount,    // what the author received
+                platformFee: d.platformFee,
                 message: d.message,
                 createdAt: d.createdAt,
                 user: d.user,

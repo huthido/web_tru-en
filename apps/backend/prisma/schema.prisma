@@ -789,15 +789,17 @@ model Payment {
 }
 
 model AuthorDonation {
-  id        String   @id @default(cuid())
-  userId    String
-  authorId  String
-  storyId   String?
-  amount    Int
-  message   String?  @db.Text
-  createdAt DateTime @default(now())
-  user      User     @relation("DonationSender", fields: [userId], references: [id], onDelete: Cascade)
-  author    User     @relation("DonationReceiver", fields: [authorId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  userId       String
+  authorId     String
+  storyId      String?
+  amount       Int // Gross amount paid by sender (= platformFee + netAmount)
+  platformFee  Int      @default(0) // Coins kept by the platform (2% of amount, rounded up)
+  netAmount    Int      @default(0) // Coins actually credited to the author (amount - platformFee)
+  message      String?  @db.Text
+  createdAt    DateTime @default(now())
+  user         User     @relation("DonationSender", fields: [userId], references: [id], onDelete: Cascade)
+  author       User     @relation("DonationReceiver", fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([authorId])
