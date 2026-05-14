@@ -1,13 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional, forwardRef, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { WalletService } from '../wallet/wallet.service';
 
 @Injectable()
 export class SettingsService {
   private readonly logger = new Logger(SettingsService.name);
 
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    // Optional to avoid a hard circular dep; wallet uses settings, settings invalidates wallet cache.
+    @Optional() @Inject(forwardRef(() => WalletService)) private wallet?: WalletService,
+  ) { }
 
   async getSettings() {
     try {
@@ -83,6 +88,12 @@ export class SettingsService {
           where: { id: settings.id },
           data: cleanedData,
         });
+      }
+
+      // If the donation fee % changed, invalidate the wallet cache so the new
+      // rate takes effect on the very next donation rather than after 60s.
+      if ('donationPlatformFeePercent' in cleanedData && this.wallet) {
+        this.wallet.invalidateFeeCache();
       }
 
       return settings;

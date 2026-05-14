@@ -498,6 +498,7 @@ export interface Settings {
   maintenanceMessage?: string;
   allowRegistration: boolean;
   requireEmailVerification: boolean;
+  donationPlatformFeePercent: number;
   createdAt: string;
   updatedAt: string;
 }

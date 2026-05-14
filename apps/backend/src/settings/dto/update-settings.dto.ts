@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsEmail, IsUrl, ValidateIf } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsEmail, IsUrl, ValidateIf, IsInt, Min, Max } from 'class-validator';
 
 export class UpdateSettingsDto {
   @IsOptional()
@@ -87,4 +87,12 @@ export class UpdateSettingsDto {
   @IsOptional()
   @IsBoolean()
   requireEmailVerification?: boolean;
+
+  // Donation rev-share — % the platform keeps. 0 = author keeps 100%.
+  // Capped at 50 to prevent admin from accidentally locking out authors.
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(50)
+  donationPlatformFeePercent?: number;
 }

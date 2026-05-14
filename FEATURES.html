@@ -430,9 +430,10 @@ Nhận email         Bạn chỉnh sửa
 </ul>
 
 <h3>8.7 Doanh thu từ ủng hộ — phí nền tảng</h3>
-<p>Khi độc giả ủng hộ bạn, nền tảng giữ lại <strong>2%</strong> mỗi giao dịch để duy trì hạ tầng (server, băng thông, lưu trữ). Bạn nhận <strong>98%</strong> còn lại vào ví coin.</p>
+<p>Khi độc giả ủng hộ bạn, nền tảng giữ lại một tỷ lệ nhỏ (<strong>mặc định 2%</strong>) để duy trì hạ tầng (server, băng thông, lưu trữ). Phần còn lại được cộng vào ví coin của bạn.</p>
+<p>Ví dụ với phí 2%:</p>
 <table>
-<thead><tr><th>Donate (gross)</th><th>Phí 2%</th><th>Bạn nhận</th></tr></thead>
+<thead><tr><th>Donate (gross)</th><th>Phí</th><th>Bạn nhận</th></tr></thead>
 <tbody>
 <tr><td>100 coin</td><td>2</td><td>98</td></tr>
 <tr><td>500 coin</td><td>10</td><td>490</td></tr>
@@ -440,7 +441,8 @@ Nhận email         Bạn chỉnh sửa
 <tr><td>10.000 coin</td><td>200</td><td>9.800</td></tr>
 </tbody>
 </table>
-<blockquote>💡 Phí được tính tự động và <strong>không hiển thị cho người ủng hộ</strong> — họ chỉ thấy số coin mình đã donate. Bạn xem chi tiết phân tách gross/net/phí ngay trên Dashboard tác giả (mục "Thu nhập từ ủng hộ") hoặc gọi API <code>GET /api/wallet/donations/me</code>.</blockquote>
+<blockquote>💡 <strong>Phí có thể được Admin điều chỉnh</strong> trong <strong>Cài đặt → Phí donate</strong>. Mức phí hiện tại luôn hiển thị trên Dashboard tác giả. Các donation cũ vẫn giữ nguyên mức phí tại thời điểm phát sinh.</blockquote>
+<p>Phí được tính tự động và <strong>không hiển thị cho người ủng hộ</strong> — họ chỉ thấy số coin mình đã donate. Bạn xem chi tiết phân tách gross/net/phí qua API <code>GET /api/wallet/donations/me</code>.</p>
 
 <h3>8.8 Chỉnh sửa &amp; xoá</h3>
 <ul>
@@ -476,7 +478,7 @@ Nhận email         Bạn chỉnh sửa
 <tr><td>🔔 <strong>Thông báo</strong></td><td>Push thông báo đến toàn bộ hoặc nhóm người dùng</td></tr>
 <tr><td>✅ <strong>Phê duyệt</strong></td><td>Hàng chờ duyệt truyện/chương, kèm ghi chú</td></tr>
 <tr><td>📊 <strong>Thống kê</strong></td><td>Phân tích chi tiết theo thời gian</td></tr>
-<tr><td>⚙️ <strong>Cài đặt</strong></td><td>Branding, liên hệ, social, <strong>chế độ bảo trì</strong></td></tr>
+<tr><td>⚙️ <strong>Cài đặt</strong></td><td>Branding, liên hệ, social, <strong>chế độ bảo trì</strong>, <strong>mức phí donate</strong> (0–50%)</td></tr>
 </tbody>
 </table>
 

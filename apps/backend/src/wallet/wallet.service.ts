@@ -1,29 +1,77 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransactionType } from '@prisma/client';
 
 /**
- * Platform fee charged on author donations, in percent (integer).
+ * Hard default if both Settings DB row and env var are missing.
  * 2 = platform keeps 2% of every donation, author receives 98%.
- * Change here to adjust rev-share — fee is always rounded UP so the platform
- * is never short-changed on rounding (author receives at most amount-1 coins
- * for small donations).
  */
-export const DONATION_PLATFORM_FEE_PERCENT = 2;
+export const DEFAULT_DONATION_PLATFORM_FEE_PERCENT = 2;
+
+const FEE_CACHE_TTL_MS = 60_000; // 60s — admin's "update fee" UI feels instant in practice
 
 @Injectable()
 export class WalletService {
-    constructor(private prisma: PrismaService) { }
+    private readonly logger = new Logger(WalletService.name);
+    private cachedFeePercent: number | null = null;
+    private cachedFeeAt = 0;
+
+    constructor(
+        private prisma: PrismaService,
+        private config: ConfigService,
+    ) { }
 
     /**
-     * Split a donation into platform fee + net author payout.
-     * Fee is rounded UP, so for amount=1 you'd get fee=1, net=0 (invalid donation).
-     * Callers must verify net > 0 before crediting the author.
+     * Pure helper — split a donation given a percent. Fee is rounded UP so the
+     * platform isn't short-changed by rounding (author gets at most amount-1
+     * coins for very small donations).
      */
-    static splitDonation(amount: number): { fee: number; net: number } {
-        const fee = Math.ceil((amount * DONATION_PLATFORM_FEE_PERCENT) / 100);
+    static splitDonation(amount: number, feePercent: number): { fee: number; net: number } {
+        const safePct = Math.max(0, Math.min(100, feePercent));
+        const fee = Math.ceil((amount * safePct) / 100);
         const net = amount - fee;
         return { fee, net };
+    }
+
+    /**
+     * Resolve the current donation fee %.
+     * Priority: Settings DB row → DONATION_PLATFORM_FEE_PERCENT env → hard default.
+     * Cached for 60s to avoid hitting the DB on every donation; admin's UI
+     * update takes effect on the next minute at worst.
+     */
+    async getDonationFeePercent(): Promise<number> {
+        const now = Date.now();
+        if (this.cachedFeePercent !== null && now - this.cachedFeeAt < FEE_CACHE_TTL_MS) {
+            return this.cachedFeePercent;
+        }
+
+        let percent = DEFAULT_DONATION_PLATFORM_FEE_PERCENT;
+        try {
+            const settings = await this.prisma.settings.findFirst({
+                select: { donationPlatformFeePercent: true },
+            });
+            if (settings?.donationPlatformFeePercent != null) {
+                percent = settings.donationPlatformFeePercent;
+            } else {
+                const envValue = Number(this.config.get<string>('DONATION_PLATFORM_FEE_PERCENT'));
+                if (Number.isInteger(envValue) && envValue >= 0 && envValue <= 50) {
+                    percent = envValue;
+                }
+            }
+        } catch (err: any) {
+            this.logger.warn(`Failed to read donation fee from Settings, using default ${percent}%: ${err.message}`);
+        }
+
+        this.cachedFeePercent = percent;
+        this.cachedFeeAt = now;
+        return percent;
+    }
+
+    /** Invalidate the cache — called by SettingsService when admin updates the fee. */
+    invalidateFeeCache(): void {
+        this.cachedFeePercent = null;
+        this.cachedFeeAt = 0;
     }
 
     // Get wallet balance, create if not exists
@@ -110,22 +158,24 @@ export class WalletService {
     }
 
     // Donate coins to an author (Transactional).
-    // The platform keeps DONATION_PLATFORM_FEE_PERCENT (default 2%), the rest goes
-    // to the author. Both the gross `amount` and the breakdown are persisted on
-    // AuthorDonation for accurate revenue reporting.
+    // The platform keeps Settings.donationPlatformFeePercent (default 2%), the rest
+    // goes to the author. Both the gross `amount` and the breakdown are persisted
+    // on AuthorDonation for accurate revenue reporting.
     async donateToAuthor(userId: string, authorId: string, amount: number, storyId?: string, message?: string) {
         if (!Number.isInteger(amount) || amount <= 0) {
             throw new BadRequestException('Số coin phải là số nguyên dương');
         }
         if (userId === authorId) throw new BadRequestException('Bạn không thể ủng hộ chính mình');
 
-        const { fee, net } = WalletService.splitDonation(amount);
+        const feePercent = await this.getDonationFeePercent();
+        const { fee, net } = WalletService.splitDonation(amount, feePercent);
         if (net <= 0) {
-            // For 2% fee this only blocks amount=1. We keep the message generic so it
-            // stays correct if the fee % is tuned later.
-            const minAmount = Math.ceil(100 / (100 - DONATION_PLATFORM_FEE_PERCENT));
+            // For non-zero fee, the minimum donation is the smallest amount where
+            // ceil(amount * feePercent / 100) < amount. Generic so it stays correct
+            // as the fee % is tuned.
+            const minAmount = feePercent > 0 ? Math.ceil(100 / (100 - feePercent)) : 1;
             throw new BadRequestException(
-                `Số coin tối thiểu để ủng hộ là ${minAmount} (sau khi trừ ${DONATION_PLATFORM_FEE_PERCENT}% phí nền tảng)`,
+                `Số coin tối thiểu để ủng hộ là ${minAmount}`,
             );
         }
 
@@ -168,12 +218,15 @@ export class WalletService {
             });
 
             // 5. Author transaction: surfaces the fee so the recipient sees the real number.
+            const feeNote = fee > 0
+                ? ` (đã trừ ${fee} coin phí nền tảng ${feePercent}%)`
+                : '';
             await tx.coinTransaction.create({
                 data: {
                     walletId: authorWallet.id,
                     amount: net,
                     type: TransactionType.DONATE_AUTHOR,
-                    description: `Nhận ủng hộ ${amount} coin (đã trừ ${fee} coin phí nền tảng ${DONATION_PLATFORM_FEE_PERCENT}%)`,
+                    description: `Nhận ủng hộ ${amount} coin${feeNote}`,
                     referenceId: userId,
                 },
             });
@@ -247,7 +300,7 @@ export class WalletService {
      * Controller enforces ownership.
      */
     async getMyDonationEarnings(authorId: string) {
-        const [aggregate, donationCount, recent] = await Promise.all([
+        const [aggregate, donationCount, recent, currentFeePercent] = await Promise.all([
             this.prisma.authorDonation.aggregate({
                 where: { authorId },
                 _sum: { amount: true, netAmount: true, platformFee: true },
@@ -265,13 +318,17 @@ export class WalletService {
                     },
                 },
             }),
+            this.getDonationFeePercent(),
         ]);
 
         return {
             totalGross: aggregate._sum.amount || 0,
             totalNet: aggregate._sum.netAmount || 0,
             totalPlatformFee: aggregate._sum.platformFee || 0,
-            platformFeePercent: DONATION_PLATFORM_FEE_PERCENT,
+            // Current fee % (for the UI "we keep X% per donation" hint). Historical
+            // donations in `donations[]` still carry their original fee from the
+            // moment the donation was made (platformFee field).
+            platformFeePercent: currentFeePercent,
             donationCount,
             donations: recent.map(d => ({
                 id: d.id,

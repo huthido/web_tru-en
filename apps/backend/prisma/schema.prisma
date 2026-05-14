@@ -578,6 +578,9 @@ model Settings {
   maintenanceMessage       String?  @db.Text
   allowRegistration        Boolean  @default(true)
   requireEmailVerification Boolean  @default(false)
+  // Donation rev-share: % the platform keeps when a user donates coins to an
+  // author. 0 = author keeps 100%. Capped at 50 in the DTO validator.
+  donationPlatformFeePercent Int    @default(2)
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 

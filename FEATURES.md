@@ -299,16 +299,20 @@ Hiển thị:
 
 ### 8.7 Doanh thu từ ủng hộ — phí nền tảng
 
-Khi độc giả ủng hộ bạn, nền tảng giữ lại **2%** mỗi giao dịch để duy trì hạ tầng (server, băng thông, lưu trữ). Bạn nhận **98%** còn lại vào ví coin.
+Khi độc giả ủng hộ bạn, nền tảng giữ lại một tỷ lệ nhỏ (**mặc định 2%**) để duy trì hạ tầng (server, băng thông, lưu trữ). Phần còn lại được cộng vào ví coin của bạn.
 
-| Donate (gross) | Phí 2% | Bạn nhận |
+Ví dụ với phí 2%:
+
+| Donate (gross) | Phí | Bạn nhận |
 |---|---|---|
 | 100 coin | 2 | 98 |
 | 500 coin | 10 | 490 |
 | 1.000 coin | 20 | 980 |
 | 10.000 coin | 200 | 9.800 |
 
-> 💡 Phí được tính tự động và **không hiển thị cho người ủng hộ** — họ chỉ thấy số coin mình đã donate. Bạn xem chi tiết phân tách gross/net/phí ngay trên Dashboard tác giả (mục "Thu nhập từ ủng hộ") hoặc gọi API `GET /api/wallet/donations/me`.
+> 💡 **Phí có thể được Admin điều chỉnh** trong **Cài đặt → Phí donate**. Mức phí hiện tại luôn hiển thị trên Dashboard tác giả (mục "Thu nhập từ ủng hộ"). Các donation cũ vẫn giữ nguyên mức phí tại thời điểm phát sinh (không bị tính lại theo phí mới).
+
+Phí được tính tự động và **không hiển thị cho người ủng hộ** — họ chỉ thấy số coin mình đã donate. Bạn xem chi tiết phân tách gross/net/phí qua API `GET /api/wallet/donations/me`.
 
 ### 8.8 Chỉnh sửa & xoá
 - Có thể chỉnh sửa truyện / chương đã đăng (nhưng truyện đã duyệt cần duyệt lại nếu sửa nội dung lớn)
@@ -340,7 +344,7 @@ Trang `/admin` hiển thị dashboard tổng quan:
 | 🔔 **Thông báo** | Push thông báo đến toàn bộ hoặc nhóm người dùng |
 | ✅ **Phê duyệt** | Hàng chờ duyệt truyện/chương, kèm ghi chú |
 | 📊 **Thống kê** | Phân tích chi tiết theo thời gian |
-| ⚙️ **Cài đặt** | Branding, liên hệ, social, **chế độ bảo trì** |
+| ⚙️ **Cài đặt** | Branding, liên hệ, social, **chế độ bảo trì**, **mức phí donate** (0–50%) |
 
 ### 9.3 Chế độ bảo trì
 Bật trong **Cài đặt → Bảo trì**:
