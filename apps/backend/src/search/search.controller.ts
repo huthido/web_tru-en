@@ -1,6 +1,11 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { SearchService } from './search.service';
+import { SearchIndexerService } from './search-indexer.service';
 import { Public } from '../auth/decorators/public.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '@prisma/client';
 
 @Controller('search')
 export class SearchController {
@@ -50,6 +55,26 @@ export class SearchController {
     }
 
     return this.searchService.getSuggestions(query, limit ? parseInt(limit, 10) : 10);
+  }
+}
+
+/**
+ * Admin-only: rebuild the Meilisearch index from Postgres.
+ *   POST /api/admin/search/reindex
+ */
+@Controller('admin/search')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.ADMIN)
+export class AdminSearchController {
+  constructor(private readonly indexer: SearchIndexerService) {}
+
+  @Post('reindex')
+  async reindex() {
+    if (!this.indexer.enabled) {
+      return { success: false, message: 'Meilisearch is not configured (MEILI_HOST missing)' };
+    }
+    const result = await this.indexer.reindexAll();
+    return { success: true, ...result };
   }
 }
 

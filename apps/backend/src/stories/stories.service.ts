@@ -16,10 +16,14 @@ import {
 import { buildSearchConditions } from '../common/utils/search.util';
 import { storyInclude, storyWithChaptersInclude, safeStorySelect } from '../prisma/prisma.helpers';
 import { StoryStatus, UserRole } from '@prisma/client';
+import { SearchIndexerService } from '../search/search-indexer.service';
 
 @Injectable()
 export class StoriesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private searchIndexer: SearchIndexerService,
+  ) { }
 
   // Rate limiting check for all users
   private async checkRateLimits(userId: string, userRole: UserRole) {
@@ -391,6 +395,9 @@ export class StoriesService {
       );
     }
 
+    // Best-effort index sync (no-op if Meilisearch is disabled)
+    this.searchIndexer.syncStory(story.id);
+
     // Reload with categories
     return this.findOne(slug, userId);
   }
@@ -640,9 +647,14 @@ export class StoriesService {
       throw new ForbiddenException('Bạn không có quyền xóa truyện này');
     }
 
-    return this.prisma.story.delete({
+    const deleted = await this.prisma.story.delete({
       where: { id },
     });
+
+    // Best-effort: remove from search index
+    this.searchIndexer.removeStory(id);
+
+    return deleted;
   }
 
   async publish(id: string, userId: string, userRole: UserRole) {
@@ -679,7 +691,7 @@ export class StoriesService {
     }
 
     try {
-      return await this.prisma.story.update({
+      const published = await this.prisma.story.update({
         where: { id },
         data: {
           isPublished: true,
@@ -687,10 +699,12 @@ export class StoriesService {
         },
         include: storyInclude,
       });
+      this.searchIndexer.syncStory(id);
+      return published;
     } catch (error: any) {
       // If column doesn't exist, use select instead
       if (error?.message?.includes('isRecommended')) {
-        return await this.prisma.story.update({
+        const published = await this.prisma.story.update({
           where: { id },
           data: {
             isPublished: true,
@@ -698,6 +712,8 @@ export class StoriesService {
           },
           select: safeStorySelect,
         });
+        this.searchIndexer.syncStory(id);
+        return published;
       }
       throw error;
     }

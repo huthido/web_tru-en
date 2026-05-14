@@ -1,11 +1,12 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { StoriesController } from './stories.controller';
 import { StoriesService } from './stories.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { SearchModule } from '../search/search.module';
 
 @Module({
-  imports: [PrismaModule, CloudinaryModule],
+  imports: [PrismaModule, CloudinaryModule, forwardRef(() => SearchModule)],
   controllers: [StoriesController],
   providers: [StoriesService],
   exports: [StoriesService],

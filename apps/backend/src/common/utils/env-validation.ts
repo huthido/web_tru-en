@@ -93,5 +93,34 @@ export function validateEnvironmentVariables(): void {
     logger.warn('⚠️  JWT_SECRET should be at least 32 characters long for security');
   }
 
+  // Production hardening checks
+  if (process.env.NODE_ENV === 'production') {
+    const corsOrigin = process.env.CORS_ORIGIN;
+    const frontendUrl = process.env.FRONTEND_URL;
+
+    if (!corsOrigin && !frontendUrl) {
+      logger.error(
+        '❌ Neither CORS_ORIGIN nor FRONTEND_URL is set in production. ' +
+          'The API will only accept requests from http://localhost:3000.'
+      );
+    } else if (corsOrigin === '*') {
+      logger.warn(
+        '⚠️  CORS_ORIGIN="*" in production allows requests from any origin. ' +
+          'Consider whitelisting your frontend domain(s) only.'
+      );
+    }
+
+    if (
+      !process.env.CLOUDINARY_CLOUD_NAME ||
+      !process.env.CLOUDINARY_API_KEY ||
+      !process.env.CLOUDINARY_API_SECRET
+    ) {
+      logger.warn(
+        '⚠️  Cloudinary credentials missing in production. The /uploads static ' +
+          'directory is local-only and will lose files on instance restart or when scaled.'
+      );
+    }
+  }
+
   logger.log('✅ All required environment variables are set');
 }

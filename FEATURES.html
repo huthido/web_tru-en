@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hướng dẫn sử dụng — Web Truyện HungYeu</title>
+<!--
+  Web Truyện HungYeu — Tài liệu tính năng (HTML)
+
+  📂 Mở trực tiếp trong trình duyệt: file render đầy đủ với font Quicksand.
+  📋 Paste vào CMS (/admin/pages): chỉ copy phần từ <style> đến </div> CUỐI cùng
+     (KHÔNG copy <!DOCTYPE>, <html>, <head>, </body></html> — vì page cha đã có sẵn).
+
+  Cách dùng cho CMS:
+  1) Vào /admin/pages → "Tạo trang mới"
+  2) Slug gợi ý: "tinh-nang" hoặc "huong-dan-su-dung"
+  3) Tiêu đề: "Hướng dẫn sử dụng — Web Truyện HungYeu"
+  4) Mô tả ngắn: "Tài liệu mô tả đầy đủ các tính năng dành cho độc giả, tác giả, quản trị viên."
+  5) Paste nội dung từ <style> đến </div> CUỐI vào trường "Nội dung"
+  6) Bật "Đang hoạt động" → Lưu
+
+  Mọi style đã scope dưới .wt-features nên không ảnh hưởng layout xung quanh.
+-->
+</head>
+<body>
+
+<style>
+/* Load Quicksand with Vietnamese subset so file looks identical whether
+   opened standalone or pasted into the CMS. Harmless if the host page also loads it. */
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap&subset=vietnamese');
+
+.wt-features { font-family: 'Quicksand', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #1f2937; line-height: 1.7; max-width: 920px; margin: 0 auto; padding: 24px 16px; }
+.wt-features h1 { font-size: 2.2rem; font-weight: 700; color: #111827; border-bottom: 3px solid #6366f1; padding-bottom: 12px; margin: 0 0 8px; }
+.wt-features h2 { font-size: 1.6rem; font-weight: 700; color: #111827; margin: 48px 0 16px; padding-top: 8px; border-top: 1px solid #e5e7eb; }
+.wt-features h2:first-of-type { border-top: none; padding-top: 0; }
+.wt-features h3 { font-size: 1.2rem; font-weight: 600; color: #1f2937; margin: 28px 0 10px; }
+.wt-features p { margin: 12px 0; }
+.wt-features a { color: #4f46e5; text-decoration: none; border-bottom: 1px dashed #c7d2fe; }
+.wt-features a:hover { color: #3730a3; border-bottom-style: solid; }
+.wt-features blockquote { border-left: 4px solid #6366f1; background: #eef2ff; margin: 16px 0; padding: 12px 18px; color: #3730a3; border-radius: 0 8px 8px 0; }
+.wt-features blockquote strong { color: #312e81; }
+.wt-features ul, .wt-features ol { padding-left: 24px; margin: 12px 0; }
+.wt-features li { margin: 6px 0; }
+.wt-features code { background: #f3f4f6; color: #be185d; padding: 2px 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.92em; }
+.wt-features table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.95rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; }
+.wt-features th { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; padding: 12px 16px; text-align: left; font-weight: 600; }
+.wt-features td { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+.wt-features tr:last-child td { border-bottom: none; }
+.wt-features tr:nth-child(even) td { background: #fafafa; }
+.wt-features details { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 16px; margin: 8px 0; }
+.wt-features details[open] { background: #fff; border-color: #6366f1; box-shadow: 0 2px 8px rgba(99,102,241,0.15); }
+.wt-features summary { cursor: pointer; font-weight: 600; color: #1f2937; padding: 4px 0; outline: none; }
+.wt-features summary:hover { color: #4f46e5; }
+.wt-features details[open] summary { margin-bottom: 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+.wt-features hr { border: none; border-top: 2px dashed #e5e7eb; margin: 36px 0; }
+.wt-features .toc { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px 24px; margin: 24px 0; }
+.wt-features .toc h2 { margin-top: 0; border-top: none; padding-top: 0; font-size: 1.25rem; }
+.wt-features .toc ol { margin: 8px 0; }
+.wt-features .toc a { border: none; }
+.wt-features .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.85em; font-weight: 600; margin-right: 4px; }
+.wt-features .badge-user { background: #dbeafe; color: #1e40af; }
+.wt-features .badge-author { background: #fef3c7; color: #92400e; }
+.wt-features .badge-admin { background: #fecaca; color: #991b1b; }
+.wt-features .meta { color: #6b7280; font-size: 0.9rem; text-align: center; margin-top: 48px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+@media (max-width: 640px) {
+  .wt-features { padding: 16px 12px; }
+  .wt-features h1 { font-size: 1.7rem; }
+  .wt-features h2 { font-size: 1.35rem; }
+  .wt-features table { font-size: 0.88rem; }
+  .wt-features th, .wt-features td { padding: 8px 10px; }
+}
+</style>
+
+<div class="wt-features">
+
+<h1>📖 Tài liệu tính năng — Web Truyện HungYeu</h1>
+
+<p>Đây là tài liệu mô tả đầy đủ các tính năng dành cho <strong>người dùng cuối</strong> của nền tảng <strong>Web Truyện HungYeu</strong> — nơi đọc truyện/manga miễn phí với hệ sinh thái cộng đồng và ủng hộ tác giả.</p>
+
+<blockquote>🎯 <strong>Đối tượng đọc:</strong> độc giả, tác giả, người ủng hộ, quản trị viên. Tài liệu này không chứa thuật ngữ kỹ thuật.</blockquote>
+
+<div class="toc">
+<h2>📑 Mục lục</h2>
+<ol>
+<li><a href="#sec-1">Tổng quan nền tảng</a></li>
+<li><a href="#sec-2">Tài khoản &amp; đăng nhập</a></li>
+<li><a href="#sec-3">Khám phá truyện</a></li>
+<li><a href="#sec-4">Trải nghiệm đọc</a></li>
+<li><a href="#sec-5">Tương tác cộng đồng</a></li>
+<li><a href="#sec-6">Thư viện cá nhân</a></li>
+<li><a href="#sec-7">Ví coin &amp; thanh toán</a></li>
+<li><a href="#sec-8">Dành cho tác giả</a></li>
+<li><a href="#sec-9">Dành cho quản trị viên</a></li>
+<li><a href="#sec-10">Ứng dụng PWA — cài như app</a></li>
+<li><a href="#sec-11">Bảo mật &amp; quyền riêng tư</a></li>
+<li><a href="#sec-12">Câu hỏi thường gặp</a></li>
+</ol>
+</div>
+
+<hr>
+
+<h2 id="sec-1">1. Tổng quan nền tảng</h2>
+
+<p><strong>Web Truyện HungYeu</strong> là nền tảng đọc truyện/manga trực tuyến với 3 vai trò người dùng:</p>
+
+<table>
+<thead><tr><th>Vai trò</th><th>Quyền hạn cơ bản</th></tr></thead>
+<tbody>
+<tr><td><span class="badge badge-user">👤 Độc giả</span></td><td>Đọc miễn phí, theo dõi, bình luận, đánh giá, ủng hộ tác giả</td></tr>
+<tr><td><span class="badge badge-author">✍️ Tác giả</span></td><td>Tất cả quyền độc giả + đăng truyện, viết chương, nhận coin</td></tr>
+<tr><td><span class="badge badge-admin">🛡️ Quản trị</span></td><td>Toàn quyền hệ thống — duyệt nội dung, quản lý người dùng, quảng cáo</td></tr>
+</tbody>
+</table>
+
+<h3>Điểm nổi bật</h3>
+<ul>
+<li>📚 Đọc truyện miễn phí, không yêu cầu đăng ký để xem</li>
+<li>💰 <strong>Hệ thống coin</strong> — mua chương đặc biệt + ủng hộ tác giả</li>
+<li>📱 <strong>PWA</strong> — cài đặt như ứng dụng, đọc được khi mất mạng</li>
+<li>🌐 <strong>Đăng nhập bằng Google / Facebook</strong> chỉ với 1 cú nhấp</li>
+<li>🔔 Thông báo khi truyện theo dõi ra chương mới</li>
+<li>🌙 Giao diện sáng / tối</li>
+<li>⭐ Hệ thống đề xuất cá nhân hoá theo lịch sử đọc</li>
+</ul>
+
+<hr>
+
+<h2 id="sec-2">2. Tài khoản &amp; đăng nhập</h2>
+
+<h3>2.1 Đăng ký</h3>
+<p>Bạn có thể tạo tài khoản theo <strong>3 cách</strong>:</p>
+<table>
+<thead><tr><th>Cách</th><th>Yêu cầu</th><th>Thời gian</th></tr></thead>
+<tbody>
+<tr><td>📧 <strong>Email + Mật khẩu</strong></td><td>Email hợp lệ + xác thực qua link</td><td>~1 phút</td></tr>
+<tr><td>🔵 <strong>Google</strong></td><td>Tài khoản Google</td><td>&lt;10 giây</td></tr>
+<tr><td>🔵 <strong>Facebook</strong></td><td>Tài khoản Facebook (có email)</td><td>&lt;10 giây</td></tr>
+</tbody>
+</table>
+
+<p><strong>Lưu ý khi đăng ký bằng email:</strong></p>
+<ul>
+<li>Bạn sẽ nhận email xác thực — phải bấm vào link trong vòng <strong>24 giờ</strong></li>
+<li>Mật khẩu tối thiểu 6 ký tự</li>
+<li>Tên đăng nhập (username) là <strong>duy nhất</strong>, không thể thay đổi sau khi tạo</li>
+<li>Tên hiển thị (display name) có thể thay đổi bất kỳ lúc nào</li>
+</ul>
+
+<h3>2.2 Đăng nhập</h3>
+<ul>
+<li>Đăng nhập bằng <strong>email</strong> hoặc <strong>username</strong></li>
+<li>Tuỳ chọn <strong>"Ghi nhớ đăng nhập"</strong> — phiên duy trì 30 ngày (mặc định 7 ngày)</li>
+<li>Sau <strong>5 lần đăng nhập sai liên tiếp</strong>, hệ thống tạm khoá truy cập từ IP đó trong 1 phút</li>
+</ul>
+
+<h3>2.3 Khôi phục &amp; thay đổi</h3>
+<table>
+<thead><tr><th>Thao tác</th><th>Vị trí</th></tr></thead>
+<tbody>
+<tr><td>Đổi mật khẩu</td><td>Trang cá nhân → Tài khoản → Đổi mật khẩu</td></tr>
+<tr><td>Đổi email</td><td>Trang cá nhân → Tài khoản → Đổi email</td></tr>
+<tr><td>Đổi tên hiển thị / avatar / bio</td><td>Trang cá nhân → Chỉnh sửa hồ sơ</td></tr>
+<tr><td>Gửi lại email xác thực</td><td>Trang đăng nhập → "Chưa nhận được email?"</td></tr>
+</tbody>
+</table>
+
+<h3>2.4 Đăng nhập bằng tài khoản Facebook không có email</h3>
+<p>Một số tài khoản Facebook không công khai email. Trong trường hợp này, hệ thống sẽ yêu cầu bạn <strong>bổ sung email</strong> ngay sau lần đăng nhập đầu tiên để có thể nhận thông báo và khôi phục tài khoản.</p>
+
+<hr>
+
+<h2 id="sec-3">3. Khám phá truyện</h2>
+
+<h3>3.1 Trang chủ</h3>
+<p>Trang chủ hiển thị nhiều khu vực để bạn dễ tìm truyện phù hợp:</p>
+<table>
+<thead><tr><th>Khu vực</th><th>Nội dung</th></tr></thead>
+<tbody>
+<tr><td>⭐ <strong>Đề xuất cho bạn</strong></td><td>Truyện gợi ý dựa trên lịch sử đọc (nếu đã đăng nhập), hoặc top theo điểm tổng hợp</td></tr>
+<tr><td>🆕 <strong>Mới cập nhật</strong></td><td>15 truyện mới nhất được xuất bản</td></tr>
+<tr><td>🏆 <strong>Bảng vàng tháng</strong></td><td>Truyện được đánh giá cao nhất trong tháng hiện tại</td></tr>
+<tr><td>👍 <strong>Được yêu thích nhất</strong></td><td>Sắp xếp theo lượt thích &amp; theo dõi</td></tr>
+<tr><td>⭐ <strong>Đánh giá cao nhất</strong></td><td>Truyện có rating cao nhất (≥5 lượt đánh giá)</td></tr>
+</tbody>
+</table>
+
+<h3>3.2 Tìm kiếm</h3>
+<ul>
+<li>Thanh tìm kiếm trên đầu mỗi trang</li>
+<li><strong>Gợi ý tức thì</strong> khi gõ — hiển thị 10 truyện khớp tên gần nhất</li>
+<li>Tìm theo <strong>tên truyện</strong>, <strong>tên tác giả</strong>, <strong>mô tả</strong>, <strong>thẻ (tag)</strong>, <strong>thể loại</strong></li>
+<li>Hỗ trợ tìm tiếng Việt có dấu / không dấu</li>
+</ul>
+
+<h3>3.3 Bộ lọc</h3>
+<p>Trang <strong>Danh sách truyện</strong> cho phép lọc:</p>
+<ul>
+<li><strong>Thể loại</strong> (Tu tiên, Đô thị, Ngôn tình, Trinh thám…)</li>
+<li><strong>Quốc gia</strong> (Việt Nam, Trung Quốc, Nhật, Hàn…)</li>
+<li><strong>Trạng thái</strong> (Đang ra, Hoàn thành)</li>
+<li><strong>Sắp xếp</strong> (Mới nhất / Lượt xem / Đánh giá / Cập nhật mới)</li>
+</ul>
+
+<h3>3.4 Truyện tương tự</h3>
+<p>Mỗi trang chi tiết truyện có mục <strong>"Có thể bạn cũng thích"</strong> — hiển thị truyện cùng thể loại + thẻ với truyện bạn đang xem.</p>
+
+<hr>
+
+<h2 id="sec-4">4. Trải nghiệm đọc</h2>
+
+<h3>4.1 Giao diện đọc</h3>
+<ul>
+<li><strong>Tối ưu cho mobile</strong> — vuốt sang chương trước/sau</li>
+<li><strong>Phông chữ tiếng Việt rõ ràng</strong> (Quicksand)</li>
+<li>Cỡ chữ tự điều chỉnh theo màn hình</li>
+<li>Bố cục thoáng, giảm mỏi mắt</li>
+</ul>
+
+<h3>4.2 Lịch sử đọc tự động</h3>
+<p>Mỗi khi bạn đọc một chương, hệ thống tự động lưu:</p>
+<ul>
+<li>Truyện đang đọc</li>
+<li>Chương hiện tại</li>
+<li>Phần trăm tiến độ chương (0–100%)</li>
+<li>Thời điểm đọc gần nhất</li>
+</ul>
+<p>→ Vào trang <strong>"Tiếp tục đọc"</strong> trên trang chủ hoặc thư viện cá nhân để <strong>xem nhanh nơi bạn đang dừng</strong> ở từng truyện.</p>
+
+<h3>4.3 Chương trả phí</h3>
+<p>Một số chương đặc biệt được tác giả đặt giá bằng <strong>coin</strong>. Khi bạn cố mở:</p>
+<ul>
+<li>Nếu <strong>chưa mua</strong> → màn hình hiển thị giá + nút "Mua bằng coin"</li>
+<li>Nếu <strong>đã mua</strong> → đọc miễn phí mãi mãi (không bị tính phí lại)</li>
+<li>Tác giả nhận trực tiếp một phần coin từ giao dịch</li>
+</ul>
+
+<h3>4.4 Đếm thời gian đọc</h3>
+<p>Mỗi chương hiển thị <strong>ước tính thời gian đọc</strong> dựa trên số từ (≈200 từ/phút).</p>
+
+<h3>4.5 Đọc offline (PWA)</h3>
+<p>Sau khi cài app PWA và đọc một chương khi online, <strong>chương đó được lưu cache</strong> — bạn có thể đọc lại khi mất mạng. Trang offline tự động hiện khi không có kết nối.</p>
+
+<hr>
+
+<h2 id="sec-5">5. Tương tác cộng đồng</h2>
+
+<h3>5.1 Bình luận</h3>
+<ul>
+<li>Bình luận ở <strong>2 cấp độ</strong>: cho cả truyện hoặc cho từng chương cụ thể</li>
+<li><strong>Trả lời lồng nhau</strong> tối đa 3 cấp</li>
+<li><strong>Chỉnh sửa / xoá</strong> bình luận của chính mình</li>
+<li>Bình luận bị xoá hiện dạng "[Đã bị xoá]" giữ ngữ cảnh cho người khác</li>
+</ul>
+
+<h3>5.2 Đánh giá truyện (Rating)</h3>
+<ul>
+<li>Chấm sao <strong>1–5</strong> cho mỗi truyện</li>
+<li>Mỗi tài khoản chỉ chấm <strong>1 lần</strong> / truyện (có thể đổi điểm)</li>
+<li>Điểm trung bình hiện trên trang truyện + dùng để xếp hạng "Đánh giá cao nhất"</li>
+</ul>
+
+<h3>5.3 Thích &amp; Theo dõi</h3>
+<table>
+<thead><tr><th>Thao tác</th><th>Khác biệt</th></tr></thead>
+<tbody>
+<tr><td>❤️ <strong>Thích (Yêu thích)</strong></td><td>Lưu truyện vào danh sách yêu thích cá nhân</td></tr>
+<tr><td>🔔 <strong>Theo dõi</strong></td><td>Nhận thông báo khi tác giả ra chương mới</td></tr>
+</tbody>
+</table>
+<p>→ Cả hai đều có thể bật/tắt bất kỳ lúc nào trên trang chi tiết truyện.</p>
+
+<h3>5.4 Xem người đọc</h3>
+<p>Mỗi truyện có endpoint công khai xem <strong>danh sách người theo dõi</strong> — tạo cảm giác cộng đồng.</p>
+
+<h3>5.5 Báo cáo nội dung</h3>
+<p>Nếu thấy truyện / chương / bình luận vi phạm, bạn có thể báo cáo. Quản trị viên sẽ xem xét.</p>
+
+<hr>
+
+<h2 id="sec-6">6. Thư viện cá nhân</h2>
+
+<p>Vào menu <strong>Thư viện</strong> (yêu cầu đăng nhập) để xem:</p>
+<table>
+<thead><tr><th>Trang</th><th>Nội dung</th></tr></thead>
+<tbody>
+<tr><td>📖 <strong>Lịch sử đọc</strong></td><td>Tất cả truyện đã đọc, sắp xếp theo lần đọc gần nhất, % tiến độ tổng</td></tr>
+<tr><td>▶️ <strong>Tiếp tục đọc</strong></td><td>10 truyện đọc dở gần nhất, chương cụ thể đang đọc</td></tr>
+<tr><td>❤️ <strong>Yêu thích</strong></td><td>Truyện đã bấm thích</td></tr>
+<tr><td>🔔 <strong>Theo dõi</strong></td><td>Truyện đang theo dõi để nhận thông báo</td></tr>
+<tr><td>🔔 <strong>Thông báo</strong></td><td>Tất cả thông báo hệ thống + cập nhật chương</td></tr>
+<tr><td>💰 <strong>Ví coin</strong></td><td>Số dư + lịch sử giao dịch + nạp thêm</td></tr>
+</tbody>
+</table>
+
+<h3>Xoá lịch sử đọc</h3>
+<p>Trong Lịch sử đọc có nút <strong>"Xoá toàn bộ"</strong> nếu bạn muốn bắt đầu lại (không thể khôi phục).</p>
+
+<hr>
+
+<h2 id="sec-7">7. Ví coin &amp; thanh toán</h2>
+
+<h3>7.1 Coin là gì?</h3>
+<p><strong>Coin</strong> là đơn vị tiền ảo trong nền tảng, dùng để:</p>
+<ul>
+<li>💎 Mua chương đặc biệt do tác giả khoá</li>
+<li>🎁 Ủng hộ tác giả mình yêu thích</li>
+<li>(Tương lai) Mở khoá tính năng VIP, sticker, badge…</li>
+</ul>
+
+<h3>7.2 Cách có coin</h3>
+<table>
+<thead><tr><th>Cách</th><th>Mô tả</th></tr></thead>
+<tbody>
+<tr><td>💳 <strong>Nạp bằng tiền VND</strong></td><td>Qua cổng VNPay (thẻ ATM, Visa, QR Code…)</td></tr>
+<tr><td>🎁 <strong>Bonus</strong></td><td>Quà tặng sự kiện, đăng ký mới (do quản trị viên cấp)</td></tr>
+<tr><td>💝 <strong>Nhận donation</strong></td><td>Tác giả nhận coin khi độc giả ủng hộ</td></tr>
+</tbody>
+</table>
+
+<h3>7.3 Quy trình nạp coin</h3>
+<ol>
+<li>Vào <strong>Ví coin</strong> → <strong>Nạp coin</strong></li>
+<li>Chọn <strong>gói coin</strong> (ví dụ: 100k VND = 1000 coin)</li>
+<li>Chọn cổng thanh toán <strong>VNPay</strong></li>
+<li>Hệ thống chuyển bạn sang trang VNPay</li>
+<li>Thanh toán bằng ATM / Visa / QR</li>
+<li>Sau khi VNPay xác nhận thành công → <strong>coin tự động cộng vào ví trong vài giây</strong></li>
+<li>Bạn nhận thông báo "Nạp thành công"</li>
+</ol>
+<blockquote>⚠️ Nếu VNPay xác nhận chậm, kiểm tra lại trong mục <strong>Lịch sử nạp</strong> sau ~1 phút. Hệ thống đảm bảo không cộng trùng cho cùng một giao dịch.</blockquote>
+
+<h3>7.4 Mua chương</h3>
+<ul>
+<li>Bấm vào chương có giá → hộp thoại xác nhận hiện ra</li>
+<li>Bấm <strong>"Mua bằng X coin"</strong> → trừ coin + mở khoá vĩnh viễn</li>
+<li>Nếu thiếu coin → gợi ý sang trang nạp</li>
+</ul>
+
+<h3>7.5 Ủng hộ tác giả (Donation)</h3>
+<p>Trên trang chi tiết tác giả hoặc trang truyện:</p>
+<ul>
+<li>Bấm nút <strong>"Ủng hộ tác giả"</strong></li>
+<li>Chọn số coin (ví dụ: 10 / 50 / 100 / tuỳ ý)</li>
+<li>Để lại lời nhắn (tuỳ chọn)</li>
+<li>Confirm → coin chuyển trực tiếp sang ví tác giả</li>
+</ul>
+<p>Tác giả có thể xem <strong>danh sách người ủng hộ gần đây</strong> + tổng coin nhận được (công khai).</p>
+
+<h3>7.6 Lịch sử giao dịch</h3>
+<p>Mọi giao dịch coin được ghi lại với:</p>
+<ul>
+<li>Thời gian</li>
+<li>Loại (Nạp / Mua chương / Ủng hộ / Nhận ủng hộ / Bonus / Điều chỉnh từ admin)</li>
+<li>Số lượng (+ hoặc −)</li>
+<li>Mô tả ngắn</li>
+</ul>
+
+<hr>
+
+<h2 id="sec-8">8. Dành cho tác giả</h2>
+
+<p>Bất kỳ ai cũng có thể đăng truyện. Hệ thống mặc định nâng quyền lên <strong>AUTHOR</strong> sau khi truyện đầu tiên được duyệt.</p>
+
+<h3>8.1 Đăng truyện</h3>
+<ol>
+<li><strong>Đăng ký tác giả</strong> tại <code>/dang-ky-tac-gia</code> (nếu chưa)</li>
+<li>Vào <strong>Dashboard tác giả</strong> → <strong>Tạo truyện mới</strong></li>
+<li>Điền:
+  <ul>
+  <li>Tiêu đề + Mô tả</li>
+  <li>Ảnh bìa (tự upload, hệ thống lưu trên cloud)</li>
+  <li>Thể loại + Thẻ + Quốc gia</li>
+  </ul>
+</li>
+<li><strong>Lưu nháp</strong> — truyện ở trạng thái DRAFT, chỉ bạn xem được</li>
+</ol>
+
+<h3>8.2 Viết chương — Trình soạn thảo rich text</h3>
+<p>Trình soạn thảo (Quill) hỗ trợ:</p>
+<ul>
+<li>Định dạng văn bản (đậm, nghiêng, gạch chân, màu chữ)</li>
+<li>Tiêu đề H1–H3, danh sách, trích dẫn</li>
+<li><strong>Chèn ảnh</strong> (upload trực tiếp, tự nén để tiết kiệm băng thông)</li>
+<li><strong>Thư viện ảnh</strong> — chọn lại ảnh đã upload trước đó</li>
+<li><strong>Resize ảnh</strong> trong nội dung</li>
+<li>Đếm từ + ước tính thời gian đọc tự động</li>
+</ul>
+
+<h3>8.3 Đặt giá chương</h3>
+<p>Mỗi chương có trường <strong>"Giá (coin)"</strong>:</p>
+<ul>
+<li><code>0</code> = miễn phí (mặc định)</li>
+<li><code>&gt; 0</code> = chương trả phí, độc giả phải mua</li>
+</ul>
+
+<h3>8.4 Quy trình duyệt</h3>
+<p>Vì lý do chất lượng nội dung, mọi truyện và chương cần <strong>được Admin duyệt</strong> trước khi xuất bản công khai:</p>
+<pre style="background:#f3f4f6;padding:16px;border-radius:8px;color:#1f2937;font-family:'Courier New',monospace;line-height:1.5;overflow-x:auto;">
+Bạn viết → Nhấn "Gửi duyệt"
+              ↓
+        Admin xem xét
+              ↓
+   ┌──────────┴──────────┐
+✅ Duyệt           ❌ Từ chối
+Đăng công khai     Kèm lý do
+Nhận email         Bạn chỉnh sửa
+                   gửi lại
+</pre>
+<p>→ Bạn nhận <strong>email thông báo</strong> khi truyện được duyệt hoặc bị từ chối (có ghi chú admin).</p>
+
+<h3>8.5 Giới hạn theo vai trò</h3>
+<table>
+<thead><tr><th>Vai trò</th><th>Số bản nháp</th><th>Số xuất bản/ngày</th></tr></thead>
+<tbody>
+<tr><td>Người dùng thường</td><td>3</td><td>5</td></tr>
+<tr><td>Tác giả</td><td>50</td><td>20</td></tr>
+<tr><td>Admin</td><td>Không giới hạn</td><td>Không giới hạn</td></tr>
+</tbody>
+</table>
+
+<h3>8.6 Dashboard tác giả</h3>
+<p>Hiển thị:</p>
+<ul>
+<li>Số truyện đang có (theo trạng thái)</li>
+<li>Tổng lượt xem các truyện của bạn</li>
+<li>Tổng lượt theo dõi</li>
+<li><strong>Coin đã nhận</strong> (mua chương + ủng hộ)</li>
+<li>Top 5 truyện hot nhất của bạn</li>
+<li>Biểu đồ lượt xem 30 ngày</li>
+</ul>
+
+<h3>8.7 Chỉnh sửa &amp; xoá</h3>
+<ul>
+<li>Có thể chỉnh sửa truyện / chương đã đăng (nhưng truyện đã duyệt cần duyệt lại nếu sửa nội dung lớn)</li>
+<li>Xoá truyện → tất cả chương &amp; bình luận liên quan bị xoá cùng (không thể khôi phục)</li>
+</ul>
+
+<hr>
+
+<h2 id="sec-9">9. Dành cho quản trị viên</h2>
+
+<h3>9.1 Bảng điều khiển</h3>
+<p>Trang <code>/admin</code> hiển thị dashboard tổng quan:</p>
+<ul>
+<li>Tổng số người dùng, truyện, chương, lượt xem</li>
+<li>Số yêu cầu duyệt đang chờ</li>
+<li>Số quảng cáo đang chạy</li>
+<li>Biểu đồ tăng trưởng người dùng + lượt xem 7 tháng</li>
+</ul>
+
+<h3>9.2 Các module quản lý</h3>
+<table>
+<thead><tr><th>Module</th><th>Chức năng</th></tr></thead>
+<tbody>
+<tr><td>👥 <strong>Người dùng</strong></td><td>Xem danh sách, chỉnh role (USER/AUTHOR/ADMIN), khoá/mở tài khoản</td></tr>
+<tr><td>📚 <strong>Truyện</strong></td><td>Sửa, xoá, đặt "Đề xuất" (xuất hiện trên trang chủ)</td></tr>
+<tr><td>📄 <strong>Chương</strong></td><td>Quản lý chương, xem thống kê</td></tr>
+<tr><td>💬 <strong>Bình luận</strong></td><td>Duyệt báo cáo, ẩn / khôi phục bình luận</td></tr>
+<tr><td>📁 <strong>Thể loại</strong></td><td>CRUD danh mục truyện</td></tr>
+<tr><td>📑 <strong>Trang tĩnh</strong></td><td>Quản lý Giới thiệu, Điều khoản, Liên hệ quảng cáo…</td></tr>
+<tr><td>📢 <strong>Quảng cáo</strong></td><td>Tạo campaign, ad banner/popup/sidebar, theo dõi click/impression</td></tr>
+<tr><td>💰 <strong>Gói coin</strong></td><td>Tạo gói nạp (giá VND + số coin)</td></tr>
+<tr><td>🔔 <strong>Thông báo</strong></td><td>Push thông báo đến toàn bộ hoặc nhóm người dùng</td></tr>
+<tr><td>✅ <strong>Phê duyệt</strong></td><td>Hàng chờ duyệt truyện/chương, kèm ghi chú</td></tr>
+<tr><td>📊 <strong>Thống kê</strong></td><td>Phân tích chi tiết theo thời gian</td></tr>
+<tr><td>⚙️ <strong>Cài đặt</strong></td><td>Branding, liên hệ, social, <strong>chế độ bảo trì</strong></td></tr>
+</tbody>
+</table>
+
+<h3>9.3 Chế độ bảo trì</h3>
+<p>Bật trong <strong>Cài đặt → Bảo trì</strong>:</p>
+<ul>
+<li>Toàn bộ người dùng (trừ Admin) thấy trang <strong>"Đang bảo trì"</strong></li>
+<li>Có thể tuỳ chỉnh thông điệp hiển thị</li>
+<li>API public bị chặn → tránh ghi dữ liệu lúc deploy</li>
+</ul>
+
+<h3>9.4 Hệ thống quảng cáo</h3>
+<ul>
+<li>3 loại: <strong>Banner</strong> (cố định), <strong>Popup</strong> (sau X chương đọc), <strong>Sidebar</strong></li>
+<li>5 vị trí: TOP, BOTTOM, SIDEBAR_LEFT, SIDEBAR_RIGHT, INLINE</li>
+<li><strong>Targeting</strong> linh hoạt: theo thể loại / vai trò / thiết bị / số chương đã đọc</li>
+<li><strong>Chống gian lận tự động</strong>:
+  <ul>
+  <li>1 IP chỉ ghi 1 impression / phút cho cùng quảng cáo</li>
+  <li>Tối đa 3 click / IP / 5 phút</li>
+  <li>Phân biệt thiết bị mobile/tablet/desktop</li>
+  </ul>
+</li>
+</ul>
+
+<h3>9.5 Thông báo hệ thống</h3>
+<ul>
+<li>Tạo thông báo với <strong>độ ưu tiên</strong> (LOW / NORMAL / HIGH / URGENT)</li>
+<li>Chọn <strong>đối tượng</strong>: tất cả / chỉ USER / chỉ AUTHOR / chỉ ADMIN</li>
+<li>Tuỳ chọn <strong>gửi kèm email</strong> (qua queue, không chặn UI)</li>
+<li>Người dùng nhận trong <strong>🔔 chuông thông báo</strong> + đếm số chưa đọc</li>
+</ul>
+
+<hr>
+
+<h2 id="sec-10">10. Ứng dụng PWA — cài như app</h2>
+
+<p><strong>Web Truyện HungYeu</strong> là <strong>Progressive Web App (PWA)</strong> — bạn có thể "cài đặt" lên điện thoại / máy tính như một ứng dụng thật, không cần qua App Store.</p>
+
+<h3>10.1 Cách cài</h3>
+<table>
+<thead><tr><th>Thiết bị</th><th>Cách cài</th></tr></thead>
+<tbody>
+<tr><td>📱 <strong>Android (Chrome)</strong></td><td>Mở web → bấm menu → "Cài đặt ứng dụng"</td></tr>
+<tr><td>🍎 <strong>iOS (Safari)</strong></td><td>Mở web → bấm Share → "Thêm vào màn hình chính"</td></tr>
+<tr><td>💻 <strong>Desktop (Chrome/Edge)</strong></td><td>Biểu tượng cài (⊕) bên phải thanh URL</td></tr>
+</tbody>
+</table>
+
+<h3>10.2 Ưu điểm của PWA</h3>
+<ul>
+<li>🚀 <strong>Khởi động nhanh</strong> — như app native, không cần mở trình duyệt</li>
+<li>📡 <strong>Đọc offline</strong> — truyện đã đọc được cache, đọc lại khi mất mạng</li>
+<li>🔔 <strong>Có thông báo</strong> (nếu bật)</li>
+<li>🖼️ <strong>Icon riêng</strong> trên màn hình chính</li>
+<li>💾 <strong>Không tốn dung lượng</strong> như app native (~5 MB)</li>
+</ul>
+
+<h3>10.3 Bộ nhớ cache thông minh</h3>
+<ul>
+<li><strong>Ảnh truyện</strong> (Cloudinary) lưu <strong>30 ngày</strong></li>
+<li><strong>Mã giao diện (JS/CSS)</strong> lưu 7 ngày, tự cập nhật nếu có phiên bản mới</li>
+<li><strong>Font Google</strong> lưu 1 năm</li>
+<li><strong>Trang offline</strong> dự phòng khi mất mạng hoàn toàn</li>
+</ul>
+
+<h3>10.4 Cập nhật</h3>
+<p>Khi có phiên bản mới, bạn sẽ thấy thông báo "Có phiên bản mới — Bấm để cập nhật". Bấm vào để reload.</p>
+
+<hr>
+
+<h2 id="sec-11">11. Bảo mật &amp; quyền riêng tư</h2>
+
+<h3>11.1 Bảo vệ tài khoản</h3>
+<ul>
+<li>🔒 Mật khẩu <strong>mã hoá bcrypt</strong> không thể giải ngược</li>
+<li>🍪 Phiên đăng nhập dùng <strong>cookie HTTP-only</strong> — JavaScript của web không đọc được, chống tấn công XSS</li>
+<li>🛡️ <strong>Giới hạn đăng nhập sai</strong> — 5 lần/phút theo IP</li>
+<li>🔑 <strong>Tự động làm mới phiên</strong> — bạn không bị đăng xuất giữa lúc đọc</li>
+<li>📵 <strong>Đăng xuất khắp thiết bị</strong> khi đổi mật khẩu</li>
+</ul>
+
+<h3>11.2 Bảo vệ thanh toán</h3>
+<ul>
+<li>💳 Web không lưu thông tin thẻ — VNPay xử lý toàn bộ</li>
+<li>🔐 Mỗi giao dịch có <strong>chữ ký HMAC-SHA512</strong> chống giả mạo</li>
+<li>🛡️ Hệ thống chống <strong>cộng coin trùng</strong> — kể cả khi VNPay gửi callback nhiều lần</li>
+<li>📋 Mọi giao dịch được ghi log đầy đủ — bạn xem được trong <strong>Lịch sử ví</strong></li>
+</ul>
+
+<h3>11.3 Dữ liệu cá nhân</h3>
+<p>Web lưu các dữ liệu sau của bạn:</p>
+<ul>
+<li>Thông tin tài khoản (email, username, tên hiển thị, avatar, bio)</li>
+<li>Lịch sử đọc (truyện + chương + tiến độ)</li>
+<li>Yêu thích, theo dõi, đánh giá, bình luận</li>
+<li>Lịch sử giao dịch coin</li>
+<li>Nhật ký đăng nhập (IP, thời gian — để bảo mật)</li>
+</ul>
+
+<h3>11.4 Quyền của bạn</h3>
+<ul>
+<li>✏️ <strong>Sửa</strong> mọi thông tin cá nhân</li>
+<li>🗑️ <strong>Xoá lịch sử đọc</strong> bất kỳ lúc nào</li>
+<li>❌ <strong>Xoá tài khoản</strong> — liên hệ admin (mọi dữ liệu liên quan sẽ bị xoá cascade)</li>
+</ul>
+
+<h3>11.5 Quảng cáo</h3>
+<ul>
+<li>Quảng cáo <strong>không thu thập dữ liệu định danh</strong> cá nhân</li>
+<li>Chỉ ghi nhận <strong>thiết bị</strong> (mobile/desktop) + <strong>IP</strong> (chống gian lận)</li>
+<li>Bạn không bị track xuyên trang web ngoài</li>
+</ul>
+
+<hr>
+
+<h2 id="sec-12">12. Câu hỏi thường gặp</h2>
+
+<h3>Đăng ký &amp; đăng nhập</h3>
+
+<details>
+<summary>Tôi không nhận được email xác thực?</summary>
+<ul>
+<li>Kiểm tra thư mục <strong>Spam / Quảng cáo</strong></li>
+<li>Đảm bảo gõ đúng email</li>
+<li>Nếu vẫn không có → trang đăng nhập có nút <strong>"Gửi lại email"</strong></li>
+<li>Sau 24 giờ, link cũ sẽ hết hạn — phải gửi lại</li>
+</ul>
+</details>
+
+<details>
+<summary>Đăng nhập Facebook nhưng web yêu cầu email?</summary>
+<p>Tài khoản Facebook của bạn không công khai email. Bạn cần bổ sung 1 email hợp lệ để nhận thông báo và khôi phục tài khoản. Email này chỉ web mới biết, không hiển thị cho người khác.</p>
+</details>
+
+<details>
+<summary>Quên mật khẩu?</summary>
+<p>Hiện tại tính năng "Quên mật khẩu qua email" đang được phát triển. Trong lúc chờ, vui lòng đăng nhập bằng <strong>Google / Facebook</strong> nếu trước đó đã liên kết, hoặc liên hệ admin.</p>
+</details>
+
+<h3>Đọc truyện</h3>
+
+<details>
+<summary>Tôi đọc một chương rồi, tại sao vẫn bị đếm lượt xem?</summary>
+<p>Mỗi lần mở chương đều tính 1 view (giống YouTube). Hệ thống chưa chống spam refresh — nhưng lượt xem <strong>không ảnh hưởng đến coin</strong> của bạn.</p>
+</details>
+
+<details>
+<summary>Tôi đã mua chương rồi, bị tính lại không?</summary>
+<p>Không. Khi bạn đã mua → quyền truy cập <strong>vĩnh viễn</strong>. Hệ thống kiểm tra trước khi cho phép trừ coin lần 2 → sẽ báo lỗi nếu cố mua lại.</p>
+</details>
+
+<details>
+<summary>Tại sao có chương bị khoá?</summary>
+<p>Tác giả có thể đặt giá cho chương đặc biệt để duy trì sáng tác. Đây là cách bạn ủng hộ tác giả mình yêu thích.</p>
+</details>
+
+<h3>Coin &amp; thanh toán</h3>
+
+<details>
+<summary>Đã thanh toán VNPay nhưng coin chưa vào ví?</summary>
+<ul>
+<li>Chờ thêm ~1 phút — IPN từ VNPay có thể chậm</li>
+<li>Vào <strong>Ví coin → Lịch sử nạp</strong> → tìm giao dịch của bạn</li>
+<li>Trạng thái sẽ là <code>COMPLETED</code> khi VNPay xác nhận</li>
+<li>Nếu sau 10 phút vẫn <code>PENDING</code> → liên hệ admin kèm mã <code>txnRef</code></li>
+</ul>
+</details>
+
+<details>
+<summary>Tôi có thể đổi coin ra tiền mặt không?</summary>
+<p>Không. Coin là tiền ảo trong nền tảng, <strong>không thể quy đổi ngược</strong> thành VND. Tác giả nhận coin có thể dùng để mua chương của tác giả khác hoặc rút thông qua thoả thuận riêng với admin (chính sách cụ thể trong "Điều khoản").</p>
+</details>
+
+<details>
+<summary>Donation cho tác giả có mất phí không?</summary>
+<p>Không. <strong>100% coin</strong> bạn ủng hộ chuyển trực tiếp sang ví tác giả. Nền tảng không thu phí trên donation.</p>
+</details>
+
+<h3>Tác giả</h3>
+
+<details>
+<summary>Tôi mới đăng truyện, sao mãi không thấy lên trang chủ?</summary>
+<p>Truyện cần được <strong>Admin duyệt</strong> trước. Bạn sẽ nhận email khi:</p>
+<ul>
+<li>✅ Được duyệt → tự động hiển thị</li>
+<li>❌ Bị từ chối → có ghi chú để chỉnh sửa</li>
+</ul>
+</details>
+
+<details>
+<summary>Tôi sửa nội dung chương đã đăng có cần duyệt lại không?</summary>
+<p>Sửa lỗi chính tả nhỏ thì không. Sửa lớn (đổi cốt truyện, thay đổi nhiều đoạn) admin có thể yêu cầu duyệt lại nếu phát hiện vi phạm.</p>
+</details>
+
+<details>
+<summary>Tôi có thể xoá truyện của mình không?</summary>
+<p>Có. Vào dashboard tác giả → chọn truyện → nút <strong>"Xoá truyện"</strong>. <strong>Cảnh báo</strong>: thao tác này xoá luôn tất cả chương + bình luận + lượt theo dõi liên quan và <strong>không thể khôi phục</strong>.</p>
+</details>
+
+<h3>PWA &amp; cài đặt</h3>
+
+<details>
+<summary>Tại sao iOS không có nút "Cài đặt ứng dụng"?</summary>
+<p>iOS chỉ hỗ trợ cài PWA qua Safari → <strong>Share → Thêm vào màn hình chính</strong>. Đây là giới hạn của Apple, không phải web.</p>
+</details>
+
+<details>
+<summary>App PWA tốn dung lượng không?</summary>
+<p>Khoảng <strong>5–10 MB</strong> cho mã ứng dụng + cache. Dữ liệu truyện đã đọc thêm tuỳ số lượng (mỗi chương ~10 KB).</p>
+</details>
+
+<details>
+<summary>Làm sao xoá cache cũ?</summary>
+<p>Trên Android Chrome: Cài đặt → Site settings → web-truyen domain → Clear &amp; reset. Hoặc gỡ + cài lại app PWA.</p>
+</details>
+
+<hr>
+
+<h2 id="contact">📞 Liên hệ &amp; hỗ trợ</h2>
+<table>
+<thead><tr><th>Mục đích</th><th>Trang</th></tr></thead>
+<tbody>
+<tr><td>Liên hệ chung</td><td><a href="/gop-y-phan-anh">/gop-y-phan-anh</a></td></tr>
+<tr><td>Liên hệ quảng cáo</td><td><a href="/lien-he-quang-cao">/lien-he-quang-cao</a></td></tr>
+<tr><td>Hợp tác đối tác</td><td><a href="/doi-tac-hop-tac">/doi-tac-hop-tac</a></td></tr>
+<tr><td>Đăng ký tác giả</td><td><a href="/dang-ky-tac-gia">/dang-ky-tac-gia</a></td></tr>
+<tr><td>Ủng hộ nền tảng</td><td><a href="/ung-ho">/ung-ho</a></td></tr>
+<tr><td>Điều khoản &amp; quyền</td><td><a href="/terms">/terms</a>, <a href="/privacy">/privacy</a>, <a href="/ban-quyen">/ban-quyen</a></td></tr>
+<tr><td>Giới thiệu</td><td><a href="/gioi-thieu">/gioi-thieu</a></td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2 id="roadmap">🎯 Lộ trình tính năng</h2>
+<p>Các tính năng sẽ ra mắt trong tương lai:</p>
+<ul>
+<li>📲 <strong>App di động native</strong> (React Native — iOS + Android)</li>
+<li>🔔 <strong>Push notification thật</strong> trên mobile</li>
+<li>🔑 <strong>Quên mật khẩu qua email</strong></li>
+<li>🛡️ <strong>Xác thực 2 lớp (2FA)</strong></li>
+<li>🤖 <strong>AI gợi ý truyện</strong> dựa trên ngôn ngữ tự nhiên</li>
+<li>💬 <strong>Chat trực tiếp với tác giả</strong></li>
+<li>🎮 <strong>Hệ thống thành tựu (achievement)</strong> + huy hiệu</li>
+</ul>
+
+<p class="meta">
+Phiên bản tài liệu: 2026-05-14 · Web Truyện HungYeu · Next.js 14 + NestJS 10 + PostgreSQL + PWA
+</p>
+
+</div>
+
+</body>
+</html>

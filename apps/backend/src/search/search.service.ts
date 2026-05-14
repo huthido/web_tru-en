@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StoryStatus } from '@prisma/client';
 import { storyInclude } from '../prisma/prisma.helpers';
+import { MeilisearchService } from './meilisearch.service';
 
 interface CacheEntry<T> {
   data: T;
@@ -17,7 +18,10 @@ export class SearchService {
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private readonly SUGGESTIONS_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private meili: MeilisearchService,
+  ) { }
 
   private getCacheKey(query: string, options?: any): string {
     return JSON.stringify({ query, options });
@@ -78,6 +82,16 @@ export class SearchService {
     const cached = this.getCached(this.searchCache, cacheKey);
     if (cached) {
       return cached;
+    }
+
+    // --- Meilisearch path (when configured) ---
+    if (this.meili.enabled) {
+      const meiliResult = await this.searchViaMeili(searchTerm, options);
+      if (meiliResult) {
+        this.setCache(this.searchCache, cacheKey, meiliResult, this.CACHE_TTL);
+        return meiliResult;
+      }
+      // fall through to Postgres if Meili call failed
     }
 
     // Build where clause with full-text search
@@ -192,6 +206,81 @@ export class SearchService {
       case 'newest':
       default:
         return { createdAt: 'desc' as const };
+    }
+  }
+
+  /**
+   * Query Meilisearch and hydrate full story rows from Postgres
+   * (so the response shape matches the legacy LIKE path).
+   * Returns null on error — caller should fall back to Postgres.
+   */
+  private async searchViaMeili(
+    query: string,
+    options?: { page?: number; limit?: number; categories?: string[]; sortBy?: string },
+  ) {
+    try {
+      const index = this.meili.getStoriesIndex();
+      if (!index) return null;
+
+      const page = options?.page || 1;
+      const limit = options?.limit || 20;
+      const filters: string[] = ['isPublished = true', 'status = "PUBLISHED"'];
+      if (options?.categories?.length) {
+        const list = options.categories.map((c) => `"${c.replace(/"/g, '\\"')}"`).join(', ');
+        filters.push(`categories IN [${list}]`);
+      }
+      const sortMap: Record<string, string[]> = {
+        popular: ['viewCount:desc'],
+        rating: ['rating:desc'],
+        newest: ['createdAt:desc'],
+      };
+      const sort = sortMap[options?.sortBy || 'newest'];
+
+      const result = await index.search(query, {
+        offset: (page - 1) * limit,
+        limit,
+        filter: filters,
+        sort,
+        attributesToRetrieve: ['id'],
+      });
+
+      const ids = result.hits.map((h) => h.id);
+      if (ids.length === 0) {
+        return {
+          data: [],
+          meta: {
+            page,
+            limit,
+            total: result.estimatedTotalHits || 0,
+            totalPages: Math.ceil((result.estimatedTotalHits || 0) / limit),
+            hasNext: page * limit < (result.estimatedTotalHits || 0),
+            hasPrev: page > 1,
+          },
+        };
+      }
+
+      // Hydrate from Postgres preserving Meili's ranking order
+      const stories = await this.prisma.story.findMany({
+        where: { id: { in: ids } },
+        include: storyInclude,
+      });
+      const byId = new Map(stories.map((s) => [s.id, s]));
+      const ordered = ids.map((id) => byId.get(id)).filter(Boolean);
+
+      const total = result.estimatedTotalHits || ordered.length;
+      return {
+        data: ordered,
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasNext: page * limit < total,
+          hasPrev: page > 1,
+        },
+      };
+    } catch {
+      return null;
     }
   }
 }

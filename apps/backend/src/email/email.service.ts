@@ -1,7 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { EMAIL_QUEUE } from '../queue/queue.module';
 
 export interface EmailOptions {
     to: string;
@@ -16,9 +19,27 @@ export class EmailService {
     private transporter: Transporter | null = null;
     private emailUser: string | null = null;
     private emailHost: string | null = null;
+    private readonly queueEnabled: boolean;
 
-    constructor(private configService: ConfigService) {
+    constructor(
+        private configService: ConfigService,
+        @Optional() @InjectQueue(EMAIL_QUEUE) private readonly emailQueue?: Queue,
+    ) {
+        this.queueEnabled = !!this.configService.get<string>('REDIS_URL') && !!this.emailQueue;
         this.initializeTransporter();
+    }
+
+    isQueueEnabled(): boolean {
+        return this.queueEnabled;
+    }
+
+    /**
+     * Internal entrypoint used by the queue processor — sends the email synchronously.
+     * Producers should NOT call this directly; use sendEmail() which auto-routes to
+     * the queue when REDIS_URL is configured.
+     */
+    async deliverNow(options: EmailOptions): Promise<void> {
+        return this.sendEmailSync(options);
     }
 
     /**
@@ -290,9 +311,26 @@ export class EmailService {
     }
 
     /**
-     * Send email (uses nodemailer if configured, otherwise logs to console)
+     * Producer entry. If a Redis-backed queue is available, enqueue for retry/back-pressure.
+     * Otherwise fall through to synchronous delivery.
      */
     private async sendEmail(options: EmailOptions): Promise<void> {
+        if (this.queueEnabled && this.emailQueue) {
+            try {
+                await this.emailQueue.add('send', options);
+                this.logger.debug(`Email enqueued for ${options.to} (subject: ${options.subject})`);
+                return;
+            } catch (err: any) {
+                this.logger.warn(`Failed to enqueue email; falling back to sync send: ${err.message}`);
+            }
+        }
+        return this.sendEmailSync(options);
+    }
+
+    /**
+     * Actually deliver the email via nodemailer (or log in dev).
+     */
+    private async sendEmailSync(options: EmailOptions): Promise<void> {
         // 🔥 FIX: For Gmail SMTP, FROM must match EMAIL_USER
         const isGmail = this.emailHost?.includes('gmail.com') || false;
         let emailFrom: string;

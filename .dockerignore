@@ -1,0 +1,62 @@
+# Top-level .dockerignore — applies whenever the monorepo root is the build context.
+# Keeping it lean drastically reduces transfer size and avoids leaking secrets.
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Local state Claude/IDE
+.claude
+.vscode
+.idea
+*.swp
+*.swo
+
+# Dependencies & build output (re-created inside the image)
+**/node_modules
+**/dist
+**/build
+**/.next
+**/out
+**/coverage
+
+# Environment & secrets (must be injected as build args / runtime env)
+**/.env
+**/.env.*
+!**/env.example
+!**/.env.example
+
+# Logs & ad-hoc scripts
+**/*.log
+**/logs
+apps/backend/test-*.js
+apps/backend/test-*.ts
+apps/backend/minimal-test.js
+apps/backend/src/test-storage.ts
+apps/backend/error.log
+apps/backend/build-error.log
+
+# Local PostgreSQL data, uploads, OS junk
+postgres_data
+**/uploads
+.DS_Store
+Thumbs.db
+
+# PWA generated files (regenerated during build)
+apps/frontend/public/sw.js
+apps/frontend/public/sw.js.map
+apps/frontend/public/workbox-*.js
+apps/frontend/public/workbox-*.js.map
+
+# TypeScript caches
+**/*.tsbuildinfo
+
+# Documentation (image build does not need these)
+**/*.md
+!apps/backend/prisma/migrations/**/*.sql
+README*
+MOBILE_APP_GUIDE.md
+Bao\ Gia\ Du\ An\ web_truyen.html
+"Báo Giá Dự Án.md"
+"Tóm Tắt Chức Năng Dự Án.docx"

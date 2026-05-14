@@ -53,3 +53,17 @@ docker-compose.override.yml
 
 # Uploaded files (local storage)
 uploads/
+
+# Ad-hoc dev/debug scripts at backend root (use proper test runner instead)
+apps/backend/test-*.js
+apps/backend/test-*.ts
+apps/backend/minimal-test.js
+apps/backend/src/test-storage.ts
+apps/backend/build-error.log
+apps/backend/error.log
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Claude Code session state
+.claude/

@@ -52,6 +52,7 @@ model User {
   sentDonations           AuthorDonation[]         @relation("DonationSender")
   receivedDonations       AuthorDonation[]         @relation("DonationReceiver")
   uploadedImages          UserImage[]
+  payments                Payment[]
 
   @@index([email])
   @@index([username])
@@ -709,14 +710,15 @@ model CoinTransaction {
 }
 
 model CoinPackage {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
   coinAmount  Int
   priceVND    Int
   description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  payments    Payment[]
 
   @@map("coin_packages")
 }
@@ -744,6 +746,46 @@ enum TransactionType {
   REFUND
   BONUS
   DONATE_AUTHOR
+}
+
+enum PaymentProvider {
+  VNPAY
+  MOMO
+  ZALOPAY
+  MANUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+model Payment {
+  id           String          @id @default(cuid())
+  userId       String
+  packageId    String? // optional — direct top-up if null
+  provider     PaymentProvider
+  amount       Int // VND
+  coinAmount   Int // coins to be credited on success
+  status       PaymentStatus   @default(PENDING)
+  txnRef       String          @unique // Our internal reference sent to gateway
+  providerTxn  String? // Gateway-side transaction id (e.g. VNPay TransactionNo)
+  providerData Json? // Raw IPN payload for audit
+  paidAt       DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package CoinPackage? @relation(fields: [packageId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([provider])
+  @@index([createdAt])
+  @@map("payments")
 }
 
 model AuthorDonation {

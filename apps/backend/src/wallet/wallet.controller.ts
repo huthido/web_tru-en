@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Public } from '../auth/decorators/public.decorator';
 import { User } from '@prisma/client';
 
 @Controller('wallet')
@@ -41,6 +42,7 @@ export class WalletController {
     }
 
     // Get author donation stats (public)
+    @Public()
     @Get('author-donations/:authorId')
     async getAuthorDonationStats(@Param('authorId') authorId: string) {
         return this.walletService.getAuthorDonationStats(authorId);

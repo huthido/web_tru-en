@@ -6,11 +6,24 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 
 @Injectable()
 export class CloudinaryService {
   private readonly logger = new Logger(CloudinaryService.name);
   private readonly useCloudinary: boolean;
+  private readonly useSupabase: boolean;
+  private readonly useGarage: boolean;
+  private readonly supabase: SupabaseClient | null = null;
+  private readonly supabaseBucket: string;
+  private readonly garage: S3Client | null = null;
+  private readonly garageBucket: string;
+  private readonly garagePublicBase: string;
   private readonly uploadsDir: string;
 
   constructor(
@@ -23,6 +36,39 @@ export class CloudinaryService {
 
     this.useCloudinary = !!(cloudName && apiKey && apiSecret);
 
+    const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
+    const supabaseKey = this.configService.get<string>('SUPABASE_KEY');
+    this.supabaseBucket = this.configService.get<string>('SUPABASE_BUCKET') || 'web-truyen';
+    this.useSupabase = !!(supabaseUrl && supabaseKey);
+
+    // Garage (S3-compatible) configuration
+    const s3Endpoint = this.configService.get<string>('S3_ENDPOINT');
+    const s3AccessKey = this.configService.get<string>('S3_ACCESS_KEY');
+    const s3SecretKey = this.configService.get<string>('S3_SECRET_KEY');
+    this.garageBucket = this.configService.get<string>('S3_BUCKET') || 'web-truyen';
+    this.garagePublicBase =
+      this.configService.get<string>('S3_PUBLIC_BASE_URL') ||
+      (s3Endpoint ? `${s3Endpoint.replace(/\/$/, '')}/${this.garageBucket}` : '');
+    this.useGarage = !!(s3Endpoint && s3AccessKey && s3SecretKey);
+
+    if (this.useGarage) {
+      this.garage = new S3Client({
+        endpoint: s3Endpoint,
+        region: this.configService.get<string>('S3_REGION') || 'garage',
+        credentials: {
+          accessKeyId: s3AccessKey!,
+          secretAccessKey: s3SecretKey!,
+        },
+        forcePathStyle: true, // Required for Garage / MinIO / non-AWS S3
+      });
+      this.logger.log(`Garage S3 storage configured - bucket: ${this.garageBucket}`);
+    }
+
+    if (this.useSupabase) {
+      this.supabase = createClient(supabaseUrl!, supabaseKey!);
+      this.logger.log(`Supabase Storage configured - using bucket: ${this.supabaseBucket}`);
+    }
+
     if (this.useCloudinary) {
       cloudinary.config({
         cloud_name: cloudName,
@@ -30,8 +76,12 @@ export class CloudinaryService {
         api_secret: apiSecret,
       });
       this.logger.log('Cloudinary configured - using cloud storage');
-    } else {
-      this.logger.warn('Cloudinary credentials not found - using local file storage');
+    }
+
+    if (!this.useGarage && !this.useSupabase && !this.useCloudinary) {
+      this.logger.warn(
+        'No cloud storage configured (Garage / Cloudinary / Supabase) - using local file storage',
+      );
     }
 
     // Setup local uploads directory (always, as fallback)
@@ -55,10 +105,15 @@ export class CloudinaryService {
   ): Promise<string> {
     let imageUrl: string;
 
-    if (!this.useCloudinary) {
-      imageUrl = this.saveToLocal(file.buffer, folder, file.originalname);
-    } else {
+    // Priority: Garage > Supabase > Cloudinary > local fallback
+    if (this.useGarage) {
+      imageUrl = await this.uploadToGarage(file.buffer, folder, file.originalname, file.mimetype);
+    } else if (this.useSupabase) {
+      imageUrl = await this.uploadToSupabase(file.buffer, folder, file.originalname, file.mimetype);
+    } else if (this.useCloudinary) {
       imageUrl = await this.uploadToCloudinary(file.buffer, folder);
+    } else {
+      imageUrl = this.saveToLocal(file.buffer, folder, file.originalname);
     }
 
     // Save record to DB if userId provided
@@ -85,10 +140,16 @@ export class CloudinaryService {
     buffer: Buffer,
     folder: string = 'avatars'
   ): Promise<string> {
-    if (!this.useCloudinary) {
-      return this.saveToLocal(buffer, folder, 'image.jpg');
+    if (this.useGarage) {
+      return this.uploadToGarage(buffer, folder, 'image.jpg', 'image/jpeg');
     }
-    return this.uploadToCloudinary(buffer, folder);
+    if (this.useSupabase) {
+      return this.uploadToSupabase(buffer, folder, 'image.jpg', 'image/jpeg');
+    }
+    if (this.useCloudinary) {
+      return this.uploadToCloudinary(buffer, folder);
+    }
+    return this.saveToLocal(buffer, folder, 'image.jpg');
   }
 
   /**
@@ -126,8 +187,18 @@ export class CloudinaryService {
       throw new Error('Image not found');
     }
 
-    // Delete local file if it's a local upload
-    if (!this.useCloudinary && image.url.includes('/uploads/')) {
+    // Delete from Garage if URL matches its public base
+    if (this.useGarage && this.garage && this.garagePublicBase && image.url.startsWith(this.garagePublicBase)) {
+      try {
+        const key = image.url.slice(this.garagePublicBase.length).replace(/^\//, '');
+        await this.garage.send(
+          new DeleteObjectCommand({ Bucket: this.garageBucket, Key: key }),
+        );
+      } catch (err) {
+        this.logger.warn(`Failed to delete Garage object: ${err}`);
+      }
+    } else if (!this.useCloudinary && image.url.includes('/uploads/')) {
+      // Delete local file if it's a local upload
       try {
         const urlPath = new URL(image.url).pathname; // e.g. /uploads/chapter-images/abc.jpg
         const filePath = path.join(process.cwd(), urlPath);
@@ -144,6 +215,35 @@ export class CloudinaryService {
     });
 
     return { success: true };
+  }
+
+  /**
+   * Upload to Garage (S3-compatible object storage).
+   * URL form: {S3_PUBLIC_BASE_URL}/{folder}/{uuid}.{ext}
+   */
+  private async uploadToGarage(
+    buffer: Buffer,
+    folder: string,
+    originalName: string,
+    contentType: string = 'image/jpeg',
+  ): Promise<string> {
+    if (!this.garage) throw new Error('Garage S3 client not initialized');
+
+    const ext = path.extname(originalName) || '.jpg';
+    const key = `${folder}/${randomUUID()}${ext}`;
+
+    await this.garage.send(
+      new PutObjectCommand({
+        Bucket: this.garageBucket,
+        Key: key,
+        Body: buffer,
+        ContentType: contentType,
+        CacheControl: 'public, max-age=31536000, immutable',
+        ACL: 'public-read', // Garage honors this only if bucket policy allows; harmless otherwise
+      }),
+    );
+
+    return `${this.garagePublicBase.replace(/\/$/, '')}/${key}`;
   }
 
   /**
@@ -201,7 +301,41 @@ export class CloudinaryService {
   }
 
   /**
-   * Save file to local disk as fallback when Cloudinary is not configured.
+   * Upload to Supabase Storage.
+   */
+  private async uploadToSupabase(
+    buffer: Buffer,
+    folder: string,
+    originalName: string,
+    contentType: string = 'image/jpeg'
+  ): Promise<string> {
+    if (!this.supabase) throw new Error('Supabase client not initialized');
+
+    const ext = path.extname(originalName) || '.jpg';
+    const filePath = `${folder}/${randomUUID()}${ext}`;
+
+    const { data, error } = await this.supabase.storage
+      .from(this.supabaseBucket)
+      .upload(filePath, buffer, {
+        contentType,
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (error) {
+      this.logger.error(`Supabase upload failed: ${error.message}`);
+      throw new Error(`Supabase upload failed: ${error.message}`);
+    }
+
+    const { data: { publicUrl } } = this.supabase.storage
+      .from(this.supabaseBucket)
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  }
+
+  /**
+   * Save file to local disk as fallback when Cloudinary or Supabase is not configured.
    */
   private saveToLocal(buffer: Buffer, folder: string, originalName: string): string {
     const folderPath = path.join(this.uploadsDir, folder);

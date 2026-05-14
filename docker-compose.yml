@@ -1,6 +1,66 @@
-version: '3.8'
+# Full-stack compose file — works locally and on Coolify.
+# Coolify deploy: import this file as a "Docker Compose" application.
+# All sensitive values come from environment variables (Coolify "Secrets" UI).
 
 services:
+  garage:
+    # Garage = self-hosted S3-compatible object storage (deuxfleurs.fr).
+    # On first boot you must run `docker exec web_truyen_garage /garage layout assign ...`
+    # then `/garage bucket create web-truyen` + `/garage key new --name app` to obtain
+    # S3_ACCESS_KEY / S3_SECRET_KEY. See DEPLOY_COOLIFY.md.
+    image: dxflrs/garage:v1.0.1
+    container_name: web_truyen_garage
+    restart: unless-stopped
+    environment:
+      RUST_LOG: garage=info
+    volumes:
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+      - ./garage.toml:/etc/garage.toml:ro
+    ports:
+      - "${GARAGE_S3_PORT:-3900}:3900"   # S3 API
+      - "${GARAGE_WEB_PORT:-3902}:3902"  # Static website (public reads)
+      - "${GARAGE_ADMIN_PORT:-3903}:3903" # Admin API
+    networks:
+      - web_truyen
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    container_name: web_truyen_meilisearch
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-changeMePleaseInProduction32chars}
+      MEILI_ENV: ${MEILI_ENV:-production}
+      MEILI_NO_ANALYTICS: 'true'
+    volumes:
+      - meili_data:/meili_data
+    ports:
+      - "${MEILI_PORT:-7700}:7700"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:7700/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks:
+      - web_truyen
+
+  redis:
+    image: redis:7-alpine
+    container_name: web_truyen_redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - web_truyen
+
   postgres:
     image: postgres:16-alpine
     container_name: web_truyen_postgres
@@ -14,12 +74,114 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-web_truyen_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - web_truyen
+
+  backend:
+    image: web-truyen-backend:latest
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: web_truyen_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3009
+      DATABASE_URL: ${DATABASE_URL:-postgresql://user:password@postgres:5432/web_truyen_db?schema=public}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      FRONTEND_URL: ${FRONTEND_URL}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      SUPABASE_BUCKET: ${SUPABASE_BUCKET}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION:-garage}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET:-web-truyen}
+      S3_PUBLIC_BASE_URL: ${S3_PUBLIC_BASE_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET}
+      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE}
+      VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET}
+      VNPAY_PAY_URL: ${VNPAY_PAY_URL}
+      VNPAY_RETURN_URL: ${VNPAY_RETURN_URL}
+      VNPAY_IPN_URL: ${VNPAY_IPN_URL}
+      MEILI_HOST: ${MEILI_HOST:-http://meilisearch:7700}
+      MEILI_API_KEY: ${MEILI_MASTER_KEY:-changeMePleaseInProduction32chars}
+    ports:
+      - "${BACKEND_PORT:-3009}:3009"
+    volumes:
+      - backend_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3009/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - web_truyen
+
+  frontend:
+    image: web-truyen-frontend:latest
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+    container_name: web_truyen_frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - web_truyen
 
 volumes:
   postgres_data:
     driver: local
+  backend_uploads:
+    driver: local
+  garage_meta:
+    driver: local
+  garage_data:
+    driver: local
+  redis_data:
+    driver: local
+  meili_data:
+    driver: local
 
+networks:
+  web_truyen:
+    driver: bridge

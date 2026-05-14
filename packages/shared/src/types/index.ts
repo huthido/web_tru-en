@@ -17,9 +17,8 @@ export interface User {
 
 export enum UserRole {
   USER = 'USER',
+  AUTHOR = 'AUTHOR',
   ADMIN = 'ADMIN',
-  MODERATOR = 'MODERATOR',
-  UPLOADER = 'UPLOADER',
 }
 
 // Story types
@@ -288,5 +287,229 @@ export interface TokenResponse {
     avatar?: string;
     role: string;
   };
+}
+
+// Approval workflow
+export enum ApprovalType {
+  STORY_PUBLISH = 'STORY_PUBLISH',
+  CHAPTER_PUBLISH = 'CHAPTER_PUBLISH',
+}
+
+export enum ApprovalStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
+export interface ApprovalRequest {
+  id: string;
+  userId: string;
+  storyId?: string;
+  chapterId?: string;
+  type: ApprovalType;
+  status: ApprovalStatus;
+  message?: string;
+  adminNote?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Wallet / Coin economy
+export enum TransactionType {
+  DEPOSIT = 'DEPOSIT',
+  PURCHASE_CHAPTER = 'PURCHASE_CHAPTER',
+  ADMIN_ADJUST = 'ADMIN_ADJUST',
+  REFUND = 'REFUND',
+  BONUS = 'BONUS',
+  DONATE_AUTHOR = 'DONATE_AUTHOR',
+}
+
+export interface UserWallet {
+  id: string;
+  userId: string;
+  balance: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CoinTransaction {
+  id: string;
+  walletId: string;
+  amount: number;
+  type: TransactionType;
+  description: string;
+  referenceId?: string;
+  createdAt: string;
+}
+
+export interface CoinPackage {
+  id: string;
+  name: string;
+  coinAmount: number;
+  priceVND: number;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChapterPurchase {
+  id: string;
+  userId: string;
+  chapterId: string;
+  pricePaid: number;
+  createdAt: string;
+}
+
+export interface AuthorDonation {
+  id: string;
+  userId: string;
+  authorId: string;
+  storyId?: string;
+  amount: number;
+  message?: string;
+  createdAt: string;
+}
+
+// Ads
+export enum AdType {
+  POPUP = 'POPUP',
+  BANNER = 'BANNER',
+  SIDEBAR = 'SIDEBAR',
+}
+
+export enum AdPosition {
+  TOP = 'TOP',
+  BOTTOM = 'BOTTOM',
+  SIDEBAR_LEFT = 'SIDEBAR_LEFT',
+  SIDEBAR_RIGHT = 'SIDEBAR_RIGHT',
+  INLINE = 'INLINE',
+}
+
+export interface Campaign {
+  id: string;
+  name: string;
+  description?: string;
+  budget?: number;
+  spent: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  createdById?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Ad {
+  id: string;
+  title?: string;
+  description?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  type: AdType;
+  position: AdPosition;
+  isActive: boolean;
+  startDate?: string;
+  endDate?: string;
+  clickCount: number;
+  viewCount: number;
+  impressions: number;
+  popupInterval?: number;
+  priority: number;
+  campaignId?: string;
+  targetAudience?: Record<string, unknown>;
+  createdById?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Notifications
+export enum NotificationType {
+  SYSTEM_UPDATE = 'SYSTEM_UPDATE',
+  MAINTENANCE = 'MAINTENANCE',
+  NEW_FEATURE = 'NEW_FEATURE',
+  ANNOUNCEMENT = 'ANNOUNCEMENT',
+  WARNING = 'WARNING',
+  INFO = 'INFO',
+}
+
+export enum NotificationPriority {
+  LOW = 'LOW',
+  NORMAL = 'NORMAL',
+  HIGH = 'HIGH',
+  URGENT = 'URGENT',
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  content: string;
+  type: NotificationType;
+  priority: NotificationPriority;
+  targetRole?: UserRole;
+  sendEmail: boolean;
+  isActive: boolean;
+  createdById: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationRecipient {
+  id: string;
+  notificationId: string;
+  userId: string;
+  isRead: boolean;
+  readAt?: string;
+  createdAt: string;
+}
+
+// CMS / Settings
+export interface Page {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Settings {
+  id: string;
+  siteName: string;
+  siteDescription?: string;
+  siteLogo?: string;
+  siteFavicon?: string;
+  siteEmail?: string;
+  sitePhone?: string;
+  siteAddress?: string;
+  siteFacebook?: string;
+  siteTwitter?: string;
+  siteX?: string;
+  siteYoutube?: string;
+  siteInstagram?: string;
+  siteTikTok?: string;
+  siteLinkedIn?: string;
+  siteThreads?: string;
+  maintenanceMode: boolean;
+  maintenanceMessage?: string;
+  allowRegistration: boolean;
+  requireEmailVerification: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// User uploaded images
+export interface UserImage {
+  id: string;
+  userId: string;
+  url: string;
+  folder: string;
+  filename: string;
+  size: number;
+  createdAt: string;
 }
 

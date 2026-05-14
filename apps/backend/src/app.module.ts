@@ -22,11 +22,14 @@ import { PagesModule } from './pages/pages.module';
 import { SettingsModule } from './settings/settings.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { WalletModule } from './wallet/wallet.module';
+import { PaymentsModule } from './payments/payments.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { MiddlewareModule } from './common/middleware/middleware.module';
 import { MaintenanceMiddleware } from './common/middleware/maintenance.middleware';
 import { LoggerModule } from './common/logger/logger.module';
 import { HealthController } from './health/health.controller';
+import { QueueModule } from './queue/queue.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -50,6 +53,12 @@ import { HealthController } from './health/health.controller';
     // Logger
     LoggerModule,
 
+    // Queue infrastructure (BullMQ + Redis). Must be before modules that produce jobs.
+    QueueModule,
+
+    // Email (registers email queue + processor)
+    EmailModule,
+
     // Cloudinary
     CloudinaryModule,
 
@@ -72,6 +81,7 @@ import { HealthController } from './health/health.controller';
     SettingsModule,
     NotificationsModule,
     WalletModule,
+    PaymentsModule,
     MiddlewareModule, // Must be imported to provide MaintenanceMiddleware
   ],
   controllers: [HealthController],
