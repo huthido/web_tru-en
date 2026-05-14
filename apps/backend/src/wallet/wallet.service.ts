@@ -155,29 +155,31 @@ export class WalletService {
                 create: { userId: authorId, balance: net },
             });
 
-            // 4. Sender transaction: full negative amount
+            // 4. Sender transaction: NO mention of the platform fee — from the donor's
+            //    perspective they donated `amount` coins to the author. Fee is internal.
             await tx.coinTransaction.create({
                 data: {
                     walletId: updatedSenderWallet.id,
                     amount: -amount,
                     type: TransactionType.DONATE_AUTHOR,
-                    description: `Ủng hộ tác giả ${author.displayName || author.username} (phí nền tảng ${fee} coin)`,
+                    description: `Ủng hộ tác giả ${author.displayName || author.username}`,
                     referenceId: authorId,
                 },
             });
 
-            // 5. Author transaction: net only
+            // 5. Author transaction: surfaces the fee so the recipient sees the real number.
             await tx.coinTransaction.create({
                 data: {
                     walletId: authorWallet.id,
                     amount: net,
                     type: TransactionType.DONATE_AUTHOR,
-                    description: `Nhận ủng hộ từ người dùng (đã trừ ${fee} coin phí nền tảng ${DONATION_PLATFORM_FEE_PERCENT}%)`,
+                    description: `Nhận ủng hộ ${amount} coin (đã trừ ${fee} coin phí nền tảng ${DONATION_PLATFORM_FEE_PERCENT}%)`,
                     referenceId: userId,
                 },
             });
 
-            // 6. Donation record — store gross + fee + net for reporting
+            // 6. Donation record — store gross + fee + net for accurate reporting on the
+            //    author dashboard. The public stats endpoint hides fee/net from outsiders.
             const donation = await tx.authorDonation.create({
                 data: {
                     userId,
@@ -190,24 +192,26 @@ export class WalletService {
                 },
             });
 
+            // Public-facing response: only echo back what the donor sees (full amount + balance).
             return {
-                donation,
-                fee,
-                net,
+                donationId: donation.id,
+                amount,
                 newBalance: updatedSenderWallet.balance,
             };
         });
     }
 
-    // Get author donation stats.
-    // Returns gross (paid by donors), net (actually received by author), and total
-    // platform fee retained. `totalCoins` kept for backward compatibility — equals
-    // net (what the author truly received). Use `totalGross` to show donors' total.
+    /**
+     * Donor-facing stats for an author profile page.
+     * PUBLIC — does NOT expose the platform fee. From the public's perspective
+     * every coin donated went to the author (which is true from the donor side
+     * since they paid the gross amount).
+     */
     async getAuthorDonationStats(authorId: string) {
         const [aggregate, donationCount, recentDonors] = await Promise.all([
             this.prisma.authorDonation.aggregate({
                 where: { authorId },
-                _sum: { amount: true, netAmount: true, platformFee: true },
+                _sum: { amount: true }, // gross only
             }),
             this.prisma.authorDonation.count({
                 where: { authorId },
@@ -224,23 +228,55 @@ export class WalletService {
             }),
         ]);
 
-        const totalGross = aggregate._sum.amount || 0;
-        const totalNet = aggregate._sum.netAmount || 0;
-        const totalFee = aggregate._sum.platformFee || 0;
-
         return {
-            // What the author actually received (formerly `totalCoins` — keep alias for FE compat)
-            totalCoins: totalNet,
-            totalNet,
-            // Gross amount donors paid (always >= totalNet)
-            totalGross,
-            totalPlatformFee: totalFee,
-            platformFeePercent: DONATION_PLATFORM_FEE_PERCENT,
+            totalCoins: aggregate._sum.amount || 0, // gross — donor view
             donationCount,
             recentDonors: recentDonors.map(d => ({
                 id: d.id,
+                amount: d.amount, // gross — what the donor paid
+                message: d.message,
+                createdAt: d.createdAt,
+                user: d.user,
+            })),
+        };
+    }
+
+    /**
+     * Author-facing stats — only the author themselves should hit this. Returns
+     * the actual revenue split so the author knows what they really received.
+     * Controller enforces ownership.
+     */
+    async getMyDonationEarnings(authorId: string) {
+        const [aggregate, donationCount, recent] = await Promise.all([
+            this.prisma.authorDonation.aggregate({
+                where: { authorId },
+                _sum: { amount: true, netAmount: true, platformFee: true },
+            }),
+            this.prisma.authorDonation.count({
+                where: { authorId },
+            }),
+            this.prisma.authorDonation.findMany({
+                where: { authorId },
+                orderBy: { createdAt: 'desc' },
+                take: 20,
+                include: {
+                    user: {
+                        select: { id: true, username: true, displayName: true, avatar: true },
+                    },
+                },
+            }),
+        ]);
+
+        return {
+            totalGross: aggregate._sum.amount || 0,
+            totalNet: aggregate._sum.netAmount || 0,
+            totalPlatformFee: aggregate._sum.platformFee || 0,
+            platformFeePercent: DONATION_PLATFORM_FEE_PERCENT,
+            donationCount,
+            donations: recent.map(d => ({
+                id: d.id,
                 amount: d.amount,          // gross — what the donor paid
-                netAmount: d.netAmount,    // what the author received
+                netAmount: d.netAmount,    // what you actually received
                 platformFee: d.platformFee,
                 message: d.message,
                 createdAt: d.createdAt,

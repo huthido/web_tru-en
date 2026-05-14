@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, Request, BadRequestException } from '@nestjs/common';
-import { WalletService, DONATION_PLATFORM_FEE_PERCENT } from './wallet.service';
+import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { WalletService } from './wallet.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
 import { User } from '@prisma/client';
@@ -41,7 +41,8 @@ export class WalletController {
         return this.walletService.donateToAuthor(user.id, body.authorId, body.amount, body.storyId, body.message);
     }
 
-    // Get author donation stats (public)
+    // Public donor-facing stats. Does NOT expose the 2% platform fee — from the
+    // donor's perspective the full amount went to the author.
     @Public()
     @Get('author-donations/:authorId')
     async getAuthorDonationStats(@Param('authorId') authorId: string) {
@@ -49,23 +50,14 @@ export class WalletController {
     }
 
     /**
-     * Preview the platform fee for a given donation amount.
-     * Public so the UI can show "Tác giả nhận: X coin · Phí: Y coin" before user confirms.
-     *   GET /api/wallet/donate/preview?amount=100
+     * Author-facing donation earnings — shows the real revenue split (gross/net/fee).
+     * Auth required: only the logged-in user sees THEIR OWN earnings.
+     *   GET /api/wallet/donations/me
      */
-    @Public()
-    @Get('donate/preview')
-    previewDonation(@Query('amount') amountRaw?: string) {
-        const amount = Number(amountRaw);
-        if (!Number.isInteger(amount) || amount <= 0) {
-            throw new BadRequestException('amount phải là số nguyên dương');
-        }
-        const { fee, net } = WalletService.splitDonation(amount);
-        return {
-            amount,
-            platformFee: fee,
-            netAmount: net,
-            platformFeePercent: DONATION_PLATFORM_FEE_PERCENT,
-        };
+    @Get('donations/me')
+    @UseGuards(JwtAuthGuard)
+    async getMyDonationEarnings(@Request() req: any) {
+        const user = req.user as User;
+        return this.walletService.getMyDonationEarnings(user.id);
     }
 }

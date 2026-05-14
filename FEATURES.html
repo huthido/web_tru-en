@@ -342,10 +342,9 @@
 <li>Bấm nút <strong>"Ủng hộ tác giả"</strong></li>
 <li>Chọn số coin (ví dụ: 10 / 50 / 100 / tuỳ ý)</li>
 <li>Để lại lời nhắn (tuỳ chọn)</li>
-<li>Confirm → trừ coin khỏi ví bạn, cộng vào ví tác giả</li>
+<li>Confirm → trừ coin khỏi ví bạn, ghi nhận làm ủng hộ cho tác giả</li>
 </ul>
-<blockquote>💡 <strong>Phí nền tảng 2%:</strong> Nền tảng giữ lại 2% mỗi giao dịch để duy trì hệ thống. Ví dụ donate 100 coin → tác giả nhận <strong>98 coin</strong>, nền tảng giữ <strong>2 coin</strong>. UI hiển thị rõ con số này trước khi bạn xác nhận.</blockquote>
-<p>Tác giả có thể xem <strong>danh sách người ủng hộ gần đây</strong> + tổng coin nhận được (công khai, đã trừ phí).</p>
+<p>Toàn bộ số coin bạn ủng hộ được ghi nhận là <strong>đóng góp của bạn cho tác giả</strong>. Tác giả có thể xem <strong>danh sách người ủng hộ gần đây</strong> + tổng coin được ủng hộ (công khai).</p>
 
 <h3>7.6 Lịch sử giao dịch</h3>
 <p>Mọi giao dịch coin được ghi lại với:</p>
@@ -425,12 +424,25 @@ Nhận email         Bạn chỉnh sửa
 <li>Số truyện đang có (theo trạng thái)</li>
 <li>Tổng lượt xem các truyện của bạn</li>
 <li>Tổng lượt theo dõi</li>
-<li><strong>Coin đã nhận</strong> (mua chương + ủng hộ)</li>
+<li><strong>Coin đã nhận</strong> (mua chương + ủng hộ — đã trừ phí nền tảng)</li>
 <li>Top 5 truyện hot nhất của bạn</li>
 <li>Biểu đồ lượt xem 30 ngày</li>
 </ul>
 
-<h3>8.7 Chỉnh sửa &amp; xoá</h3>
+<h3>8.7 Doanh thu từ ủng hộ — phí nền tảng</h3>
+<p>Khi độc giả ủng hộ bạn, nền tảng giữ lại <strong>2%</strong> mỗi giao dịch để duy trì hạ tầng (server, băng thông, lưu trữ). Bạn nhận <strong>98%</strong> còn lại vào ví coin.</p>
+<table>
+<thead><tr><th>Donate (gross)</th><th>Phí 2%</th><th>Bạn nhận</th></tr></thead>
+<tbody>
+<tr><td>100 coin</td><td>2</td><td>98</td></tr>
+<tr><td>500 coin</td><td>10</td><td>490</td></tr>
+<tr><td>1.000 coin</td><td>20</td><td>980</td></tr>
+<tr><td>10.000 coin</td><td>200</td><td>9.800</td></tr>
+</tbody>
+</table>
+<blockquote>💡 Phí được tính tự động và <strong>không hiển thị cho người ủng hộ</strong> — họ chỉ thấy số coin mình đã donate. Bạn xem chi tiết phân tách gross/net/phí ngay trên Dashboard tác giả (mục "Thu nhập từ ủng hộ") hoặc gọi API <code>GET /api/wallet/donations/me</code>.</blockquote>
+
+<h3>8.8 Chỉnh sửa &amp; xoá</h3>
 <ul>
 <li>Có thể chỉnh sửa truyện / chương đã đăng (nhưng truyện đã duyệt cần duyệt lại nếu sửa nội dung lớn)</li>
 <li>Xoá truyện → tất cả chương &amp; bình luận liên quan bị xoá cùng (không thể khôi phục)</li>
@@ -641,7 +653,7 @@ Nhận email         Bạn chỉnh sửa
 
 <details>
 <summary>Donation cho tác giả có mất phí không?</summary>
-<p>Có, phí nền tảng <strong>2%</strong>. Ví dụ donate 100 coin → tác giả nhận <strong>98 coin</strong>, nền tảng giữ <strong>2 coin</strong> để duy trì hệ thống. Trước khi xác nhận, UI hiển thị rõ "Tác giả sẽ nhận: X · Phí: Y" để bạn biết chính xác con số.</p>
+<p>Không có phí từ phía người ủng hộ — bạn donate bao nhiêu coin, hệ thống ghi nhận đầy đủ số đó vào lịch sử ủng hộ cho tác giả.</p>
 </details>
 
 <h3>Tác giả</h3>
