@@ -22,6 +22,7 @@ export interface Settings {
     maintenanceMessage?: string;
     allowRegistration: boolean;
     requireEmailVerification: boolean;
+    donationPlatformFeePercent: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -46,6 +47,7 @@ export interface UpdateSettingsRequest {
     maintenanceMessage?: string;
     allowRegistration?: boolean;
     requireEmailVerification?: boolean;
+    donationPlatformFeePercent?: number;
 }
 
 export const settingsService = {

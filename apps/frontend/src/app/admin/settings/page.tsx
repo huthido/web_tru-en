@@ -32,6 +32,7 @@ export default function AdminSettingsPage() {
         siteLinkedIn: '',
         siteThreads: '',
         requireEmailVerification: false,
+        donationPlatformFeePercent: 2,
     });
 
     const logoInputRef = useRef<HTMLInputElement>(null);
@@ -56,6 +57,7 @@ export default function AdminSettingsPage() {
                 siteLinkedIn: settings.siteLinkedIn || '',
                 siteThreads: settings.siteThreads || '',
                 requireEmailVerification: settings.requireEmailVerification || false,
+                donationPlatformFeePercent: settings.donationPlatformFeePercent ?? 2,
             });
         }
     }, [settings]);
@@ -406,6 +408,42 @@ export default function AdminSettingsPage() {
                                     onChange={(e) => setFormData({ ...formData, requireEmailVerification: e.target.checked })}
                                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                 />
+                            </div>
+
+                            {/* Phí donate nền tảng */}
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
+                                    Phí nền tảng khi ủng hộ tác giả (%)
+                                </label>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                    Tỷ lệ coin nền tảng giữ lại khi độc giả ủng hộ tác giả. Áp dụng cho mọi
+                                    donation phát sinh kể từ thời điểm lưu — các donation cũ vẫn giữ nguyên mức phí
+                                    của chúng. Đặt 0 để tác giả nhận 100%.
+                                </p>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={50}
+                                        step={1}
+                                        value={formData.donationPlatformFeePercent}
+                                        onChange={(e) => {
+                                            const v = parseInt(e.target.value, 10);
+                                            setFormData({
+                                                ...formData,
+                                                donationPlatformFeePercent: Number.isNaN(v) ? 0 : Math.max(0, Math.min(50, v)),
+                                            });
+                                        }}
+                                        className="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    />
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">%</span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                                        Ví dụ: donate 100 coin → tác giả nhận {Math.max(0, 100 - Math.ceil(100 * formData.donationPlatformFeePercent / 100))} coin · phí {Math.ceil(100 * formData.donationPlatformFeePercent / 100)} coin
+                                    </span>
+                                </div>
+                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                                    Giới hạn 0–50%. Người ủng hộ không thấy con số này — chỉ tác giả mới biết.
+                                </p>
                             </div>
                         </div>
                     </div>

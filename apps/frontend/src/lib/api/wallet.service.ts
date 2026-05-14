@@ -32,6 +32,29 @@ export interface AuthorDonationStats {
     }[];
 }
 
+// Author-only: real earnings breakdown including platform fee.
+export interface MyDonationEarnings {
+    totalGross: number;
+    totalNet: number;
+    totalPlatformFee: number;
+    platformFeePercent: number;
+    donationCount: number;
+    donations: {
+        id: string;
+        amount: number;           // gross — what donor paid
+        netAmount: number;        // what you received
+        platformFee: number;      // historical fee for THIS donation
+        message: string | null;
+        createdAt: string;
+        user: {
+            id: string;
+            username: string;
+            displayName: string | null;
+            avatar: string | null;
+        };
+    }[];
+}
+
 export const WalletService = {
     getBalance: async (): Promise<WalletBalance> => {
         const response = await apiClient.get<WalletBalance>('/wallet/balance');
@@ -50,6 +73,12 @@ export const WalletService = {
 
     getAuthorDonations: async (authorId: string): Promise<AuthorDonationStats> => {
         const response = await apiClient.get<AuthorDonationStats>(`/wallet/author-donations/${authorId}`);
+        return response.data.data || response.data as any;
+    },
+
+    // Author-only — full revenue breakdown including platform fee.
+    getMyDonationEarnings: async (): Promise<MyDonationEarnings> => {
+        const response = await apiClient.get<MyDonationEarnings>('/wallet/donations/me');
         return response.data.data || response.data as any;
     },
 };
