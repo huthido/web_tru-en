@@ -67,3 +67,6 @@ apps/backend/error.log
 
 # Claude Code session state
 .claude/
+
+# next-pwa generated fallback (new hash every build — not source)
+apps/frontend/public/fallback-*.js
