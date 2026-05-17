@@ -123,7 +123,21 @@ const nextConfig = {
   async rewrites() {
     // 🍎 iOS Safari Fix: Proxy API requests to same domain
     // This makes cookies work as first-party cookies!
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://web-tru-en-tvby.onrender.com';
+    //
+    // NEXT_PUBLIC_API_URL must be passed as a BUILD ARG (Next inlines it at
+    // build time). If it's missing in a production build we fail loudly here
+    // instead of silently proxying every /api/* call to a dead default URL.
+    const backendUrl =
+      process.env.NEXT_PUBLIC_API_URL ||
+      (process.env.NODE_ENV === 'production' ? null : 'http://localhost:3001');
+
+    if (!backendUrl) {
+      throw new Error(
+        'NEXT_PUBLIC_API_URL is required for production builds — it is used by ' +
+        'the /api/* rewrite proxy. Pass it as a Docker build arg (see ' +
+        'apps/frontend/Dockerfile) / Coolify build env.'
+      );
+    }
 
     return [
       {

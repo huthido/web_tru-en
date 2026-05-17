@@ -62,6 +62,19 @@ Tài liệu này hướng dẫn deploy bằng Docker Compose tại local và lê
 - (Tuỳ chọn) `cdn.yourdomain.com` để serve Garage public files
 - Tài khoản VNPay sandbox/prod nếu muốn bật thanh toán (đăng ký tại https://sandbox.vnpayment.vn/)
 
+### Chọn nguồn database (quyết định trước khi deploy)
+
+Repo hiện có 2 lựa chọn — **chọn đúng 1** rồi set `DATABASE_URL` tương ứng:
+
+| Lựa chọn | `DATABASE_URL` | Ghi chú |
+|---|---|---|
+| **Postgres trong compose** (khuyến nghị, self-contained) | `postgresql://user:pass@postgres:5432/web_truyen_db?schema=public` | Hostname = tên service `postgres`. Volume `postgres_data` persistent. |
+| **Postgres managed từ xa** (Supabase/Neon — `.env` dev đang trỏ kiểu này) | Connection string nhà cung cấp, có `?sslmode=require` | Bỏ service `postgres` khỏi compose hoặc để mặc kệ (không dùng). Pooler (port 6543) OK cho runtime. |
+
+> 🔁 **Migration tự áp**: backend Dockerfile chạy `npx prisma migrate deploy` lúc khởi động (`apps/backend/Dockerfile`). Mọi migration trong `apps/backend/prisma/migrations/` (gồm `…_chapter_purchase_revenue_split`) **tự áp khi container start**, miễn `DATABASE_URL` kết nối được — **không cần chạy thủ công** khi deploy qua Coolify/Docker.
+
+> ⚠️ **`NEXT_PUBLIC_API_URL` bắt buộc là build arg**: từ bản này, build frontend production **thiếu** biến này sẽ **fail build có thông báo rõ** (thay vì âm thầm proxy `/api/*` về URL chết). Đảm bảo Coolify truyền `NEXT_PUBLIC_API_URL` cho service `frontend` lúc build.
+
 ### Sinh secrets
 
 ```bash
