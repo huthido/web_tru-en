@@ -1,5 +1,35 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { notificationsService, CreateNotificationRequest, UpdateNotificationRequest } from '../notifications.service';
+
+/**
+ * Subscribe to the server-sent notification stream. On each push (a new
+ * personal notification), refetch the bell's unread count + list so it
+ * updates live without 30s polling. Cookie auth flows through the Next
+ * /api proxy automatically (same-origin EventSource).
+ */
+export const useNotificationStream = (enabled: boolean) => {
+    const queryClient = useQueryClient();
+    useEffect(() => {
+        if (!enabled || typeof window === 'undefined') return;
+        const es = new EventSource('/api/notifications/stream');
+        es.onmessage = (ev) => {
+            try {
+                const payload = JSON.parse(ev.data);
+                if (payload?.type === 'notification') {
+                    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+                }
+            } catch {
+                /* ignore heartbeat / malformed */
+            }
+        };
+        es.onerror = () => {
+            // EventSource auto-reconnects; close on hard failure to avoid a busy loop.
+            if (es.readyState === EventSource.CLOSED) es.close();
+        };
+        return () => es.close();
+    }, [enabled, queryClient]);
+};
 
 export const useNotifications = (params?: {
     page?: number;

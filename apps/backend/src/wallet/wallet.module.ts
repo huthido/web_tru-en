@@ -7,9 +7,10 @@ import { AdminCoinPackageController } from './admin-coin-package.controller';
 import { AdminWithdrawalController } from './admin-withdrawal.controller';
 import { AdminWalletController } from './admin-wallet.controller';
 import { SettingsModule } from '../settings/settings.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-    imports: [PrismaModule, forwardRef(() => SettingsModule)],
+    imports: [PrismaModule, forwardRef(() => SettingsModule), NotificationsModule],
     controllers: [WalletController, AdminCoinPackageController, AdminWithdrawalController, AdminWalletController],
     providers: [WalletService, CoinPackageService],
     exports: [WalletService, CoinPackageService],

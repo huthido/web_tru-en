@@ -8,7 +8,10 @@ import {
     Delete,
     UseGuards,
     Query,
+    Sse,
+    MessageEvent,
 } from '@nestjs/common';
+import { Observable } from 'rxjs';
 import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
@@ -89,6 +92,12 @@ export class NotificationsController {
     @Get('unread-count')
     getUnreadCount(@CurrentUser() user: any) {
         return this.notificationsService.getUnreadCount(user.id);
+    }
+
+    // Realtime stream (SSE). Auth via the class-level JwtAuthGuard (cookie).
+    @Sse('stream')
+    stream(@CurrentUser() user: any): Observable<MessageEvent> {
+        return this.notificationsService.streamFor(user.id);
     }
 
     @Post(':recipientId/read')

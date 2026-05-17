@@ -675,8 +675,8 @@ model Notification {
   targetRole  UserRole? // null = all users, or specific role
   sendEmail   Boolean              @default(false) // Send via email
   isActive    Boolean              @default(true)
-  createdById String
-  createdBy   User                 @relation("NotificationCreator", fields: [createdById], references: [id])
+  createdById String? // null = system/auto notification (donate/sale/withdrawal)
+  createdBy   User?                @relation("NotificationCreator", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
 
