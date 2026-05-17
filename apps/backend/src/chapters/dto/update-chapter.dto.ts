@@ -34,5 +34,11 @@ export class UpdateChapterDto {
     @IsOptional()
     @IsBoolean()
     isPublished?: boolean;
+
+    // Coin price to unlock this chapter. 0 = free.
+    @IsOptional()
+    @IsInt()
+    @Min(0)
+    price?: number;
 }
 

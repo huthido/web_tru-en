@@ -27,5 +27,11 @@ export class CreateChapterDto {
     @IsArray()
     @IsString({ each: true })
     images?: string[];
+
+    // Coin price to unlock this chapter. 0 (default) = free.
+    @IsOptional()
+    @IsInt()
+    @Min(0)
+    price?: number;
 }
 

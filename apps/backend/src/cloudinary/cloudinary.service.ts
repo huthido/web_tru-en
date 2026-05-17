@@ -6,7 +6,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import {
   S3Client,
   PutObjectCommand,
@@ -17,10 +16,7 @@ import {
 export class CloudinaryService {
   private readonly logger = new Logger(CloudinaryService.name);
   private readonly useCloudinary: boolean;
-  private readonly useSupabase: boolean;
   private readonly useGarage: boolean;
-  private readonly supabase: SupabaseClient | null = null;
-  private readonly supabaseBucket: string;
   private readonly garage: S3Client | null = null;
   private readonly garageBucket: string;
   private readonly garagePublicBase: string;
@@ -35,11 +31,6 @@ export class CloudinaryService {
     const apiSecret = this.configService.get<string>('CLOUDINARY_API_SECRET');
 
     this.useCloudinary = !!(cloudName && apiKey && apiSecret);
-
-    const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
-    const supabaseKey = this.configService.get<string>('SUPABASE_KEY');
-    this.supabaseBucket = this.configService.get<string>('SUPABASE_BUCKET') || 'web-truyen';
-    this.useSupabase = !!(supabaseUrl && supabaseKey);
 
     // Garage (S3-compatible) configuration
     const s3Endpoint = this.configService.get<string>('S3_ENDPOINT');
@@ -64,11 +55,6 @@ export class CloudinaryService {
       this.logger.log(`Garage S3 storage configured - bucket: ${this.garageBucket}`);
     }
 
-    if (this.useSupabase) {
-      this.supabase = createClient(supabaseUrl!, supabaseKey!);
-      this.logger.log(`Supabase Storage configured - using bucket: ${this.supabaseBucket}`);
-    }
-
     if (this.useCloudinary) {
       cloudinary.config({
         cloud_name: cloudName,
@@ -78,9 +64,9 @@ export class CloudinaryService {
       this.logger.log('Cloudinary configured - using cloud storage');
     }
 
-    if (!this.useGarage && !this.useSupabase && !this.useCloudinary) {
+    if (!this.useGarage && !this.useCloudinary) {
       this.logger.warn(
-        'No cloud storage configured (Garage / Cloudinary / Supabase) - using local file storage',
+        'No cloud storage configured (Garage / Cloudinary) - using local file storage',
       );
     }
 
@@ -105,11 +91,9 @@ export class CloudinaryService {
   ): Promise<string> {
     let imageUrl: string;
 
-    // Priority: Garage > Supabase > Cloudinary > local fallback
+    // Priority: Garage > Cloudinary > local fallback
     if (this.useGarage) {
       imageUrl = await this.uploadToGarage(file.buffer, folder, file.originalname, file.mimetype);
-    } else if (this.useSupabase) {
-      imageUrl = await this.uploadToSupabase(file.buffer, folder, file.originalname, file.mimetype);
     } else if (this.useCloudinary) {
       imageUrl = await this.uploadToCloudinary(file.buffer, folder);
     } else {
@@ -142,9 +126,6 @@ export class CloudinaryService {
   ): Promise<string> {
     if (this.useGarage) {
       return this.uploadToGarage(buffer, folder, 'image.jpg', 'image/jpeg');
-    }
-    if (this.useSupabase) {
-      return this.uploadToSupabase(buffer, folder, 'image.jpg', 'image/jpeg');
     }
     if (this.useCloudinary) {
       return this.uploadToCloudinary(buffer, folder);
@@ -301,41 +282,7 @@ export class CloudinaryService {
   }
 
   /**
-   * Upload to Supabase Storage.
-   */
-  private async uploadToSupabase(
-    buffer: Buffer,
-    folder: string,
-    originalName: string,
-    contentType: string = 'image/jpeg'
-  ): Promise<string> {
-    if (!this.supabase) throw new Error('Supabase client not initialized');
-
-    const ext = path.extname(originalName) || '.jpg';
-    const filePath = `${folder}/${randomUUID()}${ext}`;
-
-    const { data, error } = await this.supabase.storage
-      .from(this.supabaseBucket)
-      .upload(filePath, buffer, {
-        contentType,
-        cacheControl: '3600',
-        upsert: false,
-      });
-
-    if (error) {
-      this.logger.error(`Supabase upload failed: ${error.message}`);
-      throw new Error(`Supabase upload failed: ${error.message}`);
-    }
-
-    const { data: { publicUrl } } = this.supabase.storage
-      .from(this.supabaseBucket)
-      .getPublicUrl(filePath);
-
-    return publicUrl;
-  }
-
-  /**
-   * Save file to local disk as fallback when Cloudinary or Supabase is not configured.
+   * Save file to local disk as fallback when Garage/Cloudinary is not configured.
    */
   private saveToLocal(buffer: Buffer, folder: string, originalName: string): string {
     const folderPath = path.join(this.uploadsDir, folder);

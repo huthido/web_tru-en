@@ -55,6 +55,33 @@ export interface MyDonationEarnings {
     }[];
 }
 
+// Author-only: chapter-sales earnings breakdown including platform fee.
+export interface MyChapterSales {
+    totalGross: number;
+    totalNet: number;
+    totalPlatformFee: number;
+    platformFeePercent: number;
+    salesCount: number;
+    sales: {
+        id: string;
+        amount: number;           // gross — what buyer paid
+        netAmount: number;        // what you received
+        platformFee: number;      // historical fee for THIS sale
+        createdAt: string;
+        user: {
+            id: string;
+            username: string;
+            displayName: string | null;
+            avatar: string | null;
+        };
+        chapter: {
+            id: string;
+            title: string;
+            slug: string;
+        };
+    }[];
+}
+
 export const WalletService = {
     getBalance: async (): Promise<WalletBalance> => {
         const response = await apiClient.get<WalletBalance>('/wallet/balance');
@@ -79,6 +106,12 @@ export const WalletService = {
     // Author-only — full revenue breakdown including platform fee.
     getMyDonationEarnings: async (): Promise<MyDonationEarnings> => {
         const response = await apiClient.get<MyDonationEarnings>('/wallet/donations/me');
+        return response.data.data || response.data as any;
+    },
+
+    // Author-only — chapter-sales revenue breakdown including platform fee.
+    getMyChapterSales: async (): Promise<MyChapterSales> => {
+        const response = await apiClient.get<MyChapterSales>('/wallet/chapter-sales/me');
         return response.data.data || response.data as any;
     },
 };

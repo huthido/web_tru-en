@@ -18,6 +18,12 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
+  // Behind a reverse proxy (Coolify/Traefik, Render, etc.): trust the first
+  // X-Forwarded-* hop so req.ip is the real client (correct per-client rate
+  // limiting — otherwise everyone shares the proxy IP and the login throttle
+  // locks out all users) and req.protocol reflects the original https.
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
   // Security
   app.use(helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },

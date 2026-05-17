@@ -3,7 +3,12 @@
  * This is used in server components and cannot use the client-side apiClient
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://web-tru-en-tvby.onrender.com';
+// Server-side metadata fetch. Uses NEXT_PUBLIC_API_URL; dev falls back to
+// localhost. No remote default — if unset in prod the fetch fails and the
+// caller falls back to default metadata (acceptable, non-critical).
+const API_URL =
+    process.env.NEXT_PUBLIC_API_URL ||
+    (process.env.NODE_ENV !== 'production' ? 'http://localhost:3001' : '');
 const BASE_URL = API_URL.endsWith('/api') ? API_URL : `${API_URL}/api`;
 
 export interface ServerSettings {
