@@ -23,6 +23,8 @@ export interface Settings {
     allowRegistration: boolean;
     requireEmailVerification: boolean;
     donationPlatformFeePercent: number;
+    allowCoinTransfer?: boolean;
+    minWithdrawalCoins?: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -48,6 +50,8 @@ export interface UpdateSettingsRequest {
     allowRegistration?: boolean;
     requireEmailVerification?: boolean;
     donationPlatformFeePercent?: number;
+    allowCoinTransfer?: boolean;
+    minWithdrawalCoins?: number;
 }
 
 export const settingsService = {

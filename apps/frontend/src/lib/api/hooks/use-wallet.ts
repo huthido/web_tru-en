@@ -32,6 +32,17 @@ export function useDonateAuthor() {
     });
 }
 
+export function useTransferCoins() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: { recipient: string; amount: number; message?: string }) =>
+            WalletService.transferCoins(data),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['wallet', 'balance'] });
+        },
+    });
+}
+
 export function useMyWithdrawals() {
     return useQuery({
         queryKey: ['wallet', 'withdrawals', 'me'],
