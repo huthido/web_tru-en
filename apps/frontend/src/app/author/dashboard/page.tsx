@@ -143,6 +143,12 @@ export default function AuthorDashboardPage() {
                                     </svg>
                                     Tạo truyện mới
                                 </Link>
+                                <Link
+                                    href="/author/withdrawals"
+                                    className="mt-4 md:mt-0 md:ml-3 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
+                                >
+                                    Rút xu
+                                </Link>
                             </div>
                         </div>
 

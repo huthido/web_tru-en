@@ -30,6 +30,43 @@ export interface AuthorDonationStats {
             avatar: string | null;
         };
     }[];
+    topDonorsWeek?: {
+        amount: number;
+        user: {
+            id: string;
+            username: string;
+            displayName: string | null;
+            avatar: string | null;
+        } | null;
+    }[];
+}
+
+export type WithdrawalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface WithdrawalRequest {
+    id: string;
+    userId: string;
+    amount: number;
+    status: WithdrawalStatus;
+    bankName: string;
+    bankAccountNumber: string;
+    bankAccountName: string;
+    note: string | null;
+    processedAt: string | null;
+    createdAt: string;
+    user?: {
+        id: string;
+        username: string;
+        displayName: string | null;
+        email: string;
+    };
+}
+
+export interface RequestWithdrawalPayload {
+    amount: number;
+    bankName: string;
+    bankAccountNumber: string;
+    bankAccountName: string;
 }
 
 // Author-only: real earnings breakdown including platform fee.
@@ -164,5 +201,35 @@ export const WalletService = {
     getMyTodayEarnings: async (): Promise<MyTodayEarnings> => {
         const response = await apiClient.get<MyTodayEarnings>('/wallet/today-earnings/me');
         return response.data.data || response.data as any;
+    },
+
+    // --- Withdrawals (spec mục 17) ---
+    requestWithdrawal: async (data: RequestWithdrawalPayload) => {
+        const response = await apiClient.post('/wallet/withdrawals', data);
+        return response.data.data || response.data;
+    },
+
+    getMyWithdrawals: async (): Promise<WithdrawalRequest[]> => {
+        const response = await apiClient.get<WithdrawalRequest[]>('/wallet/withdrawals/me');
+        return (response.data as any).data || (response.data as any);
+    },
+
+    adminListWithdrawals: async (status?: WithdrawalStatus): Promise<WithdrawalRequest[]> => {
+        const response = await apiClient.get<WithdrawalRequest[]>('/admin/withdrawals', {
+            params: status ? { status } : undefined,
+        });
+        return (response.data as any).data || (response.data as any);
+    },
+
+    adminProcessWithdrawal: async (
+        id: string,
+        action: 'APPROVE' | 'REJECT',
+        note?: string,
+    ): Promise<WithdrawalRequest> => {
+        const response = await apiClient.patch<WithdrawalRequest>(`/admin/withdrawals/${id}`, {
+            action,
+            note,
+        });
+        return (response.data as any).data || (response.data as any);
     },
 };

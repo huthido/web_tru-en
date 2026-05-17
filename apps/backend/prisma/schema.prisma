@@ -54,6 +54,8 @@ model User {
   receivedDonations       AuthorDonation[]         @relation("DonationReceiver")
   uploadedImages          UserImage[]
   payments                Payment[]
+  withdrawalRequests      WithdrawalRequest[]      @relation("WithdrawalRequester")
+  processedWithdrawals    WithdrawalRequest[]      @relation("WithdrawalProcessor")
 
   @@index([email])
   @@index([username])
@@ -596,6 +598,8 @@ model Settings {
   // Donation rev-share: % the platform keeps when a user donates coins to an
   // author. 0 = author keeps 100%. Capped at 50 in the DTO validator.
   donationPlatformFeePercent Int    @default(2)
+  // Spec mục 17 — số xu tối thiểu tác giả được phép yêu cầu rút.
+  minWithdrawalCoins       Int      @default(1000)
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 
@@ -787,6 +791,38 @@ enum TransactionType {
   REFUND
   BONUS
   DONATE_AUTHOR
+  WITHDRAWAL
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Spec mục 17 — yêu cầu rút xu của tác giả. Xu bị giữ (trừ khỏi ví) ngay khi
+// tạo yêu cầu; admin duyệt (APPROVED = đã chuyển khoản) hoặc từ chối
+// (REJECTED = hoàn xu lại ví). Thông tin ngân hàng chụp lại theo từng yêu cầu.
+model WithdrawalRequest {
+  id                String           @id @default(cuid())
+  userId            String
+  amount            Int // Coins requested (held from wallet at creation)
+  status            WithdrawalStatus @default(PENDING)
+  bankName          String
+  bankAccountNumber String
+  bankAccountName   String
+  note              String?          @db.Text // admin note / rejection reason
+  processedById     String?
+  processedAt       DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  user              User             @relation("WithdrawalRequester", fields: [userId], references: [id], onDelete: Cascade)
+  processedBy       User?            @relation("WithdrawalProcessor", fields: [processedById], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("withdrawal_requests")
 }
 
 enum PaymentProvider {

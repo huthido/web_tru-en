@@ -94,4 +94,27 @@ export class WalletController {
         const user = req.user as User;
         return this.walletService.getMyTodayEarnings(user.id);
     }
+
+    // --- Withdrawals (spec mục 17) ---
+
+    @Post('withdrawals')
+    @UseGuards(JwtAuthGuard)
+    async requestWithdrawal(
+        @Request() req: any,
+        @Body() body: { amount: number; bankName: string; bankAccountNumber: string; bankAccountName: string },
+    ) {
+        const user = req.user as User;
+        return this.walletService.requestWithdrawal(user.id, body.amount, {
+            bankName: body.bankName,
+            bankAccountNumber: body.bankAccountNumber,
+            bankAccountName: body.bankAccountName,
+        });
+    }
+
+    @Get('withdrawals/me')
+    @UseGuards(JwtAuthGuard)
+    async listMyWithdrawals(@Request() req: any) {
+        const user = req.user as User;
+        return this.walletService.listMyWithdrawals(user.id);
+    }
 }
