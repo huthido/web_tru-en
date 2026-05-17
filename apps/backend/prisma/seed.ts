@@ -462,6 +462,28 @@ Chương này có khoảng 200 từ để test tính năng đếm từ và thờ
   }
   console.log(`✅ Created/updated ${pages.length} pages`);
 
+  // Coin packages (spec mục 2 — gói xu). Idempotent by name since the model
+  // has no unique constraint other than id.
+  console.log('\n🪙 Creating coin packages...');
+  const coinPackages = [
+    { name: 'Gói 50 xu', coinAmount: 50, priceVND: 10000, description: '50 xu' },
+    { name: 'Gói 250 xu', coinAmount: 250, priceVND: 50000, description: '250 xu' },
+    { name: 'Gói 500 xu', coinAmount: 500, priceVND: 100000, description: '500 xu' },
+    { name: 'Gói 1500 xu', coinAmount: 1500, priceVND: 200000, description: '1500 xu' },
+  ];
+  for (const pkg of coinPackages) {
+    const existing = await prisma.coinPackage.findFirst({ where: { name: pkg.name } });
+    if (existing) {
+      await prisma.coinPackage.update({
+        where: { id: existing.id },
+        data: { ...pkg, isActive: true },
+      });
+    } else {
+      await prisma.coinPackage.create({ data: { ...pkg, isActive: true } });
+    }
+  }
+  console.log(`✅ Created/updated ${coinPackages.length} coin packages`);
+
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('\n✨ Seed completed successfully!');
 }
