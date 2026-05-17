@@ -33,6 +33,7 @@ export default function AdminSettingsPage() {
         siteThreads: '',
         requireEmailVerification: false,
         donationPlatformFeePercent: 2,
+        allowCoinTransfer: false,
     });
 
     const logoInputRef = useRef<HTMLInputElement>(null);
@@ -58,6 +59,7 @@ export default function AdminSettingsPage() {
                 siteThreads: settings.siteThreads || '',
                 requireEmailVerification: settings.requireEmailVerification || false,
                 donationPlatformFeePercent: settings.donationPlatformFeePercent ?? 2,
+                allowCoinTransfer: settings.allowCoinTransfer || false,
             });
         }
     }, [settings]);
@@ -406,6 +408,24 @@ export default function AdminSettingsPage() {
                                     type="checkbox"
                                     checked={formData.requireEmailVerification}
                                     onChange={(e) => setFormData({ ...formData, requireEmailVerification: e.target.checked })}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Cho phép chuyển xu giữa người dùng
+                                    </label>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        Khi bật: Người dùng có thể chuyển xu cho nhau (không mất phí)<br />
+                                        Khi tắt: Trang chuyển xu sẽ báo tính năng đang tắt
+                                    </p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.allowCoinTransfer}
+                                    onChange={(e) => setFormData({ ...formData, allowCoinTransfer: e.target.checked })}
                                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                 />
                             </div>

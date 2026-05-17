@@ -600,6 +600,8 @@ model Settings {
   donationPlatformFeePercent Int    @default(2)
   // Spec mục 17 — số xu tối thiểu tác giả được phép yêu cầu rút.
   minWithdrawalCoins       Int      @default(1000)
+  // Spec mục 2 — cho phép chuyển xu giữa user ("nếu cho phép"). Mặc định tắt.
+  allowCoinTransfer        Boolean  @default(false)
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 
@@ -707,6 +709,8 @@ model UserWallet {
   id        String   @id @default(cuid())
   userId    String   @unique
   balance   Int      @default(0)
+  // Admin fraud control (spec mục 2). Locked = không thể chi tiêu/chuyển/rút.
+  isLocked  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -792,6 +796,7 @@ enum TransactionType {
   BONUS
   DONATE_AUTHOR
   WITHDRAWAL
+  TRANSFER
 }
 
 enum WithdrawalStatus {

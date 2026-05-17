@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransactionType, WithdrawalStatus } from '@prisma/client';
@@ -166,6 +166,9 @@ export class WalletService {
         return this.prisma.$transaction(async (tx) => {
             // 1. Check sender balance
             const senderWallet = await tx.userWallet.findUnique({ where: { userId } });
+            if (senderWallet?.isLocked) {
+                throw new ForbiddenException('Ví của bạn đang bị khóa');
+            }
             if (!senderWallet || senderWallet.balance < amount) {
                 throw new BadRequestException('Số dư không đủ để ủng hộ');
             }
@@ -284,6 +287,9 @@ export class WalletService {
 
             // 2. Check buyer balance.
             const buyerWallet = await tx.userWallet.findUnique({ where: { userId: buyerId } });
+            if (buyerWallet?.isLocked) {
+                throw new ForbiddenException('Ví của bạn đang bị khóa');
+            }
             if (!buyerWallet || buyerWallet.balance < chapter.price) {
                 throw new BadRequestException('Số dư không đủ để mua chương này');
             }
@@ -388,6 +394,9 @@ export class WalletService {
             }
 
             const buyerWallet = await tx.userWallet.findUnique({ where: { userId: buyerId } });
+            if (buyerWallet?.isLocked) {
+                throw new ForbiddenException('Ví của bạn đang bị khóa');
+            }
             if (!buyerWallet || buyerWallet.balance < story.price) {
                 throw new BadRequestException('Số dư không đủ để mua truyện này');
             }
@@ -743,6 +752,9 @@ export class WalletService {
 
         return this.prisma.$transaction(async (tx) => {
             const wallet = await tx.userWallet.findUnique({ where: { userId } });
+            if (wallet?.isLocked) {
+                throw new ForbiddenException('Ví của bạn đang bị khóa');
+            }
             if (!wallet || wallet.balance < amount) {
                 throw new BadRequestException('Số dư không đủ để rút');
             }
@@ -842,5 +854,130 @@ export class WalletService {
                 },
             });
         });
+    }
+
+    // --- Coin transfer (spec mục 2) ---
+
+    /** Whether user-to-user transfer is enabled (Settings, default off). */
+    private async isTransferEnabled(): Promise<boolean> {
+        try {
+            const s = await this.prisma.settings.findFirst({
+                select: { allowCoinTransfer: true },
+            });
+            return !!s?.allowCoinTransfer;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Transfer coins user → user. No platform fee (spec mục 17 fee table does
+     * not include transfers). Gated by Settings.allowCoinTransfer. Recipient
+     * resolved by username or email. Atomic; sender wallet must not be locked.
+     */
+    async transferCoins(
+        senderId: string,
+        recipientIdentifier: string,
+        amount: number,
+        message?: string,
+    ) {
+        if (!(await this.isTransferEnabled())) {
+            throw new ForbiddenException('Tính năng chuyển xu hiện đang tắt');
+        }
+        if (!Number.isInteger(amount) || amount <= 0) {
+            throw new BadRequestException('Số xu chuyển phải là số nguyên dương');
+        }
+        const ident = recipientIdentifier?.trim();
+        if (!ident) throw new BadRequestException('Vui lòng nhập người nhận');
+
+        const recipient = await this.prisma.user.findFirst({
+            where: { OR: [{ username: ident }, { email: ident.toLowerCase() }] },
+            select: { id: true, username: true, displayName: true },
+        });
+        if (!recipient) throw new NotFoundException('Không tìm thấy người nhận');
+        if (recipient.id === senderId) {
+            throw new BadRequestException('Không thể chuyển xu cho chính mình');
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            const senderWallet = await tx.userWallet.findUnique({ where: { userId: senderId } });
+            if (senderWallet?.isLocked) {
+                throw new ForbiddenException('Ví của bạn đang bị khóa');
+            }
+            if (!senderWallet || senderWallet.balance < amount) {
+                throw new BadRequestException('Số dư không đủ để chuyển');
+            }
+
+            const updatedSender = await tx.userWallet.update({
+                where: { userId: senderId },
+                data: { balance: { decrement: amount } },
+            });
+
+            const recipientWallet = await tx.userWallet.upsert({
+                where: { userId: recipient.id },
+                update: { balance: { increment: amount } },
+                create: { userId: recipient.id, balance: amount },
+            });
+
+            const note = message?.trim() ? ` — "${message.trim()}"` : '';
+            await tx.coinTransaction.create({
+                data: {
+                    walletId: updatedSender.id,
+                    amount: -amount,
+                    type: TransactionType.TRANSFER,
+                    description: `Chuyển ${amount} xu cho ${recipient.displayName || recipient.username}${note}`,
+                    referenceId: recipient.id,
+                },
+            });
+            await tx.coinTransaction.create({
+                data: {
+                    walletId: recipientWallet.id,
+                    amount,
+                    type: TransactionType.TRANSFER,
+                    description: `Nhận ${amount} xu từ chuyển khoản${note}`,
+                    referenceId: senderId,
+                },
+            });
+
+            return {
+                success: true,
+                newBalance: updatedSender.balance,
+                recipient: { id: recipient.id, username: recipient.username, displayName: recipient.displayName },
+            };
+        });
+    }
+
+    // --- Admin wallet lock (spec mục 2 — chống gian lận) ---
+
+    /** Resolve a user by id, username or email (admin convenience). */
+    private async resolveUser(identifier: string) {
+        const ident = identifier?.trim();
+        if (!ident) throw new BadRequestException('Thiếu định danh người dùng');
+        const user = await this.prisma.user.findFirst({
+            where: { OR: [{ id: ident }, { username: ident }, { email: ident.toLowerCase() }] },
+            select: { id: true, username: true, displayName: true, email: true },
+        });
+        if (!user) throw new NotFoundException('Không tìm thấy người dùng');
+        return user;
+    }
+
+    async setWalletLock(identifier: string, locked: boolean) {
+        const user = await this.resolveUser(identifier);
+        const wallet = await this.prisma.userWallet.upsert({
+            where: { userId: user.id },
+            update: { isLocked: locked },
+            create: { userId: user.id, isLocked: locked },
+        });
+        return { user, isLocked: wallet.isLocked, balance: wallet.balance };
+    }
+
+    async getWalletByUserId(identifier: string) {
+        const user = await this.resolveUser(identifier);
+        const wallet = await this.prisma.userWallet.findUnique({ where: { userId: user.id } });
+        return {
+            user,
+            balance: wallet?.balance ?? 0,
+            isLocked: wallet?.isLocked ?? false,
+        };
     }
 }

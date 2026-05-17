@@ -95,4 +95,15 @@ export class UpdateSettingsDto {
   @Min(0)
   @Max(50)
   donationPlatformFeePercent?: number;
+
+  // Spec mục 2 — bật/tắt chuyển xu giữa user.
+  @IsOptional()
+  @IsBoolean()
+  allowCoinTransfer?: boolean;
+
+  // Spec mục 17 — số xu tối thiểu được rút.
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  minWithdrawalCoins?: number;
 }

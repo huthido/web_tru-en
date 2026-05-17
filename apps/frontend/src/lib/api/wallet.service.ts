@@ -69,6 +69,12 @@ export interface RequestWithdrawalPayload {
     bankAccountName: string;
 }
 
+export interface AdminWalletInfo {
+    user: { id: string; username: string; displayName: string | null; email: string };
+    balance: number;
+    isLocked: boolean;
+}
+
 // Author-only: real earnings breakdown including platform fee.
 export interface MyDonationEarnings {
     totalGross: number;
@@ -201,6 +207,26 @@ export const WalletService = {
     getMyTodayEarnings: async (): Promise<MyTodayEarnings> => {
         const response = await apiClient.get<MyTodayEarnings>('/wallet/today-earnings/me');
         return response.data.data || response.data as any;
+    },
+
+    // --- Coin transfer (spec mục 2) ---
+    transferCoins: async (data: { recipient: string; amount: number; message?: string }) => {
+        const response = await apiClient.post('/wallet/transfer', data);
+        return response.data.data || response.data;
+    },
+
+    // --- Admin wallet lock (spec mục 2) ---
+    adminGetWallet: async (identifier: string): Promise<AdminWalletInfo> => {
+        const response = await apiClient.get<AdminWalletInfo>(`/admin/wallets/${encodeURIComponent(identifier)}`);
+        return (response.data as any).data || (response.data as any);
+    },
+
+    adminSetWalletLock: async (identifier: string, locked: boolean): Promise<AdminWalletInfo> => {
+        const response = await apiClient.patch<AdminWalletInfo>(
+            `/admin/wallets/${encodeURIComponent(identifier)}/lock`,
+            { locked },
+        );
+        return (response.data as any).data || (response.data as any);
     },
 
     // --- Withdrawals (spec mục 17) ---

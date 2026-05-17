@@ -117,4 +117,16 @@ export class WalletController {
         const user = req.user as User;
         return this.walletService.listMyWithdrawals(user.id);
     }
+
+    // --- Coin transfer (spec mục 2) ---
+
+    @Post('transfer')
+    @UseGuards(JwtAuthGuard)
+    async transferCoins(
+        @Request() req: any,
+        @Body() body: { recipient: string; amount: number; message?: string },
+    ) {
+        const user = req.user as User;
+        return this.walletService.transferCoins(user.id, body.recipient, body.amount, body.message);
+    }
 }
