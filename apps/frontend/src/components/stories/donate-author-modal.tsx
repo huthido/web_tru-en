@@ -255,6 +255,35 @@ export function DonateAuthorModal({
                                 </>
                             )}
 
+                            {/* Top donors this week (spec mục 3) */}
+                            {donationStats?.topDonorsWeek && donationStats.topDonorsWeek.length > 0 && (
+                                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                                        🏆 Top ủng hộ tuần này
+                                    </h4>
+                                    <div className="space-y-2">
+                                        {donationStats.topDonorsWeek.map((d, i) => (
+                                            <div
+                                                key={d.user?.id || i}
+                                                className="flex items-center justify-between text-sm bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-2"
+                                            >
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <span className="w-5 text-center font-bold text-amber-600 dark:text-amber-400 flex-shrink-0">
+                                                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+                                                    </span>
+                                                    <span className="text-gray-700 dark:text-gray-300 truncate">
+                                                        {d.user?.displayName || d.user?.username || 'Ẩn danh'}
+                                                    </span>
+                                                </div>
+                                                <span className="text-amber-600 dark:text-amber-400 font-semibold flex-shrink-0 ml-2">
+                                                    {d.amount.toLocaleString('vi-VN')} 🪙
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Donation Stats */}
                             {donationStats && donationStats.donationCount > 0 && (
                                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">

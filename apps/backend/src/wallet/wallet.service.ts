@@ -1,7 +1,9 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { TransactionType } from '@prisma/client';
+import { TransactionType, WithdrawalStatus } from '@prisma/client';
+
+const DEFAULT_MIN_WITHDRAWAL_COINS = 1000;
 
 /**
  * Hard default if both Settings DB row and env var are missing.
@@ -449,7 +451,13 @@ export class WalletService {
      * since they paid the gross amount).
      */
     async getAuthorDonationStats(authorId: string) {
-        const [aggregate, donationCount, recentDonors] = await Promise.all([
+        // Start of the current ISO-ish week (Monday 00:00 local).
+        const weekStart = new Date();
+        const day = (weekStart.getDay() + 6) % 7; // Mon=0 … Sun=6
+        weekStart.setDate(weekStart.getDate() - day);
+        weekStart.setHours(0, 0, 0, 0);
+
+        const [aggregate, donationCount, recentDonors, weekGrouped] = await Promise.all([
             this.prisma.authorDonation.aggregate({
                 where: { authorId },
                 _sum: { amount: true }, // gross only
@@ -467,7 +475,27 @@ export class WalletService {
                     },
                 },
             }),
+            this.prisma.authorDonation.groupBy({
+                by: ['userId'],
+                where: { authorId, createdAt: { gte: weekStart } },
+                _sum: { amount: true },
+                orderBy: { _sum: { amount: 'desc' } },
+                take: 5,
+            }),
         ]);
+
+        // Resolve user info for the weekly top donors.
+        const topUsers = weekGrouped.length
+            ? await this.prisma.user.findMany({
+                where: { id: { in: weekGrouped.map(g => g.userId) } },
+                select: { id: true, username: true, displayName: true, avatar: true },
+            })
+            : [];
+        const userMap = new Map(topUsers.map(u => [u.id, u]));
+        const topDonorsWeek = weekGrouped.map(g => ({
+            amount: g._sum.amount || 0, // gross total this week
+            user: userMap.get(g.userId) || null,
+        }));
 
         return {
             totalCoins: aggregate._sum.amount || 0, // gross — donor view
@@ -479,6 +507,7 @@ export class WalletService {
                 createdAt: d.createdAt,
                 user: d.user,
             })),
+            topDonorsWeek,
         };
     }
 
@@ -672,5 +701,146 @@ export class WalletService {
                 storySales: storySales._count,
             },
         };
+    }
+
+    /** Min coins an author may withdraw (Settings, fallback constant). */
+    private async getMinWithdrawalCoins(): Promise<number> {
+        try {
+            const s = await this.prisma.settings.findFirst({
+                select: { minWithdrawalCoins: true },
+            });
+            if (s?.minWithdrawalCoins != null) return s.minWithdrawalCoins;
+        } catch (err: any) {
+            this.logger.warn(`minWithdrawalCoins read failed: ${err.message}`);
+        }
+        return DEFAULT_MIN_WITHDRAWAL_COINS;
+    }
+
+    /**
+     * Create a withdrawal request (spec mục 17). Coins are HELD immediately:
+     * the wallet is debited and a WITHDRAWAL transaction recorded inside one
+     * transaction. Rejection later refunds. This prevents the author from
+     * spending coins that are pending payout.
+     */
+    async requestWithdrawal(
+        userId: string,
+        amount: number,
+        bank: { bankName: string; bankAccountNumber: string; bankAccountName: string },
+    ) {
+        if (!Number.isInteger(amount) || amount <= 0) {
+            throw new BadRequestException('Số xu rút phải là số nguyên dương');
+        }
+        const min = await this.getMinWithdrawalCoins();
+        if (amount < min) {
+            throw new BadRequestException(`Số xu rút tối thiểu là ${min}`);
+        }
+        const bankName = bank.bankName?.trim();
+        const bankAccountNumber = bank.bankAccountNumber?.trim();
+        const bankAccountName = bank.bankAccountName?.trim();
+        if (!bankName || !bankAccountNumber || !bankAccountName) {
+            throw new BadRequestException('Vui lòng nhập đầy đủ thông tin ngân hàng');
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            const wallet = await tx.userWallet.findUnique({ where: { userId } });
+            if (!wallet || wallet.balance < amount) {
+                throw new BadRequestException('Số dư không đủ để rút');
+            }
+
+            const updated = await tx.userWallet.update({
+                where: { userId },
+                data: { balance: { decrement: amount } },
+            });
+
+            await tx.coinTransaction.create({
+                data: {
+                    walletId: updated.id,
+                    amount: -amount,
+                    type: TransactionType.WITHDRAWAL,
+                    description: `Yêu cầu rút ${amount} xu (đang chờ duyệt)`,
+                },
+            });
+
+            const request = await tx.withdrawalRequest.create({
+                data: {
+                    userId,
+                    amount,
+                    bankName,
+                    bankAccountNumber,
+                    bankAccountName,
+                },
+            });
+
+            return { request, newBalance: updated.balance };
+        });
+    }
+
+    /** Author's own withdrawal history. */
+    async listMyWithdrawals(userId: string) {
+        return this.prisma.withdrawalRequest.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            take: 50,
+        });
+    }
+
+    /** Admin: list withdrawal requests, optionally filtered by status. */
+    async listWithdrawals(status?: WithdrawalStatus) {
+        return this.prisma.withdrawalRequest.findMany({
+            where: status ? { status } : undefined,
+            orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+            take: 200,
+            include: {
+                user: { select: { id: true, username: true, displayName: true, email: true } },
+            },
+        });
+    }
+
+    /**
+     * Admin processes a request. APPROVE = payout done (coins already held, no
+     * further wallet change). REJECT = refund the held coins back to the wallet.
+     * Idempotent on already-processed requests.
+     */
+    async processWithdrawal(
+        adminId: string,
+        requestId: string,
+        action: 'APPROVE' | 'REJECT',
+        note?: string,
+    ) {
+        return this.prisma.$transaction(async (tx) => {
+            const req = await tx.withdrawalRequest.findUnique({ where: { id: requestId } });
+            if (!req) throw new NotFoundException('Không tìm thấy yêu cầu rút');
+            if (req.status !== WithdrawalStatus.PENDING) {
+                throw new BadRequestException('Yêu cầu này đã được xử lý');
+            }
+
+            if (action === 'REJECT') {
+                // Refund the held coins.
+                const wallet = await tx.userWallet.upsert({
+                    where: { userId: req.userId },
+                    update: { balance: { increment: req.amount } },
+                    create: { userId: req.userId, balance: req.amount },
+                });
+                await tx.coinTransaction.create({
+                    data: {
+                        walletId: wallet.id,
+                        amount: req.amount,
+                        type: TransactionType.REFUND,
+                        description: `Hoàn ${req.amount} xu — yêu cầu rút bị từ chối`,
+                        referenceId: req.id,
+                    },
+                });
+            }
+
+            return tx.withdrawalRequest.update({
+                where: { id: req.id },
+                data: {
+                    status: action === 'APPROVE' ? WithdrawalStatus.APPROVED : WithdrawalStatus.REJECTED,
+                    note: note?.trim() || null,
+                    processedById: adminId,
+                    processedAt: new Date(),
+                },
+            });
+        });
     }
 }
