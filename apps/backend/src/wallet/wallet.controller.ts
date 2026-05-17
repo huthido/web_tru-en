@@ -83,4 +83,15 @@ export class WalletController {
         const user = req.user as User;
         return this.walletService.getMyStorySales(user.id);
     }
+
+    /**
+     * Author-facing today's net revenue across all sources.
+     *   GET /api/wallet/today-earnings/me
+     */
+    @Get('today-earnings/me')
+    @UseGuards(JwtAuthGuard)
+    async getMyTodayEarnings(@Request() req: any) {
+        const user = req.user as User;
+        return this.walletService.getMyTodayEarnings(user.id);
+    }
 }

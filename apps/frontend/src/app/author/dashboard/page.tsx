@@ -19,6 +19,7 @@ import { BookOpen, Eye, Star, Edit, Trash2, Send, LayoutGrid, List } from 'lucid
 import { DonationEarningsCard } from '@/components/author/donation-earnings-card';
 import { ChapterSalesEarningsCard } from '@/components/author/chapter-sales-card';
 import { StorySalesEarningsCard } from '@/components/author/story-sales-card';
+import { TodayEarningsCard } from '@/components/author/today-earnings-card';
 
 export default function AuthorDashboardPage() {
     const router = useRouter();
@@ -200,6 +201,9 @@ export default function AuthorDashboardPage() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Today's revenue across all sources */}
+                        <TodayEarningsCard />
 
                         {/* Donation earnings — author-only revenue breakdown */}
                         <DonationEarningsCard />

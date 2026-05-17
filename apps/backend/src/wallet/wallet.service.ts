@@ -626,4 +626,51 @@ export class WalletService {
             })),
         };
     }
+
+    /**
+     * Author-facing "doanh thu hôm nay" (spec mục 17 dashboard). Sums the NET
+     * coins the author earned since local midnight across all revenue sources:
+     * donations + chapter sales + VIP story sales.
+     *   GET /api/wallet/today-earnings/me
+     */
+    async getMyTodayEarnings(authorId: string) {
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const createdAt = { gte: start };
+
+        const [donations, chapterSales, storySales] = await Promise.all([
+            this.prisma.authorDonation.aggregate({
+                where: { authorId, createdAt },
+                _sum: { netAmount: true },
+                _count: true,
+            }),
+            this.prisma.chapterPurchase.aggregate({
+                where: { chapter: { story: { authorId } }, createdAt },
+                _sum: { netAmount: true },
+                _count: true,
+            }),
+            this.prisma.storyPurchase.aggregate({
+                where: { story: { authorId }, createdAt },
+                _sum: { netAmount: true },
+                _count: true,
+            }),
+        ]);
+
+        const donationNet = donations._sum.netAmount || 0;
+        const chapterNet = chapterSales._sum.netAmount || 0;
+        const storyNet = storySales._sum.netAmount || 0;
+
+        return {
+            date: start.toISOString(),
+            donationNet,
+            chapterNet,
+            storyNet,
+            total: donationNet + chapterNet + storyNet,
+            counts: {
+                donations: donations._count,
+                chapterSales: chapterSales._count,
+                storySales: storySales._count,
+            },
+        };
+    }
 }

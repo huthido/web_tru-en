@@ -109,6 +109,20 @@ export interface MyStorySales {
     }[];
 }
 
+// Author-only: today's net revenue across donations + chapter + story sales.
+export interface MyTodayEarnings {
+    date: string;
+    donationNet: number;
+    chapterNet: number;
+    storyNet: number;
+    total: number;
+    counts: {
+        donations: number;
+        chapterSales: number;
+        storySales: number;
+    };
+}
+
 export const WalletService = {
     getBalance: async (): Promise<WalletBalance> => {
         const response = await apiClient.get<WalletBalance>('/wallet/balance');
@@ -144,6 +158,11 @@ export const WalletService = {
 
     getMyStorySales: async (): Promise<MyStorySales> => {
         const response = await apiClient.get<MyStorySales>('/wallet/story-sales/me');
+        return response.data.data || response.data as any;
+    },
+
+    getMyTodayEarnings: async (): Promise<MyTodayEarnings> => {
+        const response = await apiClient.get<MyTodayEarnings>('/wallet/today-earnings/me');
         return response.data.data || response.data as any;
     },
 };
