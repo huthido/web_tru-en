@@ -347,6 +347,102 @@ export class WalletService {
     }
 
     /**
+     * Buy a whole VIP story (Transactional). Same economics as payForChapter
+     * (buyer pays gross, author gets net, platform keeps fee) but a single
+     * StoryPurchase row unlocks every chapter of the story. Idempotent.
+     */
+    async payForStory(
+        buyerId: string,
+        authorId: string,
+        story: { id: string; title: string; price: number },
+    ) {
+        if (!Number.isInteger(story.price) || story.price <= 0) {
+            throw new BadRequestException('Truyện này không bán bằng coin');
+        }
+        if (buyerId === authorId) {
+            throw new BadRequestException('Bạn không thể mua truyện của chính mình');
+        }
+
+        const feePercent = await this.getDonationFeePercent();
+        const { fee, net } = WalletService.splitDonation(story.price, feePercent);
+        if (net <= 0) {
+            const minPrice = WalletService.minNetPrice(feePercent);
+            throw new BadRequestException(
+                `Giá truyện quá thấp; tối thiểu phải là ${minPrice} coin`,
+            );
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            const existing = await tx.storyPurchase.findUnique({
+                where: { userId_storyId: { userId: buyerId, storyId: story.id } },
+            });
+            if (existing) {
+                const wallet = await tx.userWallet.findUnique({ where: { userId: buyerId } });
+                return {
+                    alreadyOwned: true,
+                    newBalance: wallet?.balance ?? 0,
+                    pricePaid: existing.pricePaid,
+                };
+            }
+
+            const buyerWallet = await tx.userWallet.findUnique({ where: { userId: buyerId } });
+            if (!buyerWallet || buyerWallet.balance < story.price) {
+                throw new BadRequestException('Số dư không đủ để mua truyện này');
+            }
+
+            const updatedBuyerWallet = await tx.userWallet.update({
+                where: { userId: buyerId },
+                data: { balance: { decrement: story.price } },
+            });
+
+            const authorWallet = await tx.userWallet.upsert({
+                where: { userId: authorId },
+                update: { balance: { increment: net } },
+                create: { userId: authorId, balance: net },
+            });
+
+            await tx.coinTransaction.create({
+                data: {
+                    walletId: updatedBuyerWallet.id,
+                    amount: -story.price,
+                    type: TransactionType.PURCHASE_STORY,
+                    description: `Mua truyện VIP: ${story.title}`,
+                    referenceId: story.id,
+                },
+            });
+
+            const feeNote = fee > 0
+                ? ` (đã trừ ${fee} coin phí nền tảng ${feePercent}%)`
+                : '';
+            await tx.coinTransaction.create({
+                data: {
+                    walletId: authorWallet.id,
+                    amount: net,
+                    type: TransactionType.PURCHASE_STORY,
+                    description: `Bán truyện "${story.title}": +${net} coin${feeNote}`,
+                    referenceId: buyerId,
+                },
+            });
+
+            await tx.storyPurchase.create({
+                data: {
+                    userId: buyerId,
+                    storyId: story.id,
+                    pricePaid: story.price,
+                    platformFee: fee,
+                    netAmount: net,
+                },
+            });
+
+            return {
+                alreadyOwned: false,
+                newBalance: updatedBuyerWallet.balance,
+                pricePaid: story.price,
+            };
+        });
+    }
+
+    /**
      * Donor-facing stats for an author profile page.
      * PUBLIC — does NOT expose the platform fee. From the public's perspective
      * every coin donated went to the author (which is true from the donor side
@@ -479,6 +575,54 @@ export class WalletService {
                 createdAt: s.createdAt,
                 user: s.user,
                 chapter: s.chapter,
+            })),
+        };
+    }
+
+    /**
+     * Author-facing VIP story-sales earnings. Same shape as getMyChapterSales
+     * but sourced from StoryPurchase (filtered by the story's author).
+     *   GET /api/wallet/story-sales/me
+     */
+    async getMyStorySales(authorId: string) {
+        const where = { story: { authorId } };
+
+        const [aggregate, salesCount, recent, currentFeePercent] = await Promise.all([
+            this.prisma.storyPurchase.aggregate({
+                where,
+                _sum: { pricePaid: true, netAmount: true, platformFee: true },
+            }),
+            this.prisma.storyPurchase.count({ where }),
+            this.prisma.storyPurchase.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                take: 20,
+                include: {
+                    user: {
+                        select: { id: true, username: true, displayName: true, avatar: true },
+                    },
+                    story: {
+                        select: { id: true, title: true, slug: true },
+                    },
+                },
+            }),
+            this.getDonationFeePercent(),
+        ]);
+
+        return {
+            totalGross: aggregate._sum.pricePaid || 0,
+            totalNet: aggregate._sum.netAmount || 0,
+            totalPlatformFee: aggregate._sum.platformFee || 0,
+            platformFeePercent: currentFeePercent,
+            salesCount,
+            sales: recent.map(s => ({
+                id: s.id,
+                amount: s.pricePaid,
+                netAmount: s.netAmount,
+                platformFee: s.platformFee,
+                createdAt: s.createdAt,
+                user: s.user,
+                story: s.story,
             })),
         };
     }

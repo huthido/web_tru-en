@@ -82,6 +82,33 @@ export interface MyChapterSales {
     }[];
 }
 
+// Author-only: VIP story-sales earnings breakdown including platform fee.
+export interface MyStorySales {
+    totalGross: number;
+    totalNet: number;
+    totalPlatformFee: number;
+    platformFeePercent: number;
+    salesCount: number;
+    sales: {
+        id: string;
+        amount: number;
+        netAmount: number;
+        platformFee: number;
+        createdAt: string;
+        user: {
+            id: string;
+            username: string;
+            displayName: string | null;
+            avatar: string | null;
+        };
+        story: {
+            id: string;
+            title: string;
+            slug: string;
+        };
+    }[];
+}
+
 export const WalletService = {
     getBalance: async (): Promise<WalletBalance> => {
         const response = await apiClient.get<WalletBalance>('/wallet/balance');
@@ -112,6 +139,11 @@ export const WalletService = {
     // Author-only — chapter-sales revenue breakdown including platform fee.
     getMyChapterSales: async (): Promise<MyChapterSales> => {
         const response = await apiClient.get<MyChapterSales>('/wallet/chapter-sales/me');
+        return response.data.data || response.data as any;
+    },
+
+    getMyStorySales: async (): Promise<MyStorySales> => {
+        const response = await apiClient.get<MyStorySales>('/wallet/story-sales/me');
         return response.data.data || response.data as any;
     },
 };

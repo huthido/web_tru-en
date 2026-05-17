@@ -40,6 +40,30 @@ export const useStory = (slug: string) => {
     });
 };
 
+export const useStoryAccess = (slug: string, enabled: boolean = true) => {
+    return useQuery({
+        queryKey: ['story', 'access', slug],
+        queryFn: () => storiesService.getAccessInfo(slug),
+        enabled: !!slug && enabled,
+        staleTime: 60 * 1000,
+    });
+};
+
+export const useBuyStory = (slug: string) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => storiesService.buy(slug),
+        onSuccess: async () => {
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['story', 'access', slug] }),
+                queryClient.invalidateQueries({ queryKey: ['story', slug] }),
+                queryClient.invalidateQueries({ queryKey: ['chapter', slug] }),
+                queryClient.invalidateQueries({ queryKey: ['wallet', 'balance'] }),
+            ]);
+        },
+    });
+};
+
 export const useSimilarStories = (storyId: string, limit: number = 10) => {
     return useQuery<Story[]>({
         queryKey: ['stories', 'similar', storyId, limit],

@@ -71,6 +71,10 @@ export default function ChapterReadingPage() {
 
     // Extract chapter data
     const chapterData = (chapter as any)?.data || (chapter as any);
+    // Spec mục 4: FREEMIUM ẩn nhãn trả phí ở danh sách chương.
+    const storyAccessType = (story as any)?.data?.accessType || (story as any)?.accessType
+        || chapterData?.accessType;
+    const hidePaidLabels = storyAccessType === 'FREEMIUM';
 
     // Reading history hooks (must be after chapterData is defined)
     const saveProgress = useSaveProgress();
@@ -818,7 +822,7 @@ export default function ChapterReadingPage() {
                                                             >
                                                                 <span className="flex items-center justify-between gap-2">
                                                                     <span className="truncate">{ch.title || `Chương ${ch.order || (index + 1)}`}</span>
-                                                                    {ch.price > 0 && (
+                                                                    {!hidePaidLabels && ch.price > 0 && (
                                                                         <span className={`flex-shrink-0 inline-flex items-center gap-0.5 text-[11px] ${isActive ? 'text-amber-100' : 'text-amber-600 dark:text-amber-400'}`} title={`${ch.price} coin`}>
                                                                             <Lock size={11} />
                                                                             {ch.price}
@@ -865,7 +869,9 @@ export default function ChapterReadingPage() {
                                                     chapterSlug={chapterSlug}
                                                     chapterId={chapterData.id}
                                                     title={chapterData.title}
-                                                    price={chapterData.price}
+                                                    storyTitle={(story as any)?.data?.title || (story as any)?.title}
+                                                    price={chapterData.lockPrice ?? chapterData.price}
+                                                    lockType={chapterData.lockType === 'STORY' ? 'STORY' : 'CHAPTER'}
                                                     preview={chapterData.content}
                                                 />
                                             ) : (

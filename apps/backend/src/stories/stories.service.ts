@@ -17,13 +17,116 @@ import { buildSearchConditions } from '../common/utils/search.util';
 import { storyInclude, storyWithChaptersInclude, safeStorySelect } from '../prisma/prisma.helpers';
 import { StoryStatus, UserRole } from '@prisma/client';
 import { SearchIndexerService } from '../search/search-indexer.service';
+import { WalletService } from '../wallet/wallet.service';
 
 @Injectable()
 export class StoriesService {
   constructor(
     private prisma: PrismaService,
     private searchIndexer: SearchIndexerService,
+    private walletService: WalletService,
   ) { }
+
+  /**
+   * Buy a VIP whole-story (accessType=VIP). Mirrors ChaptersService.buyChapter:
+   * validates the story is sellable, blocks self-purchase, delegates the
+   * atomic money movement to WalletService.payForStory.
+   */
+  async buyStory(userId: string, slugOrId: string) {
+    const story = await this.prisma.story.findFirst({
+      where: { OR: [{ slug: slugOrId }, { id: slugOrId }] },
+      select: { id: true, title: true, price: true, accessType: true, authorId: true },
+    });
+
+    if (!story) {
+      throw new NotFoundException('Truyện không tồn tại');
+    }
+    if (story.accessType !== 'VIP' || story.price <= 0) {
+      return { success: true, message: 'Truyện này không bán theo gói VIP' };
+    }
+    if (story.authorId === userId) {
+      return { success: true, message: 'Bạn là tác giả, truyện này đã mở' };
+    }
+
+    const result = await this.walletService.payForStory(
+      userId,
+      story.authorId,
+      { id: story.id, title: story.title, price: story.price },
+    );
+
+    return {
+      success: true,
+      message: result.alreadyOwned
+        ? 'Bạn đã mua truyện này rồi'
+        : 'Mua truyện thành công',
+      newBalance: result.newBalance,
+      alreadyOwned: result.alreadyOwned,
+    };
+  }
+
+  /**
+   * Lightweight access info for the story-detail VIP paywall. Public — works
+   * for anonymous users too (purchased=false). Kept separate from findOne so
+   * its many return paths stay untouched.
+   */
+  async getAccessInfo(slugOrId: string, userId?: string) {
+    const story = await this.prisma.story.findFirst({
+      where: { OR: [{ slug: slugOrId }, { id: slugOrId }] },
+      select: { id: true, title: true, accessType: true, price: true, authorId: true },
+    });
+    if (!story) {
+      throw new NotFoundException('Truyện không tồn tại');
+    }
+
+    let purchased = false;
+    let privileged = false;
+    if (userId) {
+      privileged = story.authorId === userId;
+      if (!privileged) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (user?.role === UserRole.ADMIN) privileged = true;
+      }
+      if (story.accessType === 'VIP') {
+        const p = await this.prisma.storyPurchase.findUnique({
+          where: { userId_storyId: { userId, storyId: story.id } },
+        });
+        purchased = !!p;
+      }
+    }
+
+    // canRead = không bị khóa ở mức truyện (FREEMIUM vẫn khóa ở mức chương riêng).
+    const vipLocked = story.accessType === 'VIP' && story.price > 0 && !purchased && !privileged;
+    return {
+      accessType: story.accessType,
+      price: story.price,
+      purchased,
+      privileged,
+      canRead: !vipLocked,
+    };
+  }
+
+  /**
+   * Validate the access type / price combo when an author sets it.
+   * VIP requires a price the platform fee won't zero out. FREE/FREEMIUM
+   * ignore the story-level price (FREEMIUM prices are per-chapter).
+   */
+  private async validateStoryAccess(accessType?: string, price?: number) {
+    if (accessType !== 'VIP') return;
+    const p = price ?? 0;
+    if (p <= 0) {
+      throw new BadRequestException(
+        'Truyện VIP phải có giá > 0 coin (hoặc đổi sang FREE/FREEMIUM).',
+      );
+    }
+    const feePercent = await this.walletService.getDonationFeePercent();
+    const { net } = WalletService.splitDonation(p, feePercent);
+    if (net <= 0) {
+      const minPrice = WalletService.minNetPrice(feePercent);
+      throw new BadRequestException(
+        `Giá truyện quá thấp (phí nền tảng ${feePercent}% sẽ ăn hết). Tối thiểu ${minPrice} coin.`,
+      );
+    }
+  }
 
   // Rate limiting check for all users
   private async checkRateLimits(userId: string, userRole: UserRole) {
@@ -340,6 +443,8 @@ export class StoriesService {
       throw new NotFoundException('User không tồn tại');
     }
 
+    await this.validateStoryAccess(createStoryDto.accessType, createStoryDto.price);
+
     // Create story
     let story;
     try {
@@ -355,6 +460,8 @@ export class StoriesService {
           isPublished: false,
           country: createStoryDto.country,
           tags: createStoryDto.tags || [],
+          accessType: createStoryDto.accessType ?? undefined,
+          price: createStoryDto.price ?? undefined,
         },
         include: storyInclude,
       });
@@ -373,6 +480,8 @@ export class StoriesService {
             isPublished: false,
             country: createStoryDto.country,
             tags: createStoryDto.tags || [],
+            accessType: createStoryDto.accessType ?? undefined,
+            price: createStoryDto.price ?? undefined,
           },
           select: safeStorySelect,
         });
@@ -416,6 +525,8 @@ export class StoriesService {
         authorId: true,
         title: true,
         slug: true,
+        accessType: true,
+        price: true,
         storyCategories: {
           select: {
             categoryId: true,
@@ -473,6 +584,15 @@ export class StoriesService {
 
     if (updateStoryDto.tags !== undefined) {
       updateData.tags = updateStoryDto.tags;
+    }
+
+    if (updateStoryDto.accessType !== undefined || updateStoryDto.price !== undefined) {
+      // Validate against the EFFECTIVE combo (incoming value or current).
+      const effectiveType = updateStoryDto.accessType ?? story.accessType;
+      const effectivePrice = updateStoryDto.price ?? story.price;
+      await this.validateStoryAccess(effectiveType, effectivePrice);
+      if (updateStoryDto.accessType !== undefined) updateData.accessType = updateStoryDto.accessType;
+      if (updateStoryDto.price !== undefined) updateData.price = updateStoryDto.price;
     }
 
     // Handle isRecommended separately using raw SQL if column exists

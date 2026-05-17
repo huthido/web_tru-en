@@ -6,8 +6,10 @@ import {
   IsArray,
   IsEnum,
   IsBoolean,
+  IsInt,
+  Min,
 } from 'class-validator';
-import { StoryStatus } from '@prisma/client';
+import { StoryStatus, StoryAccessType } from '@prisma/client';
 
 export class UpdateStoryDto {
   @IsOptional()
@@ -50,5 +52,14 @@ export class UpdateStoryDto {
   @IsOptional()
   @IsBoolean()
   isRecommended?: boolean;
+
+  @IsOptional()
+  @IsEnum(StoryAccessType)
+  accessType?: StoryAccessType;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  price?: number;
 }
 

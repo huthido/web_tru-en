@@ -49,6 +49,7 @@ model User {
   createdNotifications    Notification[]           @relation("NotificationCreator")
   wallet                  UserWallet?
   chapterPurchases        ChapterPurchase[]
+  storyPurchases          StoryPurchase[]
   sentDonations           AuthorDonation[]         @relation("DonationSender")
   receivedDonations       AuthorDonation[]         @relation("DonationReceiver")
   uploadedImages          UserImage[]
@@ -71,6 +72,8 @@ model Story {
   authorId         String
   authorName       String?
   status           StoryStatus       @default(DRAFT)
+  accessType       StoryAccessType   @default(FREE) // Spec mục 4
+  price            Int               @default(0) // Coin price for VIP whole-story unlock (accessType=VIP)
   isPublished      Boolean           @default(false)
   viewCount        Int               @default(0)
   likeCount        Int               @default(0)
@@ -94,6 +97,7 @@ model Story {
   viewLogs         ViewLog[]
   approvalRequests ApprovalRequest[] @relation("StoryApprovals")
   readingHistory   ReadingHistory[]
+  storyPurchases   StoryPurchase[]
 
   @@index([slug])
   @@index([authorId])
@@ -393,6 +397,17 @@ enum StoryStatus {
   ARCHIVED
   ONGOING
   COMPLETED
+}
+
+// Spec mục 4 — loại truyện do tác giả tự chọn ("tuỳ chọn kích hoạt"):
+//  FREE     : ai cũng đọc, bỏ qua mọi giá.
+//  FREEMIUM : mua từng chương trả phí (Chapter.price); KHÔNG hiển thị nhãn trả
+//             phí ở danh sách (theo spec).
+//  VIP      : khóa toàn truyện, mua một lần (Story.price) mở hết chương.
+enum StoryAccessType {
+  FREE
+  FREEMIUM
+  VIP
 }
 
 enum ReportStatus {
@@ -744,9 +759,30 @@ model ChapterPurchase {
   @@map("chapter_purchases")
 }
 
+// VIP whole-story purchase (accessType=VIP). Mirrors ChapterPurchase: one
+// row unlocks every chapter of the story for the buyer.
+model StoryPurchase {
+  id          String   @id @default(cuid())
+  userId      String
+  storyId     String
+  pricePaid   Int // Gross coins paid by the buyer (= platformFee + netAmount)
+  platformFee Int      @default(0) // Coins kept by the platform
+  netAmount   Int      @default(0) // Coins credited to the author
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  story       Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, storyId])
+  @@index([userId])
+  @@index([storyId])
+  @@index([createdAt])
+  @@map("story_purchases")
+}
+
 enum TransactionType {
   DEPOSIT
   PURCHASE_CHAPTER
+  PURCHASE_STORY
   ADMIN_ADJUST
   REFUND
   BONUS

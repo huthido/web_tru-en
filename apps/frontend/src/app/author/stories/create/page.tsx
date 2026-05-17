@@ -24,6 +24,8 @@ export default function CreateStoryPage() {
         coverImage: '',
         categoryIds: [] as string[],
         country: 'VN',
+        accessType: 'FREE' as 'FREE' | 'FREEMIUM' | 'VIP',
+        price: 0,
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -92,6 +94,8 @@ export default function CreateStoryPage() {
                 categoryIds: formData.categoryIds.length > 0 ? formData.categoryIds : undefined,
                 tags: tags.length > 0 ? tags : undefined,
                 country: formData.country || undefined,
+                accessType: formData.accessType,
+                price: formData.accessType === 'VIP' ? Math.max(0, Math.floor(formData.price) || 0) : 0,
             });
 
             router.push('/author/dashboard');
@@ -253,6 +257,46 @@ export default function CreateStoryPage() {
                                         <option value="OTHER">Khác</option>
                                     </select>
                                 </div>
+
+                                {/* Access type (spec mục 4) */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Hình thức truyện
+                                    </label>
+                                    <select
+                                        value={formData.accessType}
+                                        onChange={(e) => setFormData({ ...formData, accessType: e.target.value as 'FREE' | 'FREEMIUM' | 'VIP' })}
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        <option value="FREE">Miễn phí — ai cũng đọc được</option>
+                                        <option value="FREEMIUM">Freemium — đặt giá coin từng chương ở trang chương</option>
+                                        <option value="VIP">VIP — mua một lần để mở khóa cả truyện</option>
+                                    </select>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                        FREEMIUM: vào từng chương để đặt giá; nhãn trả phí được ẩn với độc giả.
+                                        VIP: đặt giá cả truyện bên dưới.
+                                    </p>
+                                </div>
+
+                                {formData.accessType === 'VIP' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Giá mở khóa cả truyện (coin)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            step={1}
+                                            value={formData.price}
+                                            onChange={(e) => setFormData({ ...formData, price: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
+                                            className="w-full md:w-48 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="0"
+                                        />
+                                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                            Độc giả trả số coin này để đọc toàn bộ chương. Bạn nhận phần còn lại sau phí nền tảng.
+                                        </p>
+                                    </div>
+                                )}
 
                                 {/* Error Message */}
                                 {errors.submit && (

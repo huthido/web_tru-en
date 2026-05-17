@@ -74,7 +74,7 @@ export class ChaptersService {
         // Find story first
         const story = await this.prisma.story.findUnique({
             where: { slug: storySlug },
-            select: { id: true, authorId: true, isPublished: true },
+            select: { id: true, authorId: true, isPublished: true, accessType: true, price: true },
         });
 
         if (!story) {
@@ -111,34 +111,46 @@ export class ChaptersService {
             }
         }
 
-        // 2. Determine premium access (Price > 0). Instead of throwing, we
-        //    resolve a `hasAccess` flag so a locked chapter can return its
-        //    metadata + a short preview for the paywall UI.
+        // 2. Determine access by the story's accessType (spec mục 4). Instead
+        //    of throwing, resolve flags so a locked chapter can still return
+        //    metadata + a short teaser for the paywall UI.
+        //    - FREE     : never locked (chapter.price ignored).
+        //    - FREEMIUM : per-chapter (chapter.price > 0 + ChapterPurchase).
+        //    - VIP      : whole story; one StoryPurchase unlocks everything.
+        const isAuthor = !!userId && story.authorId === userId;
+        let privileged = isAuthor;
+        if (!privileged && userId) {
+            const user = await this.prisma.user.findUnique({ where: { id: userId } });
+            if (user && user.role === UserRole.ADMIN) privileged = true;
+        }
+
         let hasAccess = true;
-        if (chapter.price > 0) {
-            const isAuthor = userId && story.authorId === userId;
-            hasAccess = !!isAuthor;
+        let lockType: 'CHAPTER' | 'STORY' | null = null;
+        let lockPrice = 0;
 
-            if (!hasAccess && userId) {
-                const user = await this.prisma.user.findUnique({ where: { id: userId } });
-                if (user && user.role === UserRole.ADMIN) {
-                    hasAccess = true;
+        if (!privileged) {
+            if (story.accessType === 'VIP' && story.price > 0) {
+                lockType = 'STORY';
+                lockPrice = story.price;
+                hasAccess = false;
+                if (userId) {
+                    const purchase = await this.prisma.storyPurchase.findUnique({
+                        where: { userId_storyId: { userId, storyId: story.id } },
+                    });
+                    if (purchase) hasAccess = true;
+                }
+            } else if (story.accessType === 'FREEMIUM' && chapter.price > 0) {
+                lockType = 'CHAPTER';
+                lockPrice = chapter.price;
+                hasAccess = false;
+                if (userId) {
+                    const purchase = await this.prisma.chapterPurchase.findUnique({
+                        where: { userId_chapterId: { userId, chapterId: chapter.id } },
+                    });
+                    if (purchase) hasAccess = true;
                 }
             }
-
-            if (!hasAccess && userId) {
-                const purchase = await this.prisma.chapterPurchase.findUnique({
-                    where: {
-                        userId_chapterId: {
-                            userId,
-                            chapterId: chapter.id,
-                        },
-                    },
-                });
-                if (purchase) {
-                    hasAccess = true;
-                }
-            }
+            // FREE (or VIP/FREEMIUM with price 0) → hasAccess stays true.
         }
 
         // 3. Calculate word count and reading time if not set. Done on the FULL
@@ -157,7 +169,7 @@ export class ChaptersService {
             chapter.readingTime = readingTime;
         }
 
-        const isLocked = chapter.price > 0 && !hasAccess;
+        const isLocked = !hasAccess && lockType !== null;
 
         if (isLocked) {
             // Strip HTML and expose only a short teaser. Full content never
@@ -170,7 +182,13 @@ export class ChaptersService {
             chapter.content = preview + (plain.length > 300 ? '…' : '');
         }
 
-        return { ...chapter, isLocked };
+        return {
+            ...chapter,
+            isLocked,
+            lockType,          // 'CHAPTER' | 'STORY' | null
+            lockPrice,         // coin price to unlock (chapter or whole story)
+            accessType: story.accessType, // frontend hides paid labels for FREEMIUM
+        };
     }
 
     async create(storyIdOrSlug: string, userId: string, createChapterDto: CreateChapterDto) {
