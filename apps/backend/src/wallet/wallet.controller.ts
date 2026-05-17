@@ -60,4 +60,16 @@ export class WalletController {
         const user = req.user as User;
         return this.walletService.getMyDonationEarnings(user.id);
     }
+
+    /**
+     * Author-facing chapter-sales earnings (gross/net/fee).
+     * Auth required: only the logged-in user sees THEIR OWN sales.
+     *   GET /api/wallet/chapter-sales/me
+     */
+    @Get('chapter-sales/me')
+    @UseGuards(JwtAuthGuard)
+    async getMyChapterSales(@Request() req: any) {
+        const user = req.user as User;
+        return this.walletService.getMyChapterSales(user.id);
+    }
 }

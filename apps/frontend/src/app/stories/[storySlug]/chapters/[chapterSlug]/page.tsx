@@ -28,7 +28,8 @@ import {
     getVisitCount
 } from '@/utils/reading-tracker';
 import { useSaveProgress, useChapterProgress } from '@/lib/api/hooks/use-reading-history';
-import { BookOpen, Search, Menu, Type, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChapterPaywall } from '@/components/stories/chapter-paywall';
+import { BookOpen, Search, Menu, Type, ChevronLeft, ChevronRight, X, Lock } from 'lucide-react';
 
 export default function ChapterReadingPage() {
     const params = useParams();
@@ -815,7 +816,15 @@ export default function ChapterReadingPage() {
                                                                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                                                                     }`}
                                                             >
-                                                                {ch.title || `Chương ${ch.order || (index + 1)}`}
+                                                                <span className="flex items-center justify-between gap-2">
+                                                                    <span className="truncate">{ch.title || `Chương ${ch.order || (index + 1)}`}</span>
+                                                                    {ch.price > 0 && (
+                                                                        <span className={`flex-shrink-0 inline-flex items-center gap-0.5 text-[11px] ${isActive ? 'text-amber-100' : 'text-amber-600 dark:text-amber-400'}`} title={`${ch.price} coin`}>
+                                                                            <Lock size={11} />
+                                                                            {ch.price}
+                                                                        </span>
+                                                                    )}
+                                                                </span>
                                                             </Link>
                                                         );
                                                     })
@@ -850,7 +859,18 @@ export default function ChapterReadingPage() {
                                                 maxWidth: '100%',
                                             }}
                                         >
-                                            {contentWithAds}
+                                            {chapterData.isLocked ? (
+                                                <ChapterPaywall
+                                                    storySlug={storySlug}
+                                                    chapterSlug={chapterSlug}
+                                                    chapterId={chapterData.id}
+                                                    title={chapterData.title}
+                                                    price={chapterData.price}
+                                                    preview={chapterData.content}
+                                                />
+                                            ) : (
+                                                contentWithAds
+                                            )}
                                         </div>
                                     </div>
                                 </div>

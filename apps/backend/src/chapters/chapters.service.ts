@@ -23,6 +23,22 @@ export class ChaptersService {
         private walletService: WalletService
     ) { }
 
+    /**
+     * Reject a paid price so small that the platform fee would leave the
+     * author with 0 net coins. 0 (free) is always allowed. Uses the live fee %.
+     */
+    private async validateChapterPrice(price?: number) {
+        if (price === undefined || price <= 0) return;
+        const feePercent = await this.walletService.getDonationFeePercent();
+        const { net } = WalletService.splitDonation(price, feePercent);
+        if (net <= 0) {
+            const minPrice = WalletService.minNetPrice(feePercent);
+            throw new BadRequestException(
+                `Giá chương quá thấp (phí nền tảng ${feePercent}% sẽ ăn hết). Tối thiểu phải là ${minPrice} coin, hoặc để 0 cho miễn phí.`,
+            );
+        }
+    }
+
     async findAll(storyId: string, includeUnpublished: boolean = false) {
         const story = await this.prisma.story.findUnique({
             where: { id: storyId },
@@ -95,23 +111,22 @@ export class ChaptersService {
             }
         }
 
-        // 2. Check premium access (Price > 0)
+        // 2. Determine premium access (Price > 0). Instead of throwing, we
+        //    resolve a `hasAccess` flag so a locked chapter can return its
+        //    metadata + a short preview for the paywall UI.
+        let hasAccess = true;
         if (chapter.price > 0) {
             const isAuthor = userId && story.authorId === userId;
-            let isAllowed = isAuthor;
+            hasAccess = !!isAuthor;
 
-            if (!isAllowed && userId) {
+            if (!hasAccess && userId) {
                 const user = await this.prisma.user.findUnique({ where: { id: userId } });
                 if (user && user.role === UserRole.ADMIN) {
-                    isAllowed = true;
+                    hasAccess = true;
                 }
             }
 
-            if (!isAllowed) {
-                if (!userId) {
-                    throw new ForbiddenException('Vui lòng đăng nhập để mua chương này');
-                }
-
+            if (!hasAccess && userId) {
                 const purchase = await this.prisma.chapterPurchase.findUnique({
                     where: {
                         userId_chapterId: {
@@ -120,18 +135,15 @@ export class ChaptersService {
                         },
                     },
                 });
-
-                if (!purchase) {
-                    throw new ForbiddenException({
-                        message: 'Bạn cần mua chương này để đọc tiếp',
-                        code: 'PAYMENT_REQUIRED',
-                        price: chapter.price,
-                    });
+                if (purchase) {
+                    hasAccess = true;
                 }
             }
         }
 
-        // 3. Calculate word count and reading time if not set
+        // 3. Calculate word count and reading time if not set. Done on the FULL
+        //    content (before any locked-stripping) so the paywall can still show
+        //    accurate "X từ / Y phút đọc" stats.
         if (!chapter.wordCount || chapter.wordCount === 0) {
             const wordCount = chapter.content.split(/\s+/).length;
             const readingTime = Math.ceil(wordCount / 200); // Assume 200 words per minute
@@ -145,7 +157,20 @@ export class ChaptersService {
             chapter.readingTime = readingTime;
         }
 
-        return chapter;
+        const isLocked = chapter.price > 0 && !hasAccess;
+
+        if (isLocked) {
+            // Strip HTML and expose only a short teaser. Full content never
+            // leaves the server for a locked chapter.
+            const plain = chapter.content
+                .replace(/<[^>]*>/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+            const preview = plain.slice(0, 300);
+            chapter.content = preview + (plain.length > 300 ? '…' : '');
+        }
+
+        return { ...chapter, isLocked };
     }
 
     async create(storyIdOrSlug: string, userId: string, createChapterDto: CreateChapterDto) {
@@ -197,6 +222,8 @@ export class ChaptersService {
         };
         const slug = await generateUniqueSlug(baseSlug, slugExists);
 
+        await this.validateChapterPrice(createChapterDto.price);
+
         // Calculate word count and reading time
         const wordCount = createChapterDto.content.split(/\s+/).length;
         const readingTime = Math.ceil(wordCount / 200);
@@ -212,6 +239,7 @@ export class ChaptersService {
                 images: createChapterDto.images || [],
                 wordCount,
                 readingTime,
+                price: createChapterDto.price ?? 0,
                 isPublished: false,
             },
             include: chapterWithStoryInclude,
@@ -289,6 +317,11 @@ export class ChaptersService {
 
         if (updateChapterDto.isPublished !== undefined) {
             updateData.isPublished = updateChapterDto.isPublished;
+        }
+
+        if (updateChapterDto.price !== undefined) {
+            await this.validateChapterPrice(updateChapterDto.price);
+            updateData.price = updateChapterDto.price;
         }
 
         return this.prisma.chapter.update({
@@ -603,6 +636,12 @@ export class ChaptersService {
     async buyChapter(userId: string, chapterId: string) {
         const chapter = await this.prisma.chapter.findUnique({
             where: { id: chapterId },
+            select: {
+                id: true,
+                title: true,
+                price: true,
+                story: { select: { authorId: true } },
+            },
         });
 
         if (!chapter) {
@@ -610,49 +649,31 @@ export class ChaptersService {
         }
 
         if (chapter.price <= 0) {
-            return { message: 'Chương này miễn phí', success: true };
+            return { success: true, message: 'Chương này miễn phí' };
         }
 
-        // Check if already purchased
-        const existing = await this.prisma.chapterPurchase.findUnique({
-            where: {
-                userId_chapterId: {
-                    userId,
-                    chapterId,
-                },
-            },
-        });
-
-        if (existing) {
-            return { message: 'Bạn đã mua chương này rồi', success: true };
+        // The author already has free access to their own chapters, so buying
+        // makes no sense and would self-credit. Block it explicitly.
+        if (chapter.story.authorId === userId) {
+            return { success: true, message: 'Bạn là tác giả, chương này đã mở' };
         }
 
-        // Execute payment (deduct coins)
-        // Note: Ideally this should be an atomic distributed transaction.
-        // For now we rely on WalletService.pay atomicity and follow with purchase record creation.
-        // If purchase creation fails, we should ideally refund (manual compensation).
-        try {
-            await this.walletService.pay(
-                userId,
-                chapter.price,
-                `Mua chương: ${chapter.title}`,
-                chapter.id
-            );
+        // Atomic: balance check, deduct buyer, credit author (net), keep fee,
+        // write both transactions + the purchase record. Idempotent on re-buy.
+        const result = await this.walletService.payForChapter(
+            userId,
+            chapter.story.authorId,
+            { id: chapter.id, title: chapter.title, price: chapter.price },
+        );
 
-            // Record purchase
-            await this.prisma.chapterPurchase.create({
-                data: {
-                    userId,
-                    chapterId,
-                    pricePaid: chapter.price,
-                },
-            });
-
-            return { success: true, message: 'Mua chương thành công' };
-        } catch (error: any) {
-            // Pass strict errors from WalletService (e.g. Insufficient balance)
-            throw error;
-        }
+        return {
+            success: true,
+            message: result.alreadyOwned
+                ? 'Bạn đã mua chương này rồi'
+                : 'Mua chương thành công',
+            newBalance: result.newBalance,
+            alreadyOwned: result.alreadyOwned,
+        };
     }
 }
 

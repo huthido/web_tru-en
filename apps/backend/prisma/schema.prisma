@@ -727,11 +727,13 @@ model CoinPackage {
 }
 
 model ChapterPurchase {
-  id        String   @id @default(cuid())
-  userId    String
-  chapterId String
-  pricePaid Int
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String
+  chapterId   String
+  pricePaid   Int // Gross coins paid by the buyer (= platformFee + netAmount)
+  platformFee Int      @default(0) // Coins kept by the platform (donationPlatformFeePercent of pricePaid, rounded up)
+  netAmount   Int      @default(0) // Coins actually credited to the author (pricePaid - platformFee)
+  createdAt   DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 

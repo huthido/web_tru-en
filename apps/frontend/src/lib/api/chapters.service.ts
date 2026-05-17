@@ -13,6 +13,11 @@ export interface Chapter {
     viewCount: number;
     wordCount: number;
     readingTime: number;
+    /** Coin price to unlock. 0 = free. */
+    price: number;
+    /** True when the chapter is paid and the current user hasn't unlocked it.
+     *  When locked, `content` only contains a short teaser. */
+    isLocked?: boolean;
     uploaderId?: string;
     createdAt: string;
     updatedAt: string;
@@ -35,6 +40,8 @@ export interface CreateChapterRequest {
     content: string;
     order?: number;
     images?: string[];
+    /** Coin price to unlock. 0 (default) = free. */
+    price?: number;
 }
 
 export interface UpdateChapterRequest {
@@ -43,6 +50,15 @@ export interface UpdateChapterRequest {
     order?: number;
     images?: string[];
     isPublished?: boolean;
+    /** Coin price to unlock. 0 = free. */
+    price?: number;
+}
+
+export interface BuyChapterResponse {
+    success: boolean;
+    message: string;
+    newBalance?: number;
+    alreadyOwned?: boolean;
 }
 
 export const chaptersService = {
@@ -121,6 +137,15 @@ export const chaptersService = {
     unpublish: async (storySlug: string, id: string): Promise<ApiResponse<Chapter>> => {
         const response = await apiClient.post<Chapter>(`/stories/${storySlug}/chapters/${id}/unpublish`);
         return response.data;
+    },
+
+    buy: async (storySlug: string, id: string): Promise<BuyChapterResponse> => {
+        const response = await apiClient.post<BuyChapterResponse | ApiResponse<BuyChapterResponse>>(
+            `/stories/${storySlug}/chapters/${id}/buy`
+        );
+        const data = response.data as any;
+        // Backend may return the result directly or wrapped in ApiResponse
+        return (data?.data ?? data) as BuyChapterResponse;
     },
 
     // Admin endpoints

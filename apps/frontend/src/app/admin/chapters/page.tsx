@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AdminLayout } from '@/components/layouts/admin-layout';
 import { Loading } from '@/components/ui/loading';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { useToast } from '@/components/ui/toast';
 import { LineChart } from '@/components/admin/charts';
 import { useAdminChapters, useChaptersStats, useChaptersChartData } from '@/lib/api/hooks/use-chapters';
-import { Chapter } from '@/lib/api/chapters.service';
+import { Chapter, chaptersService } from '@/lib/api/chapters.service';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import Link from 'next/link';
 import * as XLSX from 'xlsx';
@@ -230,6 +231,7 @@ export default function AdminChaptersPage() {
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tiêu đề</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Truyện</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Thứ tự</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Giá (coin)</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Trạng thái</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lượt xem</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ngày tạo</th>
@@ -239,7 +241,7 @@ export default function AdminChaptersPage() {
                                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                     {chapters.length === 0 ? (
                                         <tr>
-                                            <td colSpan={8} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                            <td colSpan={9} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                                                 Không có chương nào
                                             </td>
                                         </tr>
@@ -271,6 +273,9 @@ export default function AdminChaptersPage() {
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-3 text-gray-900 dark:text-white">{chapter.order}</td>
+                                                <td className="px-4 py-3">
+                                                    <AdminPriceCell chapter={chapter} showToast={showToast} />
+                                                </td>
                                                 <td className="px-4 py-3">
                                                     <span className={`px-2 py-1 rounded text-xs font-medium ${chapter.isPublished
                                                         ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
@@ -470,5 +475,68 @@ export default function AdminChaptersPage() {
                 )}
             </div>
         </AdminLayout>
+    );
+}
+
+/**
+ * Inline price editor for the admin moderation table. Saves via the same
+ * PATCH /stories/:slug/chapters/:id route — the backend authorizes ADMIN.
+ */
+function AdminPriceCell({
+    chapter,
+    showToast,
+}: {
+    chapter: Chapter;
+    showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
+}) {
+    const queryClient = useQueryClient();
+    const [value, setValue] = useState<number>(chapter.price ?? 0);
+    const [saving, setSaving] = useState(false);
+    const storySlug = chapter.story?.slug;
+    const dirty = value !== (chapter.price ?? 0);
+
+    const save = async () => {
+        if (!storySlug) {
+            showToast('Không xác định được truyện của chương này', 'error');
+            return;
+        }
+        const price = Math.max(0, Math.floor(Number(value)) || 0);
+        setSaving(true);
+        try {
+            await chaptersService.update(storySlug, chapter.id, { price });
+            await queryClient.invalidateQueries({ queryKey: ['admin', 'chapters'] });
+            showToast('Đã cập nhật giá chương', 'success');
+        } catch (e: any) {
+            showToast(e?.response?.data?.message || 'Lỗi khi cập nhật giá', 'error');
+            setValue(chapter.price ?? 0);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="flex items-center gap-2">
+            <input
+                type="number"
+                min={0}
+                step={1}
+                value={value}
+                disabled={saving || !storySlug}
+                onChange={(e) => setValue(Math.max(0, Math.floor(Number(e.target.value)) || 0))}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' && dirty) save();
+                }}
+                className="w-20 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            />
+            {dirty && (
+                <button
+                    onClick={save}
+                    disabled={saving}
+                    className="px-2 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors disabled:opacity-50"
+                >
+                    {saving ? '...' : 'Lưu'}
+                </button>
+            )}
+        </div>
     );
 }

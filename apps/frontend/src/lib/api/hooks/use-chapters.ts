@@ -70,6 +70,25 @@ export const useUpdateChapter = (storySlug: string) => {
     });
 };
 
+export const useBuyChapter = (storySlug: string) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id }: { id: string; chapterSlug: string }) =>
+            chaptersService.buy(storySlug, id),
+        onSuccess: async (_data, variables) => {
+            // Refetch the now-unlocked chapter, the list (badges), and the
+            // wallet balance which was just debited.
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['chapter', storySlug, variables.chapterSlug] }),
+                queryClient.invalidateQueries({ queryKey: ['chapters', storySlug] }),
+                queryClient.invalidateQueries({ queryKey: ['wallet', 'balance'] }),
+            ]);
+            await queryClient.refetchQueries({ queryKey: ['chapter', storySlug, variables.chapterSlug] });
+        },
+    });
+};
+
 export const useDeleteChapter = (storySlug: string) => {
     const queryClient = useQueryClient();
 

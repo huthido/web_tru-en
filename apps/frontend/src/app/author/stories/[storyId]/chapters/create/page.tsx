@@ -24,6 +24,7 @@ export default function CreateChapterPage() {
     const [formData, setFormData] = useState({
         title: '',
         content: '',
+        price: 0,
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -52,6 +53,7 @@ export default function CreateChapterPage() {
             await createMutation.mutateAsync({
                 title: formData.title.trim(),
                 content: formData.content.trim(),
+                price: Math.max(0, Math.floor(formData.price) || 0),
             });
 
             // Wait a bit to ensure cache is updated before navigation
@@ -159,6 +161,25 @@ export default function CreateChapterPage() {
                                     {errors.content && (
                                         <p className="mt-2 text-sm text-red-500">{errors.content}</p>
                                     )}
+                                </div>
+
+                                {/* Price */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Giá mở khóa (coin)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        step={1}
+                                        value={formData.price}
+                                        onChange={(e) => setFormData({ ...formData, price: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
+                                        className="w-full md:w-48 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="0"
+                                    />
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                        Để <span className="font-medium">0</span> nếu chương miễn phí. Khi {'>'} 0, độc giả phải trả số coin này để mở khóa; bạn nhận phần coin sau khi trừ phí nền tảng.
+                                    </p>
                                 </div>
 
                                 {/* Error Message */}

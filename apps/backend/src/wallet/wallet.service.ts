@@ -35,6 +35,16 @@ export class WalletService {
     }
 
     /**
+     * Smallest positive amount whose split still leaves the author > 0 coins,
+     * given the fee %. Below this, ceil-rounded fee eats the whole amount.
+     * Mirrors the inline guard in donateToAuthor so chapter pricing reuses it.
+     */
+    static minNetPrice(feePercent: number): number {
+        const safePct = Math.max(0, Math.min(99, feePercent));
+        return safePct > 0 ? Math.ceil(100 / (100 - safePct)) : 1;
+    }
+
+    /**
      * Resolve the current donation fee %.
      * Priority: Settings DB row → DONATION_PLATFORM_FEE_PERCENT env → hard default.
      * Cached for 60s to avoid hitting the DB on every donation; admin's UI
@@ -125,38 +135,6 @@ export class WalletService {
         });
     }
 
-    // Pay for an item (Transactional)
-    async pay(userId: string, amount: number, description: string, referenceId?: string) {
-        if (amount < 0) throw new BadRequestException('Amount cannot be negative');
-
-        return this.prisma.$transaction(async (tx) => {
-            const wallet = await tx.userWallet.findUnique({ where: { userId } });
-
-            if (!wallet || wallet.balance < amount) {
-                throw new BadRequestException('Insufficient balance');
-            }
-
-            // 1. Deduct balance
-            const updatedWallet = await tx.userWallet.update({
-                where: { userId },
-                data: { balance: { decrement: amount } },
-            });
-
-            // 2. Create transaction record
-            await tx.coinTransaction.create({
-                data: {
-                    walletId: updatedWallet.id,
-                    amount: -amount, // Negative for spending
-                    type: TransactionType.PURCHASE_CHAPTER,
-                    description,
-                    referenceId,
-                },
-            });
-
-            return updatedWallet;
-        });
-    }
-
     // Donate coins to an author (Transactional).
     // The platform keeps Settings.donationPlatformFeePercent (default 2%), the rest
     // goes to the author. Both the gross `amount` and the breakdown are persisted
@@ -173,7 +151,7 @@ export class WalletService {
             // For non-zero fee, the minimum donation is the smallest amount where
             // ceil(amount * feePercent / 100) < amount. Generic so it stays correct
             // as the fee % is tuned.
-            const minAmount = feePercent > 0 ? Math.ceil(100 / (100 - feePercent)) : 1;
+            const minAmount = WalletService.minNetPrice(feePercent);
             throw new BadRequestException(
                 `Số coin tối thiểu để ủng hộ là ${minAmount}`,
             );
@@ -250,6 +228,120 @@ export class WalletService {
                 donationId: donation.id,
                 amount,
                 newBalance: updatedSenderWallet.balance,
+            };
+        });
+    }
+
+    /**
+     * Buy a chapter (Transactional). Mirrors donateToAuthor: the buyer pays the
+     * full `price`, the author is credited `net`, and the platform retains
+     * `fee` (= donationPlatformFeePercent of price, rounded up — same setting as
+     * donations). The ChapterPurchase record (with the fee/net breakdown) is
+     * created inside the same transaction so there is no compensation problem.
+     *
+     * Idempotent: if the buyer already owns the chapter it returns without
+     * charging again. The unique (userId, chapterId) constraint plus the
+     * in-transaction check make concurrent double-buys safe.
+     */
+    async payForChapter(
+        buyerId: string,
+        authorId: string,
+        chapter: { id: string; title: string; price: number },
+    ) {
+        if (!Number.isInteger(chapter.price) || chapter.price <= 0) {
+            throw new BadRequestException('Chương này không bán bằng coin');
+        }
+        if (buyerId === authorId) {
+            throw new BadRequestException('Bạn không thể mua chương của chính mình');
+        }
+
+        const feePercent = await this.getDonationFeePercent();
+        const { fee, net } = WalletService.splitDonation(chapter.price, feePercent);
+        if (net <= 0) {
+            // Defense-in-depth: the author-facing price validator should have
+            // rejected this already, but never let a purchase net the author 0.
+            const minPrice = WalletService.minNetPrice(feePercent);
+            throw new BadRequestException(
+                `Giá chương quá thấp; tối thiểu phải là ${minPrice} coin`,
+            );
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            // 1. Idempotency — bail out (no charge) if already purchased.
+            const existing = await tx.chapterPurchase.findUnique({
+                where: { userId_chapterId: { userId: buyerId, chapterId: chapter.id } },
+            });
+            if (existing) {
+                const wallet = await tx.userWallet.findUnique({ where: { userId: buyerId } });
+                return {
+                    alreadyOwned: true,
+                    newBalance: wallet?.balance ?? 0,
+                    pricePaid: existing.pricePaid,
+                };
+            }
+
+            // 2. Check buyer balance.
+            const buyerWallet = await tx.userWallet.findUnique({ where: { userId: buyerId } });
+            if (!buyerWallet || buyerWallet.balance < chapter.price) {
+                throw new BadRequestException('Số dư không đủ để mua chương này');
+            }
+
+            // 3. Deduct the full price from the buyer.
+            const updatedBuyerWallet = await tx.userWallet.update({
+                where: { userId: buyerId },
+                data: { balance: { decrement: chapter.price } },
+            });
+
+            // 4. Credit only `net` to the author; `fee` is retained by the
+            //    platform (tracked on ChapterPurchase.platformFee — no platform
+            //    wallet is credited, mirroring the donation behaviour).
+            const authorWallet = await tx.userWallet.upsert({
+                where: { userId: authorId },
+                update: { balance: { increment: net } },
+                create: { userId: authorId, balance: net },
+            });
+
+            // 5. Buyer transaction — fee is internal, buyer just "bought a chapter".
+            await tx.coinTransaction.create({
+                data: {
+                    walletId: updatedBuyerWallet.id,
+                    amount: -chapter.price,
+                    type: TransactionType.PURCHASE_CHAPTER,
+                    description: `Mua chương: ${chapter.title}`,
+                    referenceId: chapter.id,
+                },
+            });
+
+            // 6. Author transaction — surfaces the fee so the recipient sees the
+            //    real number they received.
+            const feeNote = fee > 0
+                ? ` (đã trừ ${fee} coin phí nền tảng ${feePercent}%)`
+                : '';
+            await tx.coinTransaction.create({
+                data: {
+                    walletId: authorWallet.id,
+                    amount: net,
+                    type: TransactionType.PURCHASE_CHAPTER,
+                    description: `Bán chương "${chapter.title}": +${net} coin${feeNote}`,
+                    referenceId: buyerId,
+                },
+            });
+
+            // 7. Purchase record with the full breakdown for revenue reporting.
+            await tx.chapterPurchase.create({
+                data: {
+                    userId: buyerId,
+                    chapterId: chapter.id,
+                    pricePaid: chapter.price, // gross
+                    platformFee: fee,
+                    netAmount: net,
+                },
+            });
+
+            return {
+                alreadyOwned: false,
+                newBalance: updatedBuyerWallet.balance,
+                pricePaid: chapter.price,
             };
         });
     }
@@ -338,6 +430,55 @@ export class WalletService {
                 message: d.message,
                 createdAt: d.createdAt,
                 user: d.user,
+            })),
+        };
+    }
+
+    /**
+     * Author-facing chapter-sales earnings. Same shape/semantics as
+     * getMyDonationEarnings but sourced from ChapterPurchase. Filtered by the
+     * author of the chapter's story (chapter → story → authorId).
+     *   GET /api/wallet/chapter-sales/me
+     */
+    async getMyChapterSales(authorId: string) {
+        const where = { chapter: { story: { authorId } } };
+
+        const [aggregate, salesCount, recent, currentFeePercent] = await Promise.all([
+            this.prisma.chapterPurchase.aggregate({
+                where,
+                _sum: { pricePaid: true, netAmount: true, platformFee: true },
+            }),
+            this.prisma.chapterPurchase.count({ where }),
+            this.prisma.chapterPurchase.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                take: 20,
+                include: {
+                    user: {
+                        select: { id: true, username: true, displayName: true, avatar: true },
+                    },
+                    chapter: {
+                        select: { id: true, title: true, slug: true },
+                    },
+                },
+            }),
+            this.getDonationFeePercent(),
+        ]);
+
+        return {
+            totalGross: aggregate._sum.pricePaid || 0,
+            totalNet: aggregate._sum.netAmount || 0,
+            totalPlatformFee: aggregate._sum.platformFee || 0,
+            platformFeePercent: currentFeePercent,
+            salesCount,
+            sales: recent.map(s => ({
+                id: s.id,
+                amount: s.pricePaid,       // gross — what the buyer paid
+                netAmount: s.netAmount,    // what you actually received
+                platformFee: s.platformFee,
+                createdAt: s.createdAt,
+                user: s.user,
+                chapter: s.chapter,
             })),
         };
     }
