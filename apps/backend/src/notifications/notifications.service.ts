@@ -1,17 +1,67 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, MessageEvent } from '@nestjs/common';
+import { Subject, Observable, merge, interval } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
-import { UserRole } from '@prisma/client';
+import { NotificationType, NotificationPriority, UserRole } from '@prisma/client';
 import { getPaginationParams, createPaginatedResult } from '../common/utils/pagination.util';
 
 @Injectable()
 export class NotificationsService {
+    // In-process pub/sub for SSE. Fine for a single instance; for multi-instance
+    // deploys this would need Redis pub/sub, but the app runs one backend.
+    private readonly events$ = new Subject<{ userId: string }>();
+
     constructor(
         private prisma: PrismaService,
         private emailService: EmailService,
     ) {}
+
+    /**
+     * Create a personal notification for ONE user (auto events like
+     * donate/sale). No email, no role broadcast. Emits an SSE tick so the
+     * recipient's bell updates live. Best-effort — callers should not let a
+     * failure here break their own transaction.
+     */
+    async notifyUser(
+        userId: string,
+        data: { title: string; content: string; type?: NotificationType; priority?: NotificationPriority },
+    ) {
+        const notification = await this.prisma.notification.create({
+            data: {
+                title: data.title,
+                content: data.content,
+                type: data.type || NotificationType.INFO,
+                priority: data.priority || NotificationPriority.NORMAL,
+                targetRole: null,
+                sendEmail: false,
+                // createdById omitted — system/auto notification, no creator.
+            },
+        });
+        await this.prisma.notificationRecipient.create({
+            data: { notificationId: notification.id, userId },
+        });
+        this.events$.next({ userId });
+        return notification;
+    }
+
+    /**
+     * SSE stream for a single user. Emits a small payload whenever a new
+     * notification targets them, plus a periodic heartbeat to keep the
+     * connection (and any proxy) alive.
+     */
+    streamFor(userId: string): Observable<MessageEvent> {
+        const ticks$ = this.events$.pipe(
+            filter((e) => e.userId === userId),
+            map(() => ({ data: { type: 'notification' } }) as MessageEvent),
+        );
+        const heartbeat$ = interval(25000).pipe(
+            map(() => ({ data: { type: 'ping' } }) as MessageEvent),
+        );
+        return merge(ticks$, heartbeat$);
+    }
 
     async create(userId: string, dto: CreateNotificationDto) {
         // Create notification

@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, NotFoundException, ForbiddenException,
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransactionType, WithdrawalStatus } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const DEFAULT_MIN_WITHDRAWAL_COINS = 1000;
 
@@ -22,7 +23,15 @@ export class WalletService {
     constructor(
         private prisma: PrismaService,
         private config: ConfigService,
+        private notifications: NotificationsService,
     ) { }
+
+    /** Fire-and-forget author notification; never breaks the caller. */
+    private notifyAuthor(authorId: string, title: string, content: string) {
+        this.notifications
+            .notifyUser(authorId, { title, content })
+            .catch((e) => this.logger.warn(`notifyAuthor failed: ${e?.message}`));
+    }
 
     /**
      * Pure helper — split a donation given a percent. Fee is rounded UP so the
@@ -163,7 +172,7 @@ export class WalletService {
         const author = await this.prisma.user.findUnique({ where: { id: authorId } });
         if (!author) throw new BadRequestException('Không tìm thấy tác giả');
 
-        return this.prisma.$transaction(async (tx) => {
+        const donationResult = await this.prisma.$transaction(async (tx) => {
             // 1. Check sender balance
             const senderWallet = await tx.userWallet.findUnique({ where: { userId } });
             if (senderWallet?.isLocked) {
@@ -235,6 +244,13 @@ export class WalletService {
                 newBalance: updatedSenderWallet.balance,
             };
         });
+
+        this.notifyAuthor(
+            authorId,
+            'Bạn nhận được ủng hộ 🎉',
+            `Có người vừa ủng hộ bạn ${amount} xu.`,
+        );
+        return donationResult;
     }
 
     /**
@@ -271,7 +287,7 @@ export class WalletService {
             );
         }
 
-        return this.prisma.$transaction(async (tx) => {
+        const chapterResult = await this.prisma.$transaction(async (tx) => {
             // 1. Idempotency — bail out (no charge) if already purchased.
             const existing = await tx.chapterPurchase.findUnique({
                 where: { userId_chapterId: { userId: buyerId, chapterId: chapter.id } },
@@ -352,6 +368,15 @@ export class WalletService {
                 pricePaid: chapter.price,
             };
         });
+
+        if (!chapterResult.alreadyOwned) {
+            this.notifyAuthor(
+                authorId,
+                'Có người mua chương 📖',
+                `Chương "${chapter.title}" vừa được mua (${chapter.price} xu).`,
+            );
+        }
+        return chapterResult;
     }
 
     /**
@@ -380,7 +405,7 @@ export class WalletService {
             );
         }
 
-        return this.prisma.$transaction(async (tx) => {
+        const storyResult = await this.prisma.$transaction(async (tx) => {
             const existing = await tx.storyPurchase.findUnique({
                 where: { userId_storyId: { userId: buyerId, storyId: story.id } },
             });
@@ -451,6 +476,15 @@ export class WalletService {
                 pricePaid: story.price,
             };
         });
+
+        if (!storyResult.alreadyOwned) {
+            this.notifyAuthor(
+                authorId,
+                'Có người mua truyện VIP 👑',
+                `Truyện "${story.title}" vừa được mua (${story.price} xu).`,
+            );
+        }
+        return storyResult;
     }
 
     /**
@@ -819,7 +853,7 @@ export class WalletService {
         action: 'APPROVE' | 'REJECT',
         note?: string,
     ) {
-        return this.prisma.$transaction(async (tx) => {
+        const processed = await this.prisma.$transaction(async (tx) => {
             const req = await tx.withdrawalRequest.findUnique({ where: { id: requestId } });
             if (!req) throw new NotFoundException('Không tìm thấy yêu cầu rút');
             if (req.status !== WithdrawalStatus.PENDING) {
@@ -854,6 +888,15 @@ export class WalletService {
                 },
             });
         });
+
+        this.notifyAuthor(
+            processed.userId,
+            action === 'APPROVE' ? 'Yêu cầu rút đã được duyệt ✅' : 'Yêu cầu rút bị từ chối',
+            action === 'APPROVE'
+                ? `Yêu cầu rút ${processed.amount} xu của bạn đã được chuyển khoản.`
+                : `Yêu cầu rút ${processed.amount} xu bị từ chối, xu đã được hoàn lại.${processed.note ? ` Lý do: ${processed.note}` : ''}`,
+        );
+        return processed;
     }
 
     // --- Coin transfer (spec mục 2) ---
@@ -899,7 +942,7 @@ export class WalletService {
             throw new BadRequestException('Không thể chuyển xu cho chính mình');
         }
 
-        return this.prisma.$transaction(async (tx) => {
+        const transferResult = await this.prisma.$transaction(async (tx) => {
             const senderWallet = await tx.userWallet.findUnique({ where: { userId: senderId } });
             if (senderWallet?.isLocked) {
                 throw new ForbiddenException('Ví của bạn đang bị khóa');
@@ -945,6 +988,13 @@ export class WalletService {
                 recipient: { id: recipient.id, username: recipient.username, displayName: recipient.displayName },
             };
         });
+
+        this.notifyAuthor(
+            recipient.id,
+            'Bạn nhận được xu 💰',
+            `Bạn vừa nhận ${amount} xu từ chuyển khoản.`,
+        );
+        return transferResult;
     }
 
     // --- Admin wallet lock (spec mục 2 — chống gian lận) ---

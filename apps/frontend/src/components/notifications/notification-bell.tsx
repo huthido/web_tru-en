@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useUnreadCount, useMyNotifications, useMarkAsRead } from '@/lib/api/hooks/use-notifications';
+import { useUnreadCount, useMyNotifications, useMarkAsRead, useNotificationStream } from '@/lib/api/hooks/use-notifications';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 
 export function NotificationBell() {
     const { user } = useAuth();
+    useNotificationStream(!!user);
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
