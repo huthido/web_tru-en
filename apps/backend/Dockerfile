@@ -78,6 +78,12 @@ USER nestjs
 
 EXPOSE 3009
 
+# Container-level health so Coolify (per-app deploy / rolling updates) and
+# `docker run` know when the API is ready. start-period is generous because
+# `prisma migrate deploy` runs before the server starts listening.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \
+  CMD wget -qO- "http://127.0.0.1:${PORT:-3009}/api/health" || exit 1
+
 # Apply pending Prisma migrations on boot, then start the server.
 # Use `npx prisma migrate deploy` (not `dev`) so it only applies, never generates.
 ENTRYPOINT ["/sbin/tini", "--"]
