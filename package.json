@@ -13,7 +13,6 @@
     "dev:frontend": "pnpm --filter frontend dev",
     "build:backend": "cd apps/backend && pnpm prisma generate && pnpm run build",
     "build:frontend": "pnpm --filter frontend build",
-    "build:render": "cd apps/backend && pnpm prisma generate && pnpm run build",
     "start:backend": "cd apps/backend && pnpm run start:prod",
     "start:frontend": "pnpm --filter frontend start",
     "lint": "pnpm -r lint",

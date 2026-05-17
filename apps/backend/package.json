@@ -8,7 +8,6 @@
   "scripts": {
     "prebuild": "npx prisma generate",
     "build": "npx nest build",
-    "build:render": "cd ../.. && npm install && cd apps/backend && npx prisma generate && npx nest build",
     "start": "node dist/main",
     "dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -39,7 +38,6 @@
     "@prisma/client": "^5.9.1",
     "@aws-sdk/client-s3": "^3.654.0",
     "@aws-sdk/s3-request-presigner": "^3.654.0",
-    "@supabase/supabase-js": "^2.39.0",
     "@types/nodemailer": "^7.0.4",
     "bcryptjs": "^3.0.3",
     "chart.js": "^4.5.1",
