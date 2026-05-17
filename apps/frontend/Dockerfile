@@ -76,5 +76,9 @@ COPY --from=builder --chown=nextjs:nodejs /repo/apps/frontend/public ./apps/fron
 USER nextjs
 EXPOSE 3000
 
+# Container-level health for Coolify per-app deploy / rolling updates.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=5 \
+  CMD wget -qO- "http://127.0.0.1:${PORT:-3000}/" || exit 1
+
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["node", "apps/frontend/server.js"]
