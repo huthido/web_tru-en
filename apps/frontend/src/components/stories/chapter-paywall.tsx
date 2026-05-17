@@ -6,13 +6,18 @@ import { Lock, Coins, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useWalletBalance } from '@/lib/api/hooks/use-wallet';
 import { useBuyChapter } from '@/lib/api/hooks/use-chapters';
+import { useBuyStory } from '@/lib/api/hooks/use-stories';
 
 interface ChapterPaywallProps {
     storySlug: string;
     chapterSlug: string;
     chapterId: string;
     title: string;
+    /** Story title — shown when the lock is at story level (VIP). */
+    storyTitle?: string;
     price: number;
+    /** 'CHAPTER' = buy this chapter (freemium). 'STORY' = buy whole VIP story. */
+    lockType: 'CHAPTER' | 'STORY';
     /** Short teaser returned by the backend for a locked chapter. */
     preview?: string;
 }
@@ -22,29 +27,42 @@ export function ChapterPaywall({
     chapterSlug,
     chapterId,
     title,
+    storyTitle,
     price,
+    lockType,
     preview,
 }: ChapterPaywallProps) {
     const { isAuthenticated } = useAuth();
     const { data: wallet } = useWalletBalance(isAuthenticated);
     const buyChapter = useBuyChapter(storySlug);
+    const buyStory = useBuyStory(storySlug);
     const [error, setError] = useState<string | null>(null);
 
+    const isStory = lockType === 'STORY';
+    const pending = isStory ? buyStory.isPending : buyChapter.isPending;
     const balance = wallet?.balance ?? 0;
     const insufficient = isAuthenticated && balance < price;
     const loginHref = `/login?redirect=${encodeURIComponent(`/stories/${storySlug}/chapters/${chapterSlug}`)}`;
 
+    const unlockLabel = isStory ? 'Mở khóa cả truyện' : 'Mở khóa chương';
+    const heading = isStory ? 'Truyện VIP — cần mở khóa' : 'Chương này cần mở khóa';
+    const subject = isStory ? (storyTitle || 'truyện này') : title;
+
     const handleUnlock = async () => {
         setError(null);
         try {
-            await buyChapter.mutateAsync({ id: chapterId, chapterSlug });
-            // On success the chapter query is refetched and this component
+            if (isStory) {
+                await buyStory.mutateAsync();
+            } else {
+                await buyChapter.mutateAsync({ id: chapterId, chapterSlug });
+            }
+            // On success the relevant queries refetch and this component
             // unmounts, replaced by the full content.
         } catch (e: any) {
             setError(
                 e?.response?.data?.message ||
                 e?.message ||
-                'Không thể mở khóa chương. Vui lòng thử lại.'
+                'Không thể mở khóa. Vui lòng thử lại.'
             );
         }
     };
@@ -68,10 +86,13 @@ export function ChapterPaywall({
                 </div>
 
                 <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    Chương này cần mở khóa
+                    {heading}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-5">
-                    Mở khóa <span className="font-semibold text-gray-900 dark:text-white">“{title}”</span> để đọc toàn bộ nội dung và ủng hộ tác giả.
+                    Mở khóa <span className="font-semibold text-gray-900 dark:text-white">“{subject}”</span>{' '}
+                    {isStory
+                        ? 'để đọc toàn bộ chương và ủng hộ tác giả.'
+                        : 'để đọc toàn bộ nội dung và ủng hộ tác giả.'}
                 </p>
 
                 <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-gray-800 px-4 py-2 mb-5 shadow-sm">
@@ -90,7 +111,7 @@ export function ChapterPaywall({
                             Đăng nhập để mở khóa
                         </Link>
                         <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                            Bạn cần đăng nhập và có đủ coin để mở khóa chương.
+                            Bạn cần đăng nhập và có đủ coin để mở khóa.
                         </p>
                     </div>
                 ) : (
@@ -121,10 +142,10 @@ export function ChapterPaywall({
 
                         <button
                             onClick={handleUnlock}
-                            disabled={insufficient || buyChapter.isPending}
+                            disabled={insufficient || pending}
                             className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {buyChapter.isPending ? (
+                            {pending ? (
                                 <>
                                     <Loader2 size={18} className="animate-spin" />
                                     Đang mở khóa...
@@ -132,7 +153,7 @@ export function ChapterPaywall({
                             ) : (
                                 <>
                                     <Lock size={18} />
-                                    Mở khóa {price.toLocaleString('vi-VN')} coin
+                                    {unlockLabel} {price.toLocaleString('vi-VN')} coin
                                 </>
                             )}
                         </button>

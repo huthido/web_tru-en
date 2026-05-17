@@ -4,7 +4,11 @@ import {
   MaxLength,
   IsOptional,
   IsArray,
+  IsEnum,
+  IsInt,
+  Min,
 } from 'class-validator';
+import { StoryAccessType } from '@prisma/client';
 
 export class CreateStoryDto {
   @IsString()
@@ -34,5 +38,16 @@ export class CreateStoryDto {
   @IsOptional()
   @IsString()
   country?: string;
+
+  // Spec mục 4. Default FREE nếu không truyền.
+  @IsOptional()
+  @IsEnum(StoryAccessType)
+  accessType?: StoryAccessType;
+
+  // Giá coin mở khóa cả truyện khi accessType=VIP. 0 = không bán.
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  price?: number;
 }
 

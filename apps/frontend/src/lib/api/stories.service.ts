@@ -1,6 +1,8 @@
 import { apiClient } from './client';
 import { ApiResponse, PaginatedResponse } from './client';
 
+export type StoryAccessType = 'FREE' | 'FREEMIUM' | 'VIP';
+
 export interface Story {
     id: string;
     title: string;
@@ -10,6 +12,10 @@ export interface Story {
     authorId: string;
     authorName?: string;
     status: 'DRAFT' | 'ONGOING' | 'COMPLETED' | 'PUBLISHED' | 'ARCHIVED';
+    /** Spec mục 4. FREE = mở; FREEMIUM = mua chương lẻ; VIP = mua cả truyện. */
+    accessType: StoryAccessType;
+    /** Coin price to unlock the whole story when accessType = VIP. */
+    price: number;
     isPublished: boolean;
     viewCount: number;
     likeCount: number;
@@ -65,6 +71,8 @@ export interface CreateStoryRequest {
     categoryIds?: string[];
     tags?: string[];
     country?: string;
+    accessType?: StoryAccessType;
+    price?: number;
 }
 
 export interface UpdateStoryRequest {
@@ -77,6 +85,23 @@ export interface UpdateStoryRequest {
     isPublished?: boolean;
     country?: string;
     isRecommended?: boolean;
+    accessType?: StoryAccessType;
+    price?: number;
+}
+
+export interface BuyStoryResponse {
+    success: boolean;
+    message: string;
+    newBalance?: number;
+    alreadyOwned?: boolean;
+}
+
+export interface StoryAccessInfo {
+    accessType: StoryAccessType;
+    price: number;
+    purchased: boolean;
+    privileged: boolean;
+    canRead: boolean;
 }
 
 export interface StoryQueryParams {
@@ -158,6 +183,22 @@ export const storiesService = {
     publish: async (id: string): Promise<ApiResponse<Story>> => {
         const response = await apiClient.post<Story>(`/stories/${id}/publish`);
         return response.data;
+    },
+
+    buy: async (slug: string): Promise<BuyStoryResponse> => {
+        const response = await apiClient.post<BuyStoryResponse | ApiResponse<BuyStoryResponse>>(
+            `/stories/${slug}/buy`
+        );
+        const data = response.data as any;
+        return (data?.data ?? data) as BuyStoryResponse;
+    },
+
+    getAccessInfo: async (slug: string): Promise<StoryAccessInfo> => {
+        const response = await apiClient.get<StoryAccessInfo | ApiResponse<StoryAccessInfo>>(
+            `/stories/${slug}/access`
+        );
+        const data = response.data as any;
+        return (data?.data ?? data) as StoryAccessInfo;
     },
 
     getMyStories: async (

@@ -148,6 +148,18 @@ export class StoriesController {
         return { isLiked };
     }
 
+    @Post(':slug/buy')
+    @UseGuards(JwtAuthGuard)
+    buyStory(@Param('slug') slug: string, @CurrentUser() user: any) {
+        return this.storiesService.buyStory(user.id, slug);
+    }
+
+    @Public()
+    @Get(':slug/access')
+    getAccessInfo(@Param('slug') slug: string, @CurrentUser() user?: any) {
+        return this.storiesService.getAccessInfo(slug, user?.id);
+    }
+
     @Post(':id/publish')
     @UseGuards(JwtAuthGuard)
     publish(@Param('id') id: string, @CurrentUser() user: any) {

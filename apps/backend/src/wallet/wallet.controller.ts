@@ -72,4 +72,15 @@ export class WalletController {
         const user = req.user as User;
         return this.walletService.getMyChapterSales(user.id);
     }
+
+    /**
+     * Author-facing VIP story-sales earnings (gross/net/fee).
+     *   GET /api/wallet/story-sales/me
+     */
+    @Get('story-sales/me')
+    @UseGuards(JwtAuthGuard)
+    async getMyStorySales(@Request() req: any) {
+        const user = req.user as User;
+        return this.walletService.getMyStorySales(user.id);
+    }
 }

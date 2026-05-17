@@ -18,6 +18,7 @@ import { LikeButton } from '@/components/stories/like-button';
 import { CommentSection } from '@/components/comments/comment-section';
 import { StarRating } from '@/components/stories/star-rating';
 import { DonateAuthorModal } from '@/components/stories/donate-author-modal';
+import { StoryVipBanner } from '@/components/stories/story-vip-banner';
 import { ArrowLeft, BookOpen, HeartHandshake, Share2, Megaphone, Lock } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 
@@ -474,6 +475,9 @@ export default function BookDetailPage() {
                 </button>
               </div>
 
+              {/* VIP whole-story purchase (spec mục 4) */}
+              <StoryVipBanner slug={slug} />
+
               {/* Description */}
               {story.description && (
                 <div className="mb-8">
@@ -540,7 +544,7 @@ export default function BookDetailPage() {
                               <div className="flex-1 min-w-0">
                                 <h3 className="text-base font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 truncate flex items-center gap-2">
                                   <span className="truncate">{chapter.title}</span>
-                                  {chapter.price > 0 && (
+                                  {story.accessType !== 'FREEMIUM' && chapter.price > 0 && (
                                     <span className="flex-shrink-0 inline-flex items-center gap-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-full px-2 py-0.5" title={`${chapter.price} coin để mở khóa`}>
                                     <Lock size={11} />
                                     {chapter.price}

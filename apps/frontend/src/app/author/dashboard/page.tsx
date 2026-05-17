@@ -18,6 +18,7 @@ import { useToastContext } from '@/components/providers/toast-provider';
 import { BookOpen, Eye, Star, Edit, Trash2, Send, LayoutGrid, List } from 'lucide-react';
 import { DonationEarningsCard } from '@/components/author/donation-earnings-card';
 import { ChapterSalesEarningsCard } from '@/components/author/chapter-sales-card';
+import { StorySalesEarningsCard } from '@/components/author/story-sales-card';
 
 export default function AuthorDashboardPage() {
     const router = useRouter();
@@ -205,6 +206,9 @@ export default function AuthorDashboardPage() {
 
                         {/* Chapter-sales earnings — author-only revenue breakdown */}
                         <ChapterSalesEarningsCard />
+
+                        {/* VIP story-sales earnings — author-only revenue breakdown */}
+                        <StorySalesEarningsCard />
 
                         {/* Filters & View Toggle */}
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700">
