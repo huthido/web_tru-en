@@ -238,6 +238,22 @@ export const WalletService = {
         return (response.data as any).data || (response.data as any);
     },
 
+    /**
+     * Admin: cộng/trừ trực tiếp một bucket (purchased hoặc earned).
+     * Dùng cho support compensation, fraud cleanup, hoặc fix backfill casualties.
+     * delta dương = cộng, âm = trừ. note bắt buộc (audit trail).
+     */
+    adminAdjustWallet: async (
+        identifier: string,
+        data: { bucket: 'PURCHASED' | 'EARNED'; delta: number; note: string },
+    ): Promise<AdminWalletInfo> => {
+        const response = await apiClient.patch<AdminWalletInfo>(
+            `/admin/wallets/${encodeURIComponent(identifier)}/adjust`,
+            data,
+        );
+        return (response.data as any).data || (response.data as any);
+    },
+
     // --- Withdrawals (spec mục 17) ---
     requestWithdrawal: async (data: RequestWithdrawalPayload) => {
         const response = await apiClient.post('/wallet/withdrawals', data);

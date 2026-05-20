@@ -1088,4 +1088,105 @@ export class WalletService {
             isLocked: wallet?.isLocked ?? false,
         };
     }
+
+    /**
+     * Admin-only debit of a single bucket. Bypasses isLocked (admin override
+     * for fraud cleanup) but still refuses to push a bucket below zero.
+     * Used by adminAdjustWallet for negative deltas.
+     */
+    private async adminDebitBucket(
+        tx: WalletTx,
+        userId: string,
+        bucket: 'PURCHASED' | 'EARNED',
+        amount: number,
+    ) {
+        const w = await tx.userWallet.findUnique({ where: { userId } });
+        if (!w) throw new BadRequestException('Ví chưa được khởi tạo');
+        const have = bucket === 'PURCHASED' ? w.purchasedBalance : w.earnedBalance;
+        if (have < amount) {
+            throw new BadRequestException(
+                `${bucket === 'PURCHASED' ? 'Xu đã nạp' : 'Xu doanh thu'} không đủ để trừ (hiện có ${have})`,
+            );
+        }
+        return tx.userWallet.update({
+            where: { userId },
+            data: bucket === 'PURCHASED'
+                ? { purchasedBalance: { decrement: amount }, balance: { decrement: amount } }
+                : { earnedBalance: { decrement: amount }, balance: { decrement: amount } },
+        });
+    }
+
+    /**
+     * Admin adjusts a user's wallet — credit or debit a specific bucket.
+     * Use cases: fraud cleanup, support compensation, fixing backfill
+     * casualties (authors who had earned coins migrated to purchasedBalance).
+     * Audit-logged via CoinTransaction(type=ADMIN_ADJUST, referenceId=adminId).
+     */
+    async adminAdjustWallet(
+        adminId: string,
+        identifier: string,
+        dto: { bucket: 'PURCHASED' | 'EARNED'; delta: number; note: string },
+    ) {
+        const { bucket, delta, note } = dto;
+        if (bucket !== 'PURCHASED' && bucket !== 'EARNED') {
+            throw new BadRequestException('Bucket không hợp lệ');
+        }
+        if (!Number.isInteger(delta) || delta === 0) {
+            throw new BadRequestException('Delta phải là số nguyên khác 0');
+        }
+        const trimmed = note?.trim();
+        if (!trimmed) {
+            throw new BadRequestException('Vui lòng nhập ghi chú lý do điều chỉnh');
+        }
+        if (trimmed.length > 500) {
+            throw new BadRequestException('Ghi chú tối đa 500 ký tự');
+        }
+
+        const user = await this.resolveUser(identifier);
+        const admin = await this.prisma.user.findUnique({
+            where: { id: adminId },
+            select: { username: true, displayName: true },
+        });
+        const adminLabel = admin?.displayName || admin?.username || 'admin';
+        const bucketLabel = bucket === 'PURCHASED' ? 'xu nạp' : 'xu doanh thu';
+
+        const updated = await this.prisma.$transaction(async (tx) => {
+            let wallet;
+            if (delta > 0) {
+                wallet = bucket === 'PURCHASED'
+                    ? await this.creditPurchased(tx, user.id, delta)
+                    : await this.creditEarned(tx, user.id, delta);
+            } else {
+                wallet = await this.adminDebitBucket(tx, user.id, bucket, -delta);
+            }
+
+            const sign = delta > 0 ? '+' : '';
+            await tx.coinTransaction.create({
+                data: {
+                    walletId: wallet.id,
+                    amount: delta,
+                    type: TransactionType.ADMIN_ADJUST,
+                    description: `Admin ${adminLabel} điều chỉnh ${sign}${delta} ${bucketLabel} — ${trimmed}`,
+                    referenceId: adminId,
+                },
+            });
+
+            return wallet;
+        });
+
+        // Notify the affected user so they have a record outside the audit trail.
+        this.notifyAuthor(
+            user.id,
+            'Ví của bạn vừa được điều chỉnh bởi admin',
+            `Admin ${adminLabel} đã ${delta > 0 ? 'cộng' : 'trừ'} ${Math.abs(delta).toLocaleString('vi-VN')} ${bucketLabel}. Lý do: ${trimmed}`,
+        );
+
+        return {
+            user,
+            purchasedBalance: updated.purchasedBalance,
+            earnedBalance: updated.earnedBalance,
+            balance: updated.balance,
+            isLocked: updated.isLocked,
+        };
+    }
 }
