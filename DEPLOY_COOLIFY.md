@@ -71,7 +71,17 @@ Repo hiện có 2 lựa chọn — **chọn đúng 1** rồi set `DATABASE_URL` 
 | **Postgres trong compose** (khuyến nghị, self-contained) | `postgresql://user:pass@postgres:5432/web_truyen_db?schema=public` | Hostname = tên service `postgres`. Volume `postgres_data` persistent. |
 | **Postgres managed từ xa** (Neon/Railway/… ) | Connection string nhà cung cấp, có `?sslmode=require` | Bỏ service `postgres` khỏi compose hoặc để mặc kệ (không dùng). Nếu provider có pooler, dùng **direct/session connection** cho lần migrate đầu. |
 
-> 🔁 **Migration tự áp**: backend Dockerfile chạy `npx prisma migrate deploy` lúc khởi động (`apps/backend/Dockerfile`). Mọi migration trong `apps/backend/prisma/migrations/` (gồm `…_chapter_purchase_revenue_split`) **tự áp khi container start**, miễn `DATABASE_URL` kết nối được — **không cần chạy thủ công** khi deploy qua Coolify/Docker.
+> 🔁 **Migration tự áp**: backend Dockerfile chạy `npx prisma migrate deploy` lúc khởi động (`apps/backend/Dockerfile`). Mọi migration trong `apps/backend/prisma/migrations/` **tự áp khi container start**, miễn `DATABASE_URL` kết nối được — **không cần chạy thủ công** khi deploy qua Coolify/Docker. Đặc biệt các migration kinh tế gần đây (đều additive, an toàn dữ liệu):
+> - `20260517000000_chapter_purchase_revenue_split` — fee/net cho ChapterPurchase
+> - `20260517010000_story_access_types` — FREE/FREEMIUM/VIP
+> - `20260517020000_withdrawal_requests` — bảng rút tiền
+> - `20260517030000_coin_transfer_wallet_lock` — transfer + ví khóa
+> - `20260517040000_notification_creator_nullable`
+> - `20260520000000_wallet_split_balances` — **tách `purchasedBalance` / `earnedBalance`** (Apple §3.1.1 compliance). Backfill: balance cũ → purchasedBalance (xem `memory/wallet_iap_compliance.md`).
+> - `20260520120000_separate_chapter_sale_fee` — tách `chapterSaleFeePercent`
+> - `20260520140000_iap_provider_enum` + `20260520140100_coin_package_iap_ids` — chuẩn bị Apple IAP / Google Play
+
+> 📱 **Mobile app KHÔNG deploy qua Coolify**: `apps/mobile/` là Expo project standalone (cài/build qua `expo start` + EAS Build từ máy dev). Coolify chỉ deploy `backend` + `frontend` từ `docker-compose.yml`. Mobile đã loại khỏi `pnpm-workspace.yaml` + `.dockerignore` nên không ảnh hưởng kích thước Docker context / image.
 
 > ⚠️ **`NEXT_PUBLIC_API_URL` bắt buộc là build arg**: từ bản này, build frontend production **thiếu** biến này sẽ **fail build có thông báo rõ** (thay vì âm thầm proxy `/api/*` về URL chết). Đảm bảo Coolify truyền `NEXT_PUBLIC_API_URL` cho service `frontend` lúc build.
 
@@ -317,6 +327,18 @@ Mỗi app dùng cùng **internal network** để gọi nhau qua hostname service
 | `VNPAY_RETURN_URL` | `https://api.yourdomain.com/api/payments/vnpay/return` (phải đăng ký trên VNPay portal) |
 | `VNPAY_IPN_URL` | `https://api.yourdomain.com/api/payments/vnpay/ipn` (đăng ký trên VNPay portal) |
 
+### 6.5b Payment (Apple IAP + Google Play — chỉ cần khi launch mobile app)
+
+Khung backend đã sẵn (commit `e8ac597`); `verifyPurchase()` đang stub trả invalid cho tới khi điền. Không set env này → endpoint `/payments/{apple,google}/redeem` trả lỗi `not configured` — KHÔNG ảnh hưởng web/VNPay.
+
+| Biến | Mô tả |
+|---|---|
+| `APPLE_IAP_BUNDLE_ID` | Bundle id app iOS (vd `com.hungyeu.webtruyen`). Khớp `apps/mobile/app.json`. |
+| `APPLE_IAP_SHARED_SECRET` | Shared secret từ App Store Connect (Apps → In-App Purchases → App-Specific Shared Secret). |
+| `APPLE_IAP_SANDBOX` | `true` khi test với sandbox account; bỏ trống ở prod. |
+| `GOOGLE_PLAY_PACKAGE_NAME` | Package name Android (vd `com.hungyeu.webtruyen`). Khớp `apps/mobile/app.json`. |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Service account JSON (inline) — scope `androidpublisher`. Tạo ở Google Cloud Console → IAM → Service Accounts → JSON key. Link service account vào Play Console với role "Finance". |
+
 ### 6.6 OAuth & Email (tuỳ chọn)
 
 | Biến | Mô tả |
@@ -439,7 +461,8 @@ Các tham số kinh tế lưu ở **row `Settings`** (không phải biến môi 
 
 | Tham số | Mặc định | Ý nghĩa |
 |---|---|---|
-| Phí nền tảng khi ủng hộ (`donationPlatformFeePercent`) | 2 | % nền tảng giữ lại; **dùng chung** cho donate + mua chương + mua truyện VIP. Spec đề xuất 3 — chỉnh ở đây nếu muốn. |
+| Phí nền tảng khi ủng hộ (`donationPlatformFeePercent`) | 2 | % nền tảng giữ khi donate. Spec đề xuất 3. |
+| Phí nền tảng khi bán chương/VIP (`chapterSaleFeePercent`) | 2 (backfill = donate fee) | % nền tảng giữ khi tác giả bán chương trả phí hoặc truyện VIP. **Tách riêng từ 2026-05-20** — chỉnh độc lập với fee donate. |
 | Số xu rút tối thiểu (`minWithdrawalCoins`) | 1000 | Ngưỡng tối thiểu tác giả được tạo yêu cầu rút. |
 | Cho phép chuyển xu (`allowCoinTransfer`) | **tắt** | Bật mới cho phép user chuyển xu cho nhau (trang `/transfer`). Mặc định tắt. |
 
