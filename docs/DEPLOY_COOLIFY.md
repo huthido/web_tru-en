@@ -40,7 +40,7 @@ Tài liệu này hướng dẫn deploy bằng Docker Compose tại local và lê
 |---|---|
 | `apps/backend/Dockerfile` | Build image NestJS (multi-stage: deps → prisma + nest build → runtime non-root) |
 | `apps/frontend/Dockerfile` | Build image Next.js standalone (NEXT_PUBLIC_* inject lúc build) |
-| `docker-compose.yml` | Full-stack 6 service: postgres + redis + meilisearch + garage + backend + frontend |
+| `docker-compose.yaml` | Full-stack 6 service: postgres + redis + meilisearch + garage + backend + frontend |
 | `garage.toml` | Config Garage single-node (replace `rpc_secret` + `admin_token` trước khi deploy) |
 | `.dockerignore` | Loại `.env`, node_modules, log, test rác khỏi build context |
 | `.env.example` | Template biến môi trường root cho compose |
@@ -82,7 +82,7 @@ Repo hiện có 2 lựa chọn — **chọn đúng 1** rồi set `DATABASE_URL` 
 > - `20260520120000_separate_chapter_sale_fee` — tách `chapterSaleFeePercent`
 > - `20260520140000_iap_provider_enum` + `20260520140100_coin_package_iap_ids` — chuẩn bị Apple IAP / Google Play
 
-> 📱 **Mobile app KHÔNG deploy qua Coolify**: `apps/mobile/` là Expo project standalone (cài/build qua `expo start` + EAS Build từ máy dev). Coolify chỉ deploy `backend` + `frontend` từ `docker-compose.yml`. Mobile đã loại khỏi `pnpm-workspace.yaml` + `.dockerignore` nên không ảnh hưởng kích thước Docker context / image.
+> 📱 **Mobile app KHÔNG deploy qua Coolify**: `apps/mobile/` là Expo project standalone (cài/build qua `expo start` + EAS Build từ máy dev). Coolify chỉ deploy `backend` + `frontend` từ `docker-compose.yaml`. Mobile đã loại khỏi `pnpm-workspace.yaml` + `.dockerignore` nên không ảnh hưởng kích thước Docker context / image.
 
 > ⚠️ **`NEXT_PUBLIC_API_URL` bắt buộc là build arg**: từ bản này, build frontend production **thiếu** biến này sẽ **fail build có thông báo rõ** (thay vì âm thầm proxy `/api/*` về URL chết). Đảm bảo Coolify truyền `NEXT_PUBLIC_API_URL` cho service `frontend` lúc build.
 
@@ -163,7 +163,7 @@ git push origin master
 
 1. Coolify Dashboard → **+ New Resource** → **Docker Compose**.
 2. Source: chọn Git provider, repo `web-truyen-tien-hung`, branch `master`.
-3. Compose file: `docker-compose.yml` (mặc định).
+3. Compose file: `docker-compose.yaml` (mặc định).
 4. Đặt tên resource: ví dụ `web-truyen-prod`.
 
 ### Bước 2 — Environment Variables
