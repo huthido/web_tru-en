@@ -4,6 +4,7 @@ import {
     Patch,
     Body,
     Param,
+    Request,
     UseGuards,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
@@ -26,5 +27,14 @@ export class AdminWalletController {
     @Patch(':userId/lock')
     setLock(@Param('userId') userId: string, @Body() body: { locked: boolean }) {
         return this.walletService.setWalletLock(userId, !!body.locked);
+    }
+
+    @Patch(':userId/adjust')
+    adjust(
+        @Request() req: any,
+        @Param('userId') userId: string,
+        @Body() body: { bucket: 'PURCHASED' | 'EARNED'; delta: number; note: string },
+    ) {
+        return this.walletService.adminAdjustWallet(req.user.id, userId, body);
     }
 }
