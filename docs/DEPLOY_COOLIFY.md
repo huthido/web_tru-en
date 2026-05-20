@@ -801,4 +801,4 @@ Chưa chạy seed → `coin_packages` rỗng. Coolify → backend Terminal: `npx
 - [Meilisearch Docs](https://www.meilisearch.com/docs)
 - [BullMQ Docs](https://docs.bullmq.io/)
 - [VNPay Integration Guide](https://sandbox.vnpayment.vn/apis/docs/)
-- [Tài liệu nội bộ](README.md) · [Tính năng dự án](FEATURES.md) · [Mobile app guide](MOBILE_APP_GUIDE.md)
+- [Tài liệu nội bộ](../README.md) · [Tính năng dự án](FEATURES.md) · [Mobile app guide](MOBILE_APP_GUIDE.md) · [Lộ trình mobile + thanh toán](LO_TRINH_MOBILE_VA_THANH_TOAN.html) · [Spec thêm tính năng](themtinhnang.md)
