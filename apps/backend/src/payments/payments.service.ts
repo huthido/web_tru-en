@@ -122,11 +122,14 @@ export class PaymentsService {
         },
       });
 
-      const wallet = await tx.userWallet.upsert({
-        where: { userId: payment.userId },
-        update: { balance: { increment: payment.coinAmount } },
-        create: { userId: payment.userId, balance: payment.coinAmount },
-      });
+      // VNPay top-up is a real-money purchase → credits the purchased bucket
+      // (spendable but not withdrawable). Same path will be used by future
+      // Apple IAP / Google Play webhooks for Apple §3.1.1 compliance.
+      const wallet = await this.wallet.creditPurchasedExternal(
+        tx,
+        payment.userId,
+        payment.coinAmount,
+      );
 
       await tx.coinTransaction.create({
         data: {

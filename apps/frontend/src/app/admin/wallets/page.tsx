@@ -76,9 +76,11 @@ export default function AdminWalletsPage() {
                                     {info.user.displayName || info.user.username}
                                 </p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">@{info.user.username} · {info.user.email}</p>
-                                <p className="mt-3 text-sm text-gray-700 dark:text-gray-300">
-                                    Số dư: <b>{info.balance.toLocaleString('vi-VN')} xu</b>
-                                </p>
+                                <div className="mt-3 text-sm text-gray-700 dark:text-gray-300 space-y-0.5">
+                                    <p>Xu đã nạp (không rút được): <b>{info.purchasedBalance.toLocaleString('vi-VN')} xu</b></p>
+                                    <p>Xu doanh thu (rút được): <b className="text-emerald-600 dark:text-emerald-400">{info.earnedBalance.toLocaleString('vi-VN')} xu</b></p>
+                                    <p className="text-gray-500 dark:text-gray-400">Tổng: <b>{info.balance.toLocaleString('vi-VN')} xu</b></p>
+                                </div>
                                 <p className="mt-1 text-sm">
                                     Trạng thái ví:{' '}
                                     <span className={`px-2 py-0.5 rounded text-xs font-medium ${info.isLocked

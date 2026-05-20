@@ -3,7 +3,13 @@ import { apiClient } from './client';
 export interface WalletBalance {
     id: string;
     userId: string;
+    /** Bought via VNPay/Apple IAP/Google Play — spendable, NOT withdrawable. */
+    purchasedBalance: number;
+    /** Received from chapter/story sales, donations — withdrawable, NOT transferable. */
+    earnedBalance: number;
+    /** @deprecated Denormalized total = purchasedBalance + earnedBalance. */
     balance: number;
+    isLocked?: boolean;
     createdAt: string;
     updatedAt: string;
 }
@@ -71,6 +77,9 @@ export interface RequestWithdrawalPayload {
 
 export interface AdminWalletInfo {
     user: { id: string; username: string; displayName: string | null; email: string };
+    purchasedBalance: number;
+    earnedBalance: number;
+    /** @deprecated Denormalized total = purchasedBalance + earnedBalance. */
     balance: number;
     isLocked: boolean;
 }

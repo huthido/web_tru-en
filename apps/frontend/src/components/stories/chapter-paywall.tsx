@@ -40,7 +40,9 @@ export function ChapterPaywall({
 
     const isStory = lockType === 'STORY';
     const pending = isStory ? buyStory.isPending : buyChapter.isPending;
-    const balance = wallet?.balance ?? 0;
+    // SOFT debit: chapter/story purchase consumes purchased first, then earned
+    // (see WalletService.debitForContent). The UI gate is the combined total.
+    const balance = (wallet?.purchasedBalance ?? 0) + (wallet?.earnedBalance ?? 0);
     const insufficient = isAuthenticated && balance < price;
     const loginHref = `/login?redirect=${encodeURIComponent(`/stories/${storySlug}/chapters/${chapterSlug}`)}`;
 

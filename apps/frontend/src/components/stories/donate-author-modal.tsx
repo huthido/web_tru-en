@@ -40,7 +40,9 @@ export function DonateAuthorModal({
     if (!isOpen) return null;
 
     const amount = selectedAmount || (customAmount ? parseInt(customAmount, 10) : 0);
-    const balance = wallet?.balance || 0;
+    // SOFT debit (see WalletService.debitForContent) — donate consumes purchased
+    // first, then earned. Gate on combined total.
+    const balance = (wallet?.purchasedBalance || 0) + (wallet?.earnedBalance || 0);
     const isInsufficientBalance = amount > 0 && amount > balance;
     const canDonate = isAuthenticated && amount > 0 && amount <= balance && !donateMutation.isPending;
 
