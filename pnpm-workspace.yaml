@@ -1,3 +1,8 @@
 packages:
-  - 'apps/*'
+  - 'apps/backend'
+  - 'apps/frontend'
   - 'packages/*'
+  # NOTE: apps/mobile is intentionally NOT in the workspace.
+  # Reason: it depends on Expo + RN (~500MB) which would be hoisted into the
+  # root node_modules and pulled into backend/frontend Docker builds.
+  # Mobile is a standalone pnpm project — `cd apps/mobile && pnpm install`.

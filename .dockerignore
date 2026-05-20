@@ -60,3 +60,7 @@ MOBILE_APP_GUIDE.md
 Bao\ Gia\ Du\ An\ web_truyen.html
 "Báo Giá Dự Án.md"
 "Tóm Tắt Chức Năng Dự Án.docx"
+
+# Mobile app — standalone Expo/RN project, never deployed via Coolify.
+# Excluding from Docker context keeps backend/frontend builds lean.
+apps/mobile
