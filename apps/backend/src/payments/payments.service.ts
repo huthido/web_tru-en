@@ -2,6 +2,8 @@ import { Injectable, BadRequestException, NotFoundException, Logger } from '@nes
 import { PrismaService } from '../prisma/prisma.service';
 import { WalletService } from '../wallet/wallet.service';
 import { VnpayProvider } from './providers/vnpay.provider';
+import { AppleIapProvider } from './providers/apple-iap.provider';
+import { GooglePlayProvider } from './providers/google-play.provider';
 import { PaymentProvider, PaymentStatus, TransactionType } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
@@ -13,6 +15,8 @@ export class PaymentsService {
     private prisma: PrismaService,
     private wallet: WalletService,
     private vnpay: VnpayProvider,
+    private appleIap: AppleIapProvider,
+    private googlePlay: GooglePlayProvider,
   ) {}
 
   /**
@@ -176,5 +180,228 @@ export class PaymentsService {
       take: limit,
       include: { package: { select: { name: true, coinAmount: true } } },
     });
+  }
+
+  // ─── Apple IAP / Google Play redeem flow ──────────────────────────────
+  // Mobile clients (iOS / Android) complete a purchase with the local store
+  // SDK, then POST the resulting receipt to us. We verify with Apple/Google,
+  // map productId → CoinPackage, credit the user's purchasedBalance. Apple
+  // §3.1.1 / Google Play §4.3: coins from this path are NOT withdrawable —
+  // WalletService.creditPurchasedExternal enforces that automatically.
+
+  /**
+   * Verify an Apple App Store purchase and credit the wallet. Idempotent
+   * by Apple's transactionId — replays are no-ops.
+   */
+  async redeemAppleIap(opts: {
+    userId: string;
+    productId: string;
+    transactionId: string;
+    receipt: string;
+  }) {
+    if (!opts.productId || !opts.transactionId || !opts.receipt) {
+      throw new BadRequestException('Thiếu productId, transactionId hoặc receipt');
+    }
+
+    // 1. Idempotency — replays of the same Apple transactionId must not credit twice.
+    const existing = await this.prisma.payment.findFirst({
+      where: { provider: PaymentProvider.APPLE_IAP, providerTxn: opts.transactionId },
+    });
+    if (existing) {
+      this.logger.log(`Apple IAP replay for txn ${opts.transactionId} — returning existing payment ${existing.id}`);
+      return { payment: existing, alreadyCredited: existing.status === PaymentStatus.COMPLETED };
+    }
+
+    // 2. Map productId → server CoinPackage. Mobile-sold packages must have
+    //    appleProductId populated (admin sets it in the package config).
+    const pkg = await this.prisma.coinPackage.findUnique({
+      where: { appleProductId: opts.productId },
+    });
+    if (!pkg || !pkg.isActive) {
+      throw new NotFoundException(`Không tìm thấy gói coin cho productId "${opts.productId}" (cấu hình appleProductId trên CoinPackage).`);
+    }
+
+    // 3. Verify with Apple. Provider returns valid=false until real impl is wired.
+    const result = await this.appleIap.verifyPurchase({
+      productId: opts.productId,
+      transactionId: opts.transactionId,
+      receipt: opts.receipt,
+    });
+    if (!result.valid) {
+      // Persist a FAILED payment for audit even though no coins move.
+      const failed = await this.prisma.payment.create({
+        data: {
+          userId: opts.userId,
+          packageId: pkg.id,
+          provider: PaymentProvider.APPLE_IAP,
+          amount: pkg.priceVND, // server's reference price (Apple decides actual)
+          coinAmount: pkg.coinAmount,
+          status: PaymentStatus.FAILED,
+          txnRef: `apple-${opts.transactionId}`,
+          providerTxn: opts.transactionId,
+          providerData: result as any,
+        },
+      });
+      throw new BadRequestException(result.error || 'Apple IAP verification failed');
+    }
+
+    // 4. Credit atomic + record. Use Apple transactionId as providerTxn so
+    //    the unique-lookup in step 1 catches future replays.
+    const payment = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.payment.create({
+        data: {
+          userId: opts.userId,
+          packageId: pkg.id,
+          provider: PaymentProvider.APPLE_IAP,
+          amount: pkg.priceVND,
+          coinAmount: pkg.coinAmount,
+          status: PaymentStatus.COMPLETED,
+          txnRef: `apple-${opts.transactionId}`,
+          providerTxn: opts.transactionId,
+          providerData: result.raw as any,
+          paidAt: new Date(),
+        },
+      });
+
+      const wallet = await this.wallet.creditPurchasedExternal(
+        tx,
+        opts.userId,
+        pkg.coinAmount,
+      );
+      await tx.coinTransaction.create({
+        data: {
+          walletId: wallet.id,
+          amount: pkg.coinAmount,
+          type: TransactionType.DEPOSIT,
+          description: `Apple IAP (${pkg.name}, txn ${opts.transactionId})`,
+          referenceId: created.id,
+        },
+      });
+      return created;
+    });
+
+    return { payment, alreadyCredited: false };
+  }
+
+  /**
+   * Verify a Google Play Billing purchase and credit the wallet. Idempotent
+   * by Google's orderId — replays are no-ops.
+   */
+  async redeemGooglePlay(opts: {
+    userId: string;
+    productId: string;
+    purchaseToken: string;
+  }) {
+    if (!opts.productId || !opts.purchaseToken) {
+      throw new BadRequestException('Thiếu productId hoặc purchaseToken');
+    }
+
+    // 1. Verify with Google first to learn the orderId — Google's orderId is
+    //    the authoritative idempotency key (purchaseToken can rotate on
+    //    Subscriptions but is unique enough for consumables). Skeleton:
+    //    valid=false until real impl is wired.
+    const result = await this.googlePlay.verifyPurchase({
+      productId: opts.productId,
+      purchaseToken: opts.purchaseToken,
+    });
+
+    // 2. Map productId → server CoinPackage.
+    const pkg = await this.prisma.coinPackage.findUnique({
+      where: { googleProductId: opts.productId },
+    });
+    if (!pkg || !pkg.isActive) {
+      throw new NotFoundException(`Không tìm thấy gói coin cho productId "${opts.productId}" (cấu hình googleProductId trên CoinPackage).`);
+    }
+
+    if (!result.valid) {
+      await this.prisma.payment.create({
+        data: {
+          userId: opts.userId,
+          packageId: pkg.id,
+          provider: PaymentProvider.GOOGLE_PLAY,
+          amount: pkg.priceVND,
+          coinAmount: pkg.coinAmount,
+          status: PaymentStatus.FAILED,
+          txnRef: `google-${opts.purchaseToken.slice(0, 32)}`,
+          providerTxn: result.transactionId || null,
+          providerData: result as any,
+        },
+      });
+      throw new BadRequestException(result.error || 'Google Play verification failed');
+    }
+
+    const orderId = result.transactionId!;
+
+    // 3. Idempotency after we have orderId. Replays no-op.
+    const existing = await this.prisma.payment.findFirst({
+      where: { provider: PaymentProvider.GOOGLE_PLAY, providerTxn: orderId },
+    });
+    if (existing) {
+      this.logger.log(`Google Play replay for order ${orderId} — returning existing payment ${existing.id}`);
+      return { payment: existing, alreadyCredited: existing.status === PaymentStatus.COMPLETED };
+    }
+
+    // 4. Credit atomic + record.
+    const payment = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.payment.create({
+        data: {
+          userId: opts.userId,
+          packageId: pkg.id,
+          provider: PaymentProvider.GOOGLE_PLAY,
+          amount: pkg.priceVND,
+          coinAmount: pkg.coinAmount,
+          status: PaymentStatus.COMPLETED,
+          txnRef: `google-${orderId}`,
+          providerTxn: orderId,
+          providerData: result.raw as any,
+          paidAt: new Date(),
+        },
+      });
+
+      const wallet = await this.wallet.creditPurchasedExternal(
+        tx,
+        opts.userId,
+        pkg.coinAmount,
+      );
+      await tx.coinTransaction.create({
+        data: {
+          walletId: wallet.id,
+          amount: pkg.coinAmount,
+          type: TransactionType.DEPOSIT,
+          description: `Google Play (${pkg.name}, order ${orderId})`,
+          referenceId: created.id,
+        },
+      });
+      return created;
+    });
+
+    return { payment, alreadyCredited: false };
+  }
+
+  /**
+   * Handle Apple App Store Server Notifications V2 — refund / cancellation
+   * webhooks. Skeleton: persist the signed JWS payload for audit; the real
+   * impl should verify the JWS, decode notificationType (e.g. REFUND), look
+   * up the matching Payment by transactionId, and decide whether to claw
+   * back coins (best-effort — author may have already spent them, in which
+   * case platform absorbs the loss).
+   */
+  async handleAppleWebhook(body: unknown) {
+    this.logger.warn(
+      `Apple webhook received (skeleton — JWS not verified, no coins clawed back): ${JSON.stringify(body).slice(0, 300)}`,
+    );
+    return { ok: true };
+  }
+
+  /**
+   * Handle Google Real-time Developer Notifications — Pub/Sub push body with
+   * a base64-encoded JSON message. Skeleton: log + ack. Real impl should
+   * decode message.data, handle SUBSCRIPTION_REVOKED / PURCHASE_VOIDED, etc.
+   */
+  async handleGoogleWebhook(body: unknown) {
+    this.logger.warn(
+      `Google webhook received (skeleton — message not decoded, no coins clawed back): ${JSON.stringify(body).slice(0, 300)}`,
+    );
+    return { ok: true };
   }
 }

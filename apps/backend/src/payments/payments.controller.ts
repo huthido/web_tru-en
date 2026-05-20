@@ -86,6 +86,68 @@ export class PaymentsController {
     return this.payments.handleVnpayIpn(query);
   }
 
+  /**
+   * Mobile (iOS): client completes IAP locally, then POSTs the receipt here.
+   *   POST /api/payments/apple/redeem
+   *   body: { productId, transactionId, receipt }
+   * Idempotent — replaying the same Apple transactionId returns the existing
+   * payment without double-crediting.
+   */
+  @Post('apple/redeem')
+  async redeemAppleIap(
+    @CurrentUser() user: any,
+    @Body() body: { productId: string; transactionId: string; receipt: string },
+  ) {
+    const result = await this.payments.redeemAppleIap({
+      userId: user.id,
+      productId: body.productId,
+      transactionId: body.transactionId,
+      receipt: body.receipt,
+    });
+    return { success: true, data: result };
+  }
+
+  /**
+   * Mobile (Android): client completes Play Billing locally, then POSTs the
+   * purchase token here.
+   *   POST /api/payments/google/redeem
+   *   body: { productId, purchaseToken }
+   */
+  @Post('google/redeem')
+  async redeemGooglePlay(
+    @CurrentUser() user: any,
+    @Body() body: { productId: string; purchaseToken: string },
+  ) {
+    const result = await this.payments.redeemGooglePlay({
+      userId: user.id,
+      productId: body.productId,
+      purchaseToken: body.purchaseToken,
+    });
+    return { success: true, data: result };
+  }
+
+  /**
+   * Apple App Store Server Notifications V2 (refunds, cancellations).
+   * Public — called by Apple's infra. The real impl must verify the JWS.
+   */
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Post('apple/webhook')
+  async appleWebhook(@Body() body: unknown) {
+    return this.payments.handleAppleWebhook(body);
+  }
+
+  /**
+   * Google Real-time Developer Notifications (Pub/Sub push).
+   * Public — called by Google's Pub/Sub.
+   */
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Post('google/webhook')
+  async googleWebhook(@Body() body: unknown) {
+    return this.payments.handleGoogleWebhook(body);
+  }
+
   @Get('me')
   async listMine(@CurrentUser() user: any) {
     const data = await this.payments.listMyPayments(user.id);
