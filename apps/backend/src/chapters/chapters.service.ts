@@ -29,7 +29,7 @@ export class ChaptersService {
      */
     private async validateChapterPrice(price?: number) {
         if (price === undefined || price <= 0) return;
-        const feePercent = await this.walletService.getDonationFeePercent();
+        const feePercent = await this.walletService.getChapterSaleFeePercent();
         const { net } = WalletService.splitDonation(price, feePercent);
         if (net <= 0) {
             const minPrice = WalletService.minNetPrice(feePercent);

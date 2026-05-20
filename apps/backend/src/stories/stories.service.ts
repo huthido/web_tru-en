@@ -118,7 +118,7 @@ export class StoriesService {
         'Truyện VIP phải có giá > 0 coin (hoặc đổi sang FREE/FREEMIUM).',
       );
     }
-    const feePercent = await this.walletService.getDonationFeePercent();
+    const feePercent = await this.walletService.getChapterSaleFeePercent();
     const { net } = WalletService.splitDonation(p, feePercent);
     if (net <= 0) {
       const minPrice = WalletService.minNetPrice(feePercent);

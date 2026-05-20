@@ -23,6 +23,8 @@ export interface Settings {
     allowRegistration: boolean;
     requireEmailVerification: boolean;
     donationPlatformFeePercent: number;
+    /** Phí % platform giữ khi tác giả bán chương / truyện VIP. */
+    chapterSaleFeePercent: number;
     allowCoinTransfer?: boolean;
     minWithdrawalCoins?: number;
     createdAt: string;
@@ -50,6 +52,7 @@ export interface UpdateSettingsRequest {
     allowRegistration?: boolean;
     requireEmailVerification?: boolean;
     donationPlatformFeePercent?: number;
+    chapterSaleFeePercent?: number;
     allowCoinTransfer?: boolean;
     minWithdrawalCoins?: number;
 }
