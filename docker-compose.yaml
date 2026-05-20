@@ -86,10 +86,18 @@ services:
     image: postgres:16-alpine
     container_name: web_truyen_postgres
     restart: unless-stopped
+    # password_encryption=md5 — Postgres 16 mặc định scram-sha-256, nhưng
+    # PgBouncer (edoburu image) cần auth_user+auth_query để xử lý SCRAM —
+    # phức tạp. md5 đơn giản hơn, PgBouncer connect được luôn với
+    # AUTH_TYPE=trust + password trong DATABASE_URL.
+    # An toàn vì Postgres chỉ expose Docker internal network.
+    command: ["postgres", "-c", "password_encryption=md5"]
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-web_truyen_db}
+      # initdb: pg_hba.conf yêu cầu md5 cho host connections.
+      POSTGRES_INITDB_ARGS: "--auth-host=md5"
     # Internal-only — backend reaches via postgres:5432 (or pgbouncer:5432).
     # Coolify host thường đã có Postgres khác chiếm 5432 → expose ra host gây
     # conflict. Local dev: thêm `ports: ["${POSTGRES_PORT:-5432}:5432"]`.
@@ -154,17 +162,18 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started  # edoburu image không có healthcheck tool
       redis:
         condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3009
-      # Default: connect Postgres trực tiếp. Postgres 16 mặc định
-      # password_encryption=scram-sha-256, PgBouncer cần setup auth_query
-      # hoặc đổi Postgres sang md5 mới connect được — opt-in khi scale.
-      # Để bật PgBouncer: override DATABASE_URL=postgresql://user:pass@pgbouncer:5432/...?pgbouncer=true&connection_limit=20
-      # SAU KHI làm theo doc §7.x setup md5/auth_query.
-      DATABASE_URL: ${DATABASE_URL:-postgresql://user:password@postgres:5432/web_truyen_db?schema=public}
+      # Prisma Client → PgBouncer (multiplex). Prisma Migrate → Postgres
+      # direct (DDL không qua transaction pooler). Postgres dùng md5
+      # encryption (xem postgres service) nên PgBouncer auth trust connect
+      # được.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://user:password@pgbouncer:5432/web_truyen_db?schema=public&pgbouncer=true&connection_limit=20}
       DIRECT_URL: ${DIRECT_URL:-postgresql://user:password@postgres:5432/web_truyen_db?schema=public}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       JWT_SECRET: ${JWT_SECRET}
