@@ -196,8 +196,10 @@ services:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3009/api/health"]
       interval: 30s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      # 120s start_period vì lần deploy đầu phải chạy `prisma migrate deploy`
+      # cho 17 migration trên DB rỗng — có thể mất 30-60s.
+      start_period: 120s
     networks:
       - web_truyen
 
@@ -213,7 +215,10 @@ services:
     restart: unless-stopped
     depends_on:
       backend:
-        condition: service_healthy
+        # service_started thay vì service_healthy — Next.js standalone không
+        # gọi backend ở startup (chỉ runtime); và Coolify timeout khi chờ
+        # backend health đôi khi false-positive nếu migration chậm.
+        condition: service_started
     environment:
       NODE_ENV: production
       PORT: 3000

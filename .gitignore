@@ -40,6 +40,7 @@ prisma/migrations/*.sql
 
 # Docker
 docker-compose.override.yml
+garage.deploy.toml
 
 # Misc
 *.pem
