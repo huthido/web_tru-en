@@ -91,7 +91,7 @@ services:
     #
     # Optional: backend works without PgBouncer (point DATABASE_URL directly
     # at postgres:5432). Enable by pointing DATABASE_URL at pgbouncer:6432.
-    image: edoburu/pgbouncer:1.23.1
+    image: edoburu/pgbouncer:v1.23.1-p0
     container_name: web_truyen_pgbouncer
     restart: unless-stopped
     depends_on:
