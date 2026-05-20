@@ -79,7 +79,15 @@ function makeService() {
     const prisma = {} as any;
     const config = { get: () => undefined } as any;
     const notifications = { notifyUser: jest.fn(async () => undefined) } as any;
-    return new WalletService(prisma, config, notifications);
+    const redis = {
+        isEnabled: () => false,
+        get: jest.fn(async () => null),
+        set: jest.fn(async () => undefined),
+        del: jest.fn(async () => undefined),
+        publish: jest.fn(async () => undefined),
+        subscribe: jest.fn(async () => undefined),
+    } as any;
+    return new WalletService(prisma, config, notifications, redis);
 }
 
 describe('WalletService — pure helpers', () => {

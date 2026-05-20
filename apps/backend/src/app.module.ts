@@ -31,6 +31,7 @@ import { HealthController } from './health/health.controller';
 import { QueueModule } from './queue/queue.module';
 import { EmailModule } from './email/email.module';
 import { MetricsModule } from './metrics/metrics.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -53,6 +54,9 @@ import { MetricsModule } from './metrics/metrics.module';
 
     // Logger
     LoggerModule,
+
+    // Redis (pub/sub + cache). Global, must precede modules that depend on it.
+    RedisModule,
 
     // Queue infrastructure (BullMQ + Redis). Must be before modules that produce jobs.
     QueueModule,

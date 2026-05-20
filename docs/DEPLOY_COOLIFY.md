@@ -474,7 +474,48 @@ Công cụ vận hành cho admin:
 - **`/admin/wallets`** — tra ví theo username/email, **Khóa/Mở ví** (chống gian lận). Ví khóa: user không mua chương/truyện, donate, chuyển hay rút được; số dư giữ nguyên.
 - **Story access types**: tác giả tự chọn FREE / FREEMIUM / VIP ở form tạo/sửa truyện — không cần cấu hình deploy.
 
-> 🔴 **Realtime notification (SSE) — ràng buộc deploy quan trọng:** endpoint `GET /api/notifications/stream` dùng pub/sub **trong tiến trình**. Chỉ đúng khi chạy **đúng 1 instance backend** (cấu hình compose hiện tại = 1 instance → OK). Nếu scale ≥2 instance, thông báo realtime sẽ chỉ tới đúng người nếu request dính đúng instance — cần chuyển sang Redis pub/sub trước khi scale. SSE đi qua Traefik bình thường (Traefik không buffer, không cần chỉnh thêm); chỉ tránh đặt timeout/idle quá ngắn cho backend service.
+> ✅ **Realtime notification (SSE) — multi-instance OK từ Phase 2 scaling:** endpoint `GET /api/notifications/stream` đã chuyển sang **Redis pub/sub** khi `REDIS_URL` set (channel `notifications:sse`). Backend scale ≥2 instance giờ an toàn — `notifyUser` ở instance A publish, mọi instance subscribe lại push vào SSE local. Khi `REDIS_URL` không set → fallback in-process Subject (chỉ đúng 1 instance, dev/local OK). Traefik không buffer SSE — không cần config thêm; chỉ tránh idle-timeout quá ngắn (`>60s`).
+
+---
+
+### 7.6 Scale Phase 2 — multi-instance backend + read replica
+
+**Khi nào cần:** ≥ 10k DAU concurrent hoặc CPU backend > 70% liên tục.
+
+#### Backend ≥ 2 replica
+
+Coolify → backend resource → **Configuration → Scaling → Replicas: 2-3**. Yêu cầu trước khi scale:
+
+1. **`REDIS_URL` đã set** (BullMQ + Redis pub/sub SSE + Redis cache wallet fee đều phụ thuộc).
+2. **`DATABASE_URL` trỏ qua PgBouncer** (đã default ở compose), `DIRECT_URL` trỏ Postgres trực tiếp cho migration.
+3. **Traefik không cần sticky session** vì SSE qua Redis pub/sub — bất kỳ instance nào nhận connection cũng nhận được tick.
+
+#### Read replica Postgres (tùy chọn)
+
+Khi read query > 70% load. Prisma 5+ hỗ trợ read replica qua extension:
+
+```bash
+pnpm --filter @web-truyen/backend add @prisma/extension-read-replicas
+```
+
+Trong `apps/backend/src/prisma/prisma.service.ts`:
+
+```ts
+const replicaUrls = process.env.DATABASE_REPLICA_URLS?.split(',').filter(Boolean) ?? [];
+const client = new PrismaClient();
+if (replicaUrls.length > 0) {
+  client.$extends(readReplicas({ url: replicaUrls }));
+}
+```
+
+Coolify env:
+```ini
+DATABASE_REPLICA_URLS=postgresql://user:pass@replica1:5432/db,postgresql://user:pass@replica2:5432/db
+```
+
+Replica instance dùng PostgreSQL streaming replication (Coolify Postgres template hỗ trợ; hoặc image `bitnami/postgresql-repmgr`). Write vẫn đi DATABASE_URL (primary qua PgBouncer); read tự động cân tải qua replicas.
+
+> ⚠️ Replica latency có thể gây "read after write" bug (user vừa update, fetch lại không thấy). Mitigate: ép Prisma dùng primary cho query "vừa-mới-ghi" qua `$primary()` extension method.
 
 ---
 

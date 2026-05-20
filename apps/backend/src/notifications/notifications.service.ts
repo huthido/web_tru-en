@@ -1,23 +1,62 @@
-import { Injectable, NotFoundException, ForbiddenException, MessageEvent } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, MessageEvent, OnModuleInit, Logger } from '@nestjs/common';
 import { Subject, Observable, merge, interval } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
+import { RedisService } from '../redis/redis.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { NotificationType, NotificationPriority, UserRole } from '@prisma/client';
 import { getPaginationParams, createPaginatedResult } from '../common/utils/pagination.util';
 
+const SSE_CHANNEL = 'notifications:sse';
+
 @Injectable()
-export class NotificationsService {
-    // In-process pub/sub for SSE. Fine for a single instance; for multi-instance
-    // deploys this would need Redis pub/sub, but the app runs one backend.
+export class NotificationsService implements OnModuleInit {
+    private readonly logger = new Logger(NotificationsService.name);
+    /**
+     * Local fan-out for SSE subscribers attached to THIS backend instance.
+     * - When Redis is enabled: every notifyUser publishes to SSE_CHANNEL; the
+     *   subscriber handler in onModuleInit forwards inbound messages into
+     *   this Subject, so SSE clients on any instance get the tick.
+     * - When Redis is not configured: notifyUser writes directly into this
+     *   Subject (single-instance fallback).
+     */
     private readonly events$ = new Subject<{ userId: string }>();
 
     constructor(
         private prisma: PrismaService,
         private emailService: EmailService,
+        private redis: RedisService,
     ) {}
+
+    async onModuleInit() {
+        if (!this.redis.isEnabled()) {
+            this.logger.warn('Redis pub/sub disabled — SSE works only on a single instance.');
+            return;
+        }
+        await this.redis.subscribe(SSE_CHANNEL, (msg) => {
+            try {
+                const evt = JSON.parse(msg) as { userId: string };
+                if (evt?.userId) this.events$.next({ userId: evt.userId });
+            } catch (e: any) {
+                this.logger.warn(`Bad SSE payload on ${SSE_CHANNEL}: ${e.message}`);
+            }
+        });
+        this.logger.log(`Subscribed to Redis channel ${SSE_CHANNEL} for cross-instance SSE.`);
+    }
+
+    /**
+     * Emit an SSE tick — Redis pub/sub if available (cross-instance),
+     * else direct in-process. Idempotent at the SSE level.
+     */
+    private async emitSse(userId: string) {
+        if (this.redis.isEnabled()) {
+            await this.redis.publish(SSE_CHANNEL, JSON.stringify({ userId }));
+        } else {
+            this.events$.next({ userId });
+        }
+    }
 
     /**
      * Create a personal notification for ONE user (auto events like
@@ -43,7 +82,7 @@ export class NotificationsService {
         await this.prisma.notificationRecipient.create({
             data: { notificationId: notification.id, userId },
         });
-        this.events$.next({ userId });
+        await this.emitSse(userId);
         return notification;
     }
 

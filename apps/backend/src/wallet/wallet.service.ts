@@ -1,10 +1,15 @@
-import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, TransactionType, WithdrawalStatus } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
+import { RedisService } from '../redis/redis.service';
 
 type WalletTx = Prisma.TransactionClient;
+
+const REDIS_FEE_KEY_DONATION = 'wallet:fee:donation';
+const REDIS_FEE_KEY_CHAPTER = 'wallet:fee:chapter';
+const REDIS_FEE_INVALIDATE_CHANNEL = 'wallet:fee:invalidate';
 
 const DEFAULT_MIN_WITHDRAWAL_COINS = 1000;
 
@@ -17,13 +22,13 @@ export const DEFAULT_DONATION_PLATFORM_FEE_PERCENT = 2;
 const FEE_CACHE_TTL_MS = 60_000; // 60s — admin's "update fee" UI feels instant in practice
 
 @Injectable()
-export class WalletService {
+export class WalletService implements OnModuleInit {
     private readonly logger = new Logger(WalletService.name);
-    // Donation fee cache (donateToAuthor only).
+    // Local fee cache (instance-level). Hit first to avoid even Redis
+    // round-trip on hot paths. TTL 60s. Cleared when this instance receives
+    // a Redis pub/sub `invalidate` (admin updated Settings on a peer instance).
     private cachedFeePercent: number | null = null;
     private cachedFeeAt = 0;
-    // Chapter/VIP-story sale fee cache (payForChapter/payForStory). Tracked
-    // separately so admin can tune the two fees independently.
     private cachedChapterFeePercent: number | null = null;
     private cachedChapterFeeAt = 0;
 
@@ -31,7 +36,24 @@ export class WalletService {
         private prisma: PrismaService,
         private config: ConfigService,
         private notifications: NotificationsService,
+        private redis: RedisService,
     ) { }
+
+    async onModuleInit() {
+        if (!this.redis.isEnabled()) return;
+        // Subscribe so any admin-triggered invalidation on ANY instance
+        // clears the local TTL on THIS instance too.
+        await this.redis.subscribe(REDIS_FEE_INVALIDATE_CHANNEL, (msg) => {
+            if (msg === 'donation' || msg === 'all') {
+                this.cachedFeePercent = null;
+                this.cachedFeeAt = 0;
+            }
+            if (msg === 'chapter' || msg === 'all') {
+                this.cachedChapterFeePercent = null;
+                this.cachedChapterFeeAt = 0;
+            }
+        });
+    }
 
     // ─── Bucket helpers (Apple §3.1.1 / Google Play §4.3 compliance) ───────
     // Coins live in two buckets:
@@ -192,10 +214,23 @@ export class WalletService {
      */
     async getDonationFeePercent(): Promise<number> {
         const now = Date.now();
+        // Tier 1: local in-process cache (no network).
         if (this.cachedFeePercent !== null && now - this.cachedFeeAt < FEE_CACHE_TTL_MS) {
             return this.cachedFeePercent;
         }
+        // Tier 2: Redis (shared across instances, so admin-changed value is
+        // visible to peers as soon as they next miss their local TTL).
+        const fromRedis = await this.redis.get(REDIS_FEE_KEY_DONATION);
+        if (fromRedis !== null) {
+            const parsed = Number(fromRedis);
+            if (Number.isInteger(parsed) && parsed >= 0 && parsed <= 50) {
+                this.cachedFeePercent = parsed;
+                this.cachedFeeAt = now;
+                return parsed;
+            }
+        }
 
+        // Tier 3: DB / env / hard default. Repopulate both caches.
         let percent = DEFAULT_DONATION_PLATFORM_FEE_PERCENT;
         try {
             const settings = await this.prisma.settings.findFirst({
@@ -215,13 +250,20 @@ export class WalletService {
 
         this.cachedFeePercent = percent;
         this.cachedFeeAt = now;
+        await this.redis.set(REDIS_FEE_KEY_DONATION, String(percent), 60);
         return percent;
     }
 
-    /** Invalidate the donation-fee cache — called by SettingsService on admin update. */
-    invalidateFeeCache(): void {
+    /**
+     * Invalidate the donation-fee cache — called by SettingsService on admin
+     * update. Clears local + Redis + broadcasts to peer instances so they
+     * also clear their local TTL.
+     */
+    async invalidateFeeCache(): Promise<void> {
         this.cachedFeePercent = null;
         this.cachedFeeAt = 0;
+        await this.redis.del(REDIS_FEE_KEY_DONATION);
+        await this.redis.publish(REDIS_FEE_INVALIDATE_CHANNEL, 'donation');
     }
 
     /**
@@ -237,6 +279,15 @@ export class WalletService {
             now - this.cachedChapterFeeAt < FEE_CACHE_TTL_MS
         ) {
             return this.cachedChapterFeePercent;
+        }
+        const fromRedis = await this.redis.get(REDIS_FEE_KEY_CHAPTER);
+        if (fromRedis !== null) {
+            const parsed = Number(fromRedis);
+            if (Number.isInteger(parsed) && parsed >= 0 && parsed <= 50) {
+                this.cachedChapterFeePercent = parsed;
+                this.cachedChapterFeeAt = now;
+                return parsed;
+            }
         }
 
         let percent = DEFAULT_DONATION_PLATFORM_FEE_PERCENT;
@@ -258,13 +309,16 @@ export class WalletService {
 
         this.cachedChapterFeePercent = percent;
         this.cachedChapterFeeAt = now;
+        await this.redis.set(REDIS_FEE_KEY_CHAPTER, String(percent), 60);
         return percent;
     }
 
-    /** Invalidate the chapter-sale fee cache — called by SettingsService on admin update. */
-    invalidateChapterFeeCache(): void {
+    /** Invalidate the chapter-sale fee cache. Same cross-instance protocol as donation. */
+    async invalidateChapterFeeCache(): Promise<void> {
         this.cachedChapterFeePercent = null;
         this.cachedChapterFeeAt = 0;
+        await this.redis.del(REDIS_FEE_KEY_CHAPTER);
+        await this.redis.publish(REDIS_FEE_INVALIDATE_CHANNEL, 'chapter');
     }
 
     // Get wallet balance, create if not exists
