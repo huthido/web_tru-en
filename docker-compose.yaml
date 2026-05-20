@@ -67,7 +67,10 @@ services:
     image: redis:7-alpine
     container_name: web_truyen_redis
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    # noeviction: BullMQ requires it (queue keys không được evict khi đầy RAM
+    # → tránh mất email/notification jobs). Nếu Redis chạm 256mb, push thêm
+    # sẽ fail → BullMQ tự retry hợp lý hơn là mất silently.
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "noeviction"]
     volumes:
       - redis_data:/data
     healthcheck:
