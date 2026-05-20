@@ -1,0 +1,30 @@
+{
+    "expo": {
+        "name": "Web Truyện HungYeu",
+        "slug": "web-truyen-hungyeu",
+        "version": "0.1.0",
+        "orientation": "portrait",
+        "scheme": "webtruyen",
+        "userInterfaceStyle": "automatic",
+        "newArchEnabled": true,
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.hungyeu.webtruyen"
+        },
+        "android": {
+            "package": "com.hungyeu.webtruyen",
+            "adaptiveIcon": {
+                "backgroundColor": "#ffffff"
+            }
+        },
+        "web": {
+            "favicon": "./assets/favicon.png"
+        },
+        "extra": {
+            "apiUrl": "http://10.0.2.2:3001/api"
+        },
+        "plugins": [
+            "expo-secure-store"
+        ]
+    }
+}
