@@ -154,18 +154,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      pgbouncer:
-        condition: service_started  # edoburu/pgbouncer không có healthcheck tool
       redis:
         condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3009
-      # Prisma Client uses DATABASE_URL — point at PgBouncer for runtime
-      # multiplexing. Prisma Migrate uses DIRECT_URL — must hit Postgres
-      # directly because some DDL doesn't work over transaction-pooled
-      # connections.
-      DATABASE_URL: ${DATABASE_URL:-postgresql://user:password@pgbouncer:5432/web_truyen_db?schema=public&pgbouncer=true&connection_limit=20}
+      # Default: connect Postgres trực tiếp. Postgres 16 mặc định
+      # password_encryption=scram-sha-256, PgBouncer cần setup auth_query
+      # hoặc đổi Postgres sang md5 mới connect được — opt-in khi scale.
+      # Để bật PgBouncer: override DATABASE_URL=postgresql://user:pass@pgbouncer:5432/...?pgbouncer=true&connection_limit=20
+      # SAU KHI làm theo doc §7.x setup md5/auth_query.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://user:password@postgres:5432/web_truyen_db?schema=public}
       DIRECT_URL: ${DIRECT_URL:-postgresql://user:password@postgres:5432/web_truyen_db?schema=public}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       JWT_SECRET: ${JWT_SECRET}
