@@ -92,11 +92,12 @@ export class SettingsService {
 
       // If a fee % changed, invalidate the wallet's matching cache so the new
       // rate takes effect on the very next charge rather than after 60s.
+      // Now async because invalidation goes to Redis + pub/sub (cross-instance).
       if ('donationPlatformFeePercent' in cleanedData && this.wallet) {
-        this.wallet.invalidateFeeCache();
+        await this.wallet.invalidateFeeCache();
       }
       if ('chapterSaleFeePercent' in cleanedData && this.wallet) {
-        this.wallet.invalidateChapterFeeCache();
+        await this.wallet.invalidateChapterFeeCache();
       }
 
       return settings;
