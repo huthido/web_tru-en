@@ -7,7 +7,7 @@ services:
     # Garage = self-hosted S3-compatible object storage (deuxfleurs.fr).
     # On first boot you must run `docker exec web_truyen_garage /garage layout assign ...`
     # then `/garage bucket create web-truyen` + `/garage key new --name app` to obtain
-    # S3_ACCESS_KEY / S3_SECRET_KEY. See DEPLOY_COOLIFY.md.
+    # S3_ACCESS_KEY / S3_SECRET_KEY. See docs/DEPLOY_COOLIFY.md.
     image: dxflrs/garage:v1.0.1
     container_name: web_truyen_garage
     restart: unless-stopped
