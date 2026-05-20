@@ -46,6 +46,11 @@ garage.deploy.toml
 *.pem
 .cache/
 
+# Database backups (transferred via scp/rsync, never commit)
+backup.sql
+pre_import_backup_*.sql
+tmp/backup_clean.sql
+
 # PWA (next-pwa generated files)
 **/public/sw.js
 **/public/sw.js.map

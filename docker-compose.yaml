@@ -93,14 +93,17 @@ services:
       - web_truyen
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: web_truyen_postgres
     restart: unless-stopped
-    # password_encryption=md5 — Postgres 16 mặc định scram-sha-256, nhưng
+    # password_encryption=md5 — Postgres 14+ mặc định scram-sha-256, nhưng
     # PgBouncer (edoburu image) cần auth_user+auth_query để xử lý SCRAM —
     # phức tạp. md5 đơn giản hơn, PgBouncer connect được luôn với
     # AUTH_TYPE=trust + password trong DATABASE_URL.
     # An toàn vì Postgres chỉ expose Docker internal network.
+    # PG18 lưu data ở /var/lib/postgresql/18/docker (subdir versioned) —
+    # KHÔNG đọc được volume cũ của PG16. Khi nâng phải wipe volume rồi
+    # import lại từ backup (xem scripts/upgrade-postgres-and-import.ps1).
     command: ["postgres", "-c", "password_encryption=md5"]
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-user}
@@ -114,7 +117,11 @@ services:
     expose:
       - "5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # PG18+ image lưu data ở /var/lib/postgresql/<major>/docker (subdir
+      # versioned). Mount ở /var/lib/postgresql (cha) — KHÔNG /data như PG≤17,
+      # nếu sai PG18 từ chối init. Khi nâng major từ image cũ phải xoá volume
+      # + re-import (xem scripts/upgrade-postgres-and-import.{ps1,sh}).
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-web_truyen_db}"]
       interval: 10s
