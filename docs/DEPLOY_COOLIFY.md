@@ -4,6 +4,7 @@ Monorepo pnpm gồm:
 - **NestJS backend** (port 3009)
 - **Next.js 14 frontend** (port 3000)
 - **PostgreSQL 16** (database chính)
+- **PgBouncer 1.23** (connection pooler — multiplexes backend connections to Postgres khi scale replica)
 - **Redis 7** (queue BullMQ cho email/notification)
 - **Meilisearch v1.10** (full-text search, có fallback Postgres LIKE)
 - **Garage v1.0.1** (S3-compatible object storage, có fallback Cloudinary/local)
@@ -277,7 +278,8 @@ Mỗi app dùng cùng **internal network** để gọi nhau qua hostname service
 | `POSTGRES_USER` | postgres | User DB |
 | `POSTGRES_PASSWORD` | postgres | Password DB (≥16 ký tự) |
 | `POSTGRES_DB` | postgres | Tên DB |
-| `DATABASE_URL` | backend | Connection string. Trong compose: `postgresql://user:pass@postgres:5432/db?schema=public` |
+| `DATABASE_URL` | backend | Prisma Client connection. **Compose mặc định trỏ qua PgBouncer**: `postgresql://user:pass@pgbouncer:5432/db?schema=public&pgbouncer=true&connection_limit=20`. Nếu không muốn dùng PgBouncer thì trỏ thẳng `postgres:5432`. |
+| `DIRECT_URL` | backend | Prisma Migrate connection (DDL không chạy qua transaction pooler). Compose mặc định: `postgresql://user:pass@postgres:5432/db?schema=public`. Nếu không dùng PgBouncer thì để trống — Prisma sẽ fallback DATABASE_URL. |
 | `JWT_SECRET` | backend | Ký access token, ≥32 ký tự |
 | `JWT_REFRESH_SECRET` | backend | Ký refresh token, khác `JWT_SECRET` |
 | `CORS_ORIGIN` | backend | Comma-separated origins. `https://yourdomain.com,https://www.yourdomain.com` |

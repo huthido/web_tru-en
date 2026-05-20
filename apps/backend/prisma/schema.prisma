@@ -6,8 +6,12 @@ generator client {
 // Run with: npm run prisma:seed
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // DIRECT_URL bypasses PgBouncer for `prisma migrate deploy` (transaction
+  // pooling doesn't support all DDL). Optional — if unset, prisma falls
+  // back to DATABASE_URL, which is fine when not using PgBouncer.
+  directUrl = env("DIRECT_URL")
 }
 
 model User {

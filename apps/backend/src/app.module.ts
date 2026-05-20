@@ -30,6 +30,7 @@ import { LoggerModule } from './common/logger/logger.module';
 import { HealthController } from './health/health.controller';
 import { QueueModule } from './queue/queue.module';
 import { EmailModule } from './email/email.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { EmailModule } from './email/email.module';
     NotificationsModule,
     WalletModule,
     PaymentsModule,
+    MetricsModule,
     MiddlewareModule, // Must be imported to provide MaintenanceMiddleware
   ],
   controllers: [HealthController],

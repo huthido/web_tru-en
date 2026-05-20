@@ -81,6 +81,53 @@ services:
     networks:
       - web_truyen
 
+  pgbouncer:
+    # Connection pooler in front of Postgres. The backend's Prisma client
+    # opens a connection per worker; when we scale the backend horizontally
+    # (Coolify replicas), the total connection count can hit Postgres'
+    # max_connections (100 by default) very fast. PgBouncer multiplexes
+    # them transparently — backend connects to PgBouncer, PgBouncer holds
+    # a small persistent pool to Postgres.
+    #
+    # Optional: backend works without PgBouncer (point DATABASE_URL directly
+    # at postgres:5432). Enable by pointing DATABASE_URL at pgbouncer:6432.
+    image: edoburu/pgbouncer:1.23.1
+    container_name: web_truyen_pgbouncer
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      DB_NAME: ${POSTGRES_DB:-web_truyen_db}
+      # transaction pooling = best for Prisma (each transaction gets a fresh
+      # server conn; Prisma's internal pool sits on top of PgBouncer's).
+      POOL_MODE: transaction
+      # Keep the pool small. PgBouncer multiplexes M backend conns onto N
+      # Postgres conns — typically N = 2-3× CPU cores of the Postgres box.
+      MAX_CLIENT_CONN: 200
+      DEFAULT_POOL_SIZE: 20
+      RESERVE_POOL_SIZE: 5
+      # Statement/idle limits — kill runaway queries before they pile up.
+      SERVER_IDLE_TIMEOUT: 600
+      QUERY_TIMEOUT: 60
+      # AUTH_TYPE plain → PgBouncer authenticates clients via the same
+      # password as Postgres; works with the default DB_USER above.
+      AUTH_TYPE: plain
+    ports:
+      - "${PGBOUNCER_PORT:-6432}:5432"
+    healthcheck:
+      # PgBouncer's PSQL-protocol "SHOW" health check.
+      test: ["CMD-SHELL", "PGPASSWORD=${POSTGRES_PASSWORD:-password} psql -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER:-user} -d pgbouncer -c 'SHOW VERSION' || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks:
+      - web_truyen
+
   backend:
     image: web-truyen-backend:latest
     build:
@@ -91,12 +138,19 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_healthy
       redis:
         condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3009
-      DATABASE_URL: ${DATABASE_URL:-postgresql://user:password@postgres:5432/web_truyen_db?schema=public}
+      # Prisma Client uses DATABASE_URL — point at PgBouncer for runtime
+      # multiplexing. Prisma Migrate uses DIRECT_URL — must hit Postgres
+      # directly because some DDL doesn't work over transaction-pooled
+      # connections.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://user:password@pgbouncer:5432/web_truyen_db?schema=public&pgbouncer=true&connection_limit=20}
+      DIRECT_URL: ${DIRECT_URL:-postgresql://user:password@postgres:5432/web_truyen_db?schema=public}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}

@@ -86,40 +86,58 @@ export class NotificationsService {
             },
         });
 
-        // Get target users
+        // Build target filter once.
         const whereClause: any = { isActive: true, emailVerified: true };
         if (dto.targetRole) {
             whereClause.role = dto.targetRole;
         }
 
-        const targetUsers = await this.prisma.user.findMany({
-            where: whereClause,
-            select: {
-                id: true,
-                email: true,
-                displayName: true,
-                username: true,
-            },
-        });
+        // Cursor-paginated batch: 500 users per round.
+        // Why? Loading ALL active+verified users into Node memory does not
+        // scale past ~50k users (each row ~500B → 25MB+, plus the recipients
+        // array). Batching also lets a single broadcast survive a transient
+        // DB hiccup mid-stream — only the failing batch retries, not the
+        // whole 100k-row INSERT.
+        const BATCH_SIZE = 500;
+        let cursor: { id: string } | undefined;
+        let totalRecipients = 0;
 
-        // Create notification recipients
-        if (targetUsers.length > 0) {
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            const batch = await this.prisma.user.findMany({
+                where: whereClause,
+                select: { id: true, email: true, displayName: true, username: true },
+                orderBy: { id: 'asc' },
+                take: BATCH_SIZE,
+                ...(cursor ? { cursor, skip: 1 } : {}),
+            });
+            if (batch.length === 0) break;
+
             await this.prisma.notificationRecipient.createMany({
-                data: targetUsers.map(user => ({
+                data: batch.map((u) => ({
                     notificationId: notification.id,
-                    userId: user.id,
+                    userId: u.id,
                 })),
+                skipDuplicates: true,
             });
 
-            // Send emails if requested
             if (dto.sendEmail) {
-                await this.sendNotificationEmails(notification, targetUsers);
+                // Fire-and-forget per batch. Each email goes through the
+                // BullMQ queue (or sync fallback), so we don't await all
+                // 500 promises concurrently.
+                this.sendNotificationEmails(notification, batch).catch((err) =>
+                    console.error('Notification email batch failed:', err),
+                );
             }
+
+            totalRecipients += batch.length;
+            if (batch.length < BATCH_SIZE) break;
+            cursor = { id: batch[batch.length - 1].id };
         }
 
         return {
             ...notification,
-            recipientCount: targetUsers.length,
+            recipientCount: totalRecipients,
         };
     }
 
