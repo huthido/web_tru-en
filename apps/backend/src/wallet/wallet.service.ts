@@ -19,8 +19,13 @@ const FEE_CACHE_TTL_MS = 60_000; // 60s — admin's "update fee" UI feels instan
 @Injectable()
 export class WalletService {
     private readonly logger = new Logger(WalletService.name);
+    // Donation fee cache (donateToAuthor only).
     private cachedFeePercent: number | null = null;
     private cachedFeeAt = 0;
+    // Chapter/VIP-story sale fee cache (payForChapter/payForStory). Tracked
+    // separately so admin can tune the two fees independently.
+    private cachedChapterFeePercent: number | null = null;
+    private cachedChapterFeeAt = 0;
 
     constructor(
         private prisma: PrismaService,
@@ -213,10 +218,53 @@ export class WalletService {
         return percent;
     }
 
-    /** Invalidate the cache — called by SettingsService when admin updates the fee. */
+    /** Invalidate the donation-fee cache — called by SettingsService on admin update. */
     invalidateFeeCache(): void {
         this.cachedFeePercent = null;
         this.cachedFeeAt = 0;
+    }
+
+    /**
+     * Resolve the current chapter/VIP-story sale fee %.
+     * Same fallback chain as getDonationFeePercent (Settings → env → default)
+     * but reads `chapterSaleFeePercent` so admin can tune sale vs donation
+     * independently. Separate cache so each invalidates without coupling.
+     */
+    async getChapterSaleFeePercent(): Promise<number> {
+        const now = Date.now();
+        if (
+            this.cachedChapterFeePercent !== null &&
+            now - this.cachedChapterFeeAt < FEE_CACHE_TTL_MS
+        ) {
+            return this.cachedChapterFeePercent;
+        }
+
+        let percent = DEFAULT_DONATION_PLATFORM_FEE_PERCENT;
+        try {
+            const settings = await this.prisma.settings.findFirst({
+                select: { chapterSaleFeePercent: true },
+            });
+            if (settings?.chapterSaleFeePercent != null) {
+                percent = settings.chapterSaleFeePercent;
+            } else {
+                const envValue = Number(this.config.get<string>('CHAPTER_SALE_FEE_PERCENT'));
+                if (Number.isInteger(envValue) && envValue >= 0 && envValue <= 50) {
+                    percent = envValue;
+                }
+            }
+        } catch (err: any) {
+            this.logger.warn(`Failed to read chapter sale fee from Settings, using default ${percent}%: ${err.message}`);
+        }
+
+        this.cachedChapterFeePercent = percent;
+        this.cachedChapterFeeAt = now;
+        return percent;
+    }
+
+    /** Invalidate the chapter-sale fee cache — called by SettingsService on admin update. */
+    invalidateChapterFeeCache(): void {
+        this.cachedChapterFeePercent = null;
+        this.cachedChapterFeeAt = 0;
     }
 
     // Get wallet balance, create if not exists
@@ -381,7 +429,7 @@ export class WalletService {
             throw new BadRequestException('Bạn không thể mua chương của chính mình');
         }
 
-        const feePercent = await this.getDonationFeePercent();
+        const feePercent = await this.getChapterSaleFeePercent();
         const { fee, net } = WalletService.splitDonation(chapter.price, feePercent);
         if (net <= 0) {
             // Defense-in-depth: the author-facing price validator should have
@@ -485,7 +533,7 @@ export class WalletService {
             throw new BadRequestException('Bạn không thể mua truyện của chính mình');
         }
 
-        const feePercent = await this.getDonationFeePercent();
+        const feePercent = await this.getChapterSaleFeePercent();
         const { fee, net } = WalletService.splitDonation(story.price, feePercent);
         if (net <= 0) {
             const minPrice = WalletService.minNetPrice(feePercent);
@@ -703,7 +751,7 @@ export class WalletService {
                     },
                 },
             }),
-            this.getDonationFeePercent(),
+            this.getChapterSaleFeePercent(),
         ]);
 
         return {
@@ -751,7 +799,7 @@ export class WalletService {
                     },
                 },
             }),
-            this.getDonationFeePercent(),
+            this.getChapterSaleFeePercent(),
         ]);
 
         return {

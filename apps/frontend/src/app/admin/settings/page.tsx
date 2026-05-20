@@ -33,6 +33,7 @@ export default function AdminSettingsPage() {
         siteThreads: '',
         requireEmailVerification: false,
         donationPlatformFeePercent: 2,
+        chapterSaleFeePercent: 2,
         allowCoinTransfer: false,
     });
 
@@ -59,6 +60,7 @@ export default function AdminSettingsPage() {
                 siteThreads: settings.siteThreads || '',
                 requireEmailVerification: settings.requireEmailVerification || false,
                 donationPlatformFeePercent: settings.donationPlatformFeePercent ?? 2,
+                chapterSaleFeePercent: settings.chapterSaleFeePercent ?? 2,
                 allowCoinTransfer: settings.allowCoinTransfer || false,
             });
         }
@@ -463,6 +465,41 @@ export default function AdminSettingsPage() {
                                 </div>
                                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
                                     Giới hạn 0–50%. Người ủng hộ không thấy con số này — chỉ tác giả mới biết.
+                                </p>
+                            </div>
+
+                            {/* Phí bán chương / VIP nền tảng — tách riêng khỏi donate (spec mục 17) */}
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">
+                                    Phí nền tảng khi bán chương / truyện VIP (%)
+                                </label>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                    Áp dụng riêng cho mua chương trả phí và mua truyện VIP. Tách khỏi phí ủng hộ
+                                    để admin tinh chỉnh được mỗi loại. Các giao dịch mua trước thời điểm lưu vẫn giữ phí cũ.
+                                </p>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={50}
+                                        step={1}
+                                        value={formData.chapterSaleFeePercent}
+                                        onChange={(e) => {
+                                            const v = parseInt(e.target.value, 10);
+                                            setFormData({
+                                                ...formData,
+                                                chapterSaleFeePercent: Number.isNaN(v) ? 0 : Math.max(0, Math.min(50, v)),
+                                            });
+                                        }}
+                                        className="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    />
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">%</span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                                        Ví dụ: bán chương 100 coin → tác giả nhận {Math.max(0, 100 - Math.ceil(100 * formData.chapterSaleFeePercent / 100))} coin · phí {Math.ceil(100 * formData.chapterSaleFeePercent / 100)} coin
+                                    </span>
+                                </div>
+                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                                    Giới hạn 0–50%. Người mua không thấy phí — chỉ thấy giá gross.
                                 </p>
                             </div>
                         </div>

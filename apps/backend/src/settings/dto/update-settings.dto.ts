@@ -96,6 +96,14 @@ export class UpdateSettingsDto {
   @Max(50)
   donationPlatformFeePercent?: number;
 
+  // Chapter / VIP-story sale rev-share — separate from donation fee so admin
+  // can tune them independently. Same bounds.
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(50)
+  chapterSaleFeePercent?: number;
+
   // Spec mục 2 — bật/tắt chuyển xu giữa user.
   @IsOptional()
   @IsBoolean()

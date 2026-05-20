@@ -598,6 +598,10 @@ model Settings {
   // Donation rev-share: % the platform keeps when a user donates coins to an
   // author. 0 = author keeps 100%. Capped at 50 in the DTO validator.
   donationPlatformFeePercent Int    @default(2)
+  // Spec mục 17 — chapter / VIP story sale rev-share. Tracked separately from
+  // donations so support can tune them independently (e.g. lower fee on sales
+  // to encourage authors to set paid content). Backfilled = donation fee.
+  chapterSaleFeePercent    Int      @default(2)
   // Spec mục 17 — số xu tối thiểu tác giả được phép yêu cầu rút.
   minWithdrawalCoins       Int      @default(1000)
   // Spec mục 2 — cho phép chuyển xu giữa user ("nếu cho phép"). Mặc định tắt.

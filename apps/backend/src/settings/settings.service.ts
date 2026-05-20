@@ -90,10 +90,13 @@ export class SettingsService {
         });
       }
 
-      // If the donation fee % changed, invalidate the wallet cache so the new
-      // rate takes effect on the very next donation rather than after 60s.
+      // If a fee % changed, invalidate the wallet's matching cache so the new
+      // rate takes effect on the very next charge rather than after 60s.
       if ('donationPlatformFeePercent' in cleanedData && this.wallet) {
         this.wallet.invalidateFeeCache();
+      }
+      if ('chapterSaleFeePercent' in cleanedData && this.wallet) {
+        this.wallet.invalidateChapterFeeCache();
       }
 
       return settings;
