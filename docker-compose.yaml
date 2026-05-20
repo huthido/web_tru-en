@@ -17,10 +17,14 @@ services:
       - garage_meta:/var/lib/garage/meta
       - garage_data:/var/lib/garage/data
       - ./garage.toml:/etc/garage.toml:ro
-    ports:
-      - "${GARAGE_S3_PORT:-3900}:3900"   # S3 API
-      - "${GARAGE_WEB_PORT:-3902}:3902"  # Static website (public reads)
-      - "${GARAGE_ADMIN_PORT:-3903}:3903" # Admin API
+    # S3 API + Admin internal-only; backend gọi qua http://garage:3900.
+    # Chỉ port web (3902) cần Coolify map sang cdn.yourdomain.com để serve
+    # static file public (ảnh truyện/avatar). Coolify tự route qua Traefik
+    # — không cần `ports:` ở compose nếu đã set Domain cho service.
+    expose:
+      - "3900"  # S3 API (internal)
+      - "3902"  # Static website (Traefik route)
+      - "3903"  # Admin API (internal, bootstrap qua docker exec)
     networks:
       - web_truyen
 
@@ -34,8 +38,11 @@ services:
       MEILI_NO_ANALYTICS: 'true'
     volumes:
       - meili_data:/meili_data
-    ports:
-      - "${MEILI_PORT:-7700}:7700"
+    # Internal-only — backend reaches it via http://meilisearch:7700 (Docker
+    # network). Expose to host only if admin needs the dashboard locally:
+    #   ports: ["${MEILI_PORT:-7700}:7700"]
+    expose:
+      - "7700"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:7700/health"]
       interval: 30s
@@ -56,8 +63,10 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
+    # Internal-only — backend/BullMQ reach via redis://redis:6379. Expose to
+    # host only for local dev: `ports: ["${REDIS_PORT:-6379}:6379"]`.
+    expose:
+      - "6379"
     networks:
       - web_truyen
 
@@ -69,8 +78,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-web_truyen_db}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+    # Internal-only — backend reaches via postgres:5432 (or pgbouncer:5432).
+    # Coolify host thường đã có Postgres khác chiếm 5432 → expose ra host gây
+    # conflict. Local dev: thêm `ports: ["${POSTGRES_PORT:-5432}:5432"]`.
+    expose:
+      - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -117,8 +129,10 @@ services:
       # AUTH_TYPE plain → PgBouncer authenticates clients via the same
       # password as Postgres; works with the default DB_USER above.
       AUTH_TYPE: plain
-    ports:
-      - "${PGBOUNCER_PORT:-6432}:5432"
+    # Internal-only — backend reaches via pgbouncer:5432. Local dev psql:
+    # `ports: ["${PGBOUNCER_PORT:-6432}:5432"]`.
+    expose:
+      - "5432"
     healthcheck:
       # PgBouncer's PSQL-protocol "SHOW" health check.
       test: ["CMD-SHELL", "PGPASSWORD=${POSTGRES_PASSWORD:-password} psql -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER:-user} -d pgbouncer -c 'SHOW VERSION' || exit 1"]
