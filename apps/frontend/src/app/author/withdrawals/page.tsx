@@ -23,7 +23,10 @@ export default function WithdrawalsPage() {
     const [error, setError] = useState<string | null>(null);
     const [ok, setOk] = useState(false);
 
-    const balance = wallet?.balance ?? 0;
+    // Withdrawals only debit earnedBalance (see WalletService.debitForWithdrawal).
+    // purchasedBalance (xu nạp) is never withdrawable per Apple §3.1.1.
+    const withdrawable = wallet?.earnedBalance ?? 0;
+    const purchased = wallet?.purchasedBalance ?? 0;
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -60,10 +63,16 @@ export default function WithdrawalsPage() {
                                     <Banknote className="w-7 h-7 text-emerald-600" /> Rút xu
                                 </h1>
                                 <p className="text-gray-600 dark:text-gray-400">
-                                    Số dư khả dụng:{' '}
+                                    Số dư có thể rút:{' '}
                                     <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                                        {balance.toLocaleString('vi-VN')} xu
+                                        {withdrawable.toLocaleString('vi-VN')} xu
                                     </span>
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Chỉ xu từ doanh thu / ủng hộ mới rút được.
+                                    {purchased > 0 && (
+                                        <> Xu nạp ({purchased.toLocaleString('vi-VN')}) chỉ dùng để mua nội dung.</>
+                                    )}
                                 </p>
                             </div>
 

@@ -22,7 +22,8 @@ export function StoryVipBanner({ slug }: { slug: string }) {
 
     const price = access.price;
     const owned = access.purchased || access.privileged;
-    const balance = wallet?.balance ?? 0;
+    // SOFT debit (see WalletService.debitForContent) — gate on combined total.
+    const balance = (wallet?.purchasedBalance ?? 0) + (wallet?.earnedBalance ?? 0);
     const insufficient = isAuthenticated && !owned && balance < price;
     const loginHref = `/login?redirect=${encodeURIComponent(`/truyen/${slug}`)}`;
 

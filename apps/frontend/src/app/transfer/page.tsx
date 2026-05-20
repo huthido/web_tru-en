@@ -15,8 +15,12 @@ export default function TransferPage() {
     const [error, setError] = useState<string | null>(null);
     const [done, setDone] = useState<string | null>(null);
 
-    const balance = wallet?.balance ?? 0;
-    const insufficient = form.amount > 0 && form.amount > balance;
+    // STRICT: only purchased coins can be transferred (anti-laundering — see
+    // WalletService.debitPurchasedStrict). earnedBalance is intentionally
+    // excluded from the balance check.
+    const purchased = wallet?.purchasedBalance ?? 0;
+    const earned = wallet?.earnedBalance ?? 0;
+    const insufficient = form.amount > 0 && form.amount > purchased;
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,11 +57,16 @@ export default function TransferPage() {
                                     <ArrowLeftRight className="w-7 h-7 text-indigo-600" /> Chuyển xu
                                 </h1>
                                 <p className="text-gray-600 dark:text-gray-400">
-                                    Số dư:{' '}
+                                    Xu có thể chuyển:{' '}
                                     <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                                        {balance.toLocaleString('vi-VN')} xu
+                                        {purchased.toLocaleString('vi-VN')} xu
                                     </span>
                                 </p>
+                                {earned > 0 && (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        Xu doanh thu ({earned.toLocaleString('vi-VN')}) không thể chuyển — chỉ rút được.
+                                    </p>
+                                )}
                             </div>
 
                             <form onSubmit={submit} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 space-y-5 border border-gray-200 dark:border-gray-700">

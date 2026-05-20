@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lộ trình Mobile &amp; Chiến lược thanh toán — Web Truyện HungYeu</title>
+<style>
+  :root{
+    --bg:#fafafa; --fg:#1a1a1a; --muted:#666; --border:#e2e2e2;
+    --accent:#7c3aed; --accent-soft:#f3effe;
+    --red:#c0392b; --red-bg:#fdecea; --orange:#b9770e; --orange-bg:#fef5e7;
+    --green:#1e8449; --green-bg:#eafaf1;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    line-height:1.7; color:var(--fg); background:var(--bg);
+    max-width:960px; margin:0 auto; padding:40px 24px 80px;
+  }
+  h1{font-size:1.9rem; line-height:1.3; border-bottom:3px solid var(--accent); padding-bottom:.4em; margin-bottom:.2em}
+  h2{font-size:1.4rem; margin-top:2.2em; border-left:5px solid var(--accent); padding-left:.5em}
+  h3{font-size:1.12rem; margin-top:1.6em; color:#333}
+  .meta{color:var(--muted); font-size:.9rem; margin-bottom:2em}
+  table{border-collapse:collapse; width:100%; margin:1.2em 0; font-size:.93rem; background:#fff}
+  th,td{border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top}
+  th{background:var(--accent-soft); font-weight:600}
+  tr:nth-child(even) td{background:#fcfcfc}
+  code{background:#f0f0f3; padding:1px 6px; border-radius:4px; font-size:.88em;
+    font-family:"Cascadia Code",Consolas,"Courier New",monospace}
+  pre{background:#1e1e2e; color:#e8e8f0; padding:18px 20px; border-radius:8px;
+    overflow-x:auto; font-size:.86rem; line-height:1.55;
+    font-family:"Cascadia Code",Consolas,"Courier New",monospace}
+  .callout{padding:14px 18px; border-radius:8px; margin:1.2em 0; border:1px solid}
+  .callout.red{background:var(--red-bg); border-color:#f5b7b1}
+  .callout.orange{background:var(--orange-bg); border-color:#f8c471}
+  .callout.green{background:var(--green-bg); border-color:#a9dfbf}
+  .callout strong{display:block; margin-bottom:.3em}
+  .tag{display:inline-block; padding:1px 9px; border-radius:999px; font-size:.78rem;
+    font-weight:600; white-space:nowrap}
+  .tag.red{background:var(--red-bg); color:var(--red)}
+  .tag.orange{background:var(--orange-bg); color:var(--orange)}
+  .tag.green{background:var(--green-bg); color:var(--green)}
+  .toc{background:#fff; border:1px solid var(--border); border-radius:8px; padding:16px 28px; margin:1.5em 0}
+  .toc ol{margin:.3em 0}
+  .toc a{color:var(--accent); text-decoration:none}
+  .toc a:hover{text-decoration:underline}
+  blockquote{margin:1em 0; padding:.6em 1.2em; border-left:4px solid var(--accent);
+    background:var(--accent-soft); color:#444}
+  footer{margin-top:4em; padding-top:1.5em; border-top:1px solid var(--border);
+    color:var(--muted); font-size:.85rem}
+  @media print{body{max-width:none;padding:0} pre{background:#f4f4f4;color:#000;border:1px solid #ccc}}
+</style>
+</head>
+<body>
+
+<h1>Lộ trình triển khai App Android &amp; iOS<br>+ Phân tích chuyên sâu chính sách thanh toán</h1>
+<p class="meta">
+  Dự án: <strong>Web Truyện HungYeu</strong> (web-truyen-tien-hung) &nbsp;•&nbsp;
+  Ngày lập: 19/05/2026 &nbsp;•&nbsp; Tài liệu phân tích nội bộ — chưa phải quyết định cuối
+</p>
+
+<div class="toc">
+  <strong>Mục lục</strong>
+  <ol>
+    <li><a href="#htt">Hiện trạng — cái gì đã sẵn sàng</a></li>
+    <li><a href="#blocker">Vấn đề chí mạng: chính sách thanh toán</a></li>
+    <li><a href="#tech">Lựa chọn công nghệ (Capacitor / React Native / Flutter)</a></li>
+    <li><a href="#compliance">Các yêu cầu compliance store khác</a></li>
+    <li><a href="#roadmap">Lộ trình theo phase + timeline</a></li>
+    <li><a href="#payment">PHÂN TÍCH CHUYÊN SÂU: chính sách thanh toán</a></li>
+    <li><a href="#actions">Việc cần làm ngay</a></li>
+  </ol>
+</div>
+
+<h2 id="htt">1. Hiện trạng — cái gì đã sẵn sàng</h2>
+<table>
+  <tr><th>Thành phần</th><th>Trạng thái</th><th>Ghi chú</th></tr>
+  <tr><td>Backend API</td><td><span class="tag green">Sẵn sàng</span></td><td>NestJS REST, JWT Bearer (<code>jwt.strategy.ts</code>), CORS, OAuth Google/FB</td></tr>
+  <tr><td>Shared types</td><td><span class="tag green">Dùng lại được</span></td><td><code>packages/shared</code></td></tr>
+  <tr><td>PWA web</td><td><span class="tag green">Đã chạy</span></td><td><code>next-pwa</code>, service worker, offline <code>/offline</code></td></tr>
+  <tr><td>Mobile app code</td><td><span class="tag red">Chưa có</span></td><td><code>apps/mobile</code> chưa tồn tại</td></tr>
+  <tr><td>Hệ kinh tế số</td><td><span class="tag orange">Rủi ro lớn</span></td><td>Coin wallet + chương trả phí + <strong>VNPay</strong> (<code>apps/backend/src/payments/providers/vnpay.provider.ts</code>)</td></tr>
+</table>
+<p><code>MOBILE_APP_GUIDE.md</code> kết luận “HOÀN TOÀN SẴN SÀNG” và ước tính 6–12 tuần — điều này
+chỉ đúng về <em>kỹ thuật API</em>, nhưng <strong>sai về phát hành lên store</strong>. Rào cản thật
+không nằm ở code mà ở chính sách thanh toán của Apple/Google.</p>
+
+<h2 id="blocker">2. Vấn đề chí mạng cần quyết trước tiên: chính sách thanh toán</h2>
+<p>Dự án bán <strong>hàng hóa số tiêu thụ trong app</strong> (nạp coin → mở khóa chương VIP,
+donate tác giả). Đây là điều quyết định toàn bộ lộ trình:</p>
+<ul>
+  <li><strong>Apple App Store (Guideline 3.1.1):</strong> mọi nội dung số dùng trong app
+    <strong>bắt buộc</strong> qua In-App Purchase, ăn chia <strong>15–30%</strong>. Dùng VNPay
+    để nạp coin trong app iOS → <strong>bị từ chối ngay</strong>.</li>
+  <li><strong>Google Play (Billing policy):</strong> tương tự, hàng số phải dùng Google Play
+    Billing (15–30%). Linh hoạt hơn Apple một chút nhưng vẫn cấm cổng ngoài cho nội dung số.</li>
+</ul>
+
+<table>
+  <tr><th>Chiến lược</th><th>Hệ quả</th></tr>
+  <tr><td><strong>A. Tích hợp IAP / Play Billing</strong></td>
+      <td>Đúng luật, lên được store; mất 15–30% doanh thu coin; cần làm thêm 2 cổng thanh toán
+      native + webhook xác thực; coin mua trên iOS/Android tách biệt với coin mua qua VNPay web</td></tr>
+  <tr><td><strong>B. App “đọc” miễn phí, ẩn chức năng mua</strong></td>
+      <td>App mobile chỉ cho đọc truyện free + đọc chương đã mua từ web; không có nút nạp/mua
+      trong app. Né được IAP, dễ duyệt hơn, ít doanh thu mobile</td></tr>
+  <tr><td><strong>C. Không lên store — chỉ PWA</strong></td>
+      <td>Cài qua “Add to Home Screen”, không tốn phí/duyệt store, nhưng không có trên
+      App Store/Play Store, push trên iOS hạn chế</td></tr>
+</table>
+<blockquote>Đây là quyết định kinh doanh, không phải kỹ thuật — cần chốt sớm vì nó đổi cả kiến trúc.</blockquote>
+
+<h2 id="tech">3. Lựa chọn công nghệ</h2>
+<table>
+  <tr><th>Phương án</th><th>Effort</th><th>Khi nào chọn</th></tr>
+  <tr><td><strong>Capacitor bọc PWA hiện có</strong></td><td>Thấp nhất (2–4 tuần)</td>
+      <td>Tái dùng 100% frontend Next.js. Rủi ro: Apple Guideline 4.2 hay từ chối “web wrapper”
+      thuần — phải thêm tính năng native thật (push, offline, share)</td></tr>
+  <tr><td><strong>React Native (Expo + EAS)</strong></td><td>Trung bình–cao (8–14 tuần)</td>
+      <td>UX native, hiệu năng tốt, tái dùng được <code>packages/shared</code> types nhưng
+      phải viết lại toàn bộ UI</td></tr>
+  <tr><td><strong>Flutter</strong></td><td>Cao</td>
+      <td>Team đang full TypeScript → không khuyến nghị, lệch stack</td></tr>
+</table>
+<div class="callout green">
+  <strong>Khuyến nghị công nghệ</strong>
+  React Native + Expo nếu chọn chiến lược A/B và muốn app “thật”. Nếu tối ưu chi phí và chấp
+  nhận rủi ro duyệt → Capacitor. Nghiêng về React Native vì hệ kinh tế phức tạp, app wrapper
+  dễ bị Apple đánh rớt theo Guideline 4.2.
+</div>
+
+<h2 id="compliance">4. Các yêu cầu compliance store khác (guide bỏ sót)</h2>
+<p>Vì app có <strong>nội dung do người dùng tạo</strong> (truyện đăng, bình luận):</p>
+<ul>
+  <li><strong>Apple 1.2 / Google UGC:</strong> bắt buộc có báo cáo nội dung, chặn người dùng,
+    lọc nội dung, EULA. Backend có approval workflow + comments nhưng cần bổ sung endpoint/UI
+    <em>report &amp; block</em> cho mobile.</li>
+  <li><strong>Apple 5.1.1(v):</strong> bắt buộc có <strong>xóa tài khoản trong app</strong>
+    (hiện chưa thấy luồng này).</li>
+  <li><strong>Privacy:</strong> App Privacy “Nutrition Label” + Google Data Safety form; cần
+    Privacy Policy URL (đã có trang <code>/privacy</code>).</li>
+  <li><strong>Tài khoản dev:</strong> Apple Developer <strong>$99/năm</strong>, Google Play
+    <strong>$25 một lần</strong>. Apple cần máy Mac hoặc EAS Build (cloud) để build iOS.</li>
+  <li><strong>Push notification:</strong> cần APNs (iOS) + FCM (Android) — backend đã có module
+    <code>notifications</code> nhưng chưa có lớp gửi push tới thiết bị.</li>
+</ul>
+
+<h2 id="roadmap">5. Lộ trình đề xuất (giả định React Native + chiến lược A)</h2>
+<table>
+  <tr><th>Phase</th><th>Thời lượng</th><th>Nội dung</th></tr>
+  <tr><td>0 — Quyết định &amp; chuẩn bị</td><td>1 tuần</td>
+      <td>Chốt chiến lược thanh toán; đăng ký Apple/Google; chuẩn bị Mac/EAS</td></tr>
+  <tr><td>1 — Khung app</td><td>2 tuần</td>
+      <td>Expo trong monorepo; API client Bearer + refresh; React Navigation; auth + OAuth; SecureStore</td></tr>
+  <tr><td>2 — Tính năng đọc</td><td>3–4 tuần</td>
+      <td>Trang chủ, chi tiết truyện, đọc chương, tìm kiếm, lịch sử đọc, follow/favorite</td></tr>
+  <tr><td>3 — Hệ kinh tế + compliance <span class="tag red">rủi ro cao nhất</span></td><td>3–4 tuần</td>
+      <td>Tích hợp IAP/Play Billing; webhook xác thực; đồng bộ ví; xóa tài khoản, report/block, EULA</td></tr>
+  <tr><td>4 — Hoàn thiện</td><td>2 tuần</td>
+      <td>Push APNs/FCM, dark mode, offline cache chương, tối ưu, test</td></tr>
+  <tr><td>5 — Phát hành</td><td>2–3 tuần (nhiều vòng)</td>
+      <td>Store listing, build TestFlight/Internal Testing, nộp duyệt; dự phòng 1–3 vòng bị từ chối</td></tr>
+</table>
+<div class="callout orange">
+  <strong>Tổng thực tế: ~14–18 tuần</strong>
+  cho bản full có thanh toán — gần gấp đôi ước tính trong <code>MOBILE_APP_GUIDE.md</code>, do
+  phần IAP + compliance + vòng duyệt store mà guide không tính.
+</div>
+
+<hr style="margin:3em 0;border:none;border-top:2px dashed var(--border)">
+
+<h2 id="payment">6. PHÂN TÍCH CHUYÊN SÂU: Chính sách thanh toán cho App Store / Play Store</h2>
+
+<h3>6.1. Dòng tiền hiện tại của dự án</h3>
+<pre>
+NgườiĐọc ──VNPay (VND)──► CoinPackage ──► UserWallet.balance (coin)
+                                              │
+        ┌─────────────────────────────────────┼───────────────────────┐
+        ▼                  ▼                   ▼                        ▼
+  Mua chương         Mua truyện VIP      Donate tác giả        Transfer user→user
+  (PURCHASE_CHAPTER) (PURCHASE_STORY)   (DONATE_AUTHOR)         (TRANSFER)
+        │                  │                   │
+        └──────────────────┴───────────────────┘
+                           ▼
+                  Tác giả nhận `net` coin (platform giữ fee %)
+                           ▼
+        WithdrawalRequest ──► Admin duyệt ──► Chuyển khoản NGÂN HÀNG (tiền thật)
+</pre>
+<p>Điểm mấu chốt: <strong>coin là một loại tiền ảo duy nhất, fungible (đổi lẫn nhau được),
+và có đường rút ra tiền thật</strong>. Đây chính là nguồn gốc của mọi xung đột với chính sách store.</p>
+
+<h3>6.2. Bốn điểm xung đột với luật Apple/Google</h3>
+<table>
+  <tr><th>#</th><th>Cơ chế trong code</th><th>Điều khoản vi phạm</th><th>Mức độ</th></tr>
+  <tr><td>1</td><td>Nạp coin qua VNPay rồi tiêu coin mua chương/truyện trong app</td>
+      <td>Apple 3.1.1 / Google Play Billing: nội dung số tiêu thụ trong app phải dùng IAP</td>
+      <td><span class="tag red">Chặn phát hành</span></td></tr>
+  <tr><td>2</td><td><code>WithdrawalRequest</code> → chuyển khoản ngân hàng</td>
+      <td>Apple 3.1.1: tiền nạp qua IAP không được rút thành tiền mặt</td>
+      <td><span class="tag red">Phá vỡ mô hình</span></td></tr>
+  <tr><td>3</td><td><code>transferCoins</code> user→user</td>
+      <td>Coin mua bằng IAP chảy sang ví người khác rồi người đó rút ra bank = “rửa” IAP thành tiền mặt</td>
+      <td><span class="tag red">Cấm tuyệt đối</span></td></tr>
+  <tr><td>4</td><td><code>donateToAuthor</code> (platform giữ 2% fee)</td>
+      <td>Apple coi donate cho creator gắn nội dung số là hàng số → phải IAP; chỉ donate tổ chức từ thiện mới miễn</td>
+      <td><span class="tag orange">Phải qua IAP</span></td></tr>
+</table>
+<div class="callout red">
+  <strong>Insight quan trọng nhất (guide hoàn toàn bỏ sót)</strong>
+  Bạn <em>không thể</em> vừa cho nạp coin qua Apple IAP vừa cho rút coin ra tiền mặt. Apple
+  cấm chuyển giá trị IAP ra ngoài hệ sinh thái. Mô hình “người đọc nạp coin → tác giả nhận
+  coin → tác giả rút về ngân hàng” với <strong>một loại coin duy nhất</strong> là bất hợp pháp trên iOS.
+</div>
+
+<h3>6.3. Ba chiến lược — phân tích chi tiết</h3>
+
+<h4>Chiến lược A — Tích hợp IAP/Play Billing đầy đủ + tách loại coin</h4>
+<p>Cách duy nhất cho phép người dùng mua coin <em>ngay trong app iOS/Android</em>.
+Bắt buộc tách coin thành 2 loại không trộn lẫn:</p>
+<table>
+  <tr><th>Loại</th><th>Nguồn nạp</th><th>Được làm gì</th><th>Rút ra tiền mặt?</th></tr>
+  <tr><td><code>coinPurchased</code></td><td>Apple IAP, Google Play Billing, VNPay (web)</td>
+      <td>Mua chương, mua truyện, donate</td><td><span class="tag red">KHÔNG BAO GIỜ</span></td></tr>
+  <tr><td><code>coinEarned</code></td><td>Bán chương/truyện, nhận donate</td>
+      <td>Quy đổi → <code>WithdrawalRequest</code></td><td><span class="tag green">Có</span></td></tr>
+</table>
+<p><strong>Thay đổi backend cần làm:</strong></p>
+<ul>
+  <li><code>UserWallet</code>: tách <code>purchasedBalance</code> / <code>earnedBalance</code>
+    (Prisma migration — đụng tính năng <code>chapter_purchase_feature</code> đang chưa migrate).</li>
+  <li><code>PaymentsService</code>: thêm provider <code>APPLE_IAP</code>, <code>GOOGLE_PLAY</code>
+    cạnh <code>VnpayProvider</code>, mỗi cái cần <strong>server-side receipt validation</strong>
+    (App Store Server API / Google Play Developer API) — idempotent qua <code>txnRef</code>
+    giống pattern <code>handleVnpayIpn</code> hiện có.</li>
+  <li><code>PaymentProvider</code> enum thêm 2 giá trị; bảng giá <code>CoinPackage</code> phải
+    khớp Apple price tier (Apple ấn định mức giá cố định) và product ID trên App Store Connect / Play Console.</li>
+  <li><code>WalletService.payForChapter/Story/donateToAuthor</code> → trừ <code>purchasedBalance</code>;
+    <code>requestWithdrawal</code> chỉ đọc <code>earnedBalance</code>.</li>
+  <li>Webhook trạng thái: Apple <strong>App Store Server Notifications V2</strong> + Google
+    <strong>Real-time Developer Notifications</strong> để xử lý refund/chargeback (hoàn tiền → trừ lại coin).</li>
+</ul>
+<div class="callout orange">
+  <strong>Chi phí thực</strong>
+  Mất 15–30% mỗi giao dịch coin trên mobile. Coin mua trên iOS đắt hơn web ~30% hoặc bạn chịu
+  lỗ — cần tính lại bảng giá <code>CoinPackage</code>.
+</div>
+
+<h4>Chiến lược B — App “chỉ đọc”, ẩn toàn bộ thương mại trên mobile</h4>
+<p>App mobile <strong>không có bất kỳ nút mua/nạp/donate nào</strong>. Người dùng nạp coin và
+mua chương trên web (qua VNPay, không mất phí store); app chỉ hiển thị truyện free +
+chương/truyện họ <em>đã sở hữu</em>.</p>
+<ul>
+  <li>Tránh hoàn toàn IAP, không phải tách coin, không đụng <code>WithdrawalRequest</code>.</li>
+  <li>Backend gần như không đổi — chỉ thêm cờ <code>purchaseEnabled=false</code> cho client mobile và ẩn UI.</li>
+  <li>⚠️ Ràng buộc Apple cực gắt: trong app không được nhắc đến việc mua ở đâu, không link
+    sang web, không “call to action”. Đây là mô hình <strong>“reader app”</strong> (Apple 3.1.3(a))
+    — app sách/truyện được Apple cho phép loại này, có thể xin External Link Account Entitlement
+    để đặt <em>một</em> link ra ngoài (giới hạn, duyệt riêng).</li>
+  <li>Đánh đổi: doanh thu mobile ≈ 0, mobile chỉ là kênh giữ chân người dùng.</li>
+</ul>
+
+<h4>Chiến lược C — Không lên store (PWA / sideload)</h4>
+<ul>
+  <li>Giữ PWA hiện có (<code>next-pwa</code> đã chạy). Người dùng “Thêm vào màn hình chính”.</li>
+  <li>Hoàn toàn không dính luật store, VNPay chạy bình thường, không tách coin, $0 phí.</li>
+  <li>Mất: không có mặt trên App Store/Play Store, push iOS hạn chế (chỉ iOS 16.4+ và yếu),
+    không có “app thật”.</li>
+</ul>
+
+<h3>6.4. So sánh &amp; khuyến nghị</h3>
+<table>
+  <tr><th>Tiêu chí</th><th>A. IAP đầy đủ</th><th>B. Reader-only</th><th>C. PWA</th></tr>
+  <tr><td>Doanh thu mobile</td><td>Cao (−30% phí)</td><td>~0</td><td>Trung bình (qua web)</td></tr>
+  <tr><td>Công sức backend</td><td><strong>Rất lớn</strong></td><td>Rất nhỏ</td><td>Không</td></tr>
+  <tr><td>Rủi ro bị từ chối</td><td>Trung bình</td><td>Thấp</td><td>Không áp dụng</td></tr>
+  <tr><td>Phá vỡ mô hình rút tiền</td><td>Phải tách coin mới cứu được</td><td>Không ảnh hưởng</td><td>Không ảnh hưởng</td></tr>
+  <tr><td>Thời gian thêm vào lộ trình</td><td>+4–6 tuần</td><td>+0–1 tuần</td><td>0</td></tr>
+</table>
+<div class="callout green">
+  <strong>Khuyến nghị</strong>
+  Bắt đầu bằng <strong>Chiến lược B</strong> cho bản phát hành đầu (lên store nhanh, an toàn,
+  không phá kiến trúc coin/withdrawal hiện tại), giữ VNPay làm cổng nạp duy nhất trên web.
+  Khi app đã có người dùng và doanh thu mobile đáng để chịu phí 30%, mới đầu tư
+  <strong>Chiến lược A</strong> với việc tách <code>purchasedBalance</code>/<code>earnedBalance</code>.
+  Tuyệt đối <strong>không</strong> chọn “nạp VNPay trong app iOS” — đó là lý do từ chối số 1, không có cách lách hợp lệ.
+</div>
+
+<h2 id="actions">7. Việc cần làm ngay (độc lập với lựa chọn)</h2>
+<ol>
+  <li><strong>Quyết định A/B/C ở cấp kinh doanh</strong> trước khi code mobile — nó đổi cả schema Prisma.</li>
+  <li>Dù chọn gì, <strong>migrate <code>chapter_purchase_feature</code> lên DB từ xa trước</strong>
+    (đang nợ); nếu sau chọn A sẽ phải migrate tiếp phần tách coin → gộp kế hoạch để tránh 2 lần đổi schema ví.</li>
+  <li>Nếu nhắm Chiến lược A: đăng ký App Store Connect + Google Play Console sớm để lấy sandbox
+    test IAP (mất vài ngày–tuần duyệt tài khoản &amp; thuế/ngân hàng).</li>
+</ol>
+
+<footer>
+  Tài liệu phân tích tạo bởi Claude Code — dựa trên đọc trực tiếp
+  <code>apps/backend/src/payments/payments.service.ts</code>,
+  <code>apps/backend/src/wallet/wallet.service.ts</code>,
+  <code>MOBILE_APP_GUIDE.md</code>. Các điều khoản Apple/Google trích theo App Store Review
+  Guidelines &amp; Google Play Payments policy tại thời điểm 05/2026 — cần đối chiếu bản mới
+  nhất khi thực thi vì chính sách store thay đổi thường xuyên.
+</footer>
+
+</body>
+</html>

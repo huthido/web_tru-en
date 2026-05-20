@@ -708,6 +708,14 @@ model NotificationRecipient {
 model UserWallet {
   id        String   @id @default(cuid())
   userId    String   @unique
+  /// Bought via VNPay/Apple IAP/Google Play. Spendable on content/transfer.
+  /// NOT withdrawable (Apple §3.1.1 / Google Play Billing §4.3).
+  purchasedBalance Int @default(0)
+  /// Received from chapter/story sales, donations, withdrawal-reject refunds.
+  /// Withdrawable as VND. NOT transferable (anti-laundering).
+  earnedBalance    Int @default(0)
+  /// @deprecated denormalized total = purchasedBalance + earnedBalance.
+  /// Kept during transition; will be dropped in a follow-up migration.
   balance   Int      @default(0)
   // Admin fraud control (spec mục 2). Locked = không thể chi tiêu/chuyển/rút.
   isLocked  Boolean  @default(false)
@@ -716,6 +724,7 @@ model UserWallet {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions CoinTransaction[]
 
+  @@index([earnedBalance])
   @@map("user_wallets")
 }
 

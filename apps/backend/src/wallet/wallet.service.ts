@@ -1,8 +1,10 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { TransactionType, WithdrawalStatus } from '@prisma/client';
+import { Prisma, TransactionType, WithdrawalStatus } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
+
+type WalletTx = Prisma.TransactionClient;
 
 const DEFAULT_MIN_WITHDRAWAL_COINS = 1000;
 
@@ -25,6 +27,128 @@ export class WalletService {
         private config: ConfigService,
         private notifications: NotificationsService,
     ) { }
+
+    // ─── Bucket helpers (Apple §3.1.1 / Google Play §4.3 compliance) ───────
+    // Coins live in two buckets:
+    //   purchasedBalance — bought via VNPay/Apple IAP/Google Play.
+    //                      Spendable on content/transfer. NOT withdrawable.
+    //   earnedBalance    — received from sales/donations/refunds.
+    //                      Withdrawable as VND. NOT transferable.
+    // The deprecated `balance` mirror = purchasedBalance + earnedBalance and is
+    // kept in sync on every write so legacy read paths keep working until the
+    // follow-up migration drops it.
+
+    /** Credit the purchased bucket — DEPOSIT (VNPay/IAP/Play), TRANSFER recipient. */
+    private async creditPurchased(tx: WalletTx, userId: string, amount: number) {
+        return tx.userWallet.upsert({
+            where: { userId },
+            update: {
+                purchasedBalance: { increment: amount },
+                balance: { increment: amount },
+            },
+            create: {
+                userId,
+                purchasedBalance: amount,
+                earnedBalance: 0,
+                balance: amount,
+            },
+        });
+    }
+
+    /** Credit the earned bucket — sales/donation receipt, REFUND of rejected withdrawal. */
+    private async creditEarned(tx: WalletTx, userId: string, amount: number) {
+        return tx.userWallet.upsert({
+            where: { userId },
+            update: {
+                earnedBalance: { increment: amount },
+                balance: { increment: amount },
+            },
+            create: {
+                userId,
+                purchasedBalance: 0,
+                earnedBalance: amount,
+                balance: amount,
+            },
+        });
+    }
+
+    /**
+     * Spend debit (SOFT) — chapter/story/donate.
+     * Prefer purchasedBalance; fall back to earnedBalance only if purchased is
+     * exhausted. Total = purchased + earned must cover the amount. Wallet lock
+     * checked. Safe because spending earned coins on someone else's content
+     * does not create a path to cash-out — recipient's earned coins are still
+     * non-transferable.
+     */
+    private async debitForContent(tx: WalletTx, userId: string, amount: number) {
+        const w = await tx.userWallet.findUnique({ where: { userId } });
+        if (!w) throw new BadRequestException('Ví chưa được khởi tạo');
+        if (w.isLocked) throw new ForbiddenException('Ví của bạn đang bị khóa');
+        if (w.purchasedBalance + w.earnedBalance < amount) {
+            throw new BadRequestException('Số dư không đủ');
+        }
+        const fromPurchased = Math.min(w.purchasedBalance, amount);
+        const fromEarned = amount - fromPurchased;
+        return tx.userWallet.update({
+            where: { userId },
+            data: {
+                purchasedBalance: { decrement: fromPurchased },
+                earnedBalance: { decrement: fromEarned },
+                balance: { decrement: amount },
+            },
+        });
+    }
+
+    /**
+     * Spend debit (STRICT) — TRANSFER sender only.
+     * Purchased bucket only. Blocks the laundering path
+     * (earned → friend → friend withdraws).
+     */
+    private async debitPurchasedStrict(tx: WalletTx, userId: string, amount: number) {
+        const w = await tx.userWallet.findUnique({ where: { userId } });
+        if (!w) throw new BadRequestException('Ví chưa được khởi tạo');
+        if (w.isLocked) throw new ForbiddenException('Ví của bạn đang bị khóa');
+        if (w.purchasedBalance < amount) {
+            throw new BadRequestException(
+                w.earnedBalance > 0
+                    ? 'Chỉ xu đã nạp mới chuyển được. Xu doanh thu không thể chuyển cho người khác.'
+                    : 'Số dư xu đã nạp không đủ',
+            );
+        }
+        return tx.userWallet.update({
+            where: { userId },
+            data: {
+                purchasedBalance: { decrement: amount },
+                balance: { decrement: amount },
+            },
+        });
+    }
+
+    /** Withdrawal hold — earned bucket only. */
+    private async debitForWithdrawal(tx: WalletTx, userId: string, amount: number) {
+        const w = await tx.userWallet.findUnique({ where: { userId } });
+        if (!w) throw new BadRequestException('Ví chưa được khởi tạo');
+        if (w.isLocked) throw new ForbiddenException('Ví của bạn đang bị khóa');
+        if (w.earnedBalance < amount) {
+            throw new BadRequestException(
+                w.purchasedBalance > 0
+                    ? 'Số dư có thể rút không đủ. Chỉ xu từ doanh thu / donate mới rút được.'
+                    : 'Số dư có thể rút không đủ',
+            );
+        }
+        return tx.userWallet.update({
+            where: { userId },
+            data: {
+                earnedBalance: { decrement: amount },
+                balance: { decrement: amount },
+            },
+        });
+    }
+
+    /** External entrypoint for payment provider IPNs (VNPay / future Apple IAP / Google Play). */
+    public async creditPurchasedExternal(tx: WalletTx, userId: string, amount: number) {
+        return this.creditPurchased(tx, userId, amount);
+    }
 
     /** Fire-and-forget author notification; never breaks the caller. */
     private notifyAuthor(authorId: string, title: string, content: string) {
@@ -125,14 +249,10 @@ export class WalletService {
         if (amount <= 0) throw new BadRequestException('Amount must be positive');
 
         return this.prisma.$transaction(async (tx) => {
-            // 1. Get or create wallet and increment balance
-            const wallet = await tx.userWallet.upsert({
-                where: { userId },
-                update: { balance: { increment: amount } },
-                create: { userId, balance: amount },
-            });
+            // Deposit credits the purchased bucket — it represents real-money
+            // top-up (VNPay/IAP/Play), which must not be withdrawable.
+            const wallet = await this.creditPurchased(tx, userId, amount);
 
-            // 2. Create transaction record
             await tx.coinTransaction.create({
                 data: {
                     walletId: wallet.id,
@@ -173,29 +293,14 @@ export class WalletService {
         if (!author) throw new BadRequestException('Không tìm thấy tác giả');
 
         const donationResult = await this.prisma.$transaction(async (tx) => {
-            // 1. Check sender balance
-            const senderWallet = await tx.userWallet.findUnique({ where: { userId } });
-            if (senderWallet?.isLocked) {
-                throw new ForbiddenException('Ví của bạn đang bị khóa');
-            }
-            if (!senderWallet || senderWallet.balance < amount) {
-                throw new BadRequestException('Số dư không đủ để ủng hộ');
-            }
+            // 1. Debit donor (soft: purchased first, fall back to earned). Lock + funds checked.
+            const updatedSenderWallet = await this.debitForContent(tx, userId, amount);
 
-            // 2. Deduct full amount from sender (they pay the gross — fee is invisible to them)
-            const updatedSenderWallet = await tx.userWallet.update({
-                where: { userId },
-                data: { balance: { decrement: amount } },
-            });
-
-            // 3. Credit only `net` to the author. The `fee` is retained by the platform
-            //    (tracked on AuthorDonation.platformFee — no platform wallet is credited
-            //    so the fee effectively reduces the circulating coin supply).
-            const authorWallet = await tx.userWallet.upsert({
-                where: { userId: authorId },
-                update: { balance: { increment: net } },
-                create: { userId: authorId, balance: net },
-            });
+            // 2. Credit only `net` to the author's earned bucket. The `fee` is
+            //    retained by the platform (tracked on AuthorDonation.platformFee
+            //    — no platform wallet is credited so the fee effectively reduces
+            //    the circulating coin supply).
+            const authorWallet = await this.creditEarned(tx, authorId, net);
 
             // 4. Sender transaction: NO mention of the platform fee — from the donor's
             //    perspective they donated `amount` coins to the author. Fee is internal.
@@ -301,29 +406,13 @@ export class WalletService {
                 };
             }
 
-            // 2. Check buyer balance.
-            const buyerWallet = await tx.userWallet.findUnique({ where: { userId: buyerId } });
-            if (buyerWallet?.isLocked) {
-                throw new ForbiddenException('Ví của bạn đang bị khóa');
-            }
-            if (!buyerWallet || buyerWallet.balance < chapter.price) {
-                throw new BadRequestException('Số dư không đủ để mua chương này');
-            }
+            // 2. Debit buyer (soft: purchased first, fall back to earned). Lock + funds checked.
+            const updatedBuyerWallet = await this.debitForContent(tx, buyerId, chapter.price);
 
-            // 3. Deduct the full price from the buyer.
-            const updatedBuyerWallet = await tx.userWallet.update({
-                where: { userId: buyerId },
-                data: { balance: { decrement: chapter.price } },
-            });
-
-            // 4. Credit only `net` to the author; `fee` is retained by the
-            //    platform (tracked on ChapterPurchase.platformFee — no platform
-            //    wallet is credited, mirroring the donation behaviour).
-            const authorWallet = await tx.userWallet.upsert({
-                where: { userId: authorId },
-                update: { balance: { increment: net } },
-                create: { userId: authorId, balance: net },
-            });
+            // 3. Credit only `net` to the author's earned bucket; `fee` is
+            //    retained by the platform (tracked on ChapterPurchase.platformFee
+            //    — no platform wallet is credited, mirroring the donation behaviour).
+            const authorWallet = await this.creditEarned(tx, authorId, net);
 
             // 5. Buyer transaction — fee is internal, buyer just "bought a chapter".
             await tx.coinTransaction.create({
@@ -418,24 +507,8 @@ export class WalletService {
                 };
             }
 
-            const buyerWallet = await tx.userWallet.findUnique({ where: { userId: buyerId } });
-            if (buyerWallet?.isLocked) {
-                throw new ForbiddenException('Ví của bạn đang bị khóa');
-            }
-            if (!buyerWallet || buyerWallet.balance < story.price) {
-                throw new BadRequestException('Số dư không đủ để mua truyện này');
-            }
-
-            const updatedBuyerWallet = await tx.userWallet.update({
-                where: { userId: buyerId },
-                data: { balance: { decrement: story.price } },
-            });
-
-            const authorWallet = await tx.userWallet.upsert({
-                where: { userId: authorId },
-                update: { balance: { increment: net } },
-                create: { userId: authorId, balance: net },
-            });
+            const updatedBuyerWallet = await this.debitForContent(tx, buyerId, story.price);
+            const authorWallet = await this.creditEarned(tx, authorId, net);
 
             await tx.coinTransaction.create({
                 data: {
@@ -785,18 +858,8 @@ export class WalletService {
         }
 
         return this.prisma.$transaction(async (tx) => {
-            const wallet = await tx.userWallet.findUnique({ where: { userId } });
-            if (wallet?.isLocked) {
-                throw new ForbiddenException('Ví của bạn đang bị khóa');
-            }
-            if (!wallet || wallet.balance < amount) {
-                throw new BadRequestException('Số dư không đủ để rút');
-            }
-
-            const updated = await tx.userWallet.update({
-                where: { userId },
-                data: { balance: { decrement: amount } },
-            });
+            // Withdrawal hold — debits earnedBalance only. Locked wallets blocked inside helper.
+            const updated = await this.debitForWithdrawal(tx, userId, amount);
 
             await tx.coinTransaction.create({
                 data: {
@@ -861,12 +924,9 @@ export class WalletService {
             }
 
             if (action === 'REJECT') {
-                // Refund the held coins.
-                const wallet = await tx.userWallet.upsert({
-                    where: { userId: req.userId },
-                    update: { balance: { increment: req.amount } },
-                    create: { userId: req.userId, balance: req.amount },
-                });
+                // Refund the held coins back to the earned bucket (they came from
+                // there — see requestWithdrawal). Restores withdrawability.
+                const wallet = await this.creditEarned(tx, req.userId, req.amount);
                 await tx.coinTransaction.create({
                     data: {
                         walletId: wallet.id,
@@ -943,24 +1003,14 @@ export class WalletService {
         }
 
         const transferResult = await this.prisma.$transaction(async (tx) => {
-            const senderWallet = await tx.userWallet.findUnique({ where: { userId: senderId } });
-            if (senderWallet?.isLocked) {
-                throw new ForbiddenException('Ví của bạn đang bị khóa');
-            }
-            if (!senderWallet || senderWallet.balance < amount) {
-                throw new BadRequestException('Số dư không đủ để chuyển');
-            }
-
-            const updatedSender = await tx.userWallet.update({
-                where: { userId: senderId },
-                data: { balance: { decrement: amount } },
-            });
-
-            const recipientWallet = await tx.userWallet.upsert({
-                where: { userId: recipient.id },
-                update: { balance: { increment: amount } },
-                create: { userId: recipient.id, balance: amount },
-            });
+            // STRICT: only purchased coins are transferable. Blocks the
+            // earned→friend→friend-withdraws laundering path (Apple/Google
+            // care because that turns IAP money into cash via a third party).
+            const updatedSender = await this.debitPurchasedStrict(tx, senderId, amount);
+            // Recipient gets purchased coins — they can spend but never withdraw,
+            // preserving the invariant that earned coins are only ever the
+            // platform's payout obligation.
+            const recipientWallet = await this.creditPurchased(tx, recipient.id, amount);
 
             const note = message?.trim() ? ` — "${message.trim()}"` : '';
             await tx.coinTransaction.create({
@@ -1018,7 +1068,13 @@ export class WalletService {
             update: { isLocked: locked },
             create: { userId: user.id, isLocked: locked },
         });
-        return { user, isLocked: wallet.isLocked, balance: wallet.balance };
+        return {
+            user,
+            isLocked: wallet.isLocked,
+            purchasedBalance: wallet.purchasedBalance,
+            earnedBalance: wallet.earnedBalance,
+            balance: wallet.balance,
+        };
     }
 
     async getWalletByUserId(identifier: string) {
@@ -1026,6 +1082,8 @@ export class WalletService {
         const wallet = await this.prisma.userWallet.findUnique({ where: { userId: user.id } });
         return {
             user,
+            purchasedBalance: wallet?.purchasedBalance ?? 0,
+            earnedBalance: wallet?.earnedBalance ?? 0,
             balance: wallet?.balance ?? 0,
             isLocked: wallet?.isLocked ?? false,
         };
