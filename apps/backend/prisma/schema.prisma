@@ -755,6 +755,13 @@ model CoinPackage {
   priceVND    Int
   description String?
   isActive    Boolean   @default(true)
+  // Store-specific product IDs so the mobile app can map a server package
+  // to its IAP SKU on Apple App Store Connect / Google Play Console. Nullable
+  // because not every package needs to be sold on mobile (web-only top-ups
+  // via VNPay stay unset). When a package is sold via Apple/Google, pricing
+  // is dictated by the store's price tier — not priceVND.
+  appleProductId  String? @unique
+  googleProductId String? @unique
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   payments    Payment[]
@@ -848,6 +855,8 @@ enum PaymentProvider {
   MOMO
   ZALOPAY
   MANUAL
+  APPLE_IAP   // Apple In-App Purchase — credits purchasedBalance only
+  GOOGLE_PLAY // Google Play Billing — credits purchasedBalance only
 }
 
 enum PaymentStatus {
