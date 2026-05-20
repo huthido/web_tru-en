@@ -238,6 +238,10 @@ services:
       HOSTNAME: 0.0.0.0
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      # SSR (server-settings, etc.) call backend qua Docker network nội bộ.
+      # Tránh self-signed cert / pending Let's Encrypt ở public HTTPS Traefik.
+      # Client browser vẫn dùng NEXT_PUBLIC_API_URL public.
+      INTERNAL_API_URL: ${INTERNAL_API_URL:-http://backend:3009}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     healthcheck:

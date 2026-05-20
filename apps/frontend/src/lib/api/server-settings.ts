@@ -3,10 +3,13 @@
  * This is used in server components and cannot use the client-side apiClient
  */
 
-// Server-side metadata fetch. Uses NEXT_PUBLIC_API_URL; dev falls back to
-// localhost. No remote default — if unset in prod the fetch fails and the
-// caller falls back to default metadata (acceptable, non-critical).
+// Server-side metadata fetch.
+// Priority: INTERNAL_API_URL (Docker network, http://backend:3009) → avoids
+// public TLS / self-signed cert pitfalls when Next.js SSR talks to backend.
+// Falls back to NEXT_PUBLIC_API_URL (public HTTPS) for non-container deploys.
+// Dev: http://localhost:3001 if neither set.
 const API_URL =
+    process.env.INTERNAL_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
     (process.env.NODE_ENV !== 'production' ? 'http://localhost:3001' : '');
 const BASE_URL = API_URL.endsWith('/api') ? API_URL : `${API_URL}/api`;
