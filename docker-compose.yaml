@@ -8,15 +8,27 @@ services:
     # On first boot you must run `docker exec web_truyen_garage /garage layout assign ...`
     # then `/garage bucket create web-truyen` + `/garage key new --name app` to obtain
     # S3_ACCESS_KEY / S3_SECRET_KEY. See docs/DEPLOY_COOLIFY.md.
-    image: dxflrs/garage:v1.0.1
+    #
+    # Build custom image to bake garage.toml in — Coolify relative bind mounts
+    # of single files fail unpredictably ("IO error: Is a directory"). Override
+    # rpc_secret / admin_token at runtime via env (GARAGE_RPC_SECRET, etc.).
+    build:
+      context: .
+      dockerfile: garage/Dockerfile
+    image: web-truyen-garage:latest
     container_name: web_truyen_garage
     restart: unless-stopped
     environment:
       RUST_LOG: garage=info
+      # Override placeholder secrets baked in garage.toml at runtime.
+      # Set GARAGE_RPC_SECRET / GARAGE_ADMIN_TOKEN / GARAGE_METRICS_TOKEN
+      # in Coolify env (sinh bằng `openssl rand -hex 32`).
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:-}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:-}
+      GARAGE_METRICS_TOKEN: ${GARAGE_METRICS_TOKEN:-}
     volumes:
       - garage_meta:/var/lib/garage/meta
       - garage_data:/var/lib/garage/data
-      - ./garage.toml:/etc/garage.toml:ro
     # S3 API + Admin internal-only; backend gọi qua http://garage:3900.
     # Chỉ port web (3902) cần Coolify map sang cdn.yourdomain.com để serve
     # static file public (ảnh truyện/avatar). Coolify tự route qua Traefik
