@@ -37,6 +37,13 @@ services:
       - "3900"  # S3 API (internal)
       - "3902"  # Static website (Traefik route)
       - "3903"  # Admin API (internal, bootstrap qua docker exec)
+    # Garage admin API có /health endpoint. Image debian-slim đã có wget.
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3903/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - web_truyen
 
