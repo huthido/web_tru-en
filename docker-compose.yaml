@@ -67,9 +67,14 @@ services:
     #   ports: ["${MEILI_PORT:-7700}:7700"]
     expose:
       - "7700"
-    # Meilisearch image chỉ chứa binary, không có wget/curl/nc → không thể
-    # exec healthcheck từ trong container. Start <2s, backend tự retry nếu
-    # gặp transient failure. Coolify dựa vào port 7700 reachable là đủ.
+    # Image meilisearch (alpine-based) có sẵn curl — probe endpoint /health.
+    # Bắt buộc có healthcheck, nếu không Coolify hiển thị trạng thái "unknown".
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:7700/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     networks:
       - web_truyen
 
@@ -166,13 +171,26 @@ services:
       # vẫn gửi password trong DATABASE_URL, PgBouncer forward sang Postgres để
       # verify. Tránh AUTH_TYPE plain vì userlist.txt sinh sai format ở Alpine.
       - AUTH_TYPE=trust
+    # POSTGRES_USER/POSTGRES_DB nạp từ .env qua env_file — healthcheck cần để
+    # connect. `environment` ở trên ghi đè DATABASE_URL của .env (giữ URL trỏ
+    # postgres, không trỏ pgbouncer:5432 → tránh pgbouncer connect vào chính nó).
+    env_file:
+      - .env
     # Internal-only — backend reaches via pgbouncer:5432. Local dev psql:
     # `ports: ["${PGBOUNCER_PORT:-6432}:5432"]`.
     expose:
       - "5432"
-    # No healthcheck: edoburu/pgbouncer Alpine image không có psql/pg_isready/nc.
-    # PgBouncer start <1s; backend retry connection nếu gặp transient failure
-    # qua Prisma's retry. depends_on dùng service_started thay vì service_healthy.
+    # edoburu/pgbouncer (alpine) có sẵn psql — probe bằng cách connect QUA
+    # pgbouncer tới DB thật (auth_type=trust nên user trong userlist.txt vào
+    # được, không cần password). Bắt buộc có healthcheck, nếu không Coolify
+    # hiển thị "unknown". $$ → shell trong container tự expand POSTGRES_USER/DB.
+    # backend depends_on vẫn dùng service_started để không block startup.
+    healthcheck:
+      test: ["CMD-SHELL", "psql -w -h 127.0.0.1 -p 5432 -U $${POSTGRES_USER:-user} -d $${POSTGRES_DB:-web_truyen_db} -tAc 'SELECT 1' || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - web_truyen
 
