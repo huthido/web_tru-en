@@ -197,6 +197,13 @@ services:
       VNPAY_IPN_URL: ${VNPAY_IPN_URL}
       MEILI_HOST: ${MEILI_HOST:-http://meilisearch:7700}
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+      # SMTP — cần để gửi email xác thực tài khoản & đặt lại mật khẩu.
+      # Chưa set thì backend chỉ log link ra console, không gửi email thật.
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM}
     ports:
       - "${BACKEND_PORT:-3009}:3009"
     volumes:
