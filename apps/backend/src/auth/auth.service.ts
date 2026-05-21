@@ -633,6 +633,99 @@ export class AuthService {
     });
   }
 
+  // ===== Password Reset (quên mật khẩu) =====
+  async forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+    // Luôn trả cùng một thông điệp — không tiết lộ email nào có đăng ký.
+    const genericMessage =
+      'Nếu email tồn tại trong hệ thống, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu.';
+
+    const normalizedEmail = email.trim();
+    const user = await this.prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+    });
+
+    if (!user) {
+      this.logger.warn(`Forgot-password cho email không tồn tại: ${normalizedEmail}`);
+      return { success: true, message: genericMessage };
+    }
+
+    try {
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 giờ
+
+      // Xoá token cũ của user này (chỉ giữ token mới nhất)
+      await (this.prisma as any).passwordResetToken.deleteMany({
+        where: { userId: user.id },
+      });
+
+      await (this.prisma as any).passwordResetToken.create({
+        data: { userId: user.id, token, expiresAt },
+      });
+
+      await this.emailService.sendPasswordResetEmail(
+        user.email,
+        token,
+        user.displayName || user.username,
+      );
+
+      this.logger.log(`Password reset email sent to: ${user.email}`);
+    } catch (error) {
+      // Vẫn trả generic message — không lộ lỗi nội bộ cho client.
+      this.logger.error(`Failed to send password reset email: ${error.message}`);
+    }
+
+    return { success: true, message: genericMessage };
+  }
+
+  async resetPassword(
+    token: string,
+    newPassword: string,
+    confirmNewPassword: string,
+  ): Promise<{ success: boolean; message: string }> {
+    if (newPassword !== confirmNewPassword) {
+      throw new BadRequestException('Mật khẩu xác nhận không khớp');
+    }
+
+    const resetToken = await (this.prisma as any).passwordResetToken.findUnique({
+      where: { token },
+    });
+
+    if (!resetToken) {
+      throw new BadRequestException('Token không hợp lệ hoặc đã được sử dụng');
+    }
+
+    if (resetToken.expiresAt < new Date()) {
+      await (this.prisma as any).passwordResetToken.delete({ where: { id: resetToken.id } });
+      throw new BadRequestException('Token đã hết hạn. Vui lòng yêu cầu đặt lại mật khẩu mới');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    await this.prisma.user.update({
+      where: { id: resetToken.userId },
+      data: { password: hashedPassword },
+    });
+
+    // Xoá token đã dùng (one-time use)
+    await (this.prisma as any).passwordResetToken.delete({ where: { id: resetToken.id } });
+
+    // Vô hiệu hoá mọi phiên cũ — buộc đăng nhập lại bằng mật khẩu mới.
+    try {
+      await (this.prisma as any).refreshToken.deleteMany({
+        where: { userId: resetToken.userId },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to revoke refresh tokens after reset: ${error.message}`);
+    }
+
+    this.logger.log(`Password reset thành công cho user: ${resetToken.userId}`);
+
+    return {
+      success: true,
+      message: 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới.',
+    };
+  }
+
   async logout(userId: string): Promise<void> {
     // 🔥 FIXED: Invalidate all refresh tokens for this user
     try {

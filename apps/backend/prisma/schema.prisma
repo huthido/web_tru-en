@@ -49,6 +49,7 @@ model User {
   adClicks                AdClick[]                @relation("AdClickUser")
   oauthCodes              OAuthCode[]
   emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
   refreshTokens           RefreshToken[]
   createdNotifications    Notification[]           @relation("NotificationCreator")
   wallet                  UserWallet?
@@ -642,6 +643,20 @@ model EmailVerificationToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("email_verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
 }
 
 model LoginAttempt {

@@ -128,6 +128,56 @@ export class EmailService {
     }
 
     /**
+     * Send password reset email
+     */
+    async sendPasswordResetEmail(email: string, token: string, userName: string): Promise<void> {
+        const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+        const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+
+        const html = `
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Đặt lại mật khẩu</title></head>
+<body style="margin:0;padding:0;font-family:'Roboto','Helvetica Neue',Arial,sans-serif;background-color:#f5f5f5;">
+  <table role="presentation" style="width:100%;border-collapse:collapse;background-color:#f5f5f5;">
+    <tr><td style="padding:40px 20px;">
+      <table role="presentation" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.12),0 1px 2px rgba(0,0,0,0.24);">
+        <tr><td style="padding:32px 40px;border-bottom:1px solid #e0e0e0;">
+          <h1 style="margin:0;color:#1976d2;font-size:24px;font-weight:500;letter-spacing:0.5px;">Web Truyện HungYeu</h1>
+        </td></tr>
+        <tr><td style="padding:40px;">
+          <h2 style="margin:0 0 24px;color:#212121;font-size:20px;font-weight:500;line-height:1.4;">Đặt lại mật khẩu</h2>
+          <p style="margin:0 0 16px;color:#757575;font-size:16px;line-height:1.6;">Xin chào <strong style="color:#212121;">${userName}</strong>,</p>
+          <p style="margin:0 0 24px;color:#757575;font-size:16px;line-height:1.6;">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Nhấp vào nút bên dưới để tạo mật khẩu mới.</p>
+          <table role="presentation" style="margin:32px 0;"><tr>
+            <td style="border-radius:4px;background-color:#1976d2;">
+              <a href="${resetUrl}" style="display:inline-block;padding:12px 32px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Đặt lại mật khẩu</a>
+            </td>
+          </tr></table>
+          <p style="margin:24px 0 0;color:#9e9e9e;font-size:14px;line-height:1.6;">Hoặc sao chép đường dẫn sau vào trình duyệt:</p>
+          <p style="margin:8px 0 0;padding:12px;background-color:#f5f5f5;border-radius:4px;word-break:break-all;">
+            <a href="${resetUrl}" style="color:#1976d2;text-decoration:none;font-size:13px;">${resetUrl}</a>
+          </p>
+          <p style="margin:24px 0 0;color:#9e9e9e;font-size:14px;line-height:1.6;">Link này hết hạn sau 1 giờ. Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này — mật khẩu của bạn không thay đổi.</p>
+        </td></tr>
+        <tr><td style="padding:24px 40px;border-top:1px solid #e0e0e0;background-color:#fafafa;">
+          <p style="margin:0;color:#9e9e9e;font-size:13px;">Trân trọng,<br>Đội ngũ Web Truyện HungYeu</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+        const text = `Xin chào ${userName}!\n\nChúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.\n\nTruy cập link sau để tạo mật khẩu mới:\n${resetUrl}\n\nLink này hết hạn sau 1 giờ. Nếu bạn không yêu cầu, hãy bỏ qua email này.\n\nTrân trọng,\nĐội ngũ Web Truyện HungYeu`;
+
+        await this.sendEmail({
+            to: email,
+            subject: '🔑 Đặt lại mật khẩu - Web Truyện HungYeu',
+            html,
+            text,
+        });
+    }
+
+    /**
      * Send welcome email after verification
      */
     async sendWelcomeEmail(email: string, userName: string): Promise<void> {
