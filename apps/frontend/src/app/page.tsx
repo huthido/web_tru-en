@@ -53,7 +53,7 @@ export default function Home() {
   const mostLikedTransformed = mostLiked.map(transformStoryToBook);
 
   return (
-    <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-background text-on-surface transition-colors duration-300">
       {/* Sidebar */}
       <Sidebar />
 

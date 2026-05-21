@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Quicksand } from 'next/font/google';
+import { Inter, Be_Vietnam_Pro } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import InstallPrompt from '@/components/pwa/install-prompt';
@@ -10,20 +10,29 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { MaintenanceCheck } from '@/components/maintenance-check';
 import { getServerSettings } from '@/lib/api/server-settings';
 
-const quicksand = Quicksand({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-quicksand',
-  display: 'swap', // Prevent font preload warnings - ensures font doesn't block rendering
+// Body / UI font — Inter (full Vietnamese support).
+const fontBody = Inter({
+  subsets: ['latin', 'vietnamese'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-body',
+  display: 'swap',
+});
+
+// Headline font — Be Vietnam Pro (Vivid Reader's grotesk display, Vietnamese-native).
+const fontDisplay = Be_Vietnam_Pro({
+  subsets: ['latin', 'vietnamese'],
+  weight: ['600', '700', '800'],
+  variable: '--font-display',
+  display: 'swap',
 });
 
 // Default metadata values (fallback)
 const DEFAULT_METADATA = {
-  siteName: 'Web Truyện HungYeu',
+  siteName: 'YÊU',
   siteDescription: 'Nền tảng đọc truyện và tiểu thuyết trực tuyến. Khám phá hàng ngàn câu chuyện hay, đa dạng thể loại từ kiếm hiệp, tiên hiệp, ngôn tình đến khoa học viễn tưởng.',
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://hungyeu.com',
   keywords: ['truyện', 'tiểu thuyết', 'đọc truyện', 'truyện online', 'manga', 'light novel', 'kiếm hiệp', 'tiên hiệp', 'ngôn tình'],
-  author: 'Web Truyện HungYeu Team',
+  author: 'YÊU',
 };
 
 // Generate metadata dynamically from settings
@@ -93,17 +102,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" suppressHydrationWarning className={quicksand.variable}>
+    <html lang="vi" suppressHydrationWarning className={`${fontBody.variable} ${fontDisplay.variable}`}>
       <head>
         {/* PWA Meta Tags */}
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#ec4899" />
+        <meta name="theme-color" content="#0b1326" />
         {/* Web App Manifest spec — Chrome / Edge / Firefox. */}
         <meta name="mobile-web-app-capable" content="yes" />
         {/* iOS Safari vẫn cần apple-* tag để add-to-homescreen hoạt động. */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="HungYeu" />
+        <meta name="apple-mobile-web-app-title" content="YÊU" />
         <link rel="apple-touch-icon" href="/HUNGYEULOGO.png" />
         {/* 🔥 Google AdSense Script - Must be in HTML tĩnh để Google bot có thể verify */}
         {/* Script tag này sẽ được render trực tiếp vào HTML tĩnh, Google bot sẽ thấy được */}
@@ -113,7 +122,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body className={quicksand.className}>
+      <body className={fontBody.className}>
         <ErrorBoundary>
           <QueryProvider>
             <AuthProvider>

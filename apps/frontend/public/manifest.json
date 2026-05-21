@@ -1,11 +1,11 @@
 {
-    "name": "Web Truyện HungYeu",
-    "short_name": "HungYeu",
+    "name": "YÊU",
+    "short_name": "YÊU",
     "description": "Nền tảng đọc truyện và tiểu thuyết trực tuyến",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#FFF2F8",
-    "theme_color": "#ec4899",
+    "background_color": "#fff8f7",
+    "theme_color": "#0b1326",
     "orientation": "portrait-primary",
     "icons": [
         {

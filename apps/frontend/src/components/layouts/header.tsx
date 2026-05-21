@@ -79,7 +79,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full h-[60px] flex items-center justify-between px-3 md:px-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 transition-colors duration-300">
+    <header className="sticky top-0 z-50 w-full h-[60px] flex items-center justify-between px-3 md:px-6 bg-surface/95 backdrop-blur-sm border-b border-outline-variant/40 transition-colors duration-300">
       {/* Mobile Logo */}
       <Link href="/" className="md:hidden mr-3 shrink-0 flex items-center">
         {settings?.siteLogo ? (
@@ -105,7 +105,7 @@ export function Header() {
           <div className="relative flex items-center gap-2 md:gap-3">
             <button
               type="submit"
-              className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 flex-shrink-0"
+              className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors duration-300 flex-shrink-0"
               aria-label="Tìm kiếm"
             >
               <svg width="24" height="24" className="md:w-[30px] md:h-[30px]" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -126,26 +126,26 @@ export function Header() {
                 }
               }}
               placeholder="Tìm kiếm truyện..."
-              className="flex-1 h-[30px] bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-xs md:text-sm transition-colors duration-300"
+              className="flex-1 h-[30px] bg-transparent border-none outline-none text-on-surface placeholder-on-surface-variant/60 text-xs md:text-sm transition-colors duration-300"
             />
           </div>
         </form>
 
         {/* Suggestions Dropdown */}
         {showSuggestions && searchQuery.trim().length >= 2 && (
-          <div className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-[300px] overflow-y-auto">
+          <div className="absolute z-50 w-full mt-2 bg-surface-container rounded-lg shadow-lg border border-outline-variant/40 max-h-[300px] overflow-y-auto">
             {isLoadingSuggestions ? (
-              <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+              <div className="p-4 text-center text-sm text-on-surface-variant">
                 Đang tải...
               </div>
             ) : suggestions && suggestions.length > 0 ? (
               <div className="p-2">
-                <div className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1">Gợi ý</div>
+                <div className="text-xs text-on-surface-variant px-2 py-1">Gợi ý</div>
                 {suggestions.map((suggestion) => (
                   <button
                     key={suggestion.id}
                     onClick={() => handleSuggestionClick(suggestion.slug)}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex items-center gap-3"
+                    className="w-full text-left px-4 py-2 hover:bg-surface-variant rounded transition-colors flex items-center gap-3"
                   >
                     {suggestion.coverImage && (
                       <OptimizedImage
@@ -161,11 +161,11 @@ export function Header() {
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <div className="text-sm font-medium text-on-surface truncate">
                         {suggestion.title}
                       </div>
                       {suggestion.authorName && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        <div className="text-xs text-on-surface-variant truncate">
                           {suggestion.authorName}
                         </div>
                       )}
@@ -174,7 +174,7 @@ export function Header() {
                 ))}
               </div>
             ) : (
-              <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+              <div className="p-4 text-center text-sm text-on-surface-variant">
                 Không tìm thấy gợi ý
               </div>
             )}
@@ -188,7 +188,7 @@ export function Header() {
         <button
           type="button"
           onClick={toggleTheme}
-          className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-white dark:bg-gray-800 border-blue-500 dark:border-blue-400 shadow-sm hover:shadow-md"
+          className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-surface-container border-primary/60 shadow-sm hover:shadow-md"
           aria-label="Chuyển đổi giao diện"
         >
           {theme === 'light' ? (
@@ -199,10 +199,10 @@ export function Header() {
                   stroke="currentColor"
                   strokeWidth="1.5"
                   strokeLinecap="round"
-                  className="text-gray-900 dark:text-white transition-colors duration-300"
+                  className="text-on-surface transition-colors duration-300"
                 />
               </svg>
-              <span className="hidden md:inline text-xs font-medium text-gray-900 dark:text-white transition-colors duration-300">
+              <span className="hidden md:inline text-xs font-medium text-on-surface transition-colors duration-300">
                 Sáng
               </span>
             </>
@@ -214,10 +214,10 @@ export function Header() {
                   stroke="currentColor"
                   strokeWidth="1.5"
                   strokeLinecap="round"
-                  className="text-gray-900 dark:text-white transition-colors duration-300"
+                  className="text-on-surface transition-colors duration-300"
                 />
               </svg>
-              <span className="hidden md:inline text-xs font-medium text-gray-900 dark:text-white transition-colors duration-300">
+              <span className="hidden md:inline text-xs font-medium text-on-surface transition-colors duration-300">
                 Tối
               </span>
             </>
@@ -238,7 +238,7 @@ export function Header() {
                   className="flex items-center gap-1.5 md:gap-2.5 hover:opacity-80 transition-opacity duration-300"
                   aria-label="User menu"
                 >
-                  <div className="relative w-[36px] h-[36px] md:w-[40px] md:h-[40px] rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-2 border-gray-300 dark:border-gray-600 transition-all duration-300 hover:scale-105 cursor-pointer">
+                  <div className="relative w-[36px] h-[36px] md:w-[40px] md:h-[40px] rounded-full overflow-hidden bg-surface-variant flex items-center justify-center border-2 border-outline-variant transition-all duration-300 hover:scale-105 cursor-pointer">
                     {user.avatar ? (
                       <OptimizedImage
                         src={user.avatar}
@@ -250,19 +250,19 @@ export function Header() {
                         placeholder="blur"
                       />
                     ) : (
-                      <span className="text-sm md:text-base font-semibold text-gray-600 dark:text-gray-300">
+                      <span className="text-sm md:text-base font-semibold text-on-surface-variant">
                         {(user.displayName || user.username).charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
-                  <span className="hidden lg:block text-sm md:text-base font-medium text-gray-900 dark:text-white transition-colors duration-300">
+                  <span className="hidden lg:block text-sm md:text-base font-medium text-on-surface transition-colors duration-300">
                     {user.displayName || user.username}
                   </span>
                   {/* Dropdown Arrow */}
                   <svg
                     width="16"
                     height="16"
-                    className={`transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''} text-gray-600 dark:text-gray-400 hidden lg:block`}
+                    className={`transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''} text-on-surface-variant hidden lg:block`}
                     viewBox="0 0 16 16"
                     fill="none"
                   >
@@ -278,18 +278,18 @@ export function Header() {
 
                 {/* Dropdown Menu */}
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute right-0 mt-2 w-48 bg-surface-container rounded-lg shadow-lg border border-outline-variant/40 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     <Link
                       href="/profile"
                       onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-variant transition-colors duration-200"
                     >
                       <svg
                         width="20"
                         height="20"
                         viewBox="0 0 20 20"
                         fill="none"
-                        className="text-gray-600 dark:text-gray-400"
+                        className="text-on-surface-variant"
                       >
                         <path
                           d="M10 10C12.7614 10 15 7.76142 15 5C15 2.23858 12.7614 0 10 0C7.23858 0 5 2.23858 5 5C5 7.76142 7.23858 10 10 10Z"
@@ -312,7 +312,7 @@ export function Header() {
                       type="button"
                       onClick={handleLogout}
                       disabled={isLoggingOut}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-surface-variant transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <svg
                         width="20"
@@ -351,7 +351,7 @@ export function Header() {
             ) : (
               <Link
                 href="/login"
-                className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-xs md:text-sm font-medium transition-all duration-300 hover:scale-105 active:scale-95"
+                className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-primary hover:opacity-90 text-on-primary text-xs md:text-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95"
               >
                 <span className="hidden sm:inline">Đăng nhập</span>
                 <span className="sm:hidden">Đăng nhập</span>

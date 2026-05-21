@@ -764,7 +764,7 @@ export default function BookDetailPage() {
                       },
                       publisher: {
                         '@type': 'Organization',
-                        name: 'Web Truyện HungYeu',
+                        name: 'YÊU',
                       },
                       datePublished: story.createdAt,
                       dateModified: story.updatedAt,

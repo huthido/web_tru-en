@@ -13,7 +13,7 @@ export function Footer() {
     const { data: settings } = useSettings();
 
     return (
-        <footer className="w-full bg-[#FDF2F8] dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 transition-colors duration-300">
+        <footer className="w-full bg-surface-container border-t border-outline-variant/40 transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
                 {/* Main Footer Content */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
@@ -39,7 +39,7 @@ export function Footer() {
                                             strokeWidth="4.5"
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
-                                            className="text-gray-900 dark:text-white transition-colors duration-300"
+                                            className="text-on-surface transition-colors duration-300"
                                         />
                                         <path
                                             d="M30 5V45.3594"
@@ -47,7 +47,7 @@ export function Footer() {
                                             strokeWidth="4.5"
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
-                                            className="text-gray-900 dark:text-white transition-colors duration-300"
+                                            className="text-on-surface transition-colors duration-300"
                                         />
                                     </svg>
                                 )}
@@ -55,7 +55,7 @@ export function Footer() {
                         </Link>
                         {/* Mô tả website */}
                         {settings?.siteDescription && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                            <p className="text-sm text-on-surface-variant leading-relaxed">
                                 {settings.siteDescription}
                             </p>
                         )}
@@ -63,31 +63,31 @@ export function Footer() {
 
                     {/* Công việc */}
                     <div className="flex flex-col gap-5 ">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-300 mb-1">
+                        <h3 className="text-lg font-semibold text-on-surface transition-colors duration-300 mb-1">
                             Công việc
                         </h3>
                         <nav className="flex flex-col gap-4">
                             <Link
                                 href="/lien-he-quang-cao"
-                                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+                                className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                             >
                                 Liên hệ quảng cáo
                             </Link>
                             <Link
                                 href="/doi-tac-hop-tac"
-                                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+                                className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                             >
                                 Đối tác hợp tác
                             </Link>
                             <Link
                                 href="/dang-ky-tac-gia"
-                                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+                                className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                             >
                                 Đăng kí tác giả
                             </Link>
                             <Link
                                 href="/gop-y-phan-anh"
-                                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+                                className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                             >
                                 Góp ý phản ánh
                             </Link>
@@ -96,31 +96,31 @@ export function Footer() {
 
                     {/* Thông tin */}
                     <div className="flex flex-col gap-5">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-300 mb-1">
+                        <h3 className="text-lg font-semibold text-on-surface transition-colors duration-300 mb-1">
                             Thông tin
                         </h3>
                         <nav className="flex flex-col gap-4">
                             <Link
                                 href="/gioi-thieu"
-                                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+                                className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                             >
                                 Giới thiệu
                             </Link>
                             <Link
                                 href="/ung-ho"
-                                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+                                className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                             >
                                 Ủng hộ
                             </Link>
                             <Link
                                 href="/dang-ky-tac-gia"
-                                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+                                className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                             >
                                 Tác giả
                             </Link>
                             <Link
                                 href="/ban-quyen"
-                                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+                                className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                             >
                                 Bản quyền
                             </Link>
@@ -129,7 +129,7 @@ export function Footer() {
 
                     {/* Theo dõi */}
                     <div className="flex flex-col gap-5">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-300 mb-1">
+                        <h3 className="text-lg font-semibold text-on-surface transition-colors duration-300 mb-1">
                             Theo dõi
                         </h3>
                         <nav className="flex flex-col gap-4">
@@ -138,7 +138,7 @@ export function Footer() {
                                     href={settings.siteFacebook}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 group"
+                                    className="flex items-center gap-3 text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300 group"
                                 >
                                     <Facebook className="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
                                     <span>Facebook</span>
@@ -149,7 +149,7 @@ export function Footer() {
                                     href={settings.siteTwitter}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 group"
+                                    className="flex items-center gap-3 text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300 group"
                                 >
                                     <Twitter className="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
                                     <span>Twitter</span>
@@ -160,7 +160,7 @@ export function Footer() {
                                     href={settings.siteX}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 group"
+                                    className="flex items-center gap-3 text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300 group"
                                 >
                                     <SiX className="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
                                     <span>X (Twitter)</span>
@@ -171,7 +171,7 @@ export function Footer() {
                                     href={settings.siteYoutube}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 group"
+                                    className="flex items-center gap-3 text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300 group"
                                 >
                                     <Youtube className="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
                                     <span>YouTube</span>
@@ -182,7 +182,7 @@ export function Footer() {
                                     href={settings.siteInstagram}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 group"
+                                    className="flex items-center gap-3 text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300 group"
                                 >
                                     <Instagram className="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
                                     <span>Instagram</span>
@@ -193,7 +193,7 @@ export function Footer() {
                                     href={settings.siteTikTok}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 group"
+                                    className="flex items-center gap-3 text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300 group"
                                 >
                                     <SiTiktok className="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
                                     <span>TikTok</span>
@@ -204,7 +204,7 @@ export function Footer() {
                                     href={settings.siteLinkedIn}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 group"
+                                    className="flex items-center gap-3 text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300 group"
                                 >
                                     <SiLinkedin className="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
                                     <span>LinkedIn</span>
@@ -215,34 +215,34 @@ export function Footer() {
                                     href={settings.siteThreads}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 group"
+                                    className="flex items-center gap-3 text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300 group"
                                 >
                                     <SiThreads className="w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
                                     <span>Threads</span>
                                 </Link>
                             )}
                             {!settings?.siteFacebook && !settings?.siteTwitter && !settings?.siteX && !settings?.siteYoutube && !settings?.siteInstagram && !settings?.siteTikTok && !settings?.siteLinkedIn && !settings?.siteThreads && (
-                                <p className="text-sm text-gray-500 dark:text-gray-500">Chưa có liên kết mạng xã hội</p>
+                                <p className="text-sm text-on-surface-variant">Chưa có liên kết mạng xã hội</p>
                             )}
                         </nav>
                     </div>
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 transition-colors duration-300">
-                    <p className="text-sm text-center sm:text-left text-gray-600 dark:text-gray-400 transition-colors duration-300">
-                        Copyright © {currentYear}. {settings?.siteName || 'Web Truyện HungYeu'}. Tất cả quyền được bảo lưu.
+                <div className="pt-8 border-t border-outline-variant/40 flex flex-col sm:flex-row items-center justify-between gap-4 transition-colors duration-300">
+                    <p className="text-sm text-center sm:text-left text-on-surface-variant transition-colors duration-300">
+                        Copyright © {currentYear}. {settings?.siteName || 'YÊU'}. Tất cả quyền được bảo lưu.
                     </p>
                     <div className="flex items-center gap-6 sm:gap-10 flex-wrap justify-center sm:justify-end">
                         <Link
                             href="/terms"
-                            className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+                            className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                         >
                             Điều khoản & Điều kiện
                         </Link>
                         <Link
                             href="/privacy"
-                            className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+                            className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                         >
                             Chính sách bảo mật
                         </Link>

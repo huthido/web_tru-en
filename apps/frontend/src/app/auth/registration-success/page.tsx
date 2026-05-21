@@ -106,7 +106,7 @@ export default function RegistrationSuccessPage() {
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2 text-gray-400">2.</span>
-                  <span>Tìm email từ Web HungYeu</span>
+                  <span>Tìm email từ YÊU</span>
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2 text-gray-400">3.</span>

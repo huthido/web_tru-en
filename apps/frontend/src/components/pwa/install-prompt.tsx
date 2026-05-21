@@ -61,7 +61,7 @@ export default function InstallPrompt() {
                         Cài đặt ứng dụng
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                        Cài đặt Web Truyện để đọc nhanh hơn và dùng khi không có mạng!
+                        Cài đặt YÊU để đọc nhanh hơn và dùng khi không có mạng!
                     </p>
 
                     <div className="flex gap-2">

@@ -279,13 +279,13 @@ export function BookSection({
     >
       {/* Section Header */}
       <div className="flex items-center gap-3 mb-4 px-4 md:px-4 flex-wrap">
-        <h2 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-300 flex-shrink-0">
+        <h2 className="text-lg md:text-2xl font-display font-extrabold uppercase tracking-tight text-on-surface transition-colors duration-300 flex-shrink-0">
           {title}
         </h2>
         {seeMoreLink && (
           <Link
             href={seeMoreLink}
-            className="text-xs md:text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors duration-300 flex-shrink-0 whitespace-nowrap"
+            className="text-xs md:text-sm font-semibold text-primary hover:underline transition-colors duration-300 flex-shrink-0 whitespace-nowrap"
           >
             (Xem thêm)
           </Link>
@@ -295,9 +295,9 @@ export function BookSection({
       {/* Scroll Position Indicator */}
       {books.length > 0 && (
         <div className="px-4 md:px-6 lg:px-8 mb-2">
-          <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="h-1 bg-surface-variant rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-500 dark:bg-blue-400 transition-all duration-300 ease-out"
+              className="h-full bg-primary transition-all duration-300 ease-out"
               style={{ width: `${scrollProgress}%` }}
               aria-hidden="true"
             />
@@ -312,26 +312,26 @@ export function BookSection({
           <button
             onClick={scrollToPrev}
             disabled={!canScrollLeft}
-            className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg flex items-center justify-center transition-all duration-300 ${canScrollLeft
-              ? 'opacity-100 hover:bg-white dark:hover:bg-gray-800 hover:scale-110 cursor-pointer'
+            className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full glass-card shadow-lg flex items-center justify-center transition-all duration-300 ${canScrollLeft
+              ? 'opacity-100 hover:bg-surface-container hover:scale-110 cursor-pointer'
               : 'opacity-0 pointer-events-none cursor-not-allowed'
               }`}
             aria-label="Scroll to previous books"
           >
-            <ChevronLeft className="w-6 h-6 text-gray-900 dark:text-white" />
+            <ChevronLeft className="w-6 h-6 text-on-surface" />
           </button>
 
           {/* Next Button */}
           <button
             onClick={scrollToNext}
             disabled={!canScrollRight}
-            className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg flex items-center justify-center transition-all duration-300 ${canScrollRight
-              ? 'opacity-100 hover:bg-white dark:hover:bg-gray-800 hover:scale-110 cursor-pointer'
+            className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full glass-card shadow-lg flex items-center justify-center transition-all duration-300 ${canScrollRight
+              ? 'opacity-100 hover:bg-surface-container hover:scale-110 cursor-pointer'
               : 'opacity-0 pointer-events-none cursor-not-allowed'
               }`}
             aria-label="Scroll to next books"
           >
-            <ChevronRight className="w-6 h-6 text-gray-900 dark:text-white" />
+            <ChevronRight className="w-6 h-6 text-on-surface" />
           </button>
         </>
       )}
@@ -348,7 +348,7 @@ export function BookSection({
       ) : books.length > 0 ? (
         <div
           ref={scrollContainerRef}
-          className="relative ml-[16px] md:ml-4 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory touch-pan-x cursor-grab focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+          className="relative ml-[16px] md:ml-4 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory touch-pan-x cursor-grab focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg"
           onMouseDown={handleMouseDown}
           onMouseLeave={handleMouseLeave}
           onMouseUp={handleMouseUp}
@@ -438,7 +438,7 @@ export function BookSection({
         </div>
       ) : (
         <div className="px-6 md:px-6 ml-0">
-          <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+          <div className="py-8 text-center text-on-surface-variant">
             Chưa có sách nào
           </div>
         </div>

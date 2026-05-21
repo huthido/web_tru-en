@@ -37,31 +37,52 @@
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  /* Semantic Colors - HSL for opacity support */
+  /* Base — "Vivid Reader" LIGHT */
+  --background: #fff8f7;
+  --foreground: #271a1a;
+
+  /* Legacy semantic colors - HSL for opacity support */
   --primary: 330 81% 60%;
-  /* #ec4899 Pink-500 */
   --primary-foreground: 0 0% 100%;
   --secondary: 217 91% 60%;
-  /* #3b82f6 Blue-500 */
   --secondary-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
-  /* #ef4444 Red-500 */
   --destructive-foreground: 0 0% 100%;
   --success: 142 71% 45%;
-  /* #22c55e Green-500 */
   --success-foreground: 0 0% 100%;
   --muted: 220 14% 96%;
-  /* #f3f4f6 */
   --muted-foreground: 215 16% 47%;
-  /* #6b7280 */
+
+  /* === Vivid Reader theme tokens (Material Design 3) — LIGHT ===
+     Stored as space-separated RGB channels for Tailwind <alpha-value>. */
+  --md-background: 255 248 247;
+  --md-surface: 255 248 247;
+  --md-on-surface: 39 26 26;
+  --md-on-surface-variant: 92 63 64;
+  --md-surface-container-lowest: 255 255 255;
+  --md-surface-container-low: 255 240 240;
+  --md-surface-container: 250 234 234;
+  --md-surface-container-high: 245 223 223;
+  --md-surface-container-highest: 239 217 218;
+  --md-surface-variant: 243 221 221;
+  --md-primary: 190 0 55;
+  --md-on-primary: 255 255 255;
+  --md-primary-container: 255 218 218;
+  --md-on-primary-container: 64 0 12;
+  --md-tertiary: 0 103 79;
+  --md-on-tertiary: 255 255 255;
+  --md-tertiary-container: 144 245 217;
+  --md-on-tertiary-container: 0 32 25;
+  --md-outline: 133 115 114;
+  --md-outline-variant: 216 194 193;
+  --md-glow: 190 0 55;
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  /* Semantic Colors Dark */
+  /* Base — "Vivid Reader" DARK */
+  --background: #0b1326;
+  --foreground: #dae2fd;
+
   --primary: 330 81% 60%;
   --primary-foreground: 0 0% 100%;
   --secondary: 217 91% 60%;
@@ -71,9 +92,30 @@
   --success: 142 71% 45%;
   --success-foreground: 0 0% 100%;
   --muted: 217 33% 17%;
-  /* #1f2937 */
   --muted-foreground: 215 20% 65%;
-  /* #9ca3af */
+
+  /* === Vivid Reader theme tokens — DARK === */
+  --md-background: 11 19 38;
+  --md-surface: 11 19 38;
+  --md-on-surface: 218 226 253;
+  --md-on-surface-variant: 229 189 190;
+  --md-surface-container-lowest: 6 14 32;
+  --md-surface-container-low: 19 27 46;
+  --md-surface-container: 23 31 51;
+  --md-surface-container-high: 34 42 61;
+  --md-surface-container-highest: 45 52 73;
+  --md-surface-variant: 45 52 73;
+  --md-primary: 255 179 182;
+  --md-on-primary: 104 0 26;
+  --md-primary-container: 225 29 72;
+  --md-on-primary-container: 255 250 249;
+  --md-tertiary: 116 216 189;
+  --md-on-tertiary: 0 56 45;
+  --md-tertiary-container: 0 131 108;
+  --md-on-tertiary-container: 238 255 247;
+  --md-outline: 172 136 137;
+  --md-outline-variant: 92 63 64;
+  --md-glow: 255 179 182;
 }
 
 * {
@@ -85,8 +127,26 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-quicksand), 'Quicksand', sans-serif;
+  font-family: var(--font-body), 'Inter', sans-serif;
   transition: background-color 300ms ease, color 300ms ease;
+}
+
+/* Vivid Reader — glassmorphism surface used for cards & overlays. */
+.glass-card {
+  background: rgb(var(--md-surface-container) / 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgb(var(--md-outline-variant) / 0.4);
+}
+
+/* Vivid Reader — soft primary-tinted glow on hover for comic cards. */
+.comic-hover-glow {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.comic-hover-glow:hover {
+  box-shadow: 0 0 24px rgb(var(--md-glow) / 0.25);
+  transform: scale(1.02);
 }
 
 /* Global Custom Scrollbar for entire website */

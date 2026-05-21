@@ -1,47 +1,61 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { ImageSizes } from '@/utils/image-utils';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Clock, Bookmark, Heart, LayoutDashboard, Settings, BookOpen } from 'lucide-react';
+import { Home, Clock, Bookmark, Heart, LayoutDashboard, Settings, BookOpen, type LucideIcon } from 'lucide-react';
+
+interface NavLink {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+  /** Filled-icon variant when active (Bookmark/Heart/BookOpen). */
+  fillWhenActive?: boolean;
+  /** Only show for authenticated users. */
+  authOnly?: boolean;
+}
 
 export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { data: settings } = useSettings();
-  const isHome = pathname === '/';
-  const isProfile = pathname === '/profile';
-  const isHistory = pathname === '/history';
-  const isFavorites = pathname === '/favorites';
-  const isFollows = pathname === '/follows';
-  const isStories = pathname === '/stories';
-  const isAuthorDashboard = pathname?.startsWith('/author/dashboard');
-  const isChapterManagement = pathname?.includes('/author/stories/') && pathname?.includes('/chapters');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // All authenticated users can create stories
   const canCreateStories = !!user;
-  const isAdmin = user && user.role === 'ADMIN';
+
+  const links: NavLink[] = [
+    { href: '/', label: 'Trang chủ', icon: Home, active: pathname === '/' },
+    { href: '/stories', label: 'Truyện', icon: BookOpen, active: pathname === '/stories', fillWhenActive: true },
+    { href: '/history', label: 'Lịch sử', icon: Clock, active: pathname === '/history' },
+    { href: '/follows', label: 'Theo dõi', icon: Bookmark, active: pathname === '/follows', fillWhenActive: true },
+    { href: '/favorites', label: 'Yêu thích', icon: Heart, active: pathname === '/favorites', fillWhenActive: true },
+    { href: '/author/dashboard', label: 'Tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
+    { href: '/profile', label: 'Cài đặt', icon: Settings, active: pathname === '/profile' },
+  ];
+
+  const visible = links.filter((l) => !l.authOnly || canCreateStories);
+  // Mobile bottom bar shows a compact subset.
+  const mobileHrefs = ['/', '/stories', '/history', '/author/dashboard', '/profile'];
+  const mobileLinks = visible.filter((l) => mobileHrefs.includes(l.href));
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[120px] flex-col items-center bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-colors duration-300 z-40">
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[120px] flex-col items-center bg-surface-container border-r border-outline-variant/40 transition-colors duration-300 z-40">
         <div className="flex flex-col items-center h-full py-8">
-          {/* Logo - At top */}
+          {/* Logo / wordmark */}
           <Link
             href="/"
-            className="relative w-[60px] h-[60px] min-h-[60px] flex-shrink-0 flex items-center justify-center transition-transform duration-300 hover:scale-110 active:scale-95 mb-12"
-            style={{ minHeight: '60px' }}
+            aria-label="YÊU — Trang chủ"
+            className="relative w-[60px] h-[60px] flex-shrink-0 flex items-center justify-center transition-transform duration-300 hover:scale-110 active:scale-95 mb-12"
           >
             {settings?.siteLogo ? (
               <OptimizedImage
                 src={settings.siteLogo}
-                alt={settings.siteName || 'Logo'}
+                alt={settings.siteName || 'YÊU'}
                 fill
                 objectFit="contain"
                 sizes={ImageSizes.logo}
@@ -50,226 +64,62 @@ export function Sidebar() {
                 priority
               />
             ) : (
-              <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M50 5L50 55L30 45.3594L10 55L10 5L50 5Z"
-                  stroke="currentColor"
-                  strokeWidth="4.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-900 dark:text-white transition-colors duration-300"
-                />
-                <path
-                  d="M30 5V45.3594"
-                  stroke="currentColor"
-                  strokeWidth="4.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-900 dark:text-white transition-colors duration-300"
-                />
-              </svg>
+              <span className="font-display text-3xl font-extrabold tracking-tight text-primary">YÊU</span>
             )}
           </Link>
 
-          {/* Navigation Items - Centered vertically in remaining space */}
-          <nav className="flex flex-col items-center gap-12 flex-1 justify-center">
-            {/* Home */}
-            <Link
-              href="/"
-              className={`w-[50px] h-[50px] flex items-center justify-center rounded-[10px] transition-all duration-300 hover:scale-110 active:scale-95 ${isHome
-                ? 'bg-red-500 dark:bg-red-600'
-                : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-              aria-label="Trang chủ"
-            >
-              <Home
-                size={30}
-                className={isHome ? 'text-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-              />
-            </Link>
-
-            {/* Stories */}
-            <Link
-              href="/stories"
-              className={`w-[50px] h-[50px] flex items-center justify-center rounded-[10px] transition-all duration-300 hover:scale-110 active:scale-95 ${isStories
-                ? 'bg-red-500 dark:bg-red-600'
-                : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-              aria-label="Danh sách truyện"
-            >
-              <BookOpen
-                size={30}
-                className={isStories ? 'text-white fill-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-                fill={isStories ? 'currentColor' : 'none'}
-              />
-            </Link>
-
-            {/* History */}
-            <Link
-              href="/history"
-              className={`w-[50px] h-[50px] flex items-center justify-center rounded-[10px] transition-all duration-300 hover:scale-110 active:scale-95 ${isHistory
-                ? 'bg-red-500 dark:bg-red-600'
-                : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-              aria-label="Lịch sử"
-            >
-              <Clock
-                size={30}
-                className={isHistory ? 'text-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-              />
-            </Link>
-
-            {/* Follows */}
-            <Link
-              href="/follows"
-              className={`w-[50px] h-[50px] flex items-center justify-center rounded-[10px] transition-all duration-300 hover:scale-110 active:scale-95 ${isFollows
-                ? 'bg-red-500 dark:bg-red-600'
-                : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-              aria-label="Đang theo dõi"
-            >
-              <Bookmark
-                size={30}
-                className={isFollows ? 'text-white fill-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-                fill={isFollows ? 'currentColor' : 'none'}
-              />
-            </Link>
-
-            {/* Favorites */}
-            <Link
-              href="/favorites"
-              className={`w-[50px] h-[50px] flex items-center justify-center rounded-[10px] transition-all duration-300 hover:scale-110 active:scale-95 ${isFavorites
-                ? 'bg-red-500 dark:bg-red-600'
-                : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-              aria-label="Yêu thích"
-            >
-              <Heart
-                size={30}
-                className={isFavorites ? 'text-white fill-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-                fill={isFavorites ? 'currentColor' : 'none'}
-              />
-            </Link>
-
-            {/* Author Dashboard - Show for all authenticated users */}
-            {canCreateStories && (
-              <Link
-                href="/author/dashboard"
-                className={`w-[50px] h-[50px] flex items-center justify-center rounded-[10px] transition-all duration-300 hover:scale-110 active:scale-95 ${isAuthorDashboard
-                  ? 'bg-red-500 dark:bg-red-600'
-                  : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
+          {/* Navigation */}
+          <nav className="flex flex-col items-center gap-8 flex-1 justify-center">
+            {visible.map((l) => {
+              const Icon = l.icon;
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  aria-label={l.label}
+                  className={`w-[50px] h-[50px] flex items-center justify-center rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 ${
+                    l.active ? 'bg-primary/15' : 'bg-transparent hover:bg-surface-variant'
                   }`}
-                aria-label="Quản lý truyện"
-              >
-                <LayoutDashboard
-                  size={30}
-                  className={isAuthorDashboard ? 'text-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-                />
-              </Link>
-            )}
-
-            {/* Settings */}
-            <Link
-              href="/profile"
-              className={`w-[50px] h-[50px] flex items-center justify-center rounded-[10px] transition-all duration-300 hover:scale-110 active:scale-95 ${isProfile
-                ? 'bg-red-500 dark:bg-red-600'
-                : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-              aria-label="Cài đặt"
-            >
-              <Settings
-                size={30}
-                className={isProfile ? 'text-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-              />
-            </Link>
+                >
+                  <Icon
+                    size={28}
+                    className={l.active ? 'text-primary' : 'text-on-surface-variant'}
+                    fill={l.active && l.fillWhenActive ? 'currentColor' : 'none'}
+                  />
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </aside>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 safe-area-inset-bottom">
-        <div className="flex items-center justify-around h-16 px-4 py-2">
-          <Link
-            href="/"
-            className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${isHome
-              ? 'bg-red-500 dark:bg-red-600'
-              : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
-            aria-label="Trang chủ"
-          >
-            <Home
-              size={24}
-              className={isHome ? 'text-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-            />
-            <span className={`text-[10px] font-medium ${isHome ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-              Trang chủ
-            </span>
-          </Link>
-
-          <Link
-            href="/stories"
-            className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${isStories
-              ? 'bg-red-500 dark:bg-red-600'
-              : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-            aria-label="Danh sách truyện"
-          >
-            <BookOpen
-              size={24}
-              className={isStories ? 'text-white fill-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-              fill={isStories ? 'currentColor' : 'none'}
-            />
-            <span className={`text-[10px] font-medium ${isStories ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>Truyện</span>
-          </Link>
-
-          <Link
-            href="/history"
-            className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${isHistory
-              ? 'bg-red-500 dark:bg-red-600'
-              : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-            aria-label="Lịch sử"
-          >
-            <Clock
-              size={24}
-              className={isHistory ? 'text-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-            />
-            <span className={`text-[10px] font-medium ${isHistory ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>Lịch sử</span>
-          </Link>
-
-          {/* Author Dashboard - Show for all authenticated users */}
-          {canCreateStories && (
-            <Link
-              href="/author/dashboard"
-              className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${isAuthorDashboard
-                ? 'bg-red-500 dark:bg-red-600'
-                : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container border-t border-outline-variant/40 z-50 safe-area-inset-bottom">
+        <div className="flex items-center justify-around h-16 px-2 py-2">
+          {mobileLinks.map((l) => {
+            const Icon = l.icon;
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                aria-label={l.label}
+                className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${
+                  l.active ? 'bg-primary/15' : 'bg-transparent hover:bg-surface-variant'
                 }`}
-              aria-label="Bảng điều khiển tác giả"
-            >
-              <LayoutDashboard
-                size={24}
-                className={isAuthorDashboard ? 'text-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-              />
-              <span className={`text-[10px] font-medium ${isAuthorDashboard ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-                Tác giả
-              </span>
-            </Link>
-          )}
-
-          <Link
-            href="/profile"
-            className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${isProfile
-              ? 'bg-red-500 dark:bg-red-600'
-              : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
-            aria-label="Cài đặt"
-          >
-            <Settings
-              size={24}
-              className={isProfile ? 'text-white' : 'text-gray-900 dark:text-white transition-colors duration-300'}
-            />
-            <span className={`text-[10px] font-medium ${isProfile ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-              Cài đặt
-            </span>
-          </Link>
+              >
+                <Icon
+                  size={22}
+                  className={l.active ? 'text-primary' : 'text-on-surface-variant'}
+                  fill={l.active && l.fillWhenActive ? 'currentColor' : 'none'}
+                />
+                <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>
+                  {l.label}
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </nav>
     </>
   );
 }
-

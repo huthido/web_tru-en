@@ -10,14 +10,17 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-quicksand)', 'Quicksand', 'sans-serif'],
+        // Body / UI — Inter. Headlines — Be Vietnam Pro (Vietnamese-native grotesk).
+        sans: ['var(--font-body)', 'Inter', 'sans-serif'],
+        display: ['var(--font-display)', 'Be Vietnam Pro', 'sans-serif'],
       },
       colors: {
         background: 'var(--background)',
         foreground: 'var(--foreground)',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
+          DEFAULT: 'rgb(var(--md-primary) / <alpha-value>)',
           foreground: 'hsl(var(--primary-foreground))',
+          container: 'rgb(var(--md-primary-container) / <alpha-value>)',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -34,6 +37,36 @@ const config: Config = {
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
+        },
+        // === Vivid Reader theme tokens (Material Design 3) ===
+        surface: {
+          DEFAULT: 'rgb(var(--md-surface) / <alpha-value>)',
+          variant: 'rgb(var(--md-surface-variant) / <alpha-value>)',
+          container: 'rgb(var(--md-surface-container) / <alpha-value>)',
+          'container-lowest': 'rgb(var(--md-surface-container-lowest) / <alpha-value>)',
+          'container-low': 'rgb(var(--md-surface-container-low) / <alpha-value>)',
+          'container-high': 'rgb(var(--md-surface-container-high) / <alpha-value>)',
+          'container-highest': 'rgb(var(--md-surface-container-highest) / <alpha-value>)',
+        },
+        'on-surface': {
+          DEFAULT: 'rgb(var(--md-on-surface) / <alpha-value>)',
+          variant: 'rgb(var(--md-on-surface-variant) / <alpha-value>)',
+        },
+        'on-primary': {
+          DEFAULT: 'rgb(var(--md-on-primary) / <alpha-value>)',
+          container: 'rgb(var(--md-on-primary-container) / <alpha-value>)',
+        },
+        tertiary: {
+          DEFAULT: 'rgb(var(--md-tertiary) / <alpha-value>)',
+          container: 'rgb(var(--md-tertiary-container) / <alpha-value>)',
+        },
+        'on-tertiary': {
+          DEFAULT: 'rgb(var(--md-on-tertiary) / <alpha-value>)',
+          container: 'rgb(var(--md-on-tertiary-container) / <alpha-value>)',
+        },
+        outline: {
+          DEFAULT: 'rgb(var(--md-outline) / <alpha-value>)',
+          variant: 'rgb(var(--md-outline-variant) / <alpha-value>)',
         },
       },
     },
@@ -58,4 +91,3 @@ const config: Config = {
 };
 
 export default config;
-

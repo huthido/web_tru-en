@@ -13,7 +13,7 @@ export const useSettings = () => {
                 console.warn('Failed to fetch settings, using defaults:', error);
                 return {
                     id: 'default',
-                    siteName: 'Web Truyện HungYeu',
+                    siteName: 'YÊU',
                     siteDescription: 'Nền tảng đọc truyện online',
                     maintenanceMode: false,
                     allowRegistration: true,
