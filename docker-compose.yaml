@@ -62,11 +62,9 @@ services:
     #   ports: ["${MEILI_PORT:-7700}:7700"]
     expose:
       - "7700"
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:7700/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
+    # Meilisearch image chỉ chứa binary, không có wget/curl/nc → không thể
+    # exec healthcheck từ trong container. Start <2s, backend tự retry nếu
+    # gặp transient failure. Coolify dựa vào port 7700 reachable là đủ.
     networks:
       - web_truyen
 
