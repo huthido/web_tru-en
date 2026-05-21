@@ -1,13 +1,21 @@
 # Full-stack compose file — works locally and on Coolify.
 # Coolify deploy: import this file as a "Docker Compose" application.
-# All sensitive values come from environment variables (Coolify "Secrets" UI).
+#
+# Env vars: khai báo `KEY: ${KEY}` trong `environment` của từng service —
+# đây là cách CHUẨN của Coolify. Coolify đọc compose, tự tạo entry trong tab
+# Environment Variables cho mỗi ${} → bạn chỉ việc điền giá trị. KHÔNG dùng
+# `env_file` (Coolify không nạp file .env tự do → biến sẽ rỗng sau rebuild).
+#
+# Networks: KHÔNG tự khai báo `networks:` — để Coolify dùng network mặc định
+# của nó (coolify-proxy nằm sẵn ở đó). Tự khai báo network khiến container ở
+# 2 network, Traefik dial nhầm IP → 504 Gateway Timeout.
 
 services:
   garage:
     # Garage = self-hosted S3-compatible object storage (deuxfleurs.fr).
-    # On first boot you must run `docker exec web_truyen_garage /garage layout assign ...`
-    # then `/garage bucket create web-truyen` + `/garage key new --name app` to obtain
-    # S3_ACCESS_KEY / S3_SECRET_KEY. See docs/DEPLOY_COOLIFY.md.
+    # On first boot you must run `docker exec <garage> /garage layout assign ...`
+    # then `/garage bucket create web-truyen` + `/garage key new --name app` to
+    # obtain S3_ACCESS_KEY / S3_SECRET_KEY. See docs/DEPLOY_COOLIFY.md.
     #
     # Build custom image to bake garage.toml in — Coolify relative bind mounts
     # of single files fail unpredictably ("IO error: Is a directory"). Override
@@ -18,67 +26,58 @@ services:
     image: web-truyen-garage:latest
     container_name: web_truyen_garage
     restart: unless-stopped
-    # GARAGE_RPC_SECRET / GARAGE_ADMIN_TOKEN / GARAGE_METRICS_TOKEN nạp từ .env
-    # qua env_file — override placeholder baked trong garage.toml. Set 3 biến
-    # này trong Coolify (sinh bằng `openssl rand -hex 32`); bỏ trống thì Garage
-    # dùng placeholder trong garage.toml. Không map `KEY: ${KEY}` để parser
-    # Coolify không đếm trùng tên biến (xem ghi chú đầy đủ ở service backend).
-    env_file:
-      - .env
     environment:
-      - RUST_LOG=garage=info
+      RUST_LOG: garage=info
+      # Override placeholder secrets baked in garage.toml. Set 3 biến này trong
+      # Coolify (sinh bằng `openssl rand -hex 32`); bỏ trống = dùng placeholder.
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:-}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:-}
+      GARAGE_METRICS_TOKEN: ${GARAGE_METRICS_TOKEN:-}
     volumes:
       - garage_meta:/var/lib/garage/meta
       - garage_data:/var/lib/garage/data
     # S3 API + Admin internal-only; backend gọi qua http://garage:3900.
-    # Chỉ port web (3902) cần Coolify map sang cdn.yourdomain.com để serve
-    # static file public (ảnh truyện/avatar). Coolify tự route qua Traefik
-    # — không cần `ports:` ở compose nếu đã set Domain cho service.
+    # Port web (3902) cần Coolify map sang cdn.yourdomain.com để serve static.
     expose:
       - "3900"  # S3 API (internal)
       - "3902"  # Static website (Traefik route)
       - "3903"  # Admin API (internal, bootstrap qua docker exec)
-    # Garage admin API có /health endpoint. Image debian-slim đã có wget.
+    # Garage admin API có /health endpoint. Image debian-slim đã cài wget.
+    # Lưu ý: /health chỉ trả 200 sau khi đã `garage layout apply`.
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3903/health"]
       interval: 30s
       timeout: 5s
       retries: 5
       start_period: 30s
+
   meilisearch:
     image: getmeili/meilisearch:v1.10
     container_name: web_truyen_meilisearch
     restart: unless-stopped
-    # MEILI_MASTER_KEY + MEILI_ENV nạp từ file .env qua env_file (xem ghi chú
-    # đầy đủ ở service backend). Không map kiểu `KEY: ${KEY}` để parser Coolify
-    # không đếm trùng tên biến → tránh sinh entry trùng trong UI.
-    # MEILI_MASTER_KEY dùng CHUNG giữa service này và backend — set 1 lần.
-    env_file:
-      - .env
     environment:
-      - MEILI_NO_ANALYTICS=true
+      # MEILI_MASTER_KEY dùng CHUNG giữa service này và backend — set 1 lần.
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+      MEILI_ENV: ${MEILI_ENV:-production}
+      MEILI_NO_ANALYTICS: 'true'
     volumes:
       - meili_data:/meili_data
-    # Internal-only — backend reaches it via http://meilisearch:7700 (Docker
-    # network). Expose to host only if admin needs the dashboard locally:
-    #   ports: ["${MEILI_PORT:-7700}:7700"]
     expose:
       - "7700"
-    # Image meilisearch (alpine-based) có sẵn curl — probe endpoint /health.
-    # Bắt buộc có healthcheck, nếu không Coolify hiển thị trạng thái "unknown".
+    # Image meilisearch (alpine) có sẵn curl — probe /health.
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:7700/health"]
       interval: 30s
       timeout: 5s
       retries: 5
       start_period: 20s
+
   redis:
     image: redis:7-alpine
     container_name: web_truyen_redis
     restart: unless-stopped
     # noeviction: BullMQ requires it (queue keys không được evict khi đầy RAM
-    # → tránh mất email/notification jobs). Nếu Redis chạm 256mb, push thêm
-    # sẽ fail → BullMQ tự retry hợp lý hơn là mất silently.
+    # → tránh mất email/notification jobs).
     command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "noeviction"]
     volumes:
       - redis_data:/data
@@ -87,59 +86,38 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-    # Internal-only — backend/BullMQ reach via redis://redis:6379. Expose to
-    # host only for local dev: `ports: ["${REDIS_PORT:-6379}:6379"]`.
     expose:
       - "6379"
+
   postgres:
     image: postgres:18-alpine
     container_name: web_truyen_postgres
     restart: unless-stopped
     # password_encryption=md5 — Postgres 14+ mặc định scram-sha-256, nhưng
-    # PgBouncer (edoburu image) cần auth_user+auth_query để xử lý SCRAM —
-    # phức tạp. md5 đơn giản hơn, PgBouncer connect được luôn với
-    # AUTH_TYPE=trust + password trong DATABASE_URL.
+    # PgBouncer (edoburu image) connect dễ hơn với md5 + AUTH_TYPE=trust.
     # An toàn vì Postgres chỉ expose Docker internal network.
-    # PG18 lưu data ở /var/lib/postgresql/18/docker (subdir versioned) —
-    # KHÔNG đọc được volume cũ của PG16. Khi nâng phải wipe volume rồi
-    # import lại từ backup (xem scripts/upgrade-postgres-and-import.ps1).
+    # PG18 lưu data ở /var/lib/postgresql/18/docker — KHÔNG đọc được volume PG16.
     command: ["postgres", "-c", "password_encryption=md5"]
-    # POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB nạp từ .env qua env_file
-    # (xem ghi chú ở service backend — tránh map `KEY: ${KEY}` gây Coolify đếm
-    # trùng). 3 biến này được Coolify tự surface qua ${} ở service pgbouncer.
-    env_file:
-      - .env
     environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-web_truyen_db}
       # initdb: pg_hba.conf yêu cầu md5 cho host connections.
-      - POSTGRES_INITDB_ARGS=--auth-host=md5
-    # Internal-only — backend reaches via postgres:5432 (or pgbouncer:5432).
-    # Coolify host thường đã có Postgres khác chiếm 5432 → expose ra host gây
-    # conflict. Local dev: thêm `ports: ["${POSTGRES_PORT:-5432}:5432"]`.
+      POSTGRES_INITDB_ARGS: "--auth-host=md5"
     expose:
       - "5432"
     volumes:
-      # PG18+ image lưu data ở /var/lib/postgresql/<major>/docker (subdir
-      # versioned). Mount ở /var/lib/postgresql (cha) — KHÔNG /data như PG≤17,
-      # nếu sai PG18 từ chối init. Khi nâng major từ image cũ phải xoá volume
-      # + re-import (xem scripts/upgrade-postgres-and-import.{ps1,sh}).
+      # PG18+ mount ở /var/lib/postgresql (cha) — KHÔNG /data như PG≤17.
       - postgres_data:/var/lib/postgresql
     healthcheck:
-      # $$ → Compose xuất literal $ → shell trong container tự expand bằng env
-      # của chính container, không interpolate ở cấp Compose → không sinh ${}.
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-user} -d $${POSTGRES_DB:-web_truyen_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-web_truyen_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
+
   pgbouncer:
-    # Connection pooler in front of Postgres. The backend's Prisma client
-    # opens a connection per worker; when we scale the backend horizontally
-    # (Coolify replicas), the total connection count can hit Postgres'
-    # max_connections (100 by default) very fast. PgBouncer multiplexes
-    # them transparently — backend connects to PgBouncer, PgBouncer holds
-    # a small persistent pool to Postgres.
-    #
-    # Optional: backend works without PgBouncer (point DATABASE_URL directly
-    # at postgres:5432). Enable by pointing DATABASE_URL at pgbouncer:6432.
+    # Connection pooler trước Postgres — multiplex connection khi scale backend.
+    # backend connect tới pgbouncer:5432, pgbouncer giữ pool nhỏ tới Postgres.
     image: edoburu/pgbouncer:v1.23.1-p0
     container_name: web_truyen_pgbouncer
     restart: unless-stopped
@@ -147,38 +125,25 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      # DATABASE_URL ghép từ POSTGRES_* — key `DATABASE_URL` khác tên các biến
-      # ${POSTGRES_*} nên Coolify KHÔNG đếm trùng. edoburu/pgbouncer auto-parse
-      # URL tối giản (không query param) vào [databases] section.
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-web_truyen_db}
-      # transaction pooling = best for Prisma.
-      - POOL_MODE=transaction
-      - MAX_CLIENT_CONN=200
-      - DEFAULT_POOL_SIZE=20
-      # AUTH_TYPE trust — PgBouncer chỉ nghe internal Docker network. Backend
-      # vẫn gửi password trong DATABASE_URL, PgBouncer forward sang Postgres để
-      # verify. Tránh AUTH_TYPE plain vì userlist.txt sinh sai format ở Alpine.
-      - AUTH_TYPE=trust
-    # POSTGRES_USER/POSTGRES_DB nạp từ .env qua env_file — healthcheck cần để
-    # connect. `environment` ở trên ghi đè DATABASE_URL của .env (giữ URL trỏ
-    # postgres, không trỏ pgbouncer:5432 → tránh pgbouncer connect vào chính nó).
-    env_file:
-      - .env
-    # Internal-only — backend reaches via pgbouncer:5432. Local dev psql:
-    # `ports: ["${PGBOUNCER_PORT:-6432}:5432"]`.
+      # DATABASE_URL tối giản (không query param) — edoburu/pgbouncer auto-parse
+      # vào [databases] section. Trỏ thẳng postgres:5432.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-web_truyen_db}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 200
+      DEFAULT_POOL_SIZE: 20
+      # AUTH_TYPE trust — PgBouncer chỉ nghe internal Docker network.
+      AUTH_TYPE: trust
     expose:
       - "5432"
     # edoburu/pgbouncer (alpine) có sẵn psql — probe bằng cách connect QUA
-    # pgbouncer tới DB thật (auth_type=trust nên user trong userlist.txt vào
-    # được, không cần password). Bắt buộc có healthcheck, nếu không Coolify
-    # hiển thị "unknown". $$ → shell trong container tự expand POSTGRES_USER/DB.
-    # backend depends_on vẫn dùng service_started để không block startup.
+    # pgbouncer tới DB thật. ${POSTGRES_*} được Compose nội suy lúc build config.
     healthcheck:
-      test: ["CMD-SHELL", "psql -w -h 127.0.0.1 -p 5432 -U $${POSTGRES_USER:-user} -d $${POSTGRES_DB:-web_truyen_db} -tAc 'SELECT 1' || exit 1"]
+      test: ["CMD-SHELL", "psql -w -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-web_truyen_db} -tAc 'SELECT 1' || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 5
       start_period: 15s
+
   backend:
     image: web-truyen-backend:latest
     build:
@@ -193,35 +158,45 @@ services:
         condition: service_started  # edoburu image không có healthcheck tool
       redis:
         condition: service_healthy
-    # ── Cấu hình env ──────────────────────────────────────────────────────
-    # Secrets + biến theo-deploy (DATABASE_URL, DIRECT_URL, JWT_*, GOOGLE_*,
-    # FACEBOOK_*, VNPAY_*, CLOUDINARY_*, S3_*, MEILI_MASTER_KEY...) nạp từ file
-    # .env qua `env_file`. Coolify tự sinh file .env này từ tab Environment
-    # Variables; local dev dùng .env ở repo root.
-    #
-    # KHÔNG map kiểu `KEY: ${KEY}` trong `environment` — pattern tự tham chiếu
-    # khiến parser Coolify đếm tên biến 2 lần (1 từ key, 1 từ ${}) → sinh entry
-    # trùng trong UI, entry rỗng đè entry có giá trị. env_file không chứa ${}
-    # nên không bao giờ bị nhân đôi.
-    #
-    # DATABASE_URL → PgBouncer (multiplex pool, dùng cho Prisma Client runtime).
-    # DIRECT_URL → Postgres trực tiếp (prisma migrate — DDL không qua transaction
-    # pooler). Postgres dùng md5 encryption nên PgBouncer auth trust connect
-    # được. Xem .env.example để biết format.
-    env_file:
-      - .env
-    # `environment` chỉ giữ HẰNG SỐ literal (không ${}) — giá trị cố định cho
-    # mọi deploy, ghi đè env_file nếu trùng key, không cần đưa lên Coolify UI.
+    # Mọi biến container cần đều khai báo `KEY: ${KEY}` ở đây — Coolify tự tạo
+    # entry trong tab Environment Variables cho từng ${}, bạn điền giá trị.
+    # DATABASE_URL → PgBouncer (pool, runtime). DIRECT_URL → Postgres trực tiếp
+    # (prisma migrate). Xem .env.example để biết format.
     environment:
-      - NODE_ENV=production
-      - PORT=3009
-      # Endpoint nội bộ Docker network — bất biến giữa các deploy.
-      - REDIS_URL=redis://redis:6379
-      - MEILI_HOST=http://meilisearch:7700
-      - S3_REGION=garage
-      - S3_BUCKET=web-truyen
-      # Fallback; giá trị live lấy từ Settings table (admin sửa không cần deploy).
-      - DONATION_PLATFORM_FEE_PERCENT=2
+      NODE_ENV: production
+      PORT: 3009
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      FRONTEND_URL: ${FRONTEND_URL}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION:-garage}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET:-web-truyen}
+      S3_PUBLIC_BASE_URL: ${S3_PUBLIC_BASE_URL}
+      # OAuth — callback URL phải tuyệt đối, khớp "Authorized redirect URI"
+      # khai báo ở Google Cloud Console / Facebook App.
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET}
+      FACEBOOK_CALLBACK_URL: ${FACEBOOK_CALLBACK_URL}
+      DONATION_PLATFORM_FEE_PERCENT: ${DONATION_PLATFORM_FEE_PERCENT:-2}
+      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE}
+      VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET}
+      VNPAY_PAY_URL: ${VNPAY_PAY_URL}
+      VNPAY_RETURN_URL: ${VNPAY_RETURN_URL}
+      VNPAY_IPN_URL: ${VNPAY_IPN_URL}
+      MEILI_HOST: ${MEILI_HOST:-http://meilisearch:7700}
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
     ports:
       - "${BACKEND_PORT:-3009}:3009"
     volumes:
@@ -231,40 +206,33 @@ services:
       interval: 30s
       timeout: 5s
       retries: 10
-      # 120s start_period vì lần deploy đầu phải chạy `prisma migrate deploy`
-      # cho 17 migration trên DB rỗng — có thể mất 30-60s.
+      # 120s vì lần deploy đầu phải chạy `prisma migrate deploy` trên DB rỗng.
       start_period: 120s
+
   frontend:
     image: web-truyen-frontend:latest
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
-      # Short-form `- VAR` (không `VAR: ${VAR}`) — Compose lấy giá trị từ .env,
-      # tên biến chỉ xuất hiện 1 lần nên Coolify không đếm trùng. NEXT_PUBLIC_*
-      # bắt buộc là build arg vì Next.js inline chúng vào client bundle lúc build.
+      # NEXT_PUBLIC_* phải là build arg — Next.js inline vào client bundle.
       args:
-        - NEXT_PUBLIC_API_URL
-        - NEXT_PUBLIC_APP_URL
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
     container_name: web_truyen_frontend
     restart: unless-stopped
     depends_on:
       backend:
-        # service_started thay vì service_healthy — Next.js standalone không
-        # gọi backend ở startup (chỉ runtime); và Coolify timeout khi chờ
-        # backend health đôi khi false-positive nếu migration chậm.
+        # service_started — Next.js standalone không gọi backend ở startup.
         condition: service_started
-    # NEXT_PUBLIC_* (runtime, cho SSR) nạp từ .env qua env_file. environment
-    # chỉ giữ hằng số literal — xem ghi chú đầy đủ ở service backend.
-    env_file:
-      - .env
     environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - HOSTNAME=0.0.0.0
-      # SSR gọi backend qua Docker network nội bộ — địa chỉ cố định, tránh
-      # self-signed cert / pending Let's Encrypt ở public HTTPS Traefik.
-      # Client browser vẫn dùng NEXT_PUBLIC_API_URL public (inline lúc build).
-      - INTERNAL_API_URL=http://backend:3009
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      # SSR gọi backend qua Docker network nội bộ — tránh self-signed cert /
+      # pending Let's Encrypt ở public HTTPS Traefik.
+      INTERNAL_API_URL: ${INTERNAL_API_URL:-http://backend:3009}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     healthcheck:
@@ -273,6 +241,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
 volumes:
   postgres_data:
     driver: local
