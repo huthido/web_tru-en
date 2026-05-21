@@ -37,7 +37,7 @@ export class MeilisearchService implements OnModuleInit {
 
   constructor(private config: ConfigService) {
     const host = this.config.get<string>('MEILI_HOST');
-    const key = this.config.get<string>('MEILI_API_KEY');
+    const key = this.config.get<string>('MEILI_MASTER_KEY');
     this.enabled = !!host;
     if (this.enabled) {
       this.client = new MeiliSearch({ host: host!, apiKey: key });

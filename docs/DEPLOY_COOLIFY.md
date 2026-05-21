@@ -734,7 +734,7 @@ Base directory phải là `/` (root repo). Nếu để `apps/backend` → Docker
 Meilisearch index trống. Gọi `POST /api/admin/search/reindex` để rebuild từ Postgres.
 
 ### ❌ Search log lỗi `MeiliSearchError: Invalid API key`
-`MEILI_API_KEY` không khớp với `MEILI_MASTER_KEY` của container. Set 2 biến này thành **cùng giá trị**, redeploy backend.
+Backend và container meilisearch dùng chung biến `MEILI_MASTER_KEY` (nạp qua `env_file`). Lỗi này nghĩa là biến bị bỏ trống hoặc 2 service nhận giá trị khác nhau — set **một** `MEILI_MASTER_KEY` trong Coolify, redeploy cả hai service.
 
 ### ❌ Upload ảnh trả URL `localhost` hoặc `/uploads/...`
 Garage chưa được bootstrap (chưa tạo bucket + key) hoặc env `S3_*` chưa set. Tạm thời file lưu local. Xem [Section 7.1](#71-bootstrap-garage-s3-compatible-storage).
