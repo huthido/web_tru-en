@@ -24,26 +24,23 @@ export default function VerifyEmailPage() {
       }
 
       try {
-        // Call verification endpoint
+        // Call verification endpoint. apiClient unwraps the { success, data }
+        // envelope, so response.data is the payload: { ...tokens, user, message }.
         const response = await apiClient.get(`/auth/verify-email?token=${token}`);
+        const payload: any = response.data ?? {};
 
-        if (response.data?.success) {
-          // Set user data in cache
-          if (response.data.data?.user) {
-            queryClient.setQueryData(['auth', 'me'], response.data.data.user);
-          }
-
-          setStatus('success');
-          setMessage(response.data.message || 'Xác thực email thành công!');
-
-          // Redirect to home after 2 seconds
-          setTimeout(() => {
-            router.replace('/');
-          }, 2000);
-        } else {
-          setStatus('error');
-          setMessage('Xác thực email thất bại');
+        // Reaching here without throwing means HTTP 2xx → verification succeeded.
+        if (payload.user) {
+          queryClient.setQueryData(['auth', 'me'], payload.user);
         }
+
+        setStatus('success');
+        setMessage(payload.message || 'Xác thực email thành công!');
+
+        // Redirect to home after 2 seconds
+        setTimeout(() => {
+          router.replace('/');
+        }, 2000);
       } catch (error: any) {
         setStatus('error');
         setMessage(

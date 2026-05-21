@@ -231,7 +231,8 @@ export const storiesService = {
                 },
             }
         );
-        return response.data;
+        // apiClient already unwrapped the envelope → response.data is { coverImage }.
+        return { success: true, data: response.data as any } as ApiResponse<{ coverImage: string }>;
     },
 
     // Homepage endpoints

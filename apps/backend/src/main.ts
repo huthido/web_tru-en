@@ -7,6 +7,7 @@ import * as path from 'path';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { ResponseInterceptor } from './auth/interceptors/response.interceptor';
 import { validateEnvironmentVariables } from './common/utils/env-validation';
 import { AppLoggerService } from './common/logger/logger.service';
 
@@ -82,6 +83,10 @@ async function bootstrap() {
       },
     })
   );
+
+  // Global response interceptor — wraps every response in a uniform
+  // { success, data, timestamp } envelope. The frontend apiClient unwraps it.
+  app.useGlobalInterceptors(new ResponseInterceptor());
 
   // Global exception filter
   const loggerService = app.get(AppLoggerService);

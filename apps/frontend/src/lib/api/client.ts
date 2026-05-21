@@ -63,7 +63,22 @@ class ApiClient {
 
     // 🔥 FIXED: Simplified response interceptor - no more race conditions
     this.client.interceptors.response.use(
-      (response: AxiosResponse<ApiResponse>) => {
+      (response: AxiosResponse<any>) => {
+        // The backend wraps every response in a { success, data, timestamp }
+        // envelope (global ResponseInterceptor). Unwrap it here — in ONE place —
+        // so every caller can rely on `response.data` being the actual payload,
+        // never the envelope. This removes the envelope-vs-raw guesswork that
+        // each service used to handle ad-hoc.
+        const body = response.data;
+        if (
+          body &&
+          typeof body === 'object' &&
+          !Array.isArray(body) &&
+          'success' in body &&
+          'data' in body
+        ) {
+          response.data = body.data;
+        }
         return response;
       },
       async (error) => {

@@ -128,6 +128,7 @@ export const usersService = {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data as any;
+    // apiClient already unwrapped the envelope → response.data is { avatar }.
+    return { success: true, data: response.data as any } as ApiResponse<{ avatar: string }>;
   },
 };

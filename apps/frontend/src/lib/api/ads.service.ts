@@ -181,7 +181,8 @@ export const adsService = {
                 },
             }
         );
-        return response.data as any;
+        // apiClient already unwrapped the envelope → response.data is { imageUrl }.
+        return { success: true, data: response.data as any } as ApiResponse<{ imageUrl: string }>;
     },
 };
 

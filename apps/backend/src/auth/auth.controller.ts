@@ -30,10 +30,9 @@ import { LoginThrottleGuard } from './guards/login-throttle.guard';
 import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { CookieInterceptor } from './interceptors/cookie.interceptor';
-import { ResponseInterceptor } from './interceptors/response.interceptor';
 
+// Response wrapping is handled by the global ResponseInterceptor (main.ts).
 @Controller('auth')
-@UseInterceptors(ResponseInterceptor)
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
