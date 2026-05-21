@@ -74,10 +74,10 @@ export function ChapterPaywall({
             {/* Teaser — faded out at the bottom */}
             {preview && (
                 <div className="relative max-h-48 overflow-hidden">
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    <p className="text-on-surface-variant leading-relaxed whitespace-pre-wrap">
                         {preview}
                     </p>
-                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-white dark:to-gray-800" />
+                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-surface-container" />
                 </div>
             )}
 
@@ -87,19 +87,19 @@ export function ChapterPaywall({
                     <Lock className="h-7 w-7 text-amber-600 dark:text-amber-400" />
                 </div>
 
-                <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-lg md:text-xl font-bold text-on-surface mb-2">
                     {heading}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-5">
-                    Mở khóa <span className="font-semibold text-gray-900 dark:text-white">“{subject}”</span>{' '}
+                <p className="text-sm text-on-surface-variant mb-5">
+                    Mở khóa <span className="font-semibold text-on-surface">“{subject}”</span>{' '}
                     {isStory
                         ? 'để đọc toàn bộ chương và ủng hộ tác giả.'
                         : 'để đọc toàn bộ nội dung và ủng hộ tác giả.'}
                 </p>
 
-                <div className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-gray-800 px-4 py-2 mb-5 shadow-sm">
+                <div className="inline-flex items-center gap-2 rounded-full bg-surface-container-lowest px-4 py-2 mb-5 shadow-sm">
                     <Coins className="h-5 w-5 text-amber-500" />
-                    <span className="font-bold text-gray-900 dark:text-white">
+                    <span className="font-bold text-on-surface">
                         {price.toLocaleString('vi-VN')} coin
                     </span>
                 </div>
@@ -112,15 +112,15 @@ export function ChapterPaywall({
                         >
                             Đăng nhập để mở khóa
                         </Link>
-                        <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                        <p className="mt-3 text-xs text-on-surface-variant">
                             Bạn cần đăng nhập và có đủ coin để mở khóa.
                         </p>
                     </div>
                 ) : (
                     <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        <p className="text-sm text-on-surface-variant mb-3">
                             Số dư của bạn:{' '}
-                            <span className="font-semibold text-gray-900 dark:text-white">
+                            <span className="font-semibold text-on-surface">
                                 {balance.toLocaleString('vi-VN')} coin
                             </span>
                         </p>

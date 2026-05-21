@@ -676,7 +676,7 @@ export default function ChapterReadingPage() {
     // Early returns AFTER all hooks
     if (chapterLoading) {
         return (
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900">
+            <div className="min-h-screen bg-surface">
                 <Sidebar />
                 <div className="md:ml-[120px]">
                     <Header />
@@ -690,18 +690,18 @@ export default function ChapterReadingPage() {
 
     if (chapterError || !chapterData) {
         return (
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900">
+            <div className="min-h-screen bg-surface">
                 <Sidebar />
                 <div className="md:ml-[120px]">
                     <Header />
                     <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
                         <div className="text-center">
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                            <h1 className="font-display text-2xl font-bold text-on-surface mb-4">
                                 Không tìm thấy chương
                             </h1>
                             <Link
                                 href={`/truyen/${storySlug}`}
-                                className="text-blue-500 hover:text-blue-600 dark:text-blue-400"
+                                className="text-primary hover:text-primary/80"
                             >
                                 Quay lại trang truyện
                             </Link>
@@ -713,7 +713,7 @@ export default function ChapterReadingPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+        <div className="min-h-screen bg-surface transition-colors duration-300">
             <Sidebar />
             <div className="md:ml-[120px] pb-16 md:pb-0">
                 <Header />
@@ -727,17 +727,17 @@ export default function ChapterReadingPage() {
                         <div className="max-w-4xl mx-auto md:text-center text-left">
                             <button
                                 onClick={handleBack}
-                                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 mb-4 inline-flex items-center gap-2 font-medium transition-colors"
+                                className="text-primary hover:text-primary/80 mb-4 inline-flex items-center gap-2 font-medium transition-colors"
                             >
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M19 12H5M12 19l-7-7 7-7" />
                                 </svg>
                                 <span>Quay lại: {(story as any)?.data?.title || (story as any)?.title || 'Truyện'}</span>
                             </button>
-                            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+                            <h1 className="font-display text-3xl md:text-4xl font-bold text-on-surface mb-4 leading-tight">
                                 {chapterData.title}
                             </h1>
-                            <div className="flex items-center md:justify-center justify-start gap-3 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center md:justify-center justify-start gap-3 text-sm text-on-surface-variant">
                                 <div className="flex items-center gap-1.5">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <circle cx="12" cy="12" r="10" />
@@ -745,7 +745,7 @@ export default function ChapterReadingPage() {
                                     </svg>
                                     <span>{chapterData.readingTime} phút đọc</span>
                                 </div>
-                                <span className="text-gray-400 dark:text-gray-600">•</span>
+                                <span className="text-on-surface-variant">•</span>
                                 <div className="flex items-center gap-1.5">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -753,7 +753,7 @@ export default function ChapterReadingPage() {
                                     </svg>
                                     <span>{chapterData.wordCount.toLocaleString()} từ</span>
                                 </div>
-                                <span className="text-gray-400 dark:text-gray-600">•</span>
+                                <span className="text-on-surface-variant">•</span>
                                 <div className="flex items-center gap-1.5">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -775,15 +775,15 @@ export default function ChapterReadingPage() {
                                 {/* Chapter List Sidebar - Always visible with sticky */}
                                 {showChapterList && (
                                     <aside className="hidden md:block w-64 flex-shrink-0 self-start sticky top-[80px]" style={{ position: 'sticky', top: '80px', alignSelf: 'flex-start' }}>
-                                        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm max-h-[calc(100vh-100px)] overflow-y-auto chapter-list-scrollbar">
-                                            <h3 className="font-bold text-gray-900 dark:text-white mb-3">
+                                        <div className="bg-surface-container rounded-lg p-4 shadow-sm max-h-[calc(100vh-100px)] overflow-y-auto chapter-list-scrollbar">
+                                            <h3 className="font-display font-bold text-on-surface mb-3">
                                                 Danh sách chương
                                             </h3>
 
                                             {/* Search Input */}
                                             <div className="relative mb-3">
                                                 <Search
-                                                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                                                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant"
                                                     size={16}
                                                 />
                                                 <input
@@ -791,7 +791,7 @@ export default function ChapterReadingPage() {
                                                     placeholder="Tìm kiếm chương..."
                                                     value={chapterSearchTerm}
                                                     onChange={(e) => setChapterSearchTerm(e.target.value)}
-                                                    className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    className="w-full pl-10 pr-3 py-2 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary focus:border-primary"
                                                 />
                                             </div>
 
@@ -816,8 +816,8 @@ export default function ChapterReadingPage() {
                                                                 key={ch.id}
                                                                 href={`/stories/${storySlug}/chapters/${ch.slug}`}
                                                                 className={`block px-3 py-2 rounded text-sm transition-colors ${isActive
-                                                                    ? 'bg-blue-500 dark:bg-blue-600 text-white font-semibold shadow-sm'
-                                                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                                                    ? 'bg-primary text-on-primary font-semibold shadow-sm'
+                                                                    : 'text-on-surface-variant hover:bg-surface-container-high'
                                                                     }`}
                                                             >
                                                                 <span className="flex items-center justify-between gap-2">
@@ -833,7 +833,7 @@ export default function ChapterReadingPage() {
                                                         );
                                                     })
                                                 ) : (
-                                                    <div className="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                                    <div className="px-3 py-4 text-center text-sm text-on-surface-variant">
                                                         Không tìm thấy chương nào
                                                     </div>
                                                 )}
@@ -841,7 +841,7 @@ export default function ChapterReadingPage() {
 
                                             {/* Show count if searching */}
                                             {chapterSearchTerm.trim() && (
-                                                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 text-center">
+                                                <div className="mt-3 pt-3 border-t border-outline-variant text-xs text-on-surface-variant text-center">
                                                     Tìm thấy {filteredChapters.length} / {sortedChapters.length} chương
                                                 </div>
                                             )}
@@ -853,11 +853,11 @@ export default function ChapterReadingPage() {
                                 <div className="flex-1 min-w-0">
                                     <div
                                         ref={contentRef}
-                                        className="bg-white dark:bg-gray-800 rounded-lg p-6 md:p-8 lg:p-12 shadow-sm"
+                                        className="bg-surface-container rounded-lg p-6 md:p-8 lg:p-12 shadow-sm"
                                         style={{ fontSize: `${fontSize}px`, lineHeight: '2' }}
                                     >
                                         <div
-                                            className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap leading-relaxed"
+                                            className="text-on-surface whitespace-pre-wrap leading-relaxed"
                                             style={{
                                                 fontFamily: 'var(--font-quicksand), Quicksand, sans-serif',
                                                 maxWidth: '100%',
@@ -904,7 +904,7 @@ export default function ChapterReadingPage() {
                                             href={shouldRedirectToAdRef.current && pendingAdRef.current
                                                 ? `/ads/${pendingAdRef.current.id}?return=/stories/${storySlug}/chapters/${prevChapter.slug}&story=${storySlug}&prev=${prevChapter.slug}${nextChapter ? `&next=${nextChapter.slug}` : ''}`
                                                 : `/stories/${storySlug}/chapters/${prevChapter.slug}`}
-                                            className="group block p-5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl shadow-md hover:shadow-lg border border-blue-100 dark:border-blue-800/50 transition-all duration-300 hover:scale-[1.02]"
+                                            className="group block p-5 bg-surface-container hover:bg-surface-container-high rounded-xl shadow-md hover:shadow-lg border border-outline-variant transition-all duration-300 hover:scale-[1.02]"
                                             onClick={() => {
                                                 // Reset redirect flag after clicking
                                                 shouldRedirectToAdRef.current = false;
@@ -912,25 +912,25 @@ export default function ChapterReadingPage() {
                                             }}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 dark:bg-blue-600 flex items-center justify-center text-white group-hover:bg-blue-600 dark:group-hover:bg-blue-700 transition-colors">
+                                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary group-hover:bg-primary/90 transition-colors">
                                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M15 18l-6-6 6-6" />
                                                     </svg>
                                                 </div>
-                                                <div className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                                <div className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">
                                                     Trước
                                                 </div>
                                             </div>
                                         </Link>
                                     ) : (
-                                        <div className="p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
+                                        <div className="p-5 bg-surface-container-low rounded-xl border border-outline-variant">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-600">
+                                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant">
                                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M15 18l-6-6 6-6" />
                                                     </svg>
                                                 </div>
-                                                <div className="text-sm text-gray-400 dark:text-gray-600">Trước</div>
+                                                <div className="text-sm text-on-surface-variant">Trước</div>
                                             </div>
                                         </div>
                                     )}
@@ -942,7 +942,7 @@ export default function ChapterReadingPage() {
                                             href={shouldRedirectToAdRef.current && pendingAdRef.current
                                                 ? `/ads/${pendingAdRef.current.id}?return=/stories/${storySlug}/chapters/${nextChapter.slug}&story=${storySlug}&next=${nextChapter.slug}${prevChapter ? `&prev=${prevChapter.slug}` : ''}`
                                                 : `/stories/${storySlug}/chapters/${nextChapter.slug}`}
-                                            className="group block p-5 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl shadow-md hover:shadow-lg border border-indigo-100 dark:border-indigo-800/50 transition-all duration-300 hover:scale-[1.02] text-right"
+                                            className="group block p-5 bg-surface-container hover:bg-surface-container-high rounded-xl shadow-md hover:shadow-lg border border-outline-variant transition-all duration-300 hover:scale-[1.02] text-right"
                                             onClick={() => {
                                                 // Reset redirect flag after clicking
                                                 shouldRedirectToAdRef.current = false;
@@ -950,25 +950,25 @@ export default function ChapterReadingPage() {
                                             }}
                                         >
                                             <div className="flex items-center gap-3 flex-row-reverse">
-                                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-500 dark:bg-indigo-600 flex items-center justify-center text-white group-hover:bg-indigo-600 dark:group-hover:bg-indigo-700 transition-colors">
+                                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary group-hover:bg-primary/90 transition-colors">
                                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M9 18l6-6-6-6" />
                                                     </svg>
                                                 </div>
-                                                <div className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                <div className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">
                                                     Sau
                                                 </div>
                                             </div>
                                         </Link>
                                     ) : (
-                                        <div className="p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 text-right">
+                                        <div className="p-5 bg-surface-container-low rounded-xl border border-outline-variant text-right">
                                             <div className="flex items-center gap-3 flex-row-reverse">
-                                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-600">
+                                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant">
                                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M9 18l6-6-6-6" />
                                                     </svg>
                                                 </div>
-                                                <div className="text-sm text-gray-400 dark:text-gray-600">Sau</div>
+                                                <div className="text-sm text-on-surface-variant">Sau</div>
                                             </div>
                                         </div>
                                     )}
@@ -985,15 +985,15 @@ export default function ChapterReadingPage() {
                 {/* Menu Options */}
                 {
                     showFloatingMenu && (
-                        <div className="absolute bottom-16 right-0 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-2 min-w-[200px] animate-in fade-in slide-in-from-bottom-2 duration-200">
+                        <div className="absolute bottom-16 right-0 mb-2 bg-surface-container rounded-lg shadow-xl border border-outline-variant p-2 min-w-[200px] animate-in fade-in slide-in-from-bottom-2 duration-200">
                             {/* Chapter List Toggle - Desktop Only */}
-                            <div className="hidden md:block mb-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+                            <div className="hidden md:block mb-2 pb-2 border-b border-outline-variant">
                                 <button
                                     onClick={() => {
                                         setShowChapterList(!showChapterList);
                                         setShowFloatingMenu(false);
                                     }}
-                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors"
                                 >
                                     <BookOpen size={18} />
                                     <span>{showChapterList ? 'Ẩn danh sách chương' : 'Hiện danh sách chương'}</span>
@@ -1001,25 +1001,25 @@ export default function ChapterReadingPage() {
                             </div>
 
                             {/* Font Size Controls */}
-                            <div className="mb-2 pb-2 border-b border-gray-200 dark:border-gray-700">
-                                <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+                            <div className="mb-2 pb-2 border-b border-outline-variant">
+                                <div className="flex items-center gap-2 px-3 py-2 text-sm text-on-surface-variant">
                                     <Type size={16} />
                                     <span className="font-medium">Kích cỡ chữ</span>
                                 </div>
                                 <div className="flex items-center justify-between gap-2 px-3 py-2">
                                     <button
                                         onClick={() => setFontSize(Math.max(12, fontSize - 2))}
-                                        className="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-gray-700 dark:text-gray-300 transition-colors"
+                                        className="w-8 h-8 flex items-center justify-center bg-surface-container-high hover:bg-surface-container-highest rounded text-on-surface-variant transition-colors"
                                         aria-label="Giảm kích cỡ chữ"
                                     >
                                         -
                                     </button>
-                                    <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[50px] text-center font-medium">
+                                    <span className="text-sm text-on-surface-variant min-w-[50px] text-center font-medium">
                                         {fontSize}px
                                     </span>
                                     <button
                                         onClick={() => setFontSize(Math.min(24, fontSize + 2))}
-                                        className="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-gray-700 dark:text-gray-300 font-bold transition-colors"
+                                        className="w-8 h-8 flex items-center justify-center bg-surface-container-high hover:bg-surface-container-highest rounded text-on-surface-variant font-bold transition-colors"
                                         aria-label="Tăng kích cỡ chữ"
                                     >
                                         +
@@ -1039,13 +1039,13 @@ export default function ChapterReadingPage() {
                                             shouldRedirectToAdRef.current = false;
                                             pendingAdRef.current = null;
                                         }}
-                                        className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                        className="flex items-center gap-3 px-3 py-2.5 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors"
                                     >
                                         <ChevronLeft size={18} />
                                         <span>Chương trước</span>
                                     </Link>
                                 ) : (
-                                    <div className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400 dark:text-gray-600 cursor-not-allowed">
+                                    <div className="flex items-center gap-3 px-3 py-2.5 text-sm text-on-surface-variant cursor-not-allowed">
                                         <ChevronLeft size={18} />
                                         <span>Chương trước</span>
                                     </div>
@@ -1060,13 +1060,13 @@ export default function ChapterReadingPage() {
                                             shouldRedirectToAdRef.current = false;
                                             pendingAdRef.current = null;
                                         }}
-                                        className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                        className="flex items-center gap-3 px-3 py-2.5 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors"
                                     >
                                         <ChevronRight size={18} />
                                         <span>Chương sau</span>
                                     </Link>
                                 ) : (
-                                    <div className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400 dark:text-gray-600 cursor-not-allowed">
+                                    <div className="flex items-center gap-3 px-3 py-2.5 text-sm text-on-surface-variant cursor-not-allowed">
                                         <ChevronRight size={18} />
                                         <span>Chương sau</span>
                                     </div>
@@ -1079,7 +1079,7 @@ export default function ChapterReadingPage() {
                 {/* FAB Button */}
                 <button
                     onClick={() => setShowFloatingMenu(!showFloatingMenu)}
-                    className="w-14 h-14 flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 dark:from-blue-600 dark:to-indigo-600 dark:hover:from-blue-700 dark:hover:to-indigo-700 rounded-full shadow-lg hover:shadow-xl text-white transition-all duration-200 hover:scale-110 active:scale-95"
+                    className="w-14 h-14 flex items-center justify-center bg-primary hover:bg-primary/90 rounded-full shadow-lg hover:shadow-xl text-on-primary transition-all duration-200 hover:scale-110 active:scale-95"
                     aria-label={showFloatingMenu ? 'Đóng menu' : 'Mở menu'}
                 >
                     {showFloatingMenu ? (

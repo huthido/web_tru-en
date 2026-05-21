@@ -45,18 +45,18 @@ export function StoryVipBanner({ slug }: { slug: string }) {
                     <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Truyện VIP</h3>
+                    <h3 className="font-semibold text-on-surface">Truyện VIP</h3>
                     {owned ? (
                         <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                             <Check size={16} /> Bạn đã mở khóa toàn bộ truyện này.
                         </p>
                     ) : (
                         <>
-                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                            <p className="mt-1 text-sm text-on-surface-variant">
                                 Mua một lần để đọc toàn bộ chương của truyện này.
                             </p>
                             <div className="mt-3 flex flex-wrap items-center gap-3">
-                                <span className="inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-gray-800 px-3 py-1.5 text-sm font-bold text-gray-900 dark:text-white shadow-sm">
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-container-lowest px-3 py-1.5 text-sm font-bold text-on-surface shadow-sm">
                                     <Coins className="h-4 w-4 text-amber-500" />
                                     {price.toLocaleString('vi-VN')} coin
                                 </span>
@@ -87,7 +87,7 @@ export function StoryVipBanner({ slug }: { slug: string }) {
                                 )}
 
                                 {isAuthenticated && (
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    <span className="text-xs text-on-surface-variant">
                                         Số dư: {balance.toLocaleString('vi-VN')} coin
                                     </span>
                                 )}

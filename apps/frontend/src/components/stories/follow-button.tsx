@@ -73,8 +73,8 @@ export function FollowButton({ storyId, className = '', showText = true }: Follo
       onClick={handleToggle}
       disabled={isLoading}
       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${isFollowing
-          ? 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200'
-          : 'bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white'
+          ? 'bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant'
+          : 'bg-primary hover:bg-primary/90 text-on-primary'
         } ${className}`}
     >
       {isLoading ? (

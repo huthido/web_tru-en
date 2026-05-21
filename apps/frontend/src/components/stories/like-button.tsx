@@ -79,7 +79,7 @@ export function LikeButton({ storyId, likeCount: initialLikeCount, className = '
       className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
         isLiked
           ? 'bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400'
-          : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
+          : 'bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant'
       } ${className}`}
     >
       {isLoading ? (

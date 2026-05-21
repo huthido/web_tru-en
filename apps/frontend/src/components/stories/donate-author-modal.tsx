@@ -87,7 +87,7 @@ export function DonateAuthorModal({
             onClick={onClose}
         >
             <div
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+                className="bg-surface-container rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
                 style={{ animation: 'fadeIn 0.3s ease-out' }}
             >
@@ -112,10 +112,10 @@ export function DonateAuthorModal({
                                 />
                             ))}
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                        <h3 className="text-2xl font-bold text-on-surface mb-2">
                             Cảm ơn bạn! 🎉
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 text-center">
+                        <p className="text-on-surface-variant text-center">
                             Đã ủng hộ <span className="font-bold text-pink-500">{amount} coin</span> cho tác giả{' '}
                             <span className="font-semibold">{authorName}</span>
                         </p>
@@ -153,7 +153,7 @@ export function DonateAuthorModal({
                             {!isAuthenticated ? (
                                 <div className="text-center py-4">
                                     <AlertCircle size={48} className="text-amber-500 mx-auto mb-3" />
-                                    <p className="text-gray-700 dark:text-gray-300 mb-4">
+                                    <p className="text-on-surface-variant mb-4">
                                         Bạn cần đăng nhập để ủng hộ tác giả
                                     </p>
                                     <Link
@@ -169,7 +169,7 @@ export function DonateAuthorModal({
                                     <div className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-xl px-4 py-3 border border-amber-200 dark:border-amber-800">
                                         <div className="flex items-center gap-2">
                                             <Coins size={20} className="text-amber-500" />
-                                            <span className="text-sm text-gray-600 dark:text-gray-400">Số dư</span>
+                                            <span className="text-sm text-on-surface-variant">Số dư</span>
                                         </div>
                                         <span className="text-lg font-bold text-amber-600 dark:text-amber-400">
                                             {balance.toLocaleString('vi-VN')} coin
@@ -178,7 +178,7 @@ export function DonateAuthorModal({
 
                                     {/* Preset Amounts */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Chọn số coin muốn ủng hộ
                                         </label>
                                         <div className="grid grid-cols-3 gap-2">
@@ -188,7 +188,7 @@ export function DonateAuthorModal({
                                                     onClick={() => handleSelectPreset(val)}
                                                     className={`py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${selectedAmount === val
                                                         ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-200 dark:shadow-pink-900/30 scale-105'
-                                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                                        : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
                                                         }`}
                                                 >
                                                     {val} 🪙
@@ -199,7 +199,7 @@ export function DonateAuthorModal({
 
                                     {/* Custom Amount */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Hoặc nhập số coin tùy ý
                                         </label>
                                         <input
@@ -208,7 +208,7 @@ export function DonateAuthorModal({
                                             value={customAmount}
                                             onChange={handleCustomAmountChange}
                                             placeholder="Nhập số coin..."
-                                            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-outline-variant rounded-xl bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                         />
                                     </div>
 
@@ -224,7 +224,7 @@ export function DonateAuthorModal({
 
                                     {/* Message */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Lời nhắn (tùy chọn)
                                         </label>
                                         <textarea
@@ -233,7 +233,7 @@ export function DonateAuthorModal({
                                             rows={2}
                                             maxLength={500}
                                             placeholder="Viết lời nhắn gửi tác giả..."
-                                            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all resize-none"
+                                            className="w-full px-4 py-2.5 border border-outline-variant rounded-xl bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-primary transition-all resize-none"
                                         />
                                     </div>
 
@@ -259,8 +259,8 @@ export function DonateAuthorModal({
 
                             {/* Top donors this week (spec mục 3) */}
                             {donationStats?.topDonorsWeek && donationStats.topDonorsWeek.length > 0 && (
-                                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                                <div className="border-t border-outline-variant pt-4">
+                                    <h4 className="text-sm font-semibold text-on-surface-variant mb-3">
                                         🏆 Top ủng hộ tuần này
                                     </h4>
                                     <div className="space-y-2">
@@ -273,7 +273,7 @@ export function DonateAuthorModal({
                                                     <span className="w-5 text-center font-bold text-amber-600 dark:text-amber-400 flex-shrink-0">
                                                         {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
                                                     </span>
-                                                    <span className="text-gray-700 dark:text-gray-300 truncate">
+                                                    <span className="text-on-surface-variant truncate">
                                                         {d.user?.displayName || d.user?.username || 'Ẩn danh'}
                                                     </span>
                                                 </div>
@@ -288,12 +288,12 @@ export function DonateAuthorModal({
 
                             {/* Donation Stats */}
                             {donationStats && donationStats.donationCount > 0 && (
-                                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <div className="border-t border-outline-variant pt-4">
                                     <div className="flex items-center justify-between mb-3">
-                                        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        <h4 className="text-sm font-semibold text-on-surface-variant">
                                             Lịch sử ủng hộ
                                         </h4>
-                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                        <span className="text-xs text-on-surface-variant">
                                             {donationStats.donationCount} lượt · {donationStats.totalCoins.toLocaleString('vi-VN')} coin
                                         </span>
                                     </div>
@@ -301,13 +301,13 @@ export function DonateAuthorModal({
                                         {donationStats.recentDonors.map((donor) => (
                                             <div
                                                 key={donor.id}
-                                                className="flex items-center justify-between text-sm bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2"
+                                                className="flex items-center justify-between text-sm bg-surface-container-high rounded-lg px-3 py-2"
                                             >
                                                 <div className="flex items-center gap-2 min-w-0">
                                                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-rose-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                                                         {(donor.user.displayName || donor.user.username)?.[0]?.toUpperCase() || '?'}
                                                     </div>
-                                                    <span className="text-gray-700 dark:text-gray-300 truncate">
+                                                    <span className="text-on-surface-variant truncate">
                                                         {donor.user.displayName || donor.user.username}
                                                     </span>
                                                 </div>

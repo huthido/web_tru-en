@@ -72,7 +72,7 @@ export function StarRating({
         <svg
           viewBox="0 0 24 24"
           fill={isFilled ? 'currentColor' : 'none'}
-          className={isFilled ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600'}
+          className={isFilled ? 'text-yellow-500' : 'text-outline-variant'}
         >
           <path
             d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
@@ -91,18 +91,18 @@ export function StarRating({
       <div className="flex items-center gap-1">{stars}</div>
       {currentRating > 0 && (
         <div className="flex items-center gap-2 text-sm">
-          <span className="font-semibold text-gray-900 dark:text-white">
+          <span className="font-semibold text-on-surface">
             {currentRating.toFixed(1)}
           </span>
           {ratingCount > 0 && (
-            <span className="text-gray-600 dark:text-gray-400">
+            <span className="text-on-surface-variant">
               ({ratingCount} {ratingCount === 1 ? 'đánh giá' : 'đánh giá'})
             </span>
           )}
         </div>
       )}
       {interactive && !user && (
-        <span className="text-xs text-gray-500 dark:text-gray-400">
+        <span className="text-xs text-on-surface-variant">
           Đăng nhập để đánh giá
         </span>
       )}

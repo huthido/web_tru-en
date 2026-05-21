@@ -171,7 +171,7 @@ export default function BookDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+      <div className="min-h-screen bg-surface transition-colors duration-300">
         <Sidebar />
         <div className="md:ml-[120px]">
           <Header />
@@ -185,15 +185,15 @@ export default function BookDetailPage() {
 
   if (!story) {
     return (
-      <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+      <div className="min-h-screen bg-surface transition-colors duration-300">
         <Sidebar />
         <div className="md:ml-[120px]">
           <Header />
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-60px)] gap-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Không tìm thấy sách</h1>
+            <h1 className="font-display text-2xl font-bold text-on-surface">Không tìm thấy sách</h1>
             <Link
               href="/"
-              className="px-6 py-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-all duration-300 hover:scale-105 active:scale-95"
+              className="px-6 py-3 rounded-lg bg-primary hover:bg-primary/90 text-on-primary font-medium transition-all duration-300 hover:scale-105 active:scale-95"
             >
               Về trang chủ
             </Link>
@@ -223,7 +223,7 @@ export default function BookDetailPage() {
           height="24"
           viewBox="0 0 24 24"
           fill={i <= rating ? 'currentColor' : 'none'}
-          className={i <= rating ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600'}
+          className={i <= rating ? 'text-yellow-500' : 'text-outline-variant'}
         >
           <path
             d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
@@ -291,7 +291,7 @@ export default function BookDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-surface transition-colors duration-300">
       <Sidebar />
 
       <div className="md:ml-[120px]">
@@ -301,7 +301,7 @@ export default function BookDetailPage() {
           {/* Back Button */}
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 mb-6 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-all duration-300 hover:scale-105 active:scale-95 group"
+            className="flex items-center gap-2 mb-6 text-on-surface-variant hover:text-on-surface transition-all duration-300 hover:scale-105 active:scale-95 group"
           >
             <ArrowLeft
               size={20}
@@ -334,8 +334,8 @@ export default function BookDetailPage() {
                     unoptimized={shouldUnoptimizeImage(story.coverImage)}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" className="text-gray-400">
+                  <div className="w-full h-full flex items-center justify-center bg-surface-variant">
+                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" className="text-on-surface-variant">
                       <path
                         d="M50 5L50 55L30 45.3594L10 55L10 5L50 5Z"
                         stroke="currentColor"
@@ -352,37 +352,37 @@ export default function BookDetailPage() {
             {/* Right: Book Information */}
             <div className="flex-1 min-w-0">
               {/* Title */}
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3 md:mb-4 transition-colors duration-300 line-clamp-2">
+              <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-on-surface mb-3 md:mb-4 transition-colors duration-300 line-clamp-2">
                 {story.title}
               </h1>
 
               {/* Rating and Stats */}
               <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-4 md:mb-6">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <span className="text-lg font-semibold text-on-surface">
                     {story.rating?.toFixed(1) || 0}
                   </span>
                   <div className="flex items-center gap-1">{renderStars(story.rating || 0)}</div>
                 </div>
-                <span className="text-gray-700 dark:text-gray-300">
+                <span className="text-on-surface-variant">
                   {story.ratingCount || 0} đánh giá
                 </span>
-                <span className="text-gray-700 dark:text-gray-300">
+                <span className="text-on-surface-variant">
                   {formatViewCount(story.viewCount || 0)} lượt xem
                 </span>
               </div>
 
               {/* Metadata */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8 xl:gap-12 mb-4 md:mb-6 pb-4 md:pb-6 border-b border-gray-300 dark:border-gray-700">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8 xl:gap-12 mb-4 md:mb-6 pb-4 md:pb-6 border-b border-outline-variant">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Tác giả</p>
-                  <p className="text-base font-medium text-gray-900 dark:text-white">
+                  <p className="text-sm text-on-surface-variant mb-1">Tác giả</p>
+                  <p className="text-base font-medium text-on-surface">
                     {story.authorName || story.author?.displayName || story.author?.username || 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Thể loại</p>
-                  <p className="text-base font-medium text-gray-900 dark:text-white">
+                  <p className="text-sm text-on-surface-variant mb-1">Thể loại</p>
+                  <p className="text-base font-medium text-on-surface">
                     {(story as any).storyCategories && (story as any).storyCategories.length > 0
                       ? (story as any).storyCategories.map((sc: any) => sc.category?.name || sc.name).join(', ')
                       : (story as any).storyTags && (story as any).storyTags.length > 0
@@ -393,20 +393,20 @@ export default function BookDetailPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Quốc gia</p>
-                  <p className="text-base font-medium text-gray-900 dark:text-white">
+                  <p className="text-sm text-on-surface-variant mb-1">Quốc gia</p>
+                  <p className="text-base font-medium text-on-surface">
                     {story.country || 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Trạng thái</p>
+                  <p className="text-sm text-on-surface-variant mb-1">Trạng thái</p>
                   <p className={`text-base font-medium ${!story.isPublished
                     ? 'text-yellow-600 dark:text-yellow-400'
                     : story.status === 'ONGOING'
                       ? 'text-blue-600 dark:text-blue-400'
                       : story.status === 'COMPLETED'
                         ? 'text-green-600 dark:text-green-400'
-                        : 'text-gray-900 dark:text-white'
+                        : 'text-on-surface'
                     }`}>
                     {!story.isPublished
                       ? 'Bản nháp'
@@ -427,7 +427,7 @@ export default function BookDetailPage() {
                 {chapters && chapters.length > 0 ? (
                   <Link
                     href={`/stories/${story.slug}/chapters/${chapters[0].slug}`}
-                    className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
+                    className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
                   >
                     <BookOpen size={20} className="md:w-6 md:h-6" />
                     <span>Đọc truyện</span>
@@ -435,7 +435,7 @@ export default function BookDetailPage() {
                 ) : (
                   <button
                     disabled
-                    className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-sm md:text-base font-medium cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-surface-variant text-on-surface-variant rounded-lg text-sm md:text-base font-medium cursor-not-allowed"
                   >
                     <BookOpen size={20} className="md:w-6 md:h-6" />
                     <span>Chưa có chương</span>
@@ -445,7 +445,7 @@ export default function BookDetailPage() {
                 {/* Support Buttons */}
                 <button
                   onClick={() => setShowDonateModal(true)}
-                  className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-tertiary hover:bg-tertiary/90 text-on-tertiary rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
                 >
                   <HeartHandshake size={20} className="md:w-6 md:h-6" />
                   <span className="hidden sm:inline">Ủng hộ tác giả</span>
@@ -454,7 +454,7 @@ export default function BookDetailPage() {
 
                 <Link
                   href="/lien-he-quang-cao"
-                  className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-primary-container hover:bg-primary-container/80 text-on-primary-container rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
                 >
                   <Megaphone size={20} className="md:w-6 md:h-6" />
                   <span className="hidden sm:inline">Tài trợ quảng cáo</span>
@@ -468,7 +468,7 @@ export default function BookDetailPage() {
 
                 <button
                   onClick={handleShare}
-                  className="w-[44px] h-[44px] md:w-[48px] md:h-[48px] flex items-center justify-center bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="w-[44px] h-[44px] md:w-[48px] md:h-[48px] flex items-center justify-center bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg transition-all duration-300 hover:scale-105 active:scale-95"
                   aria-label="Chia sẻ"
                 >
                   <Share2 size={20} className="md:w-6 md:h-6" />
@@ -482,7 +482,7 @@ export default function BookDetailPage() {
               {story.description && (
                 <div className="mb-8">
                   <div
-                    className={`text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-2 transition-all duration-500 ${showFullDescription ? '' : 'line-clamp-3'
+                    className={`text-base text-on-surface-variant leading-relaxed mb-2 transition-all duration-500 ${showFullDescription ? '' : 'line-clamp-3'
                       }`}
                   >
                     {story.description}
@@ -490,7 +490,7 @@ export default function BookDetailPage() {
                   {story.description.length > 150 && (
                     <button
                       onClick={() => setShowFullDescription(!showFullDescription)}
-                      className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-all duration-300 hover:scale-105 active:scale-95"
+                      className="text-primary hover:text-primary/80 font-medium transition-all duration-300 hover:scale-105 active:scale-95"
                     >
                       {showFullDescription ? 'Thu gọn' : 'Xem thêm'}
                     </button>
@@ -509,17 +509,17 @@ export default function BookDetailPage() {
                 chapters && chapters.length > 0 ? (
                   <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                      <h2 className="font-display text-xl font-bold text-on-surface">
                         Danh sách chương ({totalChapters})
                       </h2>
                       <div className="flex items-center gap-2">
-                        <label className="text-sm text-gray-600 dark:text-gray-400">
+                        <label className="text-sm text-on-surface-variant">
                           Hiển thị:
                         </label>
                         <select
                           value={chaptersPerPage}
                           onChange={(e) => setChaptersPerPage(Number(e.target.value))}
-                          className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="px-3 py-1.5 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         >
                           <option value={3}>3</option>
                           <option value={5}>5</option>
@@ -529,20 +529,20 @@ export default function BookDetailPage() {
                         </select>
                       </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                      <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                    <div className="bg-surface-container rounded-lg shadow-sm overflow-hidden">
+                      <div className="divide-y divide-outline-variant">
                         {displayedChapters.map((chapter: any) => (
                           <Link
                             key={chapter.id}
                             href={`/stories/${story.slug}/chapters/${chapter.slug}`}
-                            className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200 group"
+                            className="flex items-center justify-between p-4 hover:bg-surface-container-high/50 transition-colors duration-200 group"
                           >
                             <div className="flex items-center gap-4 flex-1 min-w-0">
-                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-semibold text-sm">
+                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-semibold text-sm">
                                 {chapter.order || 0}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-base font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 truncate flex items-center gap-2">
+                                <h3 className="text-base font-medium text-on-surface group-hover:text-primary transition-colors duration-200 truncate flex items-center gap-2">
                                   <span className="truncate">{chapter.title}</span>
                                   {story.accessType !== 'FREEMIUM' && chapter.price > 0 && (
                                     <span className="flex-shrink-0 inline-flex items-center gap-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-full px-2 py-0.5" title={`${chapter.price} coin để mở khóa`}>
@@ -551,7 +551,7 @@ export default function BookDetailPage() {
                                   </span>
                                   )}
                                 </h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                <p className="text-sm text-on-surface-variant mt-1">
                                   {new Date(chapter.createdAt).toLocaleDateString('vi-VN', {
                                     year: 'numeric',
                                     month: 'long',
@@ -569,7 +569,7 @@ export default function BookDetailPage() {
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              className="flex-shrink-0 text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200 ml-4"
+                              className="flex-shrink-0 text-on-surface-variant group-hover:text-primary transition-colors duration-200 ml-4"
                             >
                               <path d="M9 18l6-6-6-6" />
                             </svg>
@@ -581,14 +581,14 @@ export default function BookDetailPage() {
                     {/* Pagination Controls */}
                     {totalPages > 1 && (
                       <div className="mt-4 flex items-center justify-between">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                        <div className="text-sm text-on-surface-variant">
                           Hiển thị {startIndex + 1} - {Math.min(endIndex, totalChapters)} trong tổng số {totalChapters} chương
                         </div>
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => setChaptersPage(prev => Math.max(1, prev - 1))}
                             disabled={chaptersPage === 1}
-                            className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                            className="px-3 py-1.5 text-sm font-medium text-on-surface-variant bg-surface-container border border-outline-variant rounded-lg hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                           >
                             Trước
                           </button>
@@ -608,13 +608,13 @@ export default function BookDetailPage() {
                                 return (
                                   <React.Fragment key={page}>
                                     {showEllipsis && (
-                                      <span className="px-2 text-gray-500 dark:text-gray-400">...</span>
+                                      <span className="px-2 text-on-surface-variant">...</span>
                                     )}
                                     <button
                                       onClick={() => setChaptersPage(page)}
                                       className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors duration-200 ${chaptersPage === page
-                                        ? 'bg-blue-500 text-white hover:bg-blue-600'
-                                        : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                        ? 'bg-primary text-on-primary hover:bg-primary/90'
+                                        : 'text-on-surface-variant bg-surface-container border border-outline-variant hover:bg-surface-container-high'
                                         }`}
                                     >
                                       {page}
@@ -626,7 +626,7 @@ export default function BookDetailPage() {
                           <button
                             onClick={() => setChaptersPage(prev => Math.min(totalPages, prev + 1))}
                             disabled={chaptersPage === totalPages}
-                            className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                            className="px-3 py-1.5 text-sm font-medium text-on-surface-variant bg-surface-container border border-outline-variant rounded-lg hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                           >
                             Sau
                           </button>
@@ -636,11 +636,11 @@ export default function BookDetailPage() {
                   </div>
                 ) : (
                   <div className="mb-8">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    <h2 className="font-display text-xl font-bold text-on-surface mb-4">
                       Danh sách chương
                     </h2>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
-                      <p className="text-gray-600 dark:text-gray-400">
+                    <div className="bg-surface-container rounded-lg shadow-sm p-8 text-center">
+                      <p className="text-on-surface-variant">
                         Chưa có chương nào được xuất bản
                       </p>
                     </div>
@@ -651,7 +651,7 @@ export default function BookDetailPage() {
               {/* Similar Stories Section */}
               {similarStories.length > 0 && (
                 <div className="mt-12">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                  <h2 className="font-display text-xl font-bold text-on-surface mb-4">
                     Truyện tương tự
                   </h2>
                   <div
@@ -677,7 +677,7 @@ export default function BookDetailPage() {
                         >
                           <div className="flex flex-col gap-2">
                             {/* Book Cover - Fixed size */}
-                            <div className="relative w-[150px] h-[200px] rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 shadow-md group-hover:shadow-2xl transition-all duration-500">
+                            <div className="relative w-[150px] h-[200px] rounded-lg overflow-hidden bg-surface-variant shadow-md group-hover:shadow-2xl transition-all duration-500">
                               {relatedStory.coverImage ? (
                                 <OptimizedImage
                                   src={relatedStory.coverImage}
@@ -697,7 +697,7 @@ export default function BookDetailPage() {
                                     height="60"
                                     viewBox="0 0 60 60"
                                     fill="none"
-                                    className="text-gray-400 dark:text-gray-500"
+                                    className="text-on-surface-variant"
                                   >
                                     <path
                                       d="M50 5L50 55L30 45.3594L10 55L10 5L50 5Z"
@@ -712,10 +712,10 @@ export default function BookDetailPage() {
                             </div>
                             {/* Book Info */}
                             <div className="flex flex-col gap-1 w-[150px]">
-                              <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 leading-tight">
+                              <h3 className="text-sm font-semibold text-on-surface line-clamp-2 group-hover:text-primary transition-colors duration-300 leading-tight">
                                 {relatedStory.title}
                               </h3>
-                              <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                              <div className="flex items-center gap-1 text-xs text-on-surface-variant">
                                 <svg
                                   width="14"
                                   height="14"
