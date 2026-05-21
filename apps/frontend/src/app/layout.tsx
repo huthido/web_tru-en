@@ -106,7 +106,14 @@ export default function RootLayout({
       <head>
         {/* PWA Meta Tags */}
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0b1326" />
+        {/* Light surface là mặc định; script bên dưới đổi sang màu tối nếu cần. */}
+        <meta name="theme-color" content="#fff8f7" />
+        {/* Blocking script — áp theme đã lưu TRƯỚC khi paint để tránh nháy sáng (FOUC). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme')||'light';var d=t==='dark';if(d)document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#0b1326':'#fff8f7');}catch(e){}})();`,
+          }}
+        />
         {/* Web App Manifest spec — Chrome / Edge / Firefox. */}
         <meta name="mobile-web-app-capable" content="yes" />
         {/* iOS Safari vẫn cần apple-* tag để add-to-homescreen hoạt động. */}
@@ -126,7 +133,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <QueryProvider>
             <AuthProvider>
-              <ThemeProvider attribute="class" defaultTheme="light">
+              <ThemeProvider defaultTheme="light">
                 <ToastProvider>
                   <MaintenanceCheck>
                     {children}

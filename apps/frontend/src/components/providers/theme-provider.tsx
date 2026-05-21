@@ -7,7 +7,6 @@ type Theme = 'dark' | 'light';
 type ThemeProviderProps = {
   children: React.ReactNode;
   defaultTheme?: Theme;
-  attribute?: string;
 };
 
 type ThemeContextType = {
@@ -21,7 +20,6 @@ const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined
 export function ThemeProvider({
   children,
   defaultTheme = 'light',
-  attribute = 'class',
 }: ThemeProviderProps) {
   const [theme, setThemeState] = React.useState<Theme>(defaultTheme);
   const [mounted, setMounted] = React.useState(false);
