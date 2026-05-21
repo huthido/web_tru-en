@@ -18,14 +18,15 @@ services:
     image: web-truyen-garage:latest
     container_name: web_truyen_garage
     restart: unless-stopped
+    # GARAGE_RPC_SECRET / GARAGE_ADMIN_TOKEN / GARAGE_METRICS_TOKEN nạp từ .env
+    # qua env_file — override placeholder baked trong garage.toml. Set 3 biến
+    # này trong Coolify (sinh bằng `openssl rand -hex 32`); bỏ trống thì Garage
+    # dùng placeholder trong garage.toml. Không map `KEY: ${KEY}` để parser
+    # Coolify không đếm trùng tên biến (xem ghi chú đầy đủ ở service backend).
+    env_file:
+      - .env
     environment:
-      RUST_LOG: garage=info
-      # Override placeholder secrets baked in garage.toml at runtime.
-      # Set GARAGE_RPC_SECRET / GARAGE_ADMIN_TOKEN / GARAGE_METRICS_TOKEN
-      # in Coolify env (sinh bằng `openssl rand -hex 32`).
-      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:-}
-      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:-}
-      GARAGE_METRICS_TOKEN: ${GARAGE_METRICS_TOKEN:-}
+      - RUST_LOG=garage=info
     volumes:
       - garage_meta:/var/lib/garage/meta
       - garage_data:/var/lib/garage/data
@@ -107,12 +108,14 @@ services:
     # KHÔNG đọc được volume cũ của PG16. Khi nâng phải wipe volume rồi
     # import lại từ backup (xem scripts/upgrade-postgres-and-import.ps1).
     command: ["postgres", "-c", "password_encryption=md5"]
+    # POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB nạp từ .env qua env_file
+    # (xem ghi chú ở service backend — tránh map `KEY: ${KEY}` gây Coolify đếm
+    # trùng). 3 biến này được Coolify tự surface qua ${} ở service pgbouncer.
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      POSTGRES_DB: ${POSTGRES_DB:-web_truyen_db}
       # initdb: pg_hba.conf yêu cầu md5 cho host connections.
-      POSTGRES_INITDB_ARGS: "--auth-host=md5"
+      - POSTGRES_INITDB_ARGS=--auth-host=md5
     # Internal-only — backend reaches via postgres:5432 (or pgbouncer:5432).
     # Coolify host thường đã có Postgres khác chiếm 5432 → expose ra host gây
     # conflict. Local dev: thêm `ports: ["${POSTGRES_PORT:-5432}:5432"]`.
@@ -125,7 +128,9 @@ services:
       # + re-import (xem scripts/upgrade-postgres-and-import.{ps1,sh}).
       - postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-web_truyen_db}"]
+      # $$ → Compose xuất literal $ → shell trong container tự expand bằng env
+      # của chính container, không interpolate ở cấp Compose → không sinh ${}.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-user} -d $${POSTGRES_DB:-web_truyen_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -149,18 +154,18 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      # Dùng DATABASE_URL tối giản — edoburu/pgbouncer auto-parse vào [databases]
-      # section, tránh DB_NAME chứa ký tự đặc biệt làm hỏng pgbouncer.ini.
-      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-web_truyen_db}
+      # DATABASE_URL ghép từ POSTGRES_* — key `DATABASE_URL` khác tên các biến
+      # ${POSTGRES_*} nên Coolify KHÔNG đếm trùng. edoburu/pgbouncer auto-parse
+      # URL tối giản (không query param) vào [databases] section.
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-web_truyen_db}
       # transaction pooling = best for Prisma.
-      POOL_MODE: transaction
-      MAX_CLIENT_CONN: 200
-      DEFAULT_POOL_SIZE: 20
-      # AUTH_TYPE: trust — PgBouncer chỉ nghe internal Docker network
-      # (expose only). Backend vẫn gửi password trong DATABASE_URL và PgBouncer
-      # forward sang Postgres để verify. Tránh AUTH_TYPE: plain vì cần
-      # userlist.txt sinh sai format ở Alpine image.
-      AUTH_TYPE: trust
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONN=200
+      - DEFAULT_POOL_SIZE=20
+      # AUTH_TYPE trust — PgBouncer chỉ nghe internal Docker network. Backend
+      # vẫn gửi password trong DATABASE_URL, PgBouncer forward sang Postgres để
+      # verify. Tránh AUTH_TYPE plain vì userlist.txt sinh sai format ở Alpine.
+      - AUTH_TYPE=trust
     # Internal-only — backend reaches via pgbouncer:5432. Local dev psql:
     # `ports: ["${PGBOUNCER_PORT:-6432}:5432"]`.
     expose:
@@ -234,9 +239,12 @@ services:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
+      # Short-form `- VAR` (không `VAR: ${VAR}`) — Compose lấy giá trị từ .env,
+      # tên biến chỉ xuất hiện 1 lần nên Coolify không đếm trùng. NEXT_PUBLIC_*
+      # bắt buộc là build arg vì Next.js inline chúng vào client bundle lúc build.
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+        - NEXT_PUBLIC_API_URL
+        - NEXT_PUBLIC_APP_URL
     container_name: web_truyen_frontend
     restart: unless-stopped
     depends_on:
@@ -245,16 +253,18 @@ services:
         # gọi backend ở startup (chỉ runtime); và Coolify timeout khi chờ
         # backend health đôi khi false-positive nếu migration chậm.
         condition: service_started
+    # NEXT_PUBLIC_* (runtime, cho SSR) nạp từ .env qua env_file. environment
+    # chỉ giữ hằng số literal — xem ghi chú đầy đủ ở service backend.
+    env_file:
+      - .env
     environment:
-      NODE_ENV: production
-      PORT: 3000
-      HOSTNAME: 0.0.0.0
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
-      # SSR (server-settings, etc.) call backend qua Docker network nội bộ.
-      # Tránh self-signed cert / pending Let's Encrypt ở public HTTPS Traefik.
-      # Client browser vẫn dùng NEXT_PUBLIC_API_URL public.
-      INTERNAL_API_URL: ${INTERNAL_API_URL:-http://backend:3009}
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      # SSR gọi backend qua Docker network nội bộ — địa chỉ cố định, tránh
+      # self-signed cert / pending Let's Encrypt ở public HTTPS Traefik.
+      # Client browser vẫn dùng NEXT_PUBLIC_API_URL public (inline lúc build).
+      - INTERNAL_API_URL=http://backend:3009
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     healthcheck:
