@@ -39,7 +39,7 @@ export function MaintenanceCheck({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <Loading />
       </div>
     );
@@ -48,7 +48,7 @@ export function MaintenanceCheck({ children }: { children: React.ReactNode }) {
   // If maintenance mode is on and user is not admin, show loading while redirecting
   if (settings?.maintenanceMode && user?.role !== 'ADMIN' && pathname !== '/maintenance') {
     return (
-      <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <Loading />
       </div>
     );

@@ -34,7 +34,7 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 flex items-center justify-center px-4">
+        <div className="min-h-screen bg-surface flex items-center justify-center px-4">
           <div className="max-w-md w-full text-center">
             <div className="mb-6">
               <svg
@@ -51,10 +51,10 @@ export class ErrorBoundary extends Component<Props, State> {
                 />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 className="font-display text-3xl font-bold text-on-surface mb-4">
               Đã xảy ra lỗi
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-on-surface-variant mb-6">
               Rất tiếc, đã có lỗi xảy ra. Vui lòng thử lại sau.
             </p>
             {this.state.error && process.env.NODE_ENV === 'development' && (
@@ -70,13 +70,13 @@ export class ErrorBoundary extends Component<Props, State> {
                   this.setState({ hasError: false, error: null });
                   window.location.reload();
                 }}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-3 bg-primary text-on-primary rounded-lg hover:bg-primary/90 transition-colors"
               >
                 Tải lại trang
               </button>
               <Link
                 href="/"
-                className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                className="px-6 py-3 bg-surface-container-high text-on-surface rounded-lg hover:bg-surface-container-highest transition-colors"
               >
                 Về trang chủ
               </Link>
