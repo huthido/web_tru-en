@@ -133,6 +133,27 @@ export class CloudinaryService {
     return this.saveToLocal(buffer, folder, 'image.jpg');
   }
 
+  /** True nếu Garage S3 đang được cấu hình (dùng cho công cụ migration). */
+  get garageEnabled(): boolean {
+    return this.useGarage;
+  }
+
+  /**
+   * Upload buffer thẳng lên Garage, giữ nguyên filename + content-type.
+   * Dùng cho script migrate ảnh Cloudinary → Garage (bỏ qua thứ tự ưu tiên).
+   */
+  async migrateBufferToGarage(
+    buffer: Buffer,
+    folder: string,
+    filename: string,
+    contentType: string,
+  ): Promise<string> {
+    if (!this.useGarage) {
+      throw new Error('Garage S3 chưa được cấu hình (thiếu S3_ENDPOINT/S3_ACCESS_KEY/S3_SECRET_KEY)');
+    }
+    return this.uploadToGarage(buffer, folder, filename, contentType);
+  }
+
   /**
    * Get all images uploaded by a user, optionally filtered by folder.
    */
