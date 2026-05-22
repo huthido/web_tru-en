@@ -1,6 +1,5 @@
 'use client';
 
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { useState, useRef, useEffect } from 'react';
 import { useSettings, useUpdateSettings, useUploadLogo, useUploadFavicon } from '@/lib/api/hooks/use-settings';
@@ -123,14 +122,14 @@ export default function AdminSettingsPage() {
 
     if (isLoading) {
         return (
-            <AdminLayout>
+            <>
                 <Loading />
-            </AdminLayout>
+            </>
         );
     }
 
     return (
-        <AdminLayout>
+        <>
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -517,6 +516,6 @@ export default function AdminSettingsPage() {
                     </div>
                 </div>
             </div>
-        </AdminLayout>
+        </>
     );
 }

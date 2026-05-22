@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { useCreateNotification } from '@/lib/api/hooks/use-notifications';
 import Link from 'next/link';
 import { useToast } from '@/components/ui/toast';
@@ -58,7 +57,7 @@ export default function CreateNotificationPage() {
     };
 
     return (
-        <AdminLayout>
+        <>
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="mb-6">
@@ -293,6 +292,6 @@ export default function CreateNotificationPage() {
                     </div>
                 </form>
             </div>
-        </AdminLayout>
+        </>
     );
 }

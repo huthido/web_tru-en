@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { Loading } from '@/components/ui/loading';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { useToast } from '@/components/ui/toast';
@@ -247,7 +246,7 @@ export default function AdminStoriesPage() {
     const totalPages = meta ? Math.ceil(meta.total / limit) : 1;
 
     return (
-        <AdminLayout>
+        <>
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -609,6 +608,6 @@ export default function AdminStoriesPage() {
                 }}
                 onClose={() => setShowBulkDeleteModal(false)}
             />
-        </AdminLayout>
+        </>
     );
 }

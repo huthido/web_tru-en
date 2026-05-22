@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { Loading } from '@/components/ui/loading';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { useNotifications, useDeleteNotification, useUpdateNotification } from '@/lib/api/hooks/use-notifications';
@@ -164,7 +163,7 @@ export default function AdminNotificationsPage() {
     };
 
     return (
-        <AdminLayout>
+        <>
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -542,6 +541,6 @@ export default function AdminNotificationsPage() {
                 confirmColor="red"
                 isLoading={deleteMutation.isPending}
             />
-        </AdminLayout>
+        </>
     );
 }

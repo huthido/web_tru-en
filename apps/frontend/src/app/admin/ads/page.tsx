@@ -3,7 +3,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { isUsableImageSrc } from '@/utils/image-utils';
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { Loading } from '@/components/ui/loading';
 import { useAds, useCreateAd, useUpdateAd, useDeleteAd } from '@/lib/api/hooks/use-ads';
 import { AdType, AdPosition, Ad } from '@/lib/api/ads.service';
@@ -204,7 +203,7 @@ export default function AdminAdsPage() {
     };
 
     return (
-        <AdminLayout>
+        <>
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -746,7 +745,7 @@ export default function AdminAdsPage() {
 
             {/* Toast Container */}
             <ToastContainer toasts={toasts} onClose={removeToast} />
-        </AdminLayout>
+        </>
     );
 }
 

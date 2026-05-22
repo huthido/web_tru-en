@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { Loading } from '@/components/ui/loading';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { useAdminComments, useModerateComment } from '@/lib/api/hooks/use-comments';
@@ -132,14 +131,14 @@ export default function AdminCommentsPage() {
 
     if (isLoading) {
         return (
-            <AdminLayout>
+            <>
                 <Loading />
-            </AdminLayout>
+            </>
         );
     }
 
     return (
-        <AdminLayout>
+        <>
             <div className="p-6 space-y-6">
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-bold">Quản lý bình luận</h1>
@@ -597,7 +596,7 @@ export default function AdminCommentsPage() {
                     confirmColor={moderationAction === 'delete' ? 'red' : 'green'}
                 />
             </div>
-        </AdminLayout>
+        </>
     );
 }
 

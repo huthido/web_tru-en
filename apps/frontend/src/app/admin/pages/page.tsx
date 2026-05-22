@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { Loading } from '@/components/ui/loading';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { usePages, useCreatePage, useUpdatePage, useDeletePage } from '@/lib/api/hooks/use-pages';
@@ -97,14 +96,14 @@ export default function AdminPagesPage() {
 
     if (isLoading) {
         return (
-            <AdminLayout>
+            <>
                 <Loading />
-            </AdminLayout>
+            </>
         );
     }
 
     return (
-        <AdminLayout>
+        <>
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -309,7 +308,7 @@ export default function AdminPagesPage() {
 
             {/* Toast Container */}
             <ToastContainer toasts={toasts} onClose={removeToast} />
-        </AdminLayout>
+        </>
     );
 }
 

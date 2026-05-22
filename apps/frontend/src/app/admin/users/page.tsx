@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { Loading } from '@/components/ui/loading';
 import { useUsers, useUpdateUser } from '@/lib/api/hooks/use-users';
 import { User } from '@/lib/api/users.service';
@@ -169,7 +168,7 @@ export default function AdminUsersPage() {
     }, [page, totalPages]);
 
     return (
-        <AdminLayout>
+        <>
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -594,7 +593,7 @@ export default function AdminUsersPage() {
                     isLoading={updateMutation.isPending}
                 />
             )}
-        </AdminLayout>
+        </>
     );
 }
 

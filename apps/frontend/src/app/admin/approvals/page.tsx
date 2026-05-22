@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { Loading } from '@/components/ui/loading';
 import { useApprovals, useReviewApproval } from '@/lib/api/hooks/use-approvals';
 import { ApprovalRequest } from '@/lib/api/hooks/use-approvals';
@@ -176,7 +175,7 @@ export default function AdminApprovalsPage() {
     };
 
     return (
-        <AdminLayout>
+        <>
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -1025,7 +1024,7 @@ export default function AdminApprovalsPage() {
 
             {/* Toast Container */}
             <ToastContainer toasts={toasts} onClose={removeToast} />
-        </AdminLayout>
+        </>
     );
 }
 

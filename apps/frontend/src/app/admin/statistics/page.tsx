@@ -1,6 +1,5 @@
 'use client';
 
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { BarChart, LineChart, DoughnutChart } from '@/components/admin/charts';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { Loading } from '@/components/ui/loading';
@@ -65,14 +64,14 @@ export default function AdminStatisticsPage() {
 
     if (isLoading) {
         return (
-            <AdminLayout>
+            <>
                 <Loading />
-            </AdminLayout>
+            </>
         );
     }
 
     return (
-        <AdminLayout>
+        <>
             <div className="p-6 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -206,7 +205,7 @@ export default function AdminStatisticsPage() {
                     </div>
                 )}
             </div>
-        </AdminLayout>
+        </>
     );
 }
 

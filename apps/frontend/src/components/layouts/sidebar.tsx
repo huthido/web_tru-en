@@ -5,7 +5,7 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Compass, Library, Clock, Bookmark, Heart, Upload, LayoutDashboard, Wallet, Settings, BookOpen, HelpCircle, LogIn, type LucideIcon } from 'lucide-react';
+import { Home, Compass, Library, Clock, Bookmark, Heart, Upload, LayoutDashboard, Wallet, Settings, BookOpen, HelpCircle, type LucideIcon } from 'lucide-react';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
 function roleLabel(role?: string): string {
@@ -123,7 +123,7 @@ export function Sidebar() {
             <NavRow key={l.href} link={l} />
           ))}
 
-          {user ? (
+          {user && (
             <Link
               href="/profile"
               aria-label="Trang cá nhân"
@@ -150,14 +150,6 @@ export function Sidebar() {
                   {roleLabel(user.role)}
                 </span>
               </span>
-            </Link>
-          ) : (
-            <Link
-              href="/login"
-              className="mt-2 flex items-center justify-center gap-2 p-3 rounded-lg bg-primary hover:bg-primary/90 text-on-primary text-sm font-medium transition-colors"
-            >
-              <LogIn size={18} />
-              Đăng nhập
             </Link>
           )}
         </div>

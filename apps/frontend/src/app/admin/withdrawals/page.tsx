@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { Loading } from '@/components/ui/loading';
 import { useAdminWithdrawals, useProcessWithdrawal } from '@/lib/api/hooks/use-wallet';
 import type { WithdrawalStatus } from '@/lib/api/wallet.service';
@@ -45,7 +44,7 @@ export default function AdminWithdrawalsPage() {
     };
 
     return (
-        <AdminLayout>
+        <>
             <div className="space-y-4">
                 <h1 className="text-2xl font-bold text-on-surface">Yêu cầu rút xu</h1>
 
@@ -114,6 +113,6 @@ export default function AdminWithdrawalsPage() {
                     </div>
                 )}
             </div>
-        </AdminLayout>
+        </>
     );
 }

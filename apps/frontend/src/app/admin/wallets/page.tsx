@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { WalletService, AdminWalletInfo } from '@/lib/api/wallet.service';
 import { Lock, Unlock, Search, Loader2, AlertCircle, CheckCircle2, Sliders } from 'lucide-react';
 
@@ -82,7 +81,7 @@ export default function AdminWalletsPage() {
     };
 
     return (
-        <AdminLayout>
+        <>
             <div className="space-y-4 max-w-2xl">
                 <h1 className="text-2xl font-bold text-on-surface">Khóa ví / Chống gian lận</h1>
 
@@ -187,6 +186,6 @@ export default function AdminWalletsPage() {
                     </form>
                 )}
             </div>
-        </AdminLayout>
+        </>
     );
 }

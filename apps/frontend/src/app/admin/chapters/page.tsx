@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { Loading } from '@/components/ui/loading';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { useToast } from '@/components/ui/toast';
@@ -87,7 +86,7 @@ export default function AdminChaptersPage() {
     };
 
     return (
-        <AdminLayout>
+        <>
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -474,7 +473,7 @@ export default function AdminChaptersPage() {
                     />
                 )}
             </div>
-        </AdminLayout>
+        </>
     );
 }
 

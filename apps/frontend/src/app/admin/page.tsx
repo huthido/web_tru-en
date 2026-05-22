@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { AdminLayout } from '@/components/layouts/admin-layout';
 import { BarChart, LineChart, DoughnutChart } from '@/components/admin/charts';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { useAdminStatistics } from '@/lib/api/hooks/use-statistics';
@@ -136,16 +135,16 @@ export default function AdminDashboardPage() {
 
     if (isLoading) {
         return (
-            <AdminLayout>
+            <>
                 <div className="flex items-center justify-center min-h-[400px]">
                     <Loading />
                 </div>
-            </AdminLayout>
+            </>
         );
     }
 
     return (
-        <AdminLayout>
+        <>
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -328,7 +327,7 @@ export default function AdminDashboardPage() {
                     </div>
                 )}
             </div>
-        </AdminLayout>
+        </>
     );
 }
 
