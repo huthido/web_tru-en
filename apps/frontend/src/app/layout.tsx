@@ -58,8 +58,14 @@ export async function generateMetadata(): Promise<Metadata> {
     creator: DEFAULT_METADATA.author,
     publisher: DEFAULT_METADATA.author,
     icons: {
-      icon: siteFavicon ? [{ url: siteFavicon, type: 'image/png' }] : undefined,
-      shortcut: siteFavicon ? [{ url: siteFavicon, type: 'image/png' }] : undefined,
+      // Mặc định: favicon trái tim (public/favicon-heart.svg) — hợp brand "YÊU".
+      // Admin có thể ghi đè bằng cách đặt siteFavicon trong Cài đặt.
+      icon: siteFavicon
+        ? [{ url: siteFavicon, type: 'image/png' }]
+        : [{ url: '/favicon-heart.svg', type: 'image/svg+xml' }],
+      shortcut: siteFavicon
+        ? [{ url: siteFavicon, type: 'image/png' }]
+        : [{ url: '/favicon-heart.svg', type: 'image/svg+xml' }],
       apple: siteFavicon ? [{ url: siteFavicon, type: 'image/png' }] : undefined,
     },
     openGraph: {
