@@ -38,7 +38,11 @@ import { RedisModule } from './redis/redis.module';
     // Configuration
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      // Native dev (cwd = apps/backend): nạp apps/backend/.env (override host
+      // localhost) TRƯỚC, rồi fallback root .env (nguồn chung secrets/keys).
+      // Trong Docker: 2 file này không tồn tại trong container -> @nestjs/config
+      // bỏ qua, dùng env do compose tiêm vào process.env.
+      envFilePath: ['.env', '../../.env'],
     }),
 
     // Rate limiting
