@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Be_Vietnam_Pro } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import InstallPrompt from '@/components/pwa/install-prompt';
@@ -108,12 +109,12 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         {/* Light surface là mặc định; script bên dưới đổi sang màu tối nếu cần. */}
         <meta name="theme-color" content="#fff8f7" />
-        {/* Blocking script — áp theme đã lưu TRƯỚC khi paint để tránh nháy sáng (FOUC). */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme')||'light';var d=t==='dark';if(d)document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#0b1326':'#fff8f7');}catch(e){}})();`,
-          }}
-        />
+        {/* Blocking script — áp theme đã lưu TRƯỚC khi paint để tránh nháy sáng (FOUC).
+            Dùng next/script beforeInteractive: Next chèn vào <head> và chạy trước
+            hydration, tránh mismatch khi đặt <script> thô trong <head> App Router. */}
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`(function(){try{var t=localStorage.getItem('theme')||'light';var d=t==='dark';if(d)document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#0b1326':'#fff8f7');}catch(e){}})();`}
+        </Script>
         {/* Web App Manifest spec — Chrome / Edge / Firefox. */}
         <meta name="mobile-web-app-capable" content="yes" />
         {/* iOS Safari vẫn cần apple-* tag để add-to-homescreen hoạt động. */}
