@@ -1,43 +1,151 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useAuth } from '@/contexts/auth-context';
+import React, { useCallback, useState } from 'react';
+import {
+    FlatList,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
+import { colors, fontSize, spacing } from '@/theme';
+import type { RootNavigation } from '@/navigation/types';
+import type { Story } from '@/lib/api/types';
+import { useHomeStories } from '@/lib/hooks/stories';
+import { useContinueReading } from '@/lib/hooks/library';
+import { ProgressBar, SectionHeader } from '@/components/ui';
+import { StoryCover } from '@/components/StoryCover';
+import { StoryRow } from '@/components/StoryRow';
 
 export const HomeScreen: React.FC = () => {
-    const { user, logout } = useAuth();
+    const nav = useNavigation<RootNavigation>();
+    const qc = useQueryClient();
+    const [refreshing, setRefreshing] = useState(false);
+
+    const newest = useHomeStories('newest');
+    const recommended = useHomeStories('recommended');
+    const bestOfMonth = useHomeStories('bestOfMonth');
+    const topRated = useHomeStories('topRated');
+    const mostLiked = useHomeStories('mostLiked');
+    const continueReading = useContinueReading(10);
+
+    const openStory = useCallback(
+        (story: Story) => nav.navigate('StoryDetail', { slug: story.slug }),
+        [nav],
+    );
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await Promise.all([
+            qc.invalidateQueries({ queryKey: ['stories', 'home'] }),
+            qc.invalidateQueries({ queryKey: ['continue-reading'] }),
+        ]);
+        setRefreshing(false);
+    }, [qc]);
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <View style={styles.card}>
-                <Text style={styles.greeting}>Chào, {user?.displayName || user?.username || 'bạn'} 👋</Text>
-                <Text style={styles.role}>{user?.role}</Text>
-            </View>
+        <ScrollView
+            style={styles.screen}
+            contentContainerStyle={styles.content}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    tintColor={colors.primary}
+                    colors={[colors.primary]}
+                />
+            }
+        >
+            {continueReading.data && continueReading.data.length > 0 ? (
+                <View style={styles.section}>
+                    <SectionHeader title="Đọc tiếp" />
+                    <FlatList
+                        horizontal
+                        data={continueReading.data}
+                        keyExtractor={(item) => item.id}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.crList}
+                        renderItem={({ item }) => {
+                            const storySlug = item.story?.slug;
+                            const chapterSlug = item.chapter?.slug;
+                            return (
+                                <Pressable
+                                    style={styles.crCard}
+                                    disabled={!storySlug || !chapterSlug}
+                                    onPress={() =>
+                                        storySlug &&
+                                        chapterSlug &&
+                                        nav.navigate('Reader', { storySlug, chapterSlug })
+                                    }
+                                >
+                                    <StoryCover uri={item.story?.coverImage} width={108} />
+                                    <Text numberOfLines={2} style={styles.crTitle}>
+                                        {item.story?.title ?? 'Truyện'}
+                                    </Text>
+                                    <Text numberOfLines={1} style={styles.crChapter}>
+                                        {item.chapter?.title ?? ''}
+                                    </Text>
+                                    <View style={styles.crProgress}>
+                                        <ProgressBar
+                                            value={item.storyProgress ?? item.progress ?? 0}
+                                        />
+                                    </View>
+                                </Pressable>
+                            );
+                        }}
+                    />
+                </View>
+            ) : null}
 
-            <View style={styles.card}>
-                <Text style={styles.sectionTitle}>Đọc truyện</Text>
-                <Text style={styles.placeholder}>Danh sách truyện sẽ xuất hiện ở đây (Phase 2).</Text>
-            </View>
-
-            <View style={styles.card}>
-                <Text style={styles.sectionTitle}>Ví xu</Text>
-                <Text style={styles.placeholder}>
-                    Số dư + lịch sử + nút Apple IAP / Google Play sẽ thêm sau khi Phase 3 (compliance + IAP) hoàn tất.
-                </Text>
-            </View>
-
-            <TouchableOpacity style={styles.logout} onPress={logout}>
-                <Text style={styles.logoutText}>Đăng xuất</Text>
-            </TouchableOpacity>
+            <StoryRow
+                title="Mới cập nhật"
+                stories={newest.data}
+                loading={newest.isLoading}
+                onPressStory={openStory}
+            />
+            <StoryRow
+                title="Đề xuất cho bạn"
+                stories={recommended.data}
+                loading={recommended.isLoading}
+                onPressStory={openStory}
+            />
+            <StoryRow
+                title="Hay nhất tháng"
+                stories={bestOfMonth.data}
+                loading={bestOfMonth.isLoading}
+                onPressStory={openStory}
+            />
+            <StoryRow
+                title="Đánh giá cao"
+                stories={topRated.data}
+                loading={topRated.isLoading}
+                onPressStory={openStory}
+            />
+            <StoryRow
+                title="Được yêu thích"
+                stories={mostLiked.data}
+                loading={mostLiked.isLoading}
+                onPressStory={openStory}
+            />
         </ScrollView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { padding: 16, backgroundColor: '#FFF2F8', flexGrow: 1 },
-    card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 12 },
-    greeting: { fontSize: 20, fontWeight: '700', color: '#1a1a1a' },
-    role: { fontSize: 12, color: '#888', marginTop: 4 },
-    sectionTitle: { fontSize: 16, fontWeight: '600', color: '#1a1a1a', marginBottom: 8 },
-    placeholder: { fontSize: 14, color: '#666', lineHeight: 20 },
-    logout: { alignSelf: 'center', marginTop: 24, paddingHorizontal: 24, paddingVertical: 10 },
-    logoutText: { color: '#e91e63', fontWeight: '600' },
+    screen: { flex: 1, backgroundColor: colors.bg },
+    content: { paddingTop: spacing.lg, paddingBottom: spacing.xl },
+    section: { marginBottom: spacing.lg },
+    crList: { paddingHorizontal: spacing.lg, gap: spacing.md },
+    crCard: { width: 108 },
+    crTitle: {
+        marginTop: spacing.sm,
+        fontSize: fontSize.sm,
+        fontWeight: '600',
+        color: colors.text,
+        lineHeight: 18,
+    },
+    crChapter: { marginTop: 2, fontSize: fontSize.xs, color: colors.textMuted },
+    crProgress: { marginTop: spacing.xs },
 });

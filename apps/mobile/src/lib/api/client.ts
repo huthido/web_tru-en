@@ -30,6 +30,19 @@ export interface PaginatedResponse<T> {
     meta: { page: number; limit: number; total: number; totalPages: number };
 }
 
+/**
+ * Resolved API base URL — includes the `/api` suffix, e.g.
+ * `http://10.0.2.2:3009/api`. Sourced from app.config.ts → extra.apiUrl.
+ */
+export const API_BASE_URL: string =
+    (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl ??
+    'http://10.0.2.2:3009/api';
+
+/** Unwrap the `{ success, data, timestamp }` envelope to the inner payload. */
+export function unwrap<T>(res: AxiosResponse<ApiResponse<T>>): T {
+    return (res.data?.data ?? res.data) as T;
+}
+
 const ACCESS_TOKEN_KEY = 'webtruyen.accessToken';
 const REFRESH_TOKEN_KEY = 'webtruyen.refreshToken';
 
@@ -62,14 +75,13 @@ class ApiClient {
     private refreshSubscribers: Array<(token: string | null) => void> = [];
 
     constructor() {
-        const baseURL =
-            (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl ??
-            'http://localhost:3001/api';
-
         this.client = axios.create({
-            baseURL,
+            baseURL: API_BASE_URL,
             timeout: 30000,
-            headers: { 'Content-Type': 'application/json' },
+            // X-Client-Type tells the backend CookieInterceptor to keep the
+            // accessToken/refreshToken in the response body (mobile has no
+            // cookie jar) instead of stripping them into HttpOnly cookies.
+            headers: { 'Content-Type': 'application/json', 'X-Client-Type': 'mobile' },
         });
 
         this.setupInterceptors();
@@ -120,12 +132,16 @@ class ApiClient {
                     const refreshRes = await axios.post(
                         `${this.client.defaults.baseURL}/auth/refresh`,
                         { refreshToken },
-                        { timeout: 15000 },
+                        // Bare axios call — must set X-Client-Type itself so the
+                        // backend returns the new accessToken in the body.
+                        { timeout: 15000, headers: { 'X-Client-Type': 'mobile' } },
                     );
 
                     const payload = refreshRes.data?.data ?? refreshRes.data;
                     const newAccess: string | undefined = payload?.accessToken;
-                    const newRefresh: string | undefined = payload?.refreshToken ?? refreshToken;
+                    // Backend's /auth/refresh does not rotate the refresh token,
+                    // so fall back to the existing one — always a string here.
+                    const newRefresh: string = payload?.refreshToken ?? refreshToken;
                     if (!newAccess) throw new Error('Refresh returned no accessToken');
 
                     await tokenStorage.setPair(newAccess, newRefresh);

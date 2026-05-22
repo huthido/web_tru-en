@@ -1,32 +1,36 @@
 # `apps/mobile` — Web Truyện HungYeu (Expo + React Native)
 
-**Status: Phase 1 skeleton** (lập 2026-05-20). Khung tối thiểu để chạy app
-trên iOS Simulator / Android Emulator / Expo Go. CHƯA bao gồm: danh sách
-truyện, đọc chương, IAP/Play Billing UI, push notification.
+**Status: Phase 2 — trải nghiệm đọc** (Phase 1 khung + audit + Expo SDK 56:
+2026-05-22; Phase 2: 2026-05-22). Đã có: duyệt truyện, chi tiết truyện, trình
+đọc chương (có lưu tiến độ + tuỳ chỉnh cỡ chữ/nền), tìm kiếm, theo dõi, lịch
+sử đọc. CHƯA bao gồm: IAP/Play Billing UI, push notification.
 
 Roadmap đầy đủ ở `docs/LO_TRINH_MOBILE_VA_THANH_TOAN.html` §5 (5 phase, ~14–18
-tuần). Hiện tại đã xong Phase 0 (quyết định chiến lược) + Phase 1 (khung).
+tuần). Đã xong Phase 0 (chiến lược) + Phase 1 (khung) + Phase 2 (đọc truyện).
 
 ## Cấu trúc
 
 ```
 apps/mobile/
 ├── App.tsx                          # Entry — Providers + RootNavigator
-├── app.json                         # Expo config (bundle id, plugins)
+├── app.config.ts                    # Expo config — apiUrl từ EXPO_PUBLIC_API_URL
+├── metro.config.js                  # Metro — resolve @web-truyen/shared
 ├── babel.config.js
-├── package.json                     # Expo SDK 51, RN 0.74, React Nav 6
+├── .env.example                     # Mẫu biến môi trường (copy sang .env)
+├── package.json                     # Expo SDK 56, RN 0.85, React Nav 7
 ├── tsconfig.json
 ├── src/
-│   ├── lib/api/
-│   │   ├── client.ts                # Axios + SecureStore Bearer token + single-flight refresh
-│   │   ├── auth.service.ts          # login / me / logout
-│   │   └── payments.service.ts      # Apple IAP / Google Play redeem clients
-│   ├── contexts/
-│   │   └── auth-context.tsx         # Boot from SecureStore; reacts to forced logout
-│   ├── navigation/index.tsx         # Conditional Stack: Login | Home
-│   └── screens/
-│       ├── LoginScreen.tsx
-│       └── HomeScreen.tsx
+│   ├── theme/                       # Token màu / spacing / theme cho trình đọc
+│   ├── lib/
+│   │   ├── api/                     # client.ts + types.ts + *.service.ts (stories, chapters,
+│   │   │                            #   search, categories, reading-history, follows, auth, payments)
+│   │   ├── hooks/                   # React Query hooks (stories, chapters, search, library...)
+│   │   ├── html.ts                  # HTML → block parser cho trình đọc
+│   │   ├── format.ts, url.ts        # Format số/ngày, resolve URL ảnh
+│   ├── contexts/auth-context.tsx    # Boot từ SecureStore; xử lý forced logout
+│   ├── components/                  # StoryCard, StoryRow, StoryCover, StoryListItem, ui
+│   ├── navigation/                  # Root Stack (Login | Tabs | StoryDetail | Reader) + types
+│   └── screens/                     # Home, Search, Library, Profile, StoryDetail, Reader, Login
 └── README.md (this file)
 ```
 
@@ -41,48 +45,70 @@ apps/mobile/
 
 ## Setup lần đầu (chưa chạy)
 
-Repo hiện chỉ có code source — chưa cài Expo deps để tránh bloat ~500MB
-node_modules. Khi sẵn sàng dev:
+`apps/mobile` là project pnpm **độc lập** (cố ý loại khỏi `pnpm-workspace.yaml`
+để Expo ~500MB không bị hoist vào Docker build của backend/frontend). Vì vậy
+phải cài riêng — không dùng `pnpm install` ở root:
 
 ```bash
-# Từ root project
-pnpm install                          # cài Expo + RN + React Navigation cho apps/mobile
-
-# Chạy Metro bundler
-pnpm --filter @web-truyen/mobile start
-
-# Hoặc trực tiếp
 cd apps/mobile
-pnpm exec expo start
+pnpm install --ignore-workspace   # cài độc lập, bỏ qua workspace ở root
+cp .env.example .env              # rồi chỉnh EXPO_PUBLIC_API_URL theo máy
+
+pnpm start                        # chạy Metro bundler (= expo start)
 ```
 
+`--ignore-workspace` là bắt buộc: nếu thiếu, pnpm sẽ leo lên `pnpm-workspace.yaml`
+ở root và cài nhầm chỗ.
+
 Quét QR bằng Expo Go (iOS / Android), hoặc nhấn `i` (iOS Sim) / `a` (Android
-Emulator). Android Emulator gọi backend qua `10.0.2.2:3001` (đã set trong
-`app.json` → `extra.apiUrl`); iOS Sim dùng `localhost:3001` — sửa
-`apiUrl` trong `app.json` nếu cần.
+Emulator).
+
+### Cấu hình API URL
+
+App đọc `EXPO_PUBLIC_API_URL` từ `.env`. Copy mẫu rồi chỉnh theo máy:
+
+```bash
+cp .env.example .env
+```
+
+Port phải khớp backend (`apps/backend/.env` → `PORT`, hiện là `3009`). Host
+tuỳ nơi chạy app:
+
+| Chạy ở đâu | EXPO_PUBLIC_API_URL |
+|---|---|
+| Android emulator | `http://10.0.2.2:3009/api` |
+| iOS simulator | `http://localhost:3009/api` |
+| Máy thật (Expo Go) | `http://<IP-LAN-máy-bạn>:3009/api` |
 
 ## Backend yêu cầu
 
 Mobile gọi REST giống web. Endpoint hiện đã có:
 
 - `POST /auth/login` — trả `{ accessToken, refreshToken, user }`.
-- `POST /auth/refresh` — body `{ refreshToken }`.
-- `GET /auth/me` — Bearer required.
+- `POST /auth/refresh` — body `{ refreshToken }`, trả `{ accessToken }`.
+- `GET /auth/me` — Bearer required, trả `{ user }`.
 - `POST /payments/apple/redeem` — `{ productId, transactionId, receipt }`.
 - `POST /payments/google/redeem` — `{ productId, purchaseToken }`.
 
-> ⚠️ Cần kiểm tra `/auth/login` có trả `refreshToken` trong body không —
-> web hiện đang đặt vào HttpOnly cookie. Nếu chưa, thêm field này khi
-> client gọi từ user-agent mobile (phát hiện qua header / query).
+### Token trả về body (X-Client-Type)
 
-## Còn lại để hoàn thành mobile app (Phase 2 → 5)
+Backend mặc định bóc `accessToken`/`refreshToken` khỏi body và đặt vào cookie
+HttpOnly (phục vụ web). Mobile không có cookie jar nên client gửi header
+`X-Client-Type: mobile` trên mọi request — `CookieInterceptor` thấy header này
+sẽ **giữ token trong body** và không set cookie. Web không gửi header → hành vi
+cũ giữ nguyên.
 
-- [ ] Phase 2 — danh sách truyện, chi tiết truyện, đọc chương, tìm kiếm,
-      lịch sử đọc, follow/favorite. Tái dùng React Query patterns từ web.
-- [ ] Phase 3 — IAP UI: pick coin package → mở Apple/Google native sheet
-      qua `expo-in-app-purchases` (cần eject hoặc dev build) →
-      `PaymentsApi.redeemAppleIap` / `redeemGooglePlay`. Compliance: thêm
-      luồng "xóa tài khoản trong app" (Apple §5.1.1(v)), report/block UGC.
+## Còn lại để hoàn thành mobile app (Phase 3 → 5)
+
+- [x] Phase 2 — duyệt truyện (5 list trang chủ), chi tiết truyện, trình đọc
+      chương (HTML→block, lưu tiến độ, cỡ chữ + nền sáng/sepia/tối), tìm kiếm
+      + lọc thể loại, theo dõi, lịch sử đọc. Mở khoá chương/truyện bằng xu có
+      sẵn ngay trong trình đọc (spend-side — hợp lệ).
+- [ ] Phase 3 — IAP UI: pick coin package → mở Apple/Google native sheet →
+      `PaymentsApi.redeemAppleIap` / `redeemGooglePlay`. LƯU Ý:
+      `expo-in-app-purchases` đã ngừng phát triển — dùng `react-native-iap`,
+      `expo-iap` hoặc RevenueCat (cần dev build). Compliance: thêm luồng
+      "xóa tài khoản trong app" (Apple §5.1.1(v)), report/block UGC.
 - [ ] Phase 4 — push (APNs/FCM) qua `expo-notifications`, dark mode,
       offline cache truyện đã mua.
 - [ ] Phase 5 — store listing (App Store Connect + Google Play Console),
