@@ -3,6 +3,7 @@
 # =====================================================================
 # Dùng:
 #   pnpm docker:local         -> build + up -d toàn bộ stack
+#   pnpm docker:local:setup   -> thiết lập Garage (chạy 1 lần sau lần đầu)
 #   pnpm docker:local:down    -> dừng & gỡ container
 #   pnpm docker:local:logs    -> xem log
 # Tương đương:
