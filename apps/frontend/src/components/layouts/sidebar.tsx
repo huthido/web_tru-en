@@ -5,7 +5,14 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Compass, Library, Clock, Bookmark, Heart, Upload, LayoutDashboard, Wallet, Settings, BookOpen, HelpCircle, type LucideIcon } from 'lucide-react';
+import { Home, Compass, Library, Clock, Bookmark, Heart, Upload, LayoutDashboard, Wallet, Settings, BookOpen, HelpCircle, LogIn, type LucideIcon } from 'lucide-react';
+
+/** Nhãn vai trò hiển thị dưới tên người dùng. */
+function roleLabel(role?: string): string {
+  if (role === 'ADMIN') return 'Quản trị viên';
+  if (role === 'AUTHOR') return 'Tác giả';
+  return 'Thành viên';
+}
 
 interface NavLink {
   href: string;
@@ -110,11 +117,49 @@ export function Sidebar() {
           ))}
         </nav>
 
-        {/* Secondary section */}
+        {/* Secondary section + người dùng đăng nhập (đáy sidebar — theo theme) */}
         <div className="px-3 pt-5 mt-2 border-t border-outline-variant/30 space-y-1.5">
           {bottomLinks.map((l) => (
             <NavRow key={l.href} link={l} />
           ))}
+
+          {user ? (
+            <Link
+              href="/profile"
+              aria-label="Trang cá nhân"
+              className="mt-2 flex items-center gap-3 p-2 rounded-lg hover:bg-surface-variant transition-colors"
+            >
+              <span className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden flex-shrink-0">
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.displayName || user.username || 'Avatar'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-sm font-bold text-on-primary-container">
+                    {(user.displayName || user.username || '?').charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-on-surface truncate">
+                  {user.displayName || user.username}
+                </span>
+                <span className="block text-[10px] uppercase tracking-wider text-on-surface-variant">
+                  {roleLabel(user.role)}
+                </span>
+              </span>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="mt-2 flex items-center justify-center gap-2 p-3 rounded-lg bg-primary hover:bg-primary/90 text-on-primary text-sm font-medium transition-colors"
+            >
+              <LogIn size={18} />
+              Đăng nhập
+            </Link>
+          )}
         </div>
       </aside>
 
