@@ -21,6 +21,8 @@ const config: ExpoConfig = {
   scheme: 'webtruyen',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
+  // Native only — no web target (expo-secure-store has no web support).
+  platforms: ['ios', 'android'],
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.hungyeu.webtruyen',
