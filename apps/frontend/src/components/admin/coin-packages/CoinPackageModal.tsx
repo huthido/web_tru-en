@@ -131,7 +131,7 @@ export function CoinPackageModal({
                                     type="checkbox"
                                     checked={formData.isActive}
                                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                    className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
+                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                 />
                                 <span className="text-sm font-medium text-on-surface-variant">
                                     Đang hoạt động (Hiển thị cho người dùng)
@@ -150,7 +150,7 @@ export function CoinPackageModal({
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                className="flex-1 px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                             >
                                 {isLoading ? (
                                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

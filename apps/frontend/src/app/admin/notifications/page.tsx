@@ -183,7 +183,7 @@ export default function AdminNotificationsPage() {
                                 onClick={() => setViewMode('grid')}
                                 className={`p-2 rounded transition-colors ${
                                     viewMode === 'grid'
-                                        ? 'bg-blue-600 text-white'
+                                        ? 'bg-primary text-on-primary'
                                         : 'text-on-surface-variant hover:bg-surface-container-high'
                                 }`}
                                 title="Dạng lưới"
@@ -194,7 +194,7 @@ export default function AdminNotificationsPage() {
                                 onClick={() => setViewMode('list')}
                                 className={`p-2 rounded transition-colors ${
                                     viewMode === 'list'
-                                        ? 'bg-blue-600 text-white'
+                                        ? 'bg-primary text-on-primary'
                                         : 'text-on-surface-variant hover:bg-surface-container-high'
                                 }`}
                                 title="Dạng danh sách"
@@ -204,7 +204,7 @@ export default function AdminNotificationsPage() {
                         </div>
                         <Link
                             href="/admin/notifications/create"
-                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors inline-flex items-center gap-2 shadow-lg shadow-blue-500/30"
+                            className="px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors inline-flex items-center gap-2 shadow-lg shadow-blue-500/30"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -295,7 +295,7 @@ export default function AdminNotificationsPage() {
                         </p>
                         <Link
                             href="/admin/notifications/create"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

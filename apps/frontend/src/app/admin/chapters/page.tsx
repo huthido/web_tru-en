@@ -420,7 +420,7 @@ export default function AdminChaptersPage() {
                                                                 key={pageNum}
                                                                 onClick={() => setPage(pageNum)}
                                                                 className={`px-3 py-1 min-w-[2.5rem] rounded-lg text-sm font-medium transition-colors ${pageNum === currentPage
-                                                                    ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                                                    ? 'bg-primary text-on-primary hover:bg-blue-600'
                                                                     : 'border border-outline-variant text-on-surface-variant hover:bg-surface-container-high'
                                                                     }`}
                                                             >
@@ -532,7 +532,7 @@ function AdminPriceCell({
                 <button
                     onClick={save}
                     disabled={saving}
-                    className="px-2 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors disabled:opacity-50"
+                    className="px-2 py-1 text-xs bg-primary hover:bg-primary/90 text-on-primary rounded transition-colors disabled:opacity-50"
                 >
                     {saving ? '...' : 'Lưu'}
                 </button>

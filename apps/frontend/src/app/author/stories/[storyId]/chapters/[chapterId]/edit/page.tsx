@@ -135,7 +135,7 @@ export default function EditChapterPage() {
                                     </p>
                                     <Link
                                         href={`/author/stories/${storySlug}/chapters`}
-                                        className="inline-block px-6 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                                        className="inline-block px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors"
                                     >
                                         Quay lại
                                     </Link>
@@ -253,7 +253,7 @@ export default function EditChapterPage() {
                                     <button
                                         type="submit"
                                         disabled={updateMutation.isPending || formData.content.length < 100}
-                                        className="px-6 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {updateMutation.isPending ? 'Đang cập nhật...' : 'Cập nhật chương'}
                                     </button>

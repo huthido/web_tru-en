@@ -86,7 +86,7 @@ export default function Home() {
                       {continueReading.length > 0 && (
                         <Link
                           href="/history"
-                          className="text-sm md:text-base text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-semibold transition-colors duration-200 flex items-center gap-1 group"
+                          className="text-sm md:text-base text-primary hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-semibold transition-colors duration-200 flex items-center gap-1 group"
                         >
                           <span>Xem tất cả</span>
                           <svg

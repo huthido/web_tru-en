@@ -46,7 +46,7 @@ export default function ForgotPasswordPage() {
               </p>
               <Link
                 href="/login"
-                className="w-full h-12 flex items-center justify-center rounded-[10px] text-white font-medium bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition-all duration-300 shadow-md"
+                className="w-full h-12 flex items-center justify-center rounded-[10px] text-on-primary font-medium bg-primary hover:bg-primary/90 transition-all duration-300 shadow-md"
               >
                 Quay lại đăng nhập
               </Link>
@@ -75,14 +75,14 @@ export default function ForgotPasswordPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     placeholder="email@example.com"
-                    className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant"
+                    className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 flex items-center justify-center rounded-[10px] text-white font-medium text-lg bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
+                  className="w-full h-12 flex items-center justify-center rounded-[10px] text-on-primary font-medium text-lg bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
                 >
                   {isLoading ? 'Đang gửi...' : 'Gửi link đặt lại'}
                 </button>

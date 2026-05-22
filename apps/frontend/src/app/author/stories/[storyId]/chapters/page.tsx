@@ -189,7 +189,7 @@ export default function ChapterManagementPage() {
                                         </Link>
                                         <Link
                                             href={`/author/stories/${storySlug}/chapters/create`}
-                                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
+                                            className="px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
                                         >
                                             <svg
                                                 width="20"
@@ -331,7 +331,7 @@ export default function ChapterManagementPage() {
                                     {allChapters.length === 0 && (
                                         <Link
                                             href={`/author/stories/${storySlug}/chapters/create`}
-                                            className="inline-block px-6 py-3 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                                            className="inline-block px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors"
                                         >
                                             Tạo chương đầu tiên
                                         </Link>
@@ -477,7 +477,7 @@ export default function ChapterManagementPage() {
                                                                 key={p}
                                                                 onClick={() => setPage(p)}
                                                                 className={`min-w-[40px] px-3 py-2 rounded-lg border transition-colors ${page === p
-                                                                    ? 'bg-blue-500 dark:bg-blue-600 border-blue-500 dark:border-blue-600 text-white'
+                                                                    ? 'bg-primary border-primary text-on-primary'
                                                                     : 'border-outline-variant bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                                                                     }`}
                                                             >

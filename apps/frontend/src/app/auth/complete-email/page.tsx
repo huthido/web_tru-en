@@ -127,7 +127,7 @@ export default function CompleteEmailPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-2 px-4 bg-primary hover:bg-primary/90 text-on-primary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Đang xử lý...' : 'Hoàn tất'}
               </button>

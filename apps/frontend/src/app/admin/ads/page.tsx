@@ -282,7 +282,7 @@ export default function AdminAdsPage() {
                                 setEditingAd(null);
                                 setShowCreateModal(true);
                             }}
-                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                            className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors"
                         >
                             + Tạo quảng cáo mới
                         </button>
@@ -398,7 +398,7 @@ export default function AdminAdsPage() {
                                                     type="checkbox"
                                                     checked={selectedAds.size === ads.length && ads.length > 0}
                                                     onChange={toggleSelectAll}
-                                                    className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
+                                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                                 />
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
@@ -436,7 +436,7 @@ export default function AdminAdsPage() {
                                                             type="checkbox"
                                                             checked={selectedAds.has(ad.id)}
                                                             onChange={() => toggleSelectAd(ad.id)}
-                                                            className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
+                                                            className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                                         />
                                                     </td>
                                                     <td className="px-6 py-4">
@@ -511,7 +511,7 @@ export default function AdminAdsPage() {
                                                                     setViewingAd(ad);
                                                                     setShowViewModal(true);
                                                                 }}
-                                                                className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                                                className="text-primary hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                                                                 title="Xem chi tiết"
                                                             >
                                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -524,7 +524,7 @@ export default function AdminAdsPage() {
                                                                     setEditingAd(ad);
                                                                     setShowCreateModal(true);
                                                                 }}
-                                                                className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                                                className="text-primary hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                                                                 title="Chỉnh sửa"
                                                             >
                                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -599,7 +599,7 @@ export default function AdminAdsPage() {
                                             key={idx}
                                             onClick={() => typeof pageNum === 'number' && setPage(pageNum)}
                                             disabled={pageNum === '...' || pageNum === page}
-                                            className={`px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm ${pageNum === page ? 'bg-blue-500 text-white border-blue-500' : ''
+                                            className={`px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm ${pageNum === page ? 'bg-primary text-on-primary border-blue-500' : ''
                                                 }`}
                                         >
                                             {pageNum}
@@ -839,7 +839,7 @@ function AdCard({
                     </button>
                     <button
                         onClick={onEdit}
-                        className="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+                        className="flex-1 px-3 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-sm font-medium transition-colors"
                     >
                         Sửa
                     </button>
@@ -1068,7 +1068,7 @@ function ViewAdModal({
                         <div className="flex gap-3 pt-4">
                             <button
                                 onClick={onClose}
-                                className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                                className="flex-1 px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors"
                             >
                                 Đóng
                             </button>
@@ -1342,7 +1342,7 @@ function AdFormModal({
                                                 type="button"
                                                 onClick={handleUpload}
                                                 disabled={isUploading}
-                                                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {isUploading ? 'Đang upload...' : 'Upload'}
                                             </button>
@@ -1479,7 +1479,7 @@ function AdFormModal({
                                 id="isActive"
                                 checked={formData.isActive}
                                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
+                                className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                             />
                             <label htmlFor="isActive" className="text-sm font-medium text-on-surface-variant">
                                 Đang hoạt động
@@ -1497,7 +1497,7 @@ function AdFormModal({
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isSubmitting ? 'Đang lưu...' : ad ? 'Cập nhật' : 'Tạo mới'}
                             </button>

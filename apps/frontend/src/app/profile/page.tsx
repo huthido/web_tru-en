@@ -353,7 +353,7 @@ function ProfileContent() {
                           }}
                           onFocus={() => setShowPasswordForm(true)}
                           placeholder={showPasswordForm ? 'Nhập mật khẩu mới' : '••••••••'}
-                          className="flex-1 px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+                          className="flex-1 px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
                         />
                         {showPasswordForm && (
                           <button
@@ -380,14 +380,14 @@ function ProfileContent() {
                             value={passwordData.currentPassword}
                             onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
                             placeholder="Mật khẩu hiện tại"
-                            className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+                            className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
                           />
                           <input
                             type="password"
                             value={passwordData.confirmNewPassword}
                             onChange={(e) => handlePasswordChange('confirmNewPassword', e.target.value)}
                             placeholder="Xác nhận mật khẩu mới"
-                            className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+                            className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
                           />
                         </div>
                       )}
@@ -405,7 +405,7 @@ function ProfileContent() {
                         type="text"
                         value={formData.displayName}
                         onChange={(e) => handleInputChange('displayName', e.target.value)}
-                        className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+                        className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
                       />
                       {errors.displayName && (
                         <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.displayName}</p>
@@ -417,7 +417,7 @@ function ProfileContent() {
                     <button
                       type="submit"
                       disabled={updateMutation.isPending || changePasswordMutation.isPending}
-                      className="w-full px-6 py-3 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      className="w-full px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary font-medium rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
                       {updateMutation.isPending || changePasswordMutation.isPending
                         ? 'Đang xử lý...'
@@ -474,7 +474,7 @@ function ProfileContent() {
                     <button
                       type="button"
                       onClick={handleOpenAvatarModal}
-                      className="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-300 hover:scale-105 active:scale-95"
+                      className="w-full px-4 py-3 bg-primary hover:bg-primary/90 text-on-primary font-medium rounded-lg transition-all duration-300 hover:scale-105 active:scale-95"
                     >
                       Thay ảnh
                     </button>
@@ -538,7 +538,7 @@ function ProfileContent() {
                   setErrors({ avatar: '' });
                 }}
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${uploadMode === 'url'
-                  ? 'text-blue-500 border-b-2 border-blue-500'
+                  ? 'text-primary border-b-2 border-blue-500'
                   : 'text-on-surface-variant hover:text-on-surface dark:hover:text-white'
                   }`}
               >
@@ -552,7 +552,7 @@ function ProfileContent() {
                   setErrors({ avatar: '' });
                 }}
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${uploadMode === 'upload'
-                  ? 'text-blue-500 border-b-2 border-blue-500'
+                  ? 'text-primary border-b-2 border-blue-500'
                   : 'text-on-surface-variant hover:text-on-surface dark:hover:text-white'
                   }`}
               >
@@ -575,7 +575,7 @@ function ProfileContent() {
                       if (errors.avatar) setErrors({ avatar: '' });
                     }}
                     placeholder="https://example.com/avatar.jpg"
-                    className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+                    className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
                   />
                 </div>
                 {errors.avatar && (
@@ -597,7 +597,7 @@ function ProfileContent() {
                     type="button"
                     onClick={handleSaveAvatarUrl}
                     disabled={updateMutation.isPending}
-                    className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {updateMutation.isPending ? 'Đang lưu...' : 'Lưu'}
                   </button>

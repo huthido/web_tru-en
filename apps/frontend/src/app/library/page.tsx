@@ -55,7 +55,7 @@ function LibraryContent() {
                   }}
                   className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'follows'
-                      ? 'bg-blue-500 text-white'
+                      ? 'bg-primary text-on-primary'
                       : 'text-on-surface-variant hover:bg-surface-container-high'
                   }`}
                 >
@@ -68,7 +68,7 @@ function LibraryContent() {
                   }}
                   className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'liked'
-                      ? 'bg-blue-500 text-white'
+                      ? 'bg-primary text-on-primary'
                       : 'text-on-surface-variant hover:bg-surface-container-high'
                   }`}
                 >
@@ -81,7 +81,7 @@ function LibraryContent() {
                   }}
                   className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'history'
-                      ? 'bg-blue-500 text-white'
+                      ? 'bg-primary text-on-primary'
                       : 'text-on-surface-variant hover:bg-surface-container-high'
                   }`}
                 >
@@ -146,7 +146,7 @@ function LibraryContent() {
                                   </div>
                                 )}
                               </div>
-                              <h3 className="text-sm font-medium text-on-surface line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                              <h3 className="text-sm font-medium text-on-surface line-clamp-2 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
                                 {story.title}
                               </h3>
                             </Link>
@@ -206,7 +206,7 @@ function LibraryContent() {
                                   </div>
                                 )}
                               </div>
-                              <h3 className="text-sm font-medium text-on-surface line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                              <h3 className="text-sm font-medium text-on-surface line-clamp-2 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
                                 {story.title}
                               </h3>
                             </Link>
@@ -260,7 +260,7 @@ function LibraryContent() {
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-lg font-semibold text-on-surface mb-1 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                <h3 className="text-lg font-semibold text-on-surface mb-1 line-clamp-2 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
                                   {item.story.title}
                                 </h3>
                                 <p className="text-sm text-on-surface-variant mb-2">

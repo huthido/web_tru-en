@@ -68,7 +68,7 @@ export default function FavoritesPage() {
                 </p>
                 <Link
                   href="/login"
-                  className="px-6 py-3 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                  className="px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary font-medium rounded-lg transition-colors"
                 >
                   Đăng nhập
                 </Link>
@@ -175,7 +175,7 @@ export default function FavoritesPage() {
                 </p>
                 <Link
                   href="/"
-                  className="px-6 py-3 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                  className="px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary font-medium rounded-lg transition-colors"
                 >
                   Khám phá truyện
                 </Link>

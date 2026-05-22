@@ -128,7 +128,7 @@ export default function RegisterPage() {
           </p>
           <Link
             href="/login"
-            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-block px-6 py-3 bg-primary text-on-primary rounded-lg hover:bg-blue-700 transition-colors"
           >
             Quay lại đăng nhập
           </Link>
@@ -334,7 +334,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 onFocus={() => setFocusedField('email')}
                 onBlur={() => setFocusedField(null)}
-                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
+                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                 placeholder="Email"
                 required
               />
@@ -356,7 +356,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 onFocus={() => setFocusedField('username')}
                 onBlur={() => setFocusedField(null)}
-                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
+                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                 placeholder="Username"
                 required
               />
@@ -378,7 +378,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
                 onFocus={() => setFocusedField('displayName')}
                 onBlur={() => setFocusedField(null)}
-                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
+                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                 placeholder="Tên hiển thị"
               />
             </div>
@@ -400,7 +400,7 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   onFocus={() => setFocusedField('password')}
                   onBlur={() => setFocusedField(null)}
-                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
+                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                   placeholder="Mật khẩu"
                   required
                 />
@@ -452,7 +452,7 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   onFocus={() => setFocusedField('confirmPassword')}
                   onBlur={() => setFocusedField(null)}
-                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
+                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                   placeholder="Xác nhận mật khẩu"
                   required
                 />
@@ -523,7 +523,7 @@ export default function RegisterPage() {
             Đã có tài khoản?{' '}
             <Link
               href="/login"
-              className="font-medium text-primary hover:underline transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-300"
+              className="font-medium text-primary hover:underline transition-all duration-300 hover:text-primary dark:hover:text-blue-300"
             >
               Đăng nhập
             </Link>

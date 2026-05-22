@@ -241,7 +241,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                                     {user.avatar ? (
                                         <img src={user.avatar} alt={user.username} className="w-8 h-8 rounded-full" />
                                     ) : (
-                                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+                                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm font-medium">
                                             {(user.displayName || user.username)[0].toUpperCase()}
                                         </div>
                                     )}

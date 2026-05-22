@@ -182,7 +182,7 @@ function StoriesContent() {
                                             value={search}
                                             onChange={(e) => setSearch(e.target.value)}
                                             placeholder="Tên truyện, tác giả, tag..."
-                                            className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-primary"
                                         />
                                     </div>
 
@@ -194,7 +194,7 @@ function StoriesContent() {
                                         <select
                                             value={selectedCategory}
                                             onChange={(e) => setSelectedCategory(e.target.value)}
-                                            className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-primary"
                                         >
                                             <option value="">Tất cả</option>
                                             {categories.map((cat: any) => (
@@ -213,7 +213,7 @@ function StoriesContent() {
                                         <select
                                             value={status}
                                             onChange={(e) => setStatus(e.target.value)}
-                                            className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-primary"
                                         >
                                             <option value="">Tất cả trạng thái</option>
                                             <option value="PUBLISHED">Đã xuất bản</option>
@@ -231,7 +231,7 @@ function StoriesContent() {
                                         <select
                                             value={sortBy}
                                             onChange={(e) => setSortBy(e.target.value as any)}
-                                            className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-primary"
                                         >
                                             <option value="newest">Mới nhất</option>
                                             <option value="popular">Phổ biến</option>
@@ -330,7 +330,7 @@ function StoriesContent() {
                                                             key={pageNum}
                                                             onClick={() => setPage(pageNum)}
                                                             className={`px-3 py-2 text-sm border rounded-lg transition-colors ${page === pageNum
-                                                                    ? 'bg-blue-500 text-white border-blue-500'
+                                                                    ? 'bg-primary text-on-primary border-blue-500'
                                                                     : 'bg-surface-container border-outline-variant text-on-surface-variant hover:bg-surface-container-high'
                                                                 }`}
                                                         >

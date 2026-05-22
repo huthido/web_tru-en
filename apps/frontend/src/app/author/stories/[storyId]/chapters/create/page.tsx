@@ -200,7 +200,7 @@ export default function CreateChapterPage() {
                                     <button
                                         type="submit"
                                         disabled={createMutation.isPending || formData.content.length < 100}
-                                        className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                                        className="px-8 py-2.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                                     >
                                         {createMutation.isPending ? (
                                             <>

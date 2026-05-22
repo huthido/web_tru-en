@@ -223,7 +223,7 @@ export default function AdminCategoriesPage() {
                         <RefreshButton onRefresh={() => refetch()} />
                         <button
                             onClick={startCreate}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
+                            className="px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
                         >
                             + Thêm thể loại
                         </button>
@@ -367,7 +367,7 @@ export default function AdminCategoriesPage() {
                                         updateMutation.isPending ||
                                         !formData.name.trim()
                                     }
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {editingCategory ? 'Cập nhật' : 'Tạo mới'}
                                 </button>
@@ -396,7 +396,7 @@ export default function AdminCategoriesPage() {
                                                 selectedCategories.size === paginatedCategories.length
                                             }
                                             onChange={handleSelectAll}
-                                            className="rounded border-outline-variant text-blue-600 focus:ring-primary"
+                                            className="rounded border-outline-variant text-primary focus:ring-primary"
                                         />
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
@@ -434,7 +434,7 @@ export default function AdminCategoriesPage() {
                                                     type="checkbox"
                                                     checked={selectedCategories.has(category.id)}
                                                     onChange={() => handleSelectCategory(category.id)}
-                                                    className="rounded border-outline-variant text-blue-600 focus:ring-primary"
+                                                    className="rounded border-outline-variant text-primary focus:ring-primary"
                                                 />
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">

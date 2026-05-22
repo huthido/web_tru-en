@@ -98,7 +98,7 @@ export default function AdPage() {
                             </h1>
                             <button
                                 onClick={handleContinue}
-                                className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+                                className="px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg"
                             >
                                 Tiếp tục đọc
                             </button>
@@ -121,7 +121,7 @@ export default function AdPage() {
                             <div className="mb-6">
                                 <Link
                                     href={returnUrl || (storySlug ? `/truyen/${storySlug}` : '/')}
-                                    className="text-blue-500 hover:text-primary mb-2 inline-block text-left"
+                                    className="text-primary hover:text-primary mb-2 inline-block text-left"
                                 >
                                     ← Quay lại
                                 </Link>

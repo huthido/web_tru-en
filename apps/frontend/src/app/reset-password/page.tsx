@@ -49,7 +49,7 @@ function ResetPasswordForm() {
   };
 
   const inputClass =
-    'w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant';
+    'w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant';
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-surface-container-low transition-colors duration-300">
@@ -67,7 +67,7 @@ function ResetPasswordForm() {
               </p>
               <Link
                 href="/forgot-password"
-                className="w-full h-12 flex items-center justify-center rounded-[10px] text-white font-medium bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition-all duration-300 shadow-md"
+                className="w-full h-12 flex items-center justify-center rounded-[10px] text-on-primary font-medium bg-primary hover:bg-primary/90 transition-all duration-300 shadow-md"
               >
                 Yêu cầu link mới
               </Link>
@@ -80,7 +80,7 @@ function ResetPasswordForm() {
               </p>
               <Link
                 href="/login"
-                className="w-full h-12 flex items-center justify-center rounded-[10px] text-white font-medium bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition-all duration-300 shadow-md"
+                className="w-full h-12 flex items-center justify-center rounded-[10px] text-on-primary font-medium bg-primary hover:bg-primary/90 transition-all duration-300 shadow-md"
               >
                 Đăng nhập
               </Link>
@@ -143,7 +143,7 @@ function ResetPasswordForm() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 flex items-center justify-center rounded-[10px] text-white font-medium text-lg bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
+                  className="w-full h-12 flex items-center justify-center rounded-[10px] text-on-primary font-medium text-lg bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md"
                 >
                   {isLoading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
                 </button>

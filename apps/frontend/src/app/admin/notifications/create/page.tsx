@@ -193,7 +193,7 @@ export default function CreateNotificationPage() {
                                 id="sendEmail"
                                 checked={formData.sendEmail}
                                 onChange={(e) => setFormData({ ...formData, sendEmail: e.target.checked })}
-                                className="w-5 h-5 text-blue-600 border-outline-variant rounded focus:ring-primary"
+                                className="w-5 h-5 text-primary border-outline-variant rounded focus:ring-primary"
                             />
                             <label
                                 htmlFor="sendEmail"
@@ -250,7 +250,7 @@ export default function CreateNotificationPage() {
                         <button
                             type="submit"
                             disabled={createMutation.isPending}
-                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                            className="px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                         >
                             {createMutation.isPending ? (
                                 <>

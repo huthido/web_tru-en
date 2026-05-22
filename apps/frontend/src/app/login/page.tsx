@@ -281,7 +281,7 @@ export default function LoginPage() {
                 onChange={(e) => setFormData({ ...formData, emailOrUsername: e.target.value })}
                 onFocus={() => setFocusedField('email')}
                 onBlur={() => setFocusedField(null)}
-                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
+                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                 placeholder="Email hoặc Username"
                 required
               />
@@ -304,7 +304,7 @@ export default function LoginPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   onFocus={() => setFocusedField('password')}
                   onBlur={() => setFocusedField(null)}
-                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
+                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                   placeholder="Mật khẩu"
                   required
                 />
@@ -366,7 +366,7 @@ export default function LoginPage() {
               </label>
               <Link
                 href="/forgot-password"
-                className="text-base text-primary hover:underline transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-300"
+                className="text-base text-primary hover:underline transition-all duration-300 hover:text-primary dark:hover:text-blue-300"
               >
                 Quên mật khẩu?
               </Link>
@@ -409,7 +409,7 @@ export default function LoginPage() {
               Chưa có tài khoản?{' '}
               <Link
                 href="/register"
-                className="font-medium text-primary hover:underline transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-300"
+                className="font-medium text-primary hover:underline transition-all duration-300 hover:text-primary dark:hover:text-blue-300"
               >
                 Đăng ký ngay
               </Link>

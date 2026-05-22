@@ -97,7 +97,7 @@ export default function AdminWalletsPage() {
                         />
                     </div>
                     <button type="submit" disabled={loading}
-                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50">
+                        className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium disabled:opacity-50">
                         {loading ? <Loader2 size={18} className="animate-spin" /> : 'Tra cứu'}
                     </button>
                 </form>
@@ -168,7 +168,7 @@ export default function AdminWalletsPage() {
                             </div>
                             <div className="md:col-span-1 flex items-end">
                                 <button type="submit" disabled={adjustBusy}
-                                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50">
+                                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium disabled:opacity-50">
                                     {adjustBusy ? <Loader2 size={16} className="animate-spin" /> : 'Áp dụng'}
                                 </button>
                             </div>

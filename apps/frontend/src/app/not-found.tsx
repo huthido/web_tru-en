@@ -18,7 +18,7 @@ export default function NotFound() {
         <div className="flex gap-4 justify-center">
           <Link
             href="/"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-6 py-3 bg-primary text-on-primary rounded-lg hover:bg-blue-700 transition-colors"
           >
             Về trang chủ
           </Link>

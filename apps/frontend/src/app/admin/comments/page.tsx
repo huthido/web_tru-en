@@ -253,7 +253,7 @@ export default function AdminCommentsPage() {
                             </button>
                             <button
                                 onClick={() => handleBulkModerate('restore')}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                className="px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-blue-700"
                             >
                                 Khôi phục
                             </button>
@@ -373,7 +373,7 @@ export default function AdminCommentsPage() {
                                                         <div>
                                                             <Link
                                                                 href={`/truyen/${comment.story.slug}`}
-                                                                className="text-blue-600 hover:underline text-sm font-medium"
+                                                                className="text-primary hover:underline text-sm font-medium"
                                                                 target="_blank"
                                                             >
                                                                 {comment.story.title}
@@ -535,7 +535,7 @@ export default function AdminCommentsPage() {
                                         <label className="block text-sm font-medium mb-1">Truyện</label>
                                         <Link
                                             href={`/truyen/${viewingComment.story?.slug}`}
-                                            className="text-blue-600 hover:underline"
+                                            className="text-primary hover:underline"
                                         >
                                             {viewingComment.story.title}
                                         </Link>

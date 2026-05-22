@@ -55,7 +55,7 @@ export default function AdminWithdrawalsPage() {
                             key={t.key}
                             onClick={() => setTab(t.key)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${tab === t.key
-                                ? 'bg-blue-600 text-white'
+                                ? 'bg-primary text-on-primary'
                                 : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
                                 }`}
                         >

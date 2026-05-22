@@ -195,7 +195,7 @@ export default function AdminSettingsPage() {
                                         type="button"
                                         onClick={() => logoInputRef.current?.click()}
                                         disabled={uploadLogoMutation.isPending}
-                                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                                        className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50"
                                     >
                                         {uploadLogoMutation.isPending ? 'Đang tải...' : formData.siteLogo ? 'Thay đổi logo' : 'Tải logo lên'}
                                     </button>
@@ -228,7 +228,7 @@ export default function AdminSettingsPage() {
                                         type="button"
                                         onClick={() => faviconInputRef.current?.click()}
                                         disabled={uploadFaviconMutation.isPending}
-                                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                                        className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50"
                                     >
                                         {uploadFaviconMutation.isPending ? 'Đang tải...' : formData.siteFavicon ? 'Thay đổi favicon' : 'Tải favicon lên'}
                                     </button>
@@ -410,7 +410,7 @@ export default function AdminSettingsPage() {
                                     type="checkbox"
                                     checked={formData.requireEmailVerification}
                                     onChange={(e) => setFormData({ ...formData, requireEmailVerification: e.target.checked })}
-                                    className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
+                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                 />
                             </div>
 
@@ -428,7 +428,7 @@ export default function AdminSettingsPage() {
                                     type="checkbox"
                                     checked={formData.allowCoinTransfer}
                                     onChange={(e) => setFormData({ ...formData, allowCoinTransfer: e.target.checked })}
-                                    className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
+                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                 />
                             </div>
 
@@ -509,7 +509,7 @@ export default function AdminSettingsPage() {
                         <button
                             onClick={handleSave}
                             disabled={updateMutation.isPending}
-                            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {updateMutation.isPending ? 'Đang lưu...' : 'Lưu cài đặt'}
                         </button>

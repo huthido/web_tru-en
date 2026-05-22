@@ -127,7 +127,7 @@ export default function AuthorDashboardPage() {
                                 </div>
                                 <Link
                                     href="/author/stories/create"
-                                    className="mt-4 md:mt-0 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
+                                    className="mt-4 md:mt-0 px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
                                 >
                                     <svg
                                         width="20"
@@ -270,7 +270,7 @@ export default function AuthorDashboardPage() {
                                             onClick={() => setViewMode('grid')}
                                             className={`px-4 py-2 transition-colors ${
                                                 viewMode === 'grid'
-                                                    ? 'bg-blue-600 text-white'
+                                                    ? 'bg-primary text-on-primary'
                                                     : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-low'
                                             }`}
                                         >
@@ -280,7 +280,7 @@ export default function AuthorDashboardPage() {
                                             onClick={() => setViewMode('list')}
                                             className={`px-4 py-2 transition-colors ${
                                                 viewMode === 'list'
-                                                    ? 'bg-blue-600 text-white'
+                                                    ? 'bg-primary text-on-primary'
                                                     : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-low'
                                             }`}
                                         >
@@ -305,7 +305,7 @@ export default function AuthorDashboardPage() {
                                 <p className="text-on-surface-variant mb-4">Bạn chưa có truyện nào</p>
                                 <Link
                                     href="/author/stories/create"
-                                    className="inline-block px-6 py-3 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                                    className="inline-block px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors"
                                 >
                                     Tạo truyện đầu tiên
                                 </Link>
@@ -370,7 +370,7 @@ export default function AuthorDashboardPage() {
                                                 {/* Content */}
                                                 <div className="p-4 flex flex-col flex-1">
                                                     <Link href={`/truyen/${story.slug}`}>
-                                                        <h3 className="text-base font-semibold text-on-surface mb-2 line-clamp-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                                        <h3 className="text-base font-semibold text-on-surface mb-2 line-clamp-1 hover:text-primary dark:hover:text-blue-400 transition-colors">
                                                             {story.title}
                                                         </h3>
                                                     </Link>
@@ -416,7 +416,7 @@ export default function AuthorDashboardPage() {
                                                             <button
                                                                 onClick={() => handlePublish(story.id, story.title, (story._count?.chapters || 0) > 0)}
                                                                 disabled={publishMutation.isPending || createApprovalMutation.isPending}
-                                                                className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                                                                className="w-full px-3 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-xs font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
                                                             >
                                                                 <Send className="w-4 h-4" />
                                                                 {(publishMutation.isPending || createApprovalMutation.isPending) 
@@ -469,7 +469,7 @@ export default function AuthorDashboardPage() {
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-start justify-between mb-2">
                                                             <Link href={`/truyen/${story.slug}`}>
-                                                                <h3 className="text-base font-semibold text-on-surface hover:text-blue-600 dark:hover:text-blue-400 transition-colors line-clamp-2">
+                                                                <h3 className="text-base font-semibold text-on-surface hover:text-primary dark:hover:text-blue-400 transition-colors line-clamp-2">
                                                                     {story.title}
                                                                 </h3>
                                                             </Link>
@@ -544,7 +544,7 @@ export default function AuthorDashboardPage() {
                                                                 <button
                                                                     onClick={() => handlePublish(story.id, story.title, (story._count?.chapters || 0) > 0)}
                                                                     disabled={publishMutation.isPending || createApprovalMutation.isPending}
-                                                                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
+                                                                    className="px-3 py-1.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-xs font-medium transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
                                                                 >
                                                                     <Send className="w-4 h-4" />
                                                                     {(publishMutation.isPending || createApprovalMutation.isPending) 

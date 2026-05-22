@@ -104,7 +104,7 @@ export default function VerifyEmailPage() {
             <div className="flex flex-col gap-3">
               <Link
                 href="/login"
-                className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                className="inline-block px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary font-medium rounded-lg transition-colors"
               >
                 Về trang đăng nhập
               </Link>

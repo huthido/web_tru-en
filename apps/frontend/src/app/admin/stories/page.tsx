@@ -359,7 +359,7 @@ export default function AdminStoriesPage() {
                                 </span>
                                 <button
                                     onClick={handleBulkToggleRecommended}
-                                    className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                    className="px-3 py-1.5 text-sm bg-primary text-on-primary rounded-lg hover:bg-blue-700 transition-colors"
                                 >
                                     Đổi trạng thái đề xuất
                                 </button>
@@ -411,7 +411,7 @@ export default function AdminStoriesPage() {
                                                 type="checkbox"
                                                 checked={selectedStories.size === filteredStories.length && filteredStories.length > 0}
                                                 onChange={handleSelectAll}
-                                                className="rounded border-outline-variant text-blue-600 focus:ring-primary"
+                                                className="rounded border-outline-variant text-primary focus:ring-primary"
                                             />
                                         </th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
@@ -442,7 +442,7 @@ export default function AdminStoriesPage() {
                                                     type="checkbox"
                                                     checked={selectedStories.has(story.id)}
                                                     onChange={() => handleSelectStory(story.id)}
-                                                    className="rounded border-outline-variant text-blue-600 focus:ring-primary"
+                                                    className="rounded border-outline-variant text-primary focus:ring-primary"
                                                 />
                                             </td>
                                             <td className="px-4 py-4">
@@ -459,7 +459,7 @@ export default function AdminStoriesPage() {
                                                     <div className="min-w-0 flex-1">
                                                         <Link
                                                             href={`/truyen/${story.slug}`}
-                                                            className="text-sm font-medium text-on-surface hover:text-blue-600 dark:hover:text-blue-400 truncate block"
+                                                            className="text-sm font-medium text-on-surface hover:text-primary dark:hover:text-blue-400 truncate block"
                                                         >
                                                             {story.title}
                                                         </Link>
@@ -530,7 +530,7 @@ export default function AdminStoriesPage() {
                                                     <Link
                                                         href={`/truyen/${story.slug}`}
                                                         target="_blank"
-                                                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                                        className="text-primary hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                                                     >
                                                         Xem
                                                     </Link>

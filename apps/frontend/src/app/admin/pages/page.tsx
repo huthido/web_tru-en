@@ -120,7 +120,7 @@ export default function AdminPagesPage() {
                         <RefreshButton onRefresh={refetch} />
                         <button
                             onClick={handleNew}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                            className="px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -191,7 +191,7 @@ export default function AdminPagesPage() {
                                     id="isActive"
                                     checked={formData.isActive}
                                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                    className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
+                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                 />
                                 <label htmlFor="isActive" className="text-sm text-on-surface-variant">
                                     Kích hoạt
@@ -201,7 +201,7 @@ export default function AdminPagesPage() {
                                 <button
                                     onClick={isCreating ? handleCreate : handleUpdate}
                                     disabled={createMutation.isPending || updateMutation.isPending}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                                    className="px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                                 >
                                     {isCreating ? 'Tạo' : 'Cập nhật'}
                                 </button>
@@ -266,7 +266,7 @@ export default function AdminPagesPage() {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => handleEdit(page)}
-                                                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                                        className="text-primary hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                                                     >
                                                         Sửa
                                                     </button>

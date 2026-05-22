@@ -213,7 +213,7 @@ export default function AdminApprovalsPage() {
                                 onClick={() => setViewMode('list')}
                                 className={`px-3 py-2 text-sm font-medium transition-colors ${
                                     viewMode === 'list'
-                                        ? 'bg-blue-500 text-white'
+                                        ? 'bg-primary text-on-primary'
                                         : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                                 }`}
                             >
@@ -223,7 +223,7 @@ export default function AdminApprovalsPage() {
                                 onClick={() => setViewMode('grid')}
                                 className={`px-3 py-2 text-sm font-medium transition-colors ${
                                     viewMode === 'grid'
-                                        ? 'bg-blue-500 text-white'
+                                        ? 'bg-primary text-on-primary'
                                         : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                                 }`}
                             >
@@ -364,7 +364,7 @@ export default function AdminApprovalsPage() {
                                         type="checkbox"
                                         checked={selectedRequests.size === sortedRequests.filter(r => r.status === 'PENDING').length && sortedRequests.filter(r => r.status === 'PENDING').length > 0}
                                         onChange={toggleSelectAll}
-                                        className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
+                                        className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                     />
                                     <span className="text-sm font-medium text-on-surface-variant">
                                         Chọn tất cả ({sortedRequests.filter(r => r.status === 'PENDING').length} yêu cầu đang chờ)
@@ -399,7 +399,7 @@ export default function AdminApprovalsPage() {
                                                             type="checkbox"
                                                             checked={selectedRequests.has(request.id)}
                                                             onChange={() => toggleSelectRequest(request.id)}
-                                                            className="w-5 h-5 text-blue-600 border-outline-variant rounded focus:ring-primary"
+                                                            className="w-5 h-5 text-primary border-outline-variant rounded focus:ring-primary"
                                                         />
                                                     </div>
                                                 )}
@@ -407,7 +407,7 @@ export default function AdminApprovalsPage() {
                                                     <span
                                                         className={`px-2 py-1 text-xs rounded-full ${
                                                             request.type === 'STORY_PUBLISH'
-                                                                ? 'bg-blue-500 text-white'
+                                                                ? 'bg-primary text-on-primary'
                                                                 : 'bg-green-500 text-white'
                                                         }`}
                                                     >
@@ -420,7 +420,7 @@ export default function AdminApprovalsPage() {
                                         {/* Content */}
                                         <div className="p-4">
                                             <h3 
-                                                className="text-base font-semibold text-on-surface mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                                                className="text-base font-semibold text-on-surface mb-2 line-clamp-2 cursor-pointer hover:text-primary dark:hover:text-blue-400"
                                                 onClick={() => {
                                                     setViewingRequest(request);
                                                     setShowViewModal(true);
@@ -499,7 +499,7 @@ export default function AdminApprovalsPage() {
                                                     type="checkbox"
                                                     checked={selectedRequests.has(request.id)}
                                                     onChange={() => toggleSelectRequest(request.id)}
-                                                    className="mt-2 w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
+                                                    className="mt-2 w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                                 />
                                             )}
                                             {request.story?.coverImage && (
@@ -541,7 +541,7 @@ export default function AdminApprovalsPage() {
                                                     </span>
                                                 </div>
                                                 <h3 
-                                                    className="text-lg font-semibold text-on-surface mb-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                                                    className="text-lg font-semibold text-on-surface mb-1 cursor-pointer hover:text-primary dark:hover:text-blue-400"
                                                     onClick={() => {
                                                         setViewingRequest(request);
                                                         setShowViewModal(true);
@@ -609,7 +609,7 @@ export default function AdminApprovalsPage() {
                                                 setViewingRequest(request);
                                                 setShowViewModal(true);
                                             }}
-                                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+                                            className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-sm font-medium transition-colors"
                                         >
                                             Chi tiết
                                         </button>
@@ -665,7 +665,7 @@ export default function AdminApprovalsPage() {
                                                 onClick={() => setPage(pageNum)}
                                                 className={`px-3 py-2 border rounded-lg text-sm transition-colors ${
                                                     page === pageNum
-                                                        ? 'bg-blue-500 text-white border-blue-500'
+                                                        ? 'bg-primary text-on-primary border-blue-500'
                                                         : 'border-outline-variant hover:bg-surface-container-high'
                                                 }`}
                                             >

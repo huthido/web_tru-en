@@ -46,7 +46,7 @@ export function RefreshButton({ queryKeys = [], onRefresh, className = '' }: Ref
         <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg ${className}`}
+            className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg ${className}`}
             title="Làm mới dữ liệu"
         >
             <svg

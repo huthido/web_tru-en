@@ -161,7 +161,7 @@ export default function CreateStoryPage() {
                                                 type="button"
                                                 onClick={() => fileInputRef.current?.click()}
                                                 disabled={uploading}
-                                                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {uploading ? 'Đang upload...' : 'Upload từ máy tính'}
                                             </button>
@@ -226,7 +226,7 @@ export default function CreateStoryPage() {
                                                             });
                                                         }
                                                     }}
-                                                    className="w-4 h-4 text-blue-600 rounded focus:ring-primary"
+                                                    className="w-4 h-4 text-primary rounded focus:ring-primary"
                                                 />
                                                 <span className="text-sm text-on-surface-variant">{category.name}</span>
                                             </label>
@@ -317,7 +317,7 @@ export default function CreateStoryPage() {
                                     <button
                                         type="submit"
                                         disabled={createMutation.isPending}
-                                        className="px-6 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                                        className="px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50"
                                     >
                                         {createMutation.isPending ? 'Đang tạo...' : 'Tạo truyện'}
                                     </button>

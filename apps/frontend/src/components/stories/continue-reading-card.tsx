@@ -57,7 +57,7 @@ export function ContinueReadingCard({ history, className = '' }: ContinueReading
         {/* Content */}
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           <div className="flex-1">
-            <h3 className="text-base md:text-lg font-bold text-on-surface mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+            <h3 className="text-base md:text-lg font-bold text-on-surface mb-2 line-clamp-2 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors duration-200">
               {history.story.title}
             </h3>
             <p className="text-sm text-on-surface-variant mb-3 line-clamp-1 font-medium">
@@ -103,7 +103,7 @@ export function ContinueReadingCard({ history, className = '' }: ContinueReading
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-on-surface-variant group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 group-hover:translate-x-0.5"
+              className="text-on-surface-variant group-hover:text-primary dark:group-hover:text-blue-400 transition-colors duration-300 group-hover:translate-x-0.5"
             >
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>

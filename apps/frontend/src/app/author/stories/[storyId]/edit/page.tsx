@@ -287,7 +287,7 @@ export default function EditStoryPage() {
                                                             });
                                                         }
                                                     }}
-                                                    className="rounded border-outline-variant text-blue-600 focus:ring-primary"
+                                                    className="rounded border-outline-variant text-primary focus:ring-primary"
                                                 />
                                                 <span className="text-sm text-on-surface-variant">
                                                     {category.name}
@@ -397,7 +397,7 @@ export default function EditStoryPage() {
                                     <button
                                         type="submit"
                                         disabled={updateMutation.isPending}
-                                        className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="flex-1 px-6 py-3 bg-primary text-on-primary rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {updateMutation.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
                                     </button>

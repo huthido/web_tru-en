@@ -174,7 +174,7 @@ function SearchContent() {
                                     )}
                                     <button
                                         type="submit"
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors shadow-sm"
                                     >
                                         Tìm
                                     </button>
@@ -322,7 +322,7 @@ function SearchContent() {
                                 </p>
                                 <Link
                                     href="/stories"
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors shadow-sm"
                                 >
                                     Khám phá tất cả truyện
                                 </Link>
@@ -364,7 +364,7 @@ function SearchContent() {
                                     </button>
                                     <Link
                                         href="/stories"
-                                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+                                        className="px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors shadow-sm"
                                     >
                                         Xem tất cả truyện
                                     </Link>

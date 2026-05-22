@@ -123,7 +123,7 @@ export default function NotificationsPage() {
                                         <button
                                             onClick={handleMarkAllAsRead}
                                             disabled={markAllAsReadMutation.isPending}
-                                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                                            className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                                         >
                                             {markAllAsReadMutation.isPending ? 'Đang xử lý...' : 'Đánh dấu tất cả đã đọc'}
                                         </button>

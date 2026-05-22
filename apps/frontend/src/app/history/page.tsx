@@ -171,7 +171,7 @@ function HistoryContent() {
                         {/* Story Info */}
                         <div className="flex-1 flex flex-col justify-between min-w-0">
                           <div>
-                            <h3 className="text-base md:text-lg font-semibold text-on-surface mb-1 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            <h3 className="text-base md:text-lg font-semibold text-on-surface mb-1 line-clamp-2 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
                               {item.story.title}
                             </h3>
                             <p className="text-sm text-on-surface-variant mb-2">
@@ -205,7 +205,7 @@ function HistoryContent() {
                               e.preventDefault();
                               window.location.href = `/stories/${item.story!.slug}/chapters/${item.chapter!.slug}`;
                             }}
-                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-300 whitespace-nowrap"
+                            className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary text-sm font-medium rounded-lg transition-colors duration-300 whitespace-nowrap"
                           >
                             Đọc tiếp
                           </button>
@@ -258,7 +258,7 @@ function HistoryContent() {
                                 onClick={() => setPage(pageNum)}
                                 className={`px-3 py-2 border rounded-lg text-sm transition-colors ${
                                   page === pageNum
-                                    ? 'bg-blue-500 text-white border-blue-500'
+                                    ? 'bg-primary text-on-primary border-blue-500'
                                     : 'border-outline-variant hover:bg-surface-container-high'
                                 }`}
                               >

@@ -429,7 +429,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                                     type="button"
                                     onClick={() => updateImageSize(selectedImage, size)}
                                     className={`px-2 py-1 rounded font-medium transition-colors ${customWidth === String(size)
-                                        ? 'bg-blue-500 text-white'
+                                        ? 'bg-primary text-on-primary'
                                         : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
                                         }`}
                                 >
@@ -472,7 +472,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                                     title={title}
                                     onClick={() => updateImageAlign(selectedImage, imageAlign === align ? '' : align)}
                                     className={`px-2 py-1 rounded font-medium transition-colors ${imageAlign === align
-                                        ? 'bg-blue-500 text-white'
+                                        ? 'bg-primary text-on-primary'
                                         : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
                                         }`}
                                 >
