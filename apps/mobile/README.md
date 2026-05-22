@@ -1,9 +1,13 @@
 # `apps/mobile` — Web Truyện HungYeu (Expo + React Native)
 
-**Status: Phase 2 — trải nghiệm đọc** (Phase 1 khung + audit + Expo SDK 56:
-2026-05-22; Phase 2: 2026-05-22). Đã có: duyệt truyện, chi tiết truyện, trình
-đọc chương (có lưu tiến độ + tuỳ chỉnh cỡ chữ/nền), tìm kiếm, theo dõi, lịch
-sử đọc. CHƯA bao gồm: IAP/Play Billing UI, push notification.
+**Status: Phase 2 — trải nghiệm đọc** (Phase 1 khung + audit: 2026-05-22;
+Phase 2: 2026-05-22). Đã có: duyệt truyện, chi tiết truyện, trình đọc chương
+(có lưu tiến độ + tuỳ chỉnh cỡ chữ/nền), tìm kiếm, theo dõi, lịch sử đọc.
+CHƯA bao gồm: IAP/Play Billing UI, push notification.
+
+> **Expo SDK 54** — chốt ở 54 (không phải bản mới nhất) để khớp với app
+> Expo Go ngoài store. Nếu nâng SDK cao hơn Expo Go hỗ trợ thì phải dùng
+> dev build (`npx expo run:android`) thay cho Expo Go.
 
 Roadmap đầy đủ ở `docs/LO_TRINH_MOBILE_VA_THANH_TOAN.html` §5 (5 phase, ~14–18
 tuần). Đã xong Phase 0 (chiến lược) + Phase 1 (khung) + Phase 2 (đọc truyện).
@@ -12,12 +16,13 @@ tuần). Đã xong Phase 0 (chiến lược) + Phase 1 (khung) + Phase 2 (đọc
 
 ```
 apps/mobile/
-├── App.tsx                          # Entry — Providers + RootNavigator
+├── index.js                         # Entry point (registerRootComponent)
+├── App.tsx                          # Root component — Providers + RootNavigator
 ├── app.config.ts                    # Expo config — apiUrl từ EXPO_PUBLIC_API_URL
-├── metro.config.js                  # Metro — resolve @web-truyen/shared
+├── metro.config.js                  # Metro config (mặc định Expo)
 ├── babel.config.js
 ├── .env.example                     # Mẫu biến môi trường (copy sang .env)
-├── package.json                     # Expo SDK 56, RN 0.85, React Nav 7
+├── package.json                     # Expo SDK 54, RN 0.81, React Nav 7
 ├── tsconfig.json
 ├── src/
 │   ├── theme/                       # Token màu / spacing / theme cho trình đọc
