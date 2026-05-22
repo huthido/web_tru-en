@@ -334,7 +334,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 onFocus={() => setFocusedField('email')}
                 onBlur={() => setFocusedField(null)}
-                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
+                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant hover:border-outline"
                 placeholder="Email"
                 required
               />
@@ -356,7 +356,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 onFocus={() => setFocusedField('username')}
                 onBlur={() => setFocusedField(null)}
-                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
+                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant hover:border-outline"
                 placeholder="Username"
                 required
               />
@@ -378,7 +378,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
                 onFocus={() => setFocusedField('displayName')}
                 onBlur={() => setFocusedField(null)}
-                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
+                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant hover:border-outline"
                 placeholder="Tên hiển thị"
               />
             </div>
@@ -400,7 +400,7 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   onFocus={() => setFocusedField('password')}
                   onBlur={() => setFocusedField(null)}
-                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
+                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant hover:border-outline"
                   placeholder="Mật khẩu"
                   required
                 />
@@ -452,7 +452,7 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   onFocus={() => setFocusedField('confirmPassword')}
                   onBlur={() => setFocusedField(null)}
-                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
+                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant hover:border-outline"
                   placeholder="Xác nhận mật khẩu"
                   required
                 />

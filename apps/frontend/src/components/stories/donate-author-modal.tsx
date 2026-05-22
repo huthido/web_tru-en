@@ -241,7 +241,7 @@ export function DonateAuthorModal({
                                     <button
                                         onClick={handleDonate}
                                         disabled={!canDonate}
-                                        className="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-lg hover:shadow-pink-200 dark:hover:shadow-pink-900/30 hover:scale-[1.02] active:scale-[0.98]"
+                                        className="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 disabled:from-surface-variant disabled:to-surface-variant disabled:cursor-not-allowed transition-all duration-300 hover:shadow-lg hover:shadow-pink-200 dark:hover:shadow-pink-900/30 hover:scale-[1.02] active:scale-[0.98]"
                                     >
                                         {donateMutation.isPending ? (
                                             <span className="flex items-center justify-center gap-2">

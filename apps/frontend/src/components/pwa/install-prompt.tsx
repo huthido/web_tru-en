@@ -82,7 +82,7 @@ export default function InstallPrompt() {
 
                 <button
                     onClick={handleDismiss}
-                    className="text-on-surface-variant hover:text-on-surface-variant dark:hover:text-gray-200 transition-colors"
+                    className="text-on-surface-variant hover:text-on-surface-variant hover:text-on-surface transition-colors"
                     aria-label="Close"
                 >
                     <X size={20} />

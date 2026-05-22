@@ -37,7 +37,7 @@ export function ContinueReadingCard({ history, className = '' }: ContinueReading
             />
           </div>
         ) : (
-          <div className="relative w-20 h-28 md:w-24 md:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 shadow-md flex items-center justify-center">
+          <div className="relative w-20 h-28 md:w-24 md:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-surface-variant shadow-md flex items-center justify-center">
             <svg
               width="32"
               height="32"

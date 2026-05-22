@@ -160,7 +160,7 @@ export default function RegistrationSuccessPage() {
               <button
                 onClick={handleResendEmail}
                 disabled={isResending || !email}
-                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-surface-variant disabled:dark:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors duration-200 flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-surface-variant disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors duration-200 flex items-center justify-center gap-2"
               >
                 {isResending ? (
                   <>

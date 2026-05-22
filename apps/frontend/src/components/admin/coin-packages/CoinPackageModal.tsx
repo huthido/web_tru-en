@@ -61,7 +61,7 @@ export function CoinPackageModal({
                         </h2>
                         <button
                             onClick={onClose}
-                            className="text-on-surface-variant hover:text-on-surface-variant dark:hover:text-gray-200"
+                            className="text-on-surface-variant hover:text-on-surface-variant hover:text-on-surface"
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M18 6L6 18M6 6l12 12" />

@@ -139,7 +139,7 @@ export default function AdminNotificationsPage() {
                 label: 'Thấp',
                 bg: 'bg-surface-container-high',
                 text: 'text-on-surface-variant',
-                dot: 'bg-gray-500',
+                dot: 'bg-outline',
             },
             NORMAL: {
                 label: 'Bình thường',
@@ -405,7 +405,7 @@ export default function AdminNotificationsPage() {
 
                                     {/* Status Indicator */}
                                     {!notification.isActive && (
-                                        <div className="absolute top-3 right-3 w-3 h-3 bg-gray-400 rounded-full" />
+                                        <div className="absolute top-3 right-3 w-3 h-3 bg-outline rounded-full" />
                                     )}
                                 </div>
                             );

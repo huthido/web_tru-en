@@ -259,7 +259,7 @@ export default function AdminCommentsPage() {
                             </button>
                             <button
                                 onClick={() => setSelectedComments(new Set())}
-                                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                                className="px-4 py-2 bg-surface-variant text-on-surface-variant rounded-lg hover:bg-surface-container-highest"
                             >
                                 Bỏ chọn
                             </button>

@@ -833,7 +833,7 @@ function AdCard({
                 <div className="flex gap-2">
                     <button
                         onClick={onView}
-                        className="flex-1 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
+                        className="flex-1 px-3 py-2 bg-surface-variant hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-sm font-medium transition-colors"
                     >
                         Xem
                     </button>
@@ -887,7 +887,7 @@ function ViewAdModal({
                         <h2 className="text-2xl font-bold text-on-surface">Chi tiết quảng cáo</h2>
                         <button
                             onClick={onClose}
-                            className="text-on-surface-variant hover:text-on-surface-variant dark:hover:text-gray-200"
+                            className="text-on-surface-variant hover:text-on-surface-variant hover:text-on-surface"
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M18 6L6 18M6 6l12 12" />
@@ -1227,7 +1227,7 @@ function AdFormModal({
                         </h2>
                         <button
                             onClick={onClose}
-                            className="text-on-surface-variant hover:text-on-surface-variant dark:hover:text-gray-200"
+                            className="text-on-surface-variant hover:text-on-surface-variant hover:text-on-surface"
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M18 6L6 18M6 6l12 12" />

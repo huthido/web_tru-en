@@ -374,7 +374,7 @@ export default function AdminStoriesPage() {
                                         setSelectedStories(new Set());
                                         showToast('Đã bỏ chọn tất cả', 'info');
                                     }}
-                                    className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                                    className="px-3 py-1.5 text-sm bg-surface-variant text-on-surface-variant rounded-lg hover:bg-surface-container-highest transition-colors"
                                 >
                                     Bỏ chọn
                                 </button>
