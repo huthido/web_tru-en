@@ -5,7 +5,7 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Clock, Bookmark, Heart, LayoutDashboard, Settings, BookOpen, HelpCircle, type LucideIcon } from 'lucide-react';
+import { Home, Compass, Library, Clock, Bookmark, Heart, Upload, LayoutDashboard, Settings, BookOpen, HelpCircle, type LucideIcon } from 'lucide-react';
 
 interface NavLink {
   href: string;
@@ -48,13 +48,18 @@ export function Sidebar() {
 
   const canCreateStories = !!user;
 
+  // Danh mục bám theo mockup theme Stitch (Home · Discover · Library ·
+  // History · Bookmarks · Upload · Monetization). "Cửa hàng xu" trong theme
+  // chưa có route trong app nên tạm bỏ — thêm lại khi có trang.
   const links: NavLink[] = [
     { href: '/', label: 'Trang chủ', icon: Home, active: pathname === '/' },
-    { href: '/stories', label: 'Truyện', icon: BookOpen, active: pathname === '/stories', fillWhenActive: true },
+    { href: '/stories', label: 'Khám phá', icon: Compass, active: pathname === '/stories' },
+    { href: '/library', label: 'Thư viện', icon: Library, active: pathname === '/library' },
     { href: '/history', label: 'Lịch sử', icon: Clock, active: pathname === '/history' },
     { href: '/follows', label: 'Theo dõi', icon: Bookmark, active: pathname === '/follows', fillWhenActive: true },
     { href: '/favorites', label: 'Yêu thích', icon: Heart, active: pathname === '/favorites', fillWhenActive: true },
-    { href: '/author/dashboard', label: 'Tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
+    { href: '/author/stories/create', label: 'Đăng truyện', icon: Upload, active: pathname === '/author/stories/create', authOnly: true },
+    { href: '/author/dashboard', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
   ];
 
   // Secondary section, pinned to the bottom of the rail.
@@ -65,7 +70,7 @@ export function Sidebar() {
 
   const visible = links.filter((l) => !l.authOnly || canCreateStories);
   // Mobile bottom bar shows a compact subset.
-  const mobileHrefs = ['/', '/stories', '/history', '/author/dashboard', '/profile'];
+  const mobileHrefs = ['/', '/stories', '/library', '/history', '/profile'];
   const mobileLinks = [...links, ...bottomLinks].filter(
     (l) => mobileHrefs.includes(l.href) && (!l.authOnly || canCreateStories)
   );
