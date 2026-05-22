@@ -93,28 +93,45 @@ export default function LoginPage() {
           className="flex items-center transition-all duration-300 hover:opacity-80 hover:scale-105 active:scale-95"
         >
           <div className="relative w-16 h-16 md:w-20 md:h-20 transition-transform duration-300 hover:rotate-12">
-            <OptimizedImage
-              src="/HUNGYEUDENLOGO.png"
-              alt="Logo"
-              fill
-              objectFit="contain"
-              sizes={ImageSizes.logo}
-              quality={90}
-              placeholder="blur"
-              priority
-              className="dark:hidden"
-            />
-            <OptimizedImage
-              src="/HUNGYEULOGO.png"
-              alt="Logo"
-              fill
-              objectFit="contain"
-              sizes={ImageSizes.logo}
-              quality={90}
-              placeholder="blur"
-              priority
-              className="hidden dark:block"
-            />
+            {settings?.siteLogo ? (
+              /* Dùng logo cấu hình trong DB — đồng nhất với Header/Sidebar. */
+              <OptimizedImage
+                src={settings.siteLogo}
+                alt={settings.siteName || 'Logo'}
+                fill
+                objectFit="contain"
+                sizes={ImageSizes.logo}
+                quality={90}
+                placeholder="empty"
+                priority
+              />
+            ) : (
+              /* Fallback khi chưa cấu hình siteLogo. */
+              <>
+                <OptimizedImage
+                  src="/HUNGYEUDENLOGO.png"
+                  alt="Logo"
+                  fill
+                  objectFit="contain"
+                  sizes={ImageSizes.logo}
+                  quality={90}
+                  placeholder="empty"
+                  priority
+                  className="dark:hidden"
+                />
+                <OptimizedImage
+                  src="/HUNGYEULOGO.png"
+                  alt="Logo"
+                  fill
+                  objectFit="contain"
+                  sizes={ImageSizes.logo}
+                  quality={90}
+                  placeholder="empty"
+                  priority
+                  className="hidden dark:block"
+                />
+              </>
+            )}
           </div>
         </Link>
 
