@@ -1,26 +1,11 @@
-// Metro config — extends the Expo defaults so the app can import the
-// `@web-truyen/shared` package's TypeScript source.
+// Expo's default Metro config.
 //
-// apps/mobile is a STANDALONE pnpm project (intentionally excluded from
-// pnpm-workspace.yaml), so `@web-truyen/shared` is not installed as a
-// node_module. We point Metro at the package directory directly and add it
-// to watchFolders so Metro transpiles its `.ts` source.
+// `@web-truyen/shared` is currently consumed only through `import type`
+// (erased before bundling), so Metro needs no extra resolver wiring for it —
+// the tsconfig.json path alias is enough for type-checking.
+//
+// When a future phase imports shared code at *runtime*, re-add the package to
+// `watchFolders` + `resolver.extraNodeModules` here (Expo monorepo pattern).
 const { getDefaultConfig } = require('expo/metro-config');
-const path = require('path');
 
-const projectRoot = __dirname;
-const sharedPkg = path.resolve(projectRoot, '../../packages/shared');
-
-const config = getDefaultConfig(projectRoot);
-
-// Watch + transpile the shared package's source.
-config.watchFolders = [sharedPkg];
-
-// Resolve the bare specifier `@web-truyen/shared` to the package directory;
-// Metro then reads its package.json `main` (./src/index.ts).
-config.resolver.extraNodeModules = {
-  ...(config.resolver.extraNodeModules ?? {}),
-  '@web-truyen/shared': sharedPkg,
-};
-
-module.exports = config;
+module.exports = getDefaultConfig(__dirname);

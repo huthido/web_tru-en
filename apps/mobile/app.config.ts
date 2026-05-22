@@ -9,6 +9,9 @@ import type { ExpoConfig } from 'expo/config';
  *
  * Fallback host targets the Android emulator (10.0.2.2 = host loopback) on
  * the backend's local port (apps/backend/.env → PORT=3009).
+ *
+ * Native (Android / iOS) only — there is no `web` target: token storage uses
+ * expo-secure-store, which has no web implementation.
  */
 const config: ExpoConfig = {
   name: 'Web Truyện HungYeu',
@@ -27,9 +30,6 @@ const config: ExpoConfig = {
     adaptiveIcon: {
       backgroundColor: '#ffffff',
     },
-  },
-  web: {
-    favicon: './assets/favicon.png',
   },
   extra: {
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:3009/api',
