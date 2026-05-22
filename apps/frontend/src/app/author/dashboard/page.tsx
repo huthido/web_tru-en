@@ -16,10 +16,6 @@ import { UserRole } from '@shared/types';
 import { Story } from '@/lib/api/stories.service';
 import { useToastContext } from '@/components/providers/toast-provider';
 import { BookOpen, Eye, Star, Edit, Trash2, Send, LayoutGrid, List } from 'lucide-react';
-import { DonationEarningsCard } from '@/components/author/donation-earnings-card';
-import { ChapterSalesEarningsCard } from '@/components/author/chapter-sales-card';
-import { StorySalesEarningsCard } from '@/components/author/story-sales-card';
-import { TodayEarningsCard } from '@/components/author/today-earnings-card';
 
 export default function AuthorDashboardPage() {
     const router = useRouter();
@@ -144,10 +140,10 @@ export default function AuthorDashboardPage() {
                                     Tạo truyện mới
                                 </Link>
                                 <Link
-                                    href="/author/withdrawals"
-                                    className="mt-4 md:mt-0 md:ml-3 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
+                                    href="/author/earnings"
+                                    className="mt-4 md:mt-0 md:ml-3 px-6 py-3 bg-tertiary hover:bg-tertiary/90 text-on-tertiary rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
                                 >
-                                    Rút xu
+                                    Kiếm tiền
                                 </Link>
                             </div>
                         </div>
@@ -208,17 +204,7 @@ export default function AuthorDashboardPage() {
                             </div>
                         </div>
 
-                        {/* Today's revenue across all sources */}
-                        <TodayEarningsCard />
-
-                        {/* Donation earnings — author-only revenue breakdown */}
-                        <DonationEarningsCard />
-
-                        {/* Chapter-sales earnings — author-only revenue breakdown */}
-                        <ChapterSalesEarningsCard />
-
-                        {/* VIP story-sales earnings — author-only revenue breakdown */}
-                        <StorySalesEarningsCard />
+                        {/* Doanh thu đã chuyển sang trang Trung tâm Kiếm tiền (/author/earnings) */}
 
                         {/* Filters & View Toggle */}
                         <div className="bg-surface-container rounded-lg shadow-sm p-4 mb-6 border border-outline-variant">

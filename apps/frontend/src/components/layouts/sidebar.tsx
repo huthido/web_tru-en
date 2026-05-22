@@ -5,7 +5,7 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Compass, Library, Clock, Bookmark, Heart, Upload, LayoutDashboard, Settings, BookOpen, HelpCircle, type LucideIcon } from 'lucide-react';
+import { Home, Compass, Library, Clock, Bookmark, Heart, Upload, LayoutDashboard, Wallet, Settings, BookOpen, HelpCircle, type LucideIcon } from 'lucide-react';
 
 interface NavLink {
   href: string;
@@ -60,6 +60,7 @@ export function Sidebar() {
     { href: '/favorites', label: 'Yêu thích', icon: Heart, active: pathname === '/favorites', fillWhenActive: true },
     { href: '/author/stories/create', label: 'Đăng truyện', icon: Upload, active: pathname === '/author/stories/create', authOnly: true },
     { href: '/author/dashboard', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
+    { href: '/author/earnings', label: 'Kiếm tiền', icon: Wallet, active: pathname === '/author/earnings', authOnly: true },
   ];
 
   // Secondary section, pinned to the bottom of the rail.
