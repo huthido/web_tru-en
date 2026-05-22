@@ -1,12 +1,14 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { AuthApi, AuthUser } from '@/lib/api/auth.service';
 import { registerAuthFailureHandler, tokenStorage } from '@/lib/api/client';
+import { signInWithOAuth, type OAuthProvider } from '@/lib/api/oauth.service';
 
 interface AuthContextValue {
     user: AuthUser | null;
     isAuthenticated: boolean;
     isBooting: boolean;
     login: (emailOrUsername: string, password: string) => Promise<void>;
+    signInWith: (provider: OAuthProvider) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -53,14 +55,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(u);
     }, []);
 
+    const signInWith = useCallback(async (provider: OAuthProvider) => {
+        // signInWithOAuth stores tokens; then we fetch /auth/me to get the user.
+        await signInWithOAuth(provider);
+        const me = await AuthApi.me();
+        if (!me) throw new Error('Không lấy được thông tin tài khoản sau khi đăng nhập.');
+        setUser(me);
+    }, []);
+
     const logout = useCallback(async () => {
         await AuthApi.logout();
         setUser(null);
     }, []);
 
     const value = useMemo<AuthContextValue>(
-        () => ({ user, isAuthenticated: !!user, isBooting, login, logout }),
-        [user, isBooting, login, logout],
+        () => ({ user, isAuthenticated: !!user, isBooting, login, signInWith, logout }),
+        [user, isBooting, login, signInWith, logout],
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

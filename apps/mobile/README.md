@@ -1,9 +1,11 @@
 # `apps/mobile` — Web Truyện HungYeu (Expo + React Native)
 
-**Status: Phase 2 — trải nghiệm đọc** (Phase 1 khung + audit: 2026-05-22;
-Phase 2: 2026-05-22). Đã có: duyệt truyện, chi tiết truyện, trình đọc chương
-(có lưu tiến độ + tuỳ chỉnh cỡ chữ/nền), tìm kiếm, theo dõi, lịch sử đọc.
-CHƯA bao gồm: IAP/Play Billing UI, push notification.
+**Status: Phase 2 — trải nghiệm đọc + auth mở rộng** (Phase 1 khung + audit:
+2026-05-22; Phase 2: 2026-05-22; auth Google/Facebook + quên mật khẩu:
+2026-05-23). Đã có: duyệt truyện, chi tiết truyện, trình đọc chương (có lưu
+tiến độ + tuỳ chỉnh cỡ chữ/nền), tìm kiếm, theo dõi, lịch sử đọc, đăng nhập
+Google/Facebook, quên mật khẩu qua email. CHƯA bao gồm: IAP/Play Billing UI,
+push notification.
 
 > **Expo SDK 54** — chốt ở 54 (không phải bản mới nhất) để khớp với app
 > Expo Go ngoài store. Nếu nâng SDK cao hơn Expo Go hỗ trợ thì phải dùng

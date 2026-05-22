@@ -73,6 +73,30 @@ export class AuthController {
     return cookieOptions;
   }
 
+  // Mobile OAuth helpers — see /auth/google/mobile and the OAuth callbacks.
+
+  /** Build the deep link back into the native app for an OAuth result. */
+  private mobileAppRedirect(params: Record<string, string>): string {
+    const scheme = process.env.MOBILE_APP_SCHEME || 'webtruyen';
+    const qs = new URLSearchParams(params).toString();
+    return `${scheme}://auth${qs ? `?${qs}` : ''}`;
+  }
+
+  /**
+   * Mark this OAuth round-trip as originating from the mobile app. The cookie
+   * survives the Google/Facebook redirect (back to our domain) so the callback
+   * knows to redirect to the app deep link instead of the web frontend.
+   */
+  private setOauthPlatformCookie(res: Response, platform: 'mobile') {
+    res.cookie('oauth_platform', platform, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/',
+      maxAge: 5 * 60 * 1000, // 5 minutes — enough for the OAuth round-trip
+    });
+  }
+
   @Public()
   @Post('register')
   @UseInterceptors(CookieInterceptor)
@@ -278,6 +302,27 @@ export class AuthController {
   }
 
   // OAuth Routes
+
+  /**
+   * Mobile OAuth entry point. Sets a platform cookie that the callback
+   * inspects so it can redirect to the app's deep link, then jumps into the
+   * normal Google flow. Open this URL in WebBrowser.openAuthSessionAsync from
+   * the mobile app.
+   */
+  @Public()
+  @Get('google/mobile')
+  async googleMobileInit(@Res() res: Response) {
+    this.setOauthPlatformCookie(res, 'mobile');
+    return res.redirect('/api/auth/google');
+  }
+
+  @Public()
+  @Get('facebook/mobile')
+  async facebookMobileInit(@Res() res: Response) {
+    this.setOauthPlatformCookie(res, 'mobile');
+    return res.redirect('/api/auth/facebook');
+  }
+
   @Public()
   @Get('google')
   @UseGuards(AuthGuard('google'))
@@ -289,13 +334,23 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
+    const isMobile = req.cookies?.oauth_platform === 'mobile';
+    if (isMobile) {
+      res.clearCookie('oauth_platform', { path: '/' });
+    }
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
     try {
       const result = req.user as any;
 
       // Check if needs verification
       if (result.needsVerification) {
-        // User needs email verification
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        if (isMobile) {
+          return res.redirect(this.mobileAppRedirect({
+            error: 'verification_required',
+            email: result.email ?? '',
+          }));
+        }
         res.redirect(`${frontendUrl}/auth/registration-success?email=${encodeURIComponent(result.email)}&oauth=true`);
         return;
       }
@@ -308,12 +363,16 @@ export class AuthController {
       // Create one-time code (iOS Safari compatible)
       const code = await this.authService.createOneTimeCode(user.id);
 
+      if (isMobile) {
+        return res.redirect(this.mobileAppRedirect({ code }));
+      }
       // Redirect to frontend with code (NOT token)
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       res.redirect(`${frontendUrl}/auth/callback?code=${code}`);
     } catch (error) {
       this.logger.error('Google OAuth callback error:', error);
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      if (isMobile) {
+        return res.redirect(this.mobileAppRedirect({ error: 'oauth_failed' }));
+      }
       res.redirect(`${frontendUrl}/login?error=oauth_failed`);
     }
   }
@@ -321,49 +380,17 @@ export class AuthController {
   @Public()
   @Post('exchange')
   @HttpCode(HttpStatus.OK)
-  async exchange(@Req() req: Request, @Body() body: { code: string }, @Res() res: Response) {
-    try {
-      const { code } = body;
-      if (!code) {
-        throw new BadRequestException('Code is required');
-      }
-
-      // 🔥 DEBUG: Check request headers
-      this.logger.log(`Exchange request from: ${req.get('origin')} | User-Agent: ${req.get('user-agent')?.substring(0, 50)}`);
-      this.logger.log(`Request cookies: ${JSON.stringify(req.cookies)}`);
-
-      // Exchange code for tokens
-      const tokens = await this.authService.exchangeCode(code);
-
-      // 🍎 iOS Safari compatible cookie options
-      const cookieOptions = this.createCookieOptions(req);
-
-      // 🔥 DEBUG: Log what we're setting
-      this.logger.log(`Setting cookies with options: ${JSON.stringify(cookieOptions)}`);
-
-      res.cookie('access_token', tokens.accessToken, {
-        ...cookieOptions,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
-
-      res.cookie('refresh_token', tokens.refreshToken, {
-        ...cookieOptions,
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      });
-
-      this.logger.log(`✅ Cookies set successfully`);
-
-      return res.json({
-        success: true,
-        message: 'Authentication successful',
-      });
-    } catch (error) {
-      this.logger.error('Exchange error:', error);
-      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new UnauthorizedException('Failed to exchange code');
+  @UseInterceptors(CookieInterceptor)
+  async exchange(@Body() body: { code: string }) {
+    const { code } = body;
+    if (!code) {
+      throw new BadRequestException('Code is required');
     }
+    const tokens = await this.authService.exchangeCode(code);
+    // CookieInterceptor handles the web/mobile split via X-Client-Type:
+    // - Web: strips accessToken/refreshToken from body, sets HttpOnly cookies.
+    // - Mobile: keeps tokens in body, sets no cookies.
+    return { ...tokens, message: 'Authentication successful' };
   }
 
   @Public()
@@ -377,13 +404,22 @@ export class AuthController {
   @Get('facebook/callback')
   @UseGuards(AuthGuard('facebook'))
   async facebookAuthCallback(@Req() req: Request, @Res() res: Response) {
+    const isMobile = req.cookies?.oauth_platform === 'mobile';
+    if (isMobile) {
+      res.clearCookie('oauth_platform', { path: '/' });
+    }
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
     try {
       const result = req.user as any;
 
-      // Check if needs verification
       if (result.needsVerification) {
-        // User needs email verification
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        if (isMobile) {
+          return res.redirect(this.mobileAppRedirect({
+            error: 'verification_required',
+            email: result.email ?? '',
+          }));
+        }
         res.redirect(`${frontendUrl}/auth/registration-success?email=${encodeURIComponent(result.email)}&oauth=true`);
         return;
       }
@@ -399,8 +435,15 @@ export class AuthController {
       // Create one-time code (iOS Safari compatible)
       const code = await this.authService.createOneTimeCode(user.id);
 
-      // Redirect to frontend with code
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      if (isMobile) {
+        // Mobile flow: surface the needsEmail edge case as an error — the app
+        // has no complete-email screen yet. User can finish the flow on web.
+        if (needsEmail) {
+          return res.redirect(this.mobileAppRedirect({ error: 'email_required' }));
+        }
+        return res.redirect(this.mobileAppRedirect({ code }));
+      }
+
       if (needsEmail) {
         res.redirect(`${frontendUrl}/auth/complete-email?code=${code}&needsEmail=true`);
       } else {
@@ -408,7 +451,9 @@ export class AuthController {
       }
     } catch (error) {
       this.logger.error('Facebook OAuth callback error:', error);
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      if (isMobile) {
+        return res.redirect(this.mobileAppRedirect({ error: 'oauth_failed' }));
+      }
       res.redirect(`${frontendUrl}/login?error=oauth_failed`);
     }
   }
