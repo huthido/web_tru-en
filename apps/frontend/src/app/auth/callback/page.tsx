@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { authService } from '@/lib/api/auth.service';
+import { setSessionHint } from '@/lib/api/session-hint';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -25,6 +26,10 @@ export default function AuthCallbackPage() {
       try {
         // Exchange code for tokens (cookies will be set by backend)
         await authService.exchange(code);
+
+        // Đăng nhập OAuth thành công — bật cờ phiên để useAuth gọi /auth/me
+        // (login Google không đi qua loginMutation nên phải set thủ công).
+        setSessionHint(true);
 
         // Wait for cookies to be set
         await new Promise(resolve => setTimeout(resolve, 800));

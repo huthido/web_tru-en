@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
+import { setSessionHint } from '@/lib/api/session-hint';
 import Link from 'next/link';
 
 export default function VerifyEmailPage() {
@@ -31,6 +32,8 @@ export default function VerifyEmailPage() {
 
         // Reaching here without throwing means HTTP 2xx → verification succeeded.
         if (payload.user) {
+          // Xác thực email kèm auto-login → bật cờ phiên cho useAuth.
+          setSessionHint(true);
           queryClient.setQueryData(['auth', 'me'], payload.user);
         }
 

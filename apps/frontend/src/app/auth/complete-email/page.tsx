@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { authService } from '@/lib/api/auth.service';
+import { setSessionHint } from '@/lib/api/session-hint';
 import Link from 'next/link';
 
 export default function CompleteEmailPage() {
@@ -46,6 +47,9 @@ export default function CompleteEmailPage() {
 
       // Complete email with code (cookies will be set by backend)
       await authService.completeEmail(code, email);
+
+      // Bật cờ phiên — đăng nhập OAuth không đi qua loginMutation.
+      setSessionHint(true);
 
       // Wait a bit for cookies to be set
       await new Promise(resolve => setTimeout(resolve, 300));
