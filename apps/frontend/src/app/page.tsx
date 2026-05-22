@@ -58,7 +58,7 @@ export default function Home() {
       <Sidebar />
 
       {/* Main Content */}
-      <div className="md:ml-[120px] pb-16 md:pb-0">
+      <div className="md:ml-60 pb-16 md:pb-0">
         {/* Header */}
         <Header />
 

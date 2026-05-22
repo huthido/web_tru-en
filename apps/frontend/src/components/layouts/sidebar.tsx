@@ -6,7 +6,7 @@ import { ImageSizes } from '@/utils/image-utils';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Clock, Bookmark, Heart, LayoutDashboard, Settings, BookOpen, type LucideIcon } from 'lucide-react';
+import { Home, Clock, Bookmark, Heart, LayoutDashboard, Settings, BookOpen, HelpCircle, type LucideIcon } from 'lucide-react';
 
 interface NavLink {
   href: string;
@@ -17,6 +17,29 @@ interface NavLink {
   fillWhenActive?: boolean;
   /** Only show for authenticated users. */
   authOnly?: boolean;
+}
+
+/** A single sidebar row — icon + label, MD3 "Vivid Reader" style. */
+function NavRow({ link }: { link: NavLink }) {
+  const Icon = link.icon;
+  return (
+    <Link
+      href={link.href}
+      aria-label={link.label}
+      className={`flex items-center gap-4 p-3 transition-all duration-200 active:scale-[0.98] ${
+        link.active
+          ? 'text-primary font-bold bg-primary/10 border-r-4 border-primary rounded-l-lg'
+          : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded-lg'
+      }`}
+    >
+      <Icon
+        size={22}
+        className="flex-shrink-0"
+        fill={link.active && link.fillWhenActive ? 'currentColor' : 'none'}
+      />
+      <span className="text-sm">{link.label}</span>
+    </Link>
+  );
 }
 
 export function Sidebar() {
@@ -33,26 +56,33 @@ export function Sidebar() {
     { href: '/follows', label: 'Theo dõi', icon: Bookmark, active: pathname === '/follows', fillWhenActive: true },
     { href: '/favorites', label: 'Yêu thích', icon: Heart, active: pathname === '/favorites', fillWhenActive: true },
     { href: '/author/dashboard', label: 'Tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
+  ];
+
+  // Secondary section, pinned to the bottom of the rail.
+  const bottomLinks: NavLink[] = [
     { href: '/profile', label: 'Cài đặt', icon: Settings, active: pathname === '/profile' },
+    { href: '/gioi-thieu', label: 'Trợ giúp', icon: HelpCircle, active: pathname === '/gioi-thieu' },
   ];
 
   const visible = links.filter((l) => !l.authOnly || canCreateStories);
   // Mobile bottom bar shows a compact subset.
   const mobileHrefs = ['/', '/stories', '/history', '/author/dashboard', '/profile'];
-  const mobileLinks = visible.filter((l) => mobileHrefs.includes(l.href));
+  const mobileLinks = [...links, ...bottomLinks].filter(
+    (l) => mobileHrefs.includes(l.href) && (!l.authOnly || canCreateStories)
+  );
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[120px] flex-col items-center bg-surface-container border-r border-outline-variant/40 transition-colors duration-300 z-40">
-        <div className="flex flex-col items-center h-full py-8">
-          {/* Logo / wordmark */}
-          <Link
-            href="/"
-            aria-label="YÊU — Trang chủ"
-            className="relative w-[60px] h-[60px] flex-shrink-0 flex items-center justify-center transition-transform duration-300 hover:scale-110 active:scale-95 mb-12"
-          >
-            {settings?.siteLogo ? (
+      {/* Desktop Sidebar — Vivid Reader expanded rail */}
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col py-8 bg-surface-container border-r border-outline-variant/40 transition-colors duration-300 z-40">
+        {/* Logo / wordmark */}
+        <Link
+          href="/"
+          aria-label="YÊU — Trang chủ"
+          className="px-6 mb-10 flex items-center gap-3 transition-transform duration-300 hover:scale-[1.03] active:scale-95"
+        >
+          {settings?.siteLogo ? (
+            <span className="relative w-9 h-9 flex-shrink-0">
               <OptimizedImage
                 src={settings.siteLogo}
                 alt={settings.siteName || 'YÊU'}
@@ -63,33 +93,25 @@ export function Sidebar() {
                 placeholder="blur"
                 priority
               />
-            ) : (
-              <span className="font-display text-3xl font-extrabold tracking-tight text-primary">YÊU</span>
-            )}
-          </Link>
+            </span>
+          ) : (
+            <BookOpen size={30} className="text-primary flex-shrink-0" />
+          )}
+          <span className="font-display text-2xl font-extrabold tracking-tight text-primary">YÊU</span>
+        </Link>
 
-          {/* Navigation */}
-          <nav className="flex flex-col items-center gap-8 flex-1 justify-center">
-            {visible.map((l) => {
-              const Icon = l.icon;
-              return (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  aria-label={l.label}
-                  className={`w-[50px] h-[50px] flex items-center justify-center rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 ${
-                    l.active ? 'bg-primary/15' : 'bg-transparent hover:bg-surface-variant'
-                  }`}
-                >
-                  <Icon
-                    size={28}
-                    className={l.active ? 'text-primary' : 'text-on-surface-variant'}
-                    fill={l.active && l.fillWhenActive ? 'currentColor' : 'none'}
-                  />
-                </Link>
-              );
-            })}
-          </nav>
+        {/* Primary navigation */}
+        <nav className="flex-1 space-y-1.5 px-3">
+          {visible.map((l) => (
+            <NavRow key={l.href} link={l} />
+          ))}
+        </nav>
+
+        {/* Secondary section */}
+        <div className="px-3 pt-5 mt-2 border-t border-outline-variant/30 space-y-1.5">
+          {bottomLinks.map((l) => (
+            <NavRow key={l.href} link={l} />
+          ))}
         </div>
       </aside>
 

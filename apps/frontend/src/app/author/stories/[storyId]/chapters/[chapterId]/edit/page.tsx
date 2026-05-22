@@ -109,7 +109,7 @@ export default function EditChapterPage() {
             <ProtectedRoute>
                 <div className="min-h-screen bg-surface transition-colors duration-300">
                     <Sidebar />
-                    <div className="md:ml-[120px] pb-16 md:pb-0">
+                    <div className="md:ml-60 pb-16 md:pb-0">
                         <Header />
                         <div className="flex items-center justify-center min-h-[calc(100vh-60px)]">
                             <Loading message="Đang tải thông tin..." />
@@ -125,7 +125,7 @@ export default function EditChapterPage() {
             <ProtectedRoute>
                 <div className="min-h-screen bg-surface transition-colors duration-300">
                     <Sidebar />
-                    <div className="md:ml-[120px] pb-16 md:pb-0">
+                    <div className="md:ml-60 pb-16 md:pb-0">
                         <Header />
                         <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                             <div className="max-w-4xl mx-auto">
@@ -152,7 +152,7 @@ export default function EditChapterPage() {
         <ProtectedRoute>
             <div className="min-h-screen bg-surface transition-colors duration-300">
                 <Sidebar />
-                <div className="md:ml-[120px] pb-16 md:pb-0">
+                <div className="md:ml-60 pb-16 md:pb-0">
                     <Header />
                     <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                         <div className="max-w-4xl mx-auto">

@@ -173,7 +173,7 @@ export default function BookDetailPage() {
     return (
       <div className="min-h-screen bg-surface transition-colors duration-300">
         <Sidebar />
-        <div className="md:ml-[120px]">
+        <div className="md:ml-60">
           <Header />
           <div className="flex items-center justify-center min-h-[calc(100vh-60px)]">
             <Loading message="Đang tải thông tin sách..." />
@@ -187,7 +187,7 @@ export default function BookDetailPage() {
     return (
       <div className="min-h-screen bg-surface transition-colors duration-300">
         <Sidebar />
-        <div className="md:ml-[120px]">
+        <div className="md:ml-60">
           <Header />
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-60px)] gap-4">
             <h1 className="font-display text-2xl font-bold text-on-surface">Không tìm thấy sách</h1>
@@ -294,7 +294,7 @@ export default function BookDetailPage() {
     <div className="min-h-screen bg-surface transition-colors duration-300">
       <Sidebar />
 
-      <div className="md:ml-[120px]">
+      <div className="md:ml-60">
         <Header />
 
         <main className="pt-8 pb-12 px-4 md:px-6 max-w-7xl mx-auto">

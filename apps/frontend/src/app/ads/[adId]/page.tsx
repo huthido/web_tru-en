@@ -75,7 +75,7 @@ export default function AdPage() {
         return (
             <div className="min-h-screen bg-surface">
                 <Sidebar />
-                <div className="md:ml-[120px]">
+                <div className="md:ml-60">
                     <Header />
                     <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
                         <Loading />
@@ -89,7 +89,7 @@ export default function AdPage() {
         return (
             <div className="min-h-screen bg-surface">
                 <Sidebar />
-                <div className="md:ml-[120px]">
+                <div className="md:ml-60">
                     <Header />
                     <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
                         <div className="text-center">
@@ -112,7 +112,7 @@ export default function AdPage() {
     return (
         <div className="min-h-screen   transition-colors duration-300">
             <Sidebar />
-            <div className="md:ml-[120px] pb-16 md:pb-0">
+            <div className="md:ml-60 pb-16 md:pb-0">
                 <Header />
                 <main className="pt-2 md:pt-8 pb-6 md:pb-12 min-h-[calc(100vh-60px)]">
                     <div className="max-w-xs sm:max-w-sm md:max-w-lg lg:max-w-xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6">

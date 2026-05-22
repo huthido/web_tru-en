@@ -678,7 +678,7 @@ export default function ChapterReadingPage() {
         return (
             <div className="min-h-screen bg-surface">
                 <Sidebar />
-                <div className="md:ml-[120px]">
+                <div className="md:ml-60">
                     <Header />
                     <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
                         <Loading />
@@ -692,7 +692,7 @@ export default function ChapterReadingPage() {
         return (
             <div className="min-h-screen bg-surface">
                 <Sidebar />
-                <div className="md:ml-[120px]">
+                <div className="md:ml-60">
                     <Header />
                     <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
                         <div className="text-center">
@@ -715,7 +715,7 @@ export default function ChapterReadingPage() {
     return (
         <div className="min-h-screen bg-surface transition-colors duration-300">
             <Sidebar />
-            <div className="md:ml-[120px] pb-16 md:pb-0">
+            <div className="md:ml-60 pb-16 md:pb-0">
                 <Header />
 
                 {/* Top Banner Ad */}
