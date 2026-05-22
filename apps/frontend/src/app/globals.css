@@ -131,6 +131,26 @@ body {
   transition: background-color 300ms ease, color 300ms ease;
 }
 
+/* === O nhap lieu mac dinh theo theme ===
+   Nhieu input/textarea/select chi dat class dark:text-white ma THIEU class
+   nen -> che do toi bi chu trang tren nen trang (mac dinh trinh duyet).
+   Day la CSS thuong (khong boc @layer): specificity (0,0,1) nen class
+   utility nen/chu van thang; input/option nao thieu thi co mau hop ly o
+   ca light lan dark. Style option la cach duy nhat chinh nen danh sach
+   xo xuong cua select. :where() -> khong dung toi checkbox/radio. */
+input:where(:not([type='checkbox']):not([type='radio'])),
+textarea,
+select,
+option {
+  background-color: rgb(var(--md-surface-container));
+  color: rgb(var(--md-on-surface));
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgb(var(--md-on-surface-variant));
+}
+
 /* Vivid Reader — glassmorphism surface used for cards & overlays. */
 .glass-card {
   background: rgb(var(--md-surface-container) / 0.7);

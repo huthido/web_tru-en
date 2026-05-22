@@ -46,6 +46,9 @@ garage.deploy.toml
 *.pem
 .cache/
 
+# Bản xuất từ Google Stitch (thiết kế) — không đưa vào repo
+docs/stitch_*
+
 # Database backups (transferred via scp/rsync, never commit)
 backup.sql
 pre_import_backup_*.sql

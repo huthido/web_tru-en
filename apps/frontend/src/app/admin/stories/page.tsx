@@ -10,6 +10,7 @@ import { Story } from '@/lib/api/stories.service';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import Link from 'next/link';
 import Image from 'next/image';
+import { isUsableImageSrc } from '@/utils/image-utils';
 import * as XLSX from 'xlsx';
 
 export default function AdminStoriesPage() {
@@ -447,7 +448,7 @@ export default function AdminStoriesPage() {
                                             </td>
                                             <td className="px-4 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    {story.coverImage && (
+                                                    {isUsableImageSrc(story.coverImage) && (
                                                         <Image
                                                             src={story.coverImage}
                                                             alt={story.title}

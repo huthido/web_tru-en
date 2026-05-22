@@ -7,6 +7,7 @@ import { useSettings, useUpdateSettings, useUploadLogo, useUploadFavicon } from 
 import { useToast } from '@/components/ui/toast';
 import { Loading } from '@/components/ui/loading';
 import Image from 'next/image';
+import { isUsableImageSrc } from '@/utils/image-utils';
 
 export default function AdminSettingsPage() {
     const { data: settings, isLoading } = useSettings();
@@ -152,7 +153,7 @@ export default function AdminSettingsPage() {
                                 type="text"
                                 value={formData.siteName}
                                 onChange={(e) => setFormData({ ...formData, siteName: e.target.value })}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
 
@@ -164,7 +165,7 @@ export default function AdminSettingsPage() {
                                 value={formData.siteDescription}
                                 onChange={(e) => setFormData({ ...formData, siteDescription: e.target.value })}
                                 rows={3}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
 
@@ -174,7 +175,7 @@ export default function AdminSettingsPage() {
                                     Logo website
                                 </label>
                                 <div className="space-y-3">
-                                    {formData.siteLogo && (
+                                    {isUsableImageSrc(formData.siteLogo) && (
                                         <div className="relative w-32 h-32 border border-outline-variant rounded-lg overflow-hidden">
                                             <Image
                                                 src={formData.siteLogo}
@@ -207,7 +208,7 @@ export default function AdminSettingsPage() {
                                     Favicon
                                 </label>
                                 <div className="space-y-3">
-                                    {formData.siteFavicon && (
+                                    {isUsableImageSrc(formData.siteFavicon) && (
                                         <div className="relative w-16 h-16 border border-outline-variant rounded-lg overflow-hidden">
                                             <Image
                                                 src={formData.siteFavicon}
@@ -250,7 +251,7 @@ export default function AdminSettingsPage() {
                                     type="email"
                                     value={formData.siteEmail}
                                     onChange={(e) => setFormData({ ...formData, siteEmail: e.target.value })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                 />
                             </div>
 
@@ -262,7 +263,7 @@ export default function AdminSettingsPage() {
                                     type="tel"
                                     value={formData.sitePhone}
                                     onChange={(e) => setFormData({ ...formData, sitePhone: e.target.value })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                 />
                             </div>
                         </div>
@@ -275,7 +276,7 @@ export default function AdminSettingsPage() {
                                 value={formData.siteAddress}
                                 onChange={(e) => setFormData({ ...formData, siteAddress: e.target.value })}
                                 rows={2}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
                     </div>
@@ -293,7 +294,7 @@ export default function AdminSettingsPage() {
                                     type="url"
                                     value={formData.siteFacebook}
                                     onChange={(e) => setFormData({ ...formData, siteFacebook: e.target.value })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     placeholder="https://facebook.com/..."
                                 />
                             </div>
@@ -306,7 +307,7 @@ export default function AdminSettingsPage() {
                                     type="url"
                                     value={formData.siteTwitter}
                                     onChange={(e) => setFormData({ ...formData, siteTwitter: e.target.value })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     placeholder="https://twitter.com/..."
                                 />
                             </div>
@@ -319,7 +320,7 @@ export default function AdminSettingsPage() {
                                     type="url"
                                     value={formData.siteX}
                                     onChange={(e) => setFormData({ ...formData, siteX: e.target.value })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     placeholder="https://x.com/..."
                                 />
                             </div>
@@ -332,7 +333,7 @@ export default function AdminSettingsPage() {
                                     type="url"
                                     value={formData.siteYoutube}
                                     onChange={(e) => setFormData({ ...formData, siteYoutube: e.target.value })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     placeholder="https://youtube.com/..."
                                 />
                             </div>
@@ -345,7 +346,7 @@ export default function AdminSettingsPage() {
                                     type="url"
                                     value={formData.siteInstagram}
                                     onChange={(e) => setFormData({ ...formData, siteInstagram: e.target.value })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     placeholder="https://instagram.com/..."
                                 />
                             </div>
@@ -358,7 +359,7 @@ export default function AdminSettingsPage() {
                                     type="url"
                                     value={formData.siteTikTok}
                                     onChange={(e) => setFormData({ ...formData, siteTikTok: e.target.value })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     placeholder="https://tiktok.com/@..."
                                 />
                             </div>
@@ -371,7 +372,7 @@ export default function AdminSettingsPage() {
                                     type="url"
                                     value={formData.siteLinkedIn}
                                     onChange={(e) => setFormData({ ...formData, siteLinkedIn: e.target.value })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     placeholder="https://linkedin.com/company/..."
                                 />
                             </div>
@@ -384,7 +385,7 @@ export default function AdminSettingsPage() {
                                     type="url"
                                     value={formData.siteThreads}
                                     onChange={(e) => setFormData({ ...formData, siteThreads: e.target.value })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     placeholder="https://threads.net/@..."
                                 />
                             </div>
@@ -456,7 +457,7 @@ export default function AdminSettingsPage() {
                                                 donationPlatformFeePercent: Number.isNaN(v) ? 0 : Math.max(0, Math.min(50, v)),
                                             });
                                         }}
-                                        className="w-28 px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                        className="w-28 px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     />
                                     <span className="text-sm text-on-surface-variant">%</span>
                                     <span className="text-xs text-on-surface-variant ml-2">
@@ -491,7 +492,7 @@ export default function AdminSettingsPage() {
                                                 chapterSaleFeePercent: Number.isNaN(v) ? 0 : Math.max(0, Math.min(50, v)),
                                             });
                                         }}
-                                        className="w-28 px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                        className="w-28 px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     />
                                     <span className="text-sm text-on-surface-variant">%</span>
                                     <span className="text-xs text-on-surface-variant ml-2">

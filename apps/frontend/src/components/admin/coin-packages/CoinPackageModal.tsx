@@ -79,7 +79,7 @@ export function CoinPackageModal({
                                 required
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                 placeholder="Ví dụ: Gói Cơ Bản"
                             />
                         </div>
@@ -95,7 +95,7 @@ export function CoinPackageModal({
                                     min="1"
                                     value={formData.coinAmount}
                                     onChange={(e) => setFormData({ ...formData, coinAmount: Number(e.target.value) })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                 />
                             </div>
                             <div>
@@ -108,7 +108,7 @@ export function CoinPackageModal({
                                     min="0"
                                     value={formData.priceVND}
                                     onChange={(e) => setFormData({ ...formData, priceVND: Number(e.target.value) })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                 />
                             </div>
                         </div>
@@ -120,7 +120,7 @@ export function CoinPackageModal({
                             <textarea
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                 rows={3}
                             />
                         </div>

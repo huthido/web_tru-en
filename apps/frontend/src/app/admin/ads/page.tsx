@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import { isUsableImageSrc } from '@/utils/image-utils';
 import { AdminLayout } from '@/components/layouts/admin-layout';
 import { Loading } from '@/components/ui/loading';
 import { useAds, useCreateAd, useUpdateAd, useDeleteAd } from '@/lib/api/hooks/use-ads';
@@ -304,7 +305,7 @@ export default function AdminAdsPage() {
                                     setPage(1);
                                 }}
                                 placeholder="Tìm theo tiêu đề..."
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
                         <div>
@@ -317,7 +318,7 @@ export default function AdminAdsPage() {
                                     setTypeFilter(e.target.value as AdType | '');
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="">Tất cả</option>
                                 <option value={AdType.POPUP}>Popup</option>
@@ -335,7 +336,7 @@ export default function AdminAdsPage() {
                                     setPositionFilter(e.target.value as AdPosition | '');
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="">Tất cả</option>
                                 <option value={AdPosition.BOTTOM}>Bottom</option>
@@ -353,7 +354,7 @@ export default function AdminAdsPage() {
                                     setIsActiveFilter(e.target.value === '' ? '' : e.target.value === 'true');
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="">Tất cả</option>
                                 <option value="true">Đang hoạt động</option>
@@ -370,7 +371,7 @@ export default function AdminAdsPage() {
                                     setLimit(Number(e.target.value));
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="10">10</option>
                                 <option value="20">20</option>
@@ -633,7 +634,7 @@ export default function AdminAdsPage() {
                                                     setPage(newPage);
                                                 }
                                             }}
-                                            className="w-16 px-2 py-1 border border-outline-variant rounded-lg dark:text-white text-sm"
+                                            className="w-16 px-2 py-1 border border-outline-variant rounded-lg bg-surface-container text-on-surface text-sm"
                                         />
                                     </div>
                                 </div>
@@ -1244,7 +1245,7 @@ function AdFormModal({
                                 type="text"
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
 
@@ -1256,7 +1257,7 @@ function AdFormModal({
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 rows={3}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
 
@@ -1299,9 +1300,9 @@ function AdFormModal({
                                             setFormData({ ...formData, imageUrl: e.target.value });
                                         }}
                                         placeholder="https://example.com/image.jpg"
-                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     />
-                                    {previewUrl && (
+                                    {isUsableImageSrc(previewUrl) && (
                                         <div className="relative w-full h-48 bg-surface-container-high rounded-lg overflow-hidden">
                                             <Image
                                                 src={previewUrl}
@@ -1348,7 +1349,7 @@ function AdFormModal({
                                             </button>
                                         )}
                                     </div>
-                                    {previewUrl && (
+                                    {isUsableImageSrc(previewUrl) && (
                                         <div className="relative w-full h-48 bg-surface-container-high rounded-lg overflow-hidden">
                                             <Image
                                                 src={previewUrl}
@@ -1377,7 +1378,7 @@ function AdFormModal({
                                 type="url"
                                 value={formData.linkUrl}
                                 onChange={(e) => setFormData({ ...formData, linkUrl: e.target.value })}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
 
@@ -1389,7 +1390,7 @@ function AdFormModal({
                                 required
                                 value={formData.type}
                                 onChange={(e) => setFormData({ ...formData, type: e.target.value as AdType })}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value={AdType.POPUP}>Popup</option>
                                 <option value={AdType.BANNER}>Banner</option>
@@ -1407,7 +1408,7 @@ function AdFormModal({
                                     required
                                     value={formData.position}
                                     onChange={(e) => setFormData({ ...formData, position: e.target.value as AdPosition })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                 >
                                     <option value={AdPosition.SIDEBAR_LEFT}>Sidebar Left</option>
                                 </select>
@@ -1438,7 +1439,7 @@ function AdFormModal({
                                     max="20"
                                     value={formData.popupInterval}
                                     onChange={(e) => setFormData({ ...formData, popupInterval: parseInt(e.target.value) || 3 })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     placeholder="3"
                                 />
                                 <p className="mt-1 text-xs text-on-surface-variant">
@@ -1456,7 +1457,7 @@ function AdFormModal({
                                     type="date"
                                     value={formData.startDate}
                                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                 />
                             </div>
 
@@ -1468,7 +1469,7 @@ function AdFormModal({
                                     type="date"
                                     value={formData.endDate}
                                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                 />
                             </div>
                         </div>

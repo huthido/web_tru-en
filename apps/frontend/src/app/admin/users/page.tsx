@@ -229,7 +229,7 @@ export default function AdminUsersPage() {
                                     setPage(1);
                                 }}
                                 placeholder="Tìm theo tên, email, username..."
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
                         <div>
@@ -242,7 +242,7 @@ export default function AdminUsersPage() {
                                     setRoleFilter(e.target.value);
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="">Tất cả</option>
                                 <option value="USER">User</option>
@@ -260,7 +260,7 @@ export default function AdminUsersPage() {
                                     setIsActiveFilter(e.target.value);
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="">Tất cả</option>
                                 <option value="true">Đang hoạt động</option>
@@ -277,7 +277,7 @@ export default function AdminUsersPage() {
                                     setLimit(Number(e.target.value));
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="10">10</option>
                                 <option value="20">20</option>
@@ -525,7 +525,7 @@ export default function AdminUsersPage() {
                                                     setPage(newPage);
                                                 }
                                             }}
-                                            className="w-16 px-2 py-1 border border-outline-variant rounded-lg dark:text-white text-sm"
+                                            className="w-16 px-2 py-1 border border-outline-variant rounded-lg bg-surface-container text-on-surface text-sm"
                                         />
                                     </div>
                                 </div>
@@ -794,7 +794,7 @@ function EditUserModal({
                             <select
                                 value={formData.role}
                                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="USER">User</option>
                                 <option value="AUTHOR">Author</option>
@@ -810,7 +810,7 @@ function EditUserModal({
                                 type="text"
                                 value={formData.displayName}
                                 onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
 
@@ -822,7 +822,7 @@ function EditUserModal({
                                 value={formData.bio}
                                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                                 rows={3}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
 

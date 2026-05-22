@@ -194,7 +194,7 @@ export default function EditStoryPage() {
                                         onChange={(e) =>
                                             setFormData({ ...formData, title: e.target.value })
                                         }
-                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                         placeholder="Nhập tiêu đề truyện"
                                     />
                                     {errors.title && (
@@ -215,7 +215,7 @@ export default function EditStoryPage() {
                                             setFormData({ ...formData, description: e.target.value })
                                         }
                                         rows={6}
-                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                         placeholder="Nhập mô tả truyện"
                                     />
                                 </div>
@@ -307,7 +307,7 @@ export default function EditStoryPage() {
                                         onChange={(e) =>
                                             setFormData({ ...formData, country: e.target.value })
                                         }
-                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     >
                                         <option value="VN">Việt Nam</option>
                                         <option value="CN">Trung Quốc</option>
@@ -331,7 +331,7 @@ export default function EditStoryPage() {
                                                 status: e.target.value as 'DRAFT' | 'ONGOING' | 'COMPLETED' | 'PUBLISHED' | 'ARCHIVED',
                                             })
                                         }
-                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     >
                                         <option value="DRAFT">Bản nháp</option>
                                         <option value="ONGOING">Đang ra</option>
@@ -354,7 +354,7 @@ export default function EditStoryPage() {
                                                 accessType: e.target.value as 'FREE' | 'FREEMIUM' | 'VIP',
                                             })
                                         }
-                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     >
                                         <option value="FREE">Miễn phí — ai cũng đọc được</option>
                                         <option value="FREEMIUM">Freemium — đặt giá coin từng chương</option>
@@ -376,7 +376,7 @@ export default function EditStoryPage() {
                                             step={1}
                                             value={formData.price}
                                             onChange={(e) => setFormData({ ...formData, price: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
-                                            className="w-full md:w-48 px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                            className="w-full md:w-48 px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                             placeholder="0"
                                         />
                                         <p className="mt-2 text-xs text-on-surface-variant">

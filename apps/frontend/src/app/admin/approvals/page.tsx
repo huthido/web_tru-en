@@ -10,6 +10,7 @@ import { RefreshButton } from '@/components/admin/refresh-button';
 import { useToast, ToastContainer } from '@/components/ui/toast';
 import Link from 'next/link';
 import Image from 'next/image';
+import { isUsableImageSrc } from '@/utils/image-utils';
 import * as XLSX from 'xlsx';
 
 export default function AdminApprovalsPage() {
@@ -260,7 +261,7 @@ export default function AdminApprovalsPage() {
                                     setPage(1);
                                 }}
                                 placeholder="Tìm theo tên truyện, chương, tác giả..."
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
                         <div>
@@ -273,7 +274,7 @@ export default function AdminApprovalsPage() {
                                     setTypeFilter(e.target.value as any);
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="">Tất cả</option>
                                 <option value="STORY_PUBLISH">Truyện</option>
@@ -290,7 +291,7 @@ export default function AdminApprovalsPage() {
                                     setStatusFilter(e.target.value as any);
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="">Tất cả</option>
                                 <option value="PENDING">Đang chờ</option>
@@ -308,7 +309,7 @@ export default function AdminApprovalsPage() {
                                     setLimit(Number(e.target.value));
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="10">10</option>
                                 <option value="20">20</option>
@@ -323,7 +324,7 @@ export default function AdminApprovalsPage() {
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value as any)}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="createdAt">Ngày tạo</option>
                                 <option value="status">Trạng thái</option>
@@ -337,7 +338,7 @@ export default function AdminApprovalsPage() {
                             <select
                                 value={sortOrder}
                                 onChange={(e) => setSortOrder(e.target.value as any)}
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="desc">Giảm dần</option>
                                 <option value="asc">Tăng dần</option>
@@ -384,7 +385,7 @@ export default function AdminApprovalsPage() {
                                         } ${selectedRequests.has(request.id) ? 'ring-2 ring-blue-500' : ''} overflow-hidden`}
                                     >
                                         {/* Cover Image */}
-                                        {request.story?.coverImage && (
+                                        {isUsableImageSrc(request.story?.coverImage) && (
                                             <div className="relative w-full h-40 bg-surface-variant">
                                                 <Image
                                                     src={request.story.coverImage}
@@ -502,7 +503,7 @@ export default function AdminApprovalsPage() {
                                                     className="mt-2 w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                                 />
                                             )}
-                                            {request.story?.coverImage && (
+                                            {isUsableImageSrc(request.story?.coverImage) && (
                                                 <div className="relative w-20 h-28 rounded overflow-hidden flex-shrink-0">
                                                     <Image
                                                         src={request.story.coverImage}
@@ -756,7 +757,7 @@ export default function AdminApprovalsPage() {
                                     </p>
                                 </div>
 
-                                {viewingRequest.story?.coverImage && (
+                                {isUsableImageSrc(viewingRequest.story?.coverImage) && (
                                     <div>
                                         <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Ảnh bìa
@@ -914,7 +915,7 @@ export default function AdminApprovalsPage() {
                                         value={bulkNote}
                                         onChange={(e) => setBulkNote(e.target.value)}
                                         rows={4}
-                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                         placeholder="Nhập ghi chú cho tác giả..."
                                     />
                                 </div>
@@ -984,7 +985,7 @@ export default function AdminApprovalsPage() {
                                         value={reviewNote}
                                         onChange={(e) => setReviewNote(e.target.value)}
                                         rows={4}
-                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                         placeholder="Nhập ghi chú cho tác giả..."
                                     />
                                 </div>

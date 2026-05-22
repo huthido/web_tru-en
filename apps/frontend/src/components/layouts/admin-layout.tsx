@@ -180,9 +180,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
     return (
         <ProtectedRoute requiredRole={[UserRole.ADMIN]}>
-            <div className="min-h-screen bg-surface-container-low">
-                {/* Admin Header */}
-                <header className="bg-surface-container border-b border-outline-variant sticky top-0 z-50">
+            <div className="h-screen flex flex-col bg-surface-container-low">
+                {/* Admin Header — chiều cao tự nhiên, không co lại */}
+                <header className="bg-surface-container border-b border-outline-variant shrink-0 z-50">
                     <div className="flex items-center justify-between px-3 sm:px-4 py-3">
                         <div className="flex items-center gap-2 sm:gap-4">
                             <button
@@ -251,7 +251,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     </div>
                 </header>
 
-                <div className="flex h-[calc(100vh-64px)] relative">
+                {/* Vùng dưới header chiếm hết chỗ còn lại; min-h-0 để con cuộn được */}
+                <div className="flex flex-1 min-h-0 relative">
                     {/* Mobile Overlay */}
                     {isSidebarOpen && (
                         <div
@@ -291,8 +292,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                         </nav>
                     </aside>
 
-                    {/* Main Content */}
-                    <main className="flex-1 transition-all duration-300 w-full lg:w-auto">
+                    {/* Main Content — cuộn dọc trong khung; min-w-0 chặn bảng rộng phá layout */}
+                    <main className="flex-1 transition-all duration-300 w-full lg:w-auto overflow-y-auto min-w-0">
                         <div className="p-3 sm:p-4 md:p-6">{children}</div>
                     </main>
                 </div>

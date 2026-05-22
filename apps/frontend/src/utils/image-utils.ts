@@ -21,6 +21,27 @@ export function shouldUnoptimizeImage(src: string): boolean {
 }
 
 /**
+ * Kiểm tra src có dùng được cho next/image hay không.
+ *
+ * next/image chỉ nhận: URL tuyệt đối (http/https), đường dẫn gốc (bắt đầu "/"),
+ * hoặc data:/blob:. Bất kỳ giá trị nào khác — chuỗi rác, path tương đối thiếu
+ * "/" (ví dụ "s") — sẽ khiến next/image NÉM lỗi runtime làm trắng cả trang.
+ * Dùng hàm này để chặn (guard) trước mọi <Image>, fallback an toàn thay vì crash.
+ */
+export function isUsableImageSrc(src: unknown): src is string {
+  if (typeof src !== 'string') return false;
+  const s = src.trim();
+  if (!s) return false;
+  return (
+    s.startsWith('/') ||
+    s.startsWith('http://') ||
+    s.startsWith('https://') ||
+    s.startsWith('data:') ||
+    s.startsWith('blob:')
+  );
+}
+
+/**
  * Get optimal image sizes for different use cases
  * Responsive sizes for better performance
  */

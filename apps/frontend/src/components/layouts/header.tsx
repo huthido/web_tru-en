@@ -309,6 +309,28 @@ export function Header() {
                       </svg>
                       <span>Hồ sơ</span>
                     </Link>
+                    {/* Link vào khu quản trị — chỉ hiện với tài khoản admin. */}
+                    {user?.role === 'ADMIN' && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-tertiary hover:bg-surface-variant transition-colors duration-200"
+                      >
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                        <span>Trang quản trị</span>
+                      </Link>
+                    )}
                     <button
                       type="button"
                       onClick={handleLogout}

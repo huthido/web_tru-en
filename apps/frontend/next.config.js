@@ -66,6 +66,22 @@ const withPWA = require('next-pwa')({
   },
 });
 
+// next/image yêu cầu whitelist host của ảnh từ xa. Ảnh upload local
+// (story-covers, avatar...) do backend phục vụ tại /uploads/* — host của
+// backend lấy từ NEXT_PUBLIC_API_URL nên dev lẫn prod đều tự khớp.
+const apiImagePatterns = [];
+try {
+  const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3009');
+  apiImagePatterns.push({
+    protocol: apiUrl.protocol.replace(':', ''),
+    hostname: apiUrl.hostname,
+    ...(apiUrl.port ? { port: apiUrl.port } : {}),
+    pathname: '/uploads/**',
+  });
+} catch (e) {
+  // NEXT_PUBLIC_API_URL không hợp lệ -> bỏ qua, vẫn còn localhost bên dưới.
+}
+
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone', // Produces a self-contained server in .next/standalone for Docker
@@ -103,6 +119,20 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'ui-avatars.com',
+      },
+      // Ảnh upload local do backend phục vụ (story-covers, avatar...).
+      ...apiImagePatterns,
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3009',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '3009',
+        pathname: '/uploads/**',
       },
     ],
     // Image optimization settings - PRO MAX

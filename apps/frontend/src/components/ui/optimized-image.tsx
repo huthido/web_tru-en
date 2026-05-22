@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
-import { shouldUnoptimizeImage, optimizeImageUrl, getBestImageFormat } from '@/utils/image-utils';
+import { shouldUnoptimizeImage, optimizeImageUrl, getBestImageFormat, isUsableImageSrc } from '@/utils/image-utils';
 
 interface OptimizedImageProps {
   src: string;
@@ -153,8 +153,14 @@ export function OptimizedImage({
     onError?.();
   };
 
+  // src không hợp lệ -> KHÔNG đẩy vào next/image (sẽ crash). Hiện fallback.
+  const isValidSrc = isUsableImageSrc(src);
+  if (process.env.NODE_ENV !== 'production' && src && !isValidSrc) {
+    console.warn(`OptimizedImage: bỏ qua src không hợp lệ ${JSON.stringify(src)}`);
+  }
+
   // Error state UI
-  if (imageError) {
+  if (imageError || !isValidSrc) {
     return (
       <div
         className={`bg-surface-variant flex items-center justify-center ${className}`}

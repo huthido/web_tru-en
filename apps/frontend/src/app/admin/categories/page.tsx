@@ -264,7 +264,7 @@ export default function AdminCategoriesPage() {
                                     setSearchTerm(e.target.value);
                                     setPage(1); // Reset to first page when searching
                                 }}
-                                className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
                         <div className="flex gap-2">
@@ -274,7 +274,7 @@ export default function AdminCategoriesPage() {
                                     setSortBy(e.target.value as 'name' | 'createdAt');
                                     setPage(1);
                                 }}
-                                className="px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                className="px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="name">Sắp xếp theo tên</option>
                                 <option value="createdAt">Sắp xếp theo ngày tạo</option>
@@ -341,7 +341,7 @@ export default function AdminCategoriesPage() {
                                     onChange={(e) =>
                                         setFormData({ ...formData, name: e.target.value })
                                     }
-                                    className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     placeholder="Nhập tên thể loại"
                                 />
                             </div>
@@ -355,7 +355,7 @@ export default function AdminCategoriesPage() {
                                         setFormData({ ...formData, description: e.target.value })
                                     }
                                     rows={3}
-                                    className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
+                                    className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     placeholder="Nhập mô tả thể loại"
                                 />
                             </div>
