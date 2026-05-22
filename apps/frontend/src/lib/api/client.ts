@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { hasSessionHint, setSessionHint } from './session-hint';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -94,6 +95,12 @@ class ApiClient {
             return Promise.reject(error);
           }
 
+          // Không có cờ phiên ⇒ chắc chắn là khách: bỏ qua refresh để tránh
+          // thêm một request /auth/refresh 401 nữa trong console.
+          if (!hasSessionHint()) {
+            return Promise.reject(error);
+          }
+
           // 🔥 FIX: Prevent multiple refresh requests
           if (!this.isRefreshing) {
             this.isRefreshing = true;
@@ -161,6 +168,10 @@ class ApiClient {
   // 🔥 FIXED: Handle auth failure - only logout/redirect when truly unauthorized
   private handleAuthFailure() {
     if (typeof window !== 'undefined') {
+      // Refresh thất bại — cookie đã hết hạn. Dọn cờ phiên để lần tải sau
+      // không gọi /auth/me nữa (console sạch).
+      setSessionHint(false);
+      console.info('ℹ️ Phiên đăng nhập đã hết hạn — vui lòng đăng nhập lại nếu cần.');
       const currentPath = window.location.pathname;
 
       // Define protected routes that require auth

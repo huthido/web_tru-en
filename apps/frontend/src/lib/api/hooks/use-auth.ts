@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { authService, LoginRequest, RegisterRequest, ChangePasswordRequest } from '../auth.service';
+import { hasSessionHint, setSessionHint } from '../session-hint';
 
 export const useAuth = () => {
   const router = useRouter();
@@ -10,6 +11,7 @@ export const useAuth = () => {
   // 🔥 SIMPLIFIED: Listen for logout event from interceptor
   useEffect(() => {
     const handleLogout = () => {
+      setSessionHint(false);
       queryClient.setQueryData(['auth', 'me'], null);
     };
 
@@ -22,13 +24,18 @@ export const useAuth = () => {
   // 🔥 FIXED: Get current user - only fetch when needed
   const { data: userData, isLoading, error } = useQuery({
     queryKey: ['auth', 'me'],
+    // Chỉ hỏi /auth/me khi trình duyệt này từng đăng nhập (có cờ phiên).
+    // Khách vãng lai bỏ qua hẳn → console không còn dòng 401 đỏ.
+    enabled: hasSessionHint(),
     queryFn: async () => {
       try {
         const response = await authService.getMe();
         return response.data?.user;
       } catch (error: any) {
-        // If 401, return null instead of throwing
+        // 401 = cờ phiên cũ nhưng cookie đã hết hạn. Dọn cờ, coi như khách.
         if (error.response?.status === 401) {
+          setSessionHint(false);
+          console.info('ℹ️ Phiên đăng nhập đã kết thúc — bạn đang xem với tư cách khách.');
           return null;
         }
         throw error;
@@ -53,6 +60,7 @@ export const useAuth = () => {
         router.replace(`/auth/registration-success?email=${encodeURIComponent(response.data.email || '')}`);
       } else if (response.data?.accessToken && response.data?.user) {
         // If no verification required, user is auto-logged in
+        setSessionHint(true);
         // Wait for cookies to be set by the interceptor
         await new Promise(resolve => setTimeout(resolve, 800));
         
@@ -76,6 +84,7 @@ export const useAuth = () => {
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => authService.login(data),
     onSuccess: async () => {
+      setSessionHint(true);
       // Wait for cookies to be set by the interceptor
       await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -94,6 +103,7 @@ export const useAuth = () => {
   const logoutMutation = useMutation({
     mutationFn: () => authService.logout(),
     onSuccess: () => {
+      setSessionHint(false);
       queryClient.setQueryData(['auth', 'me'], null);
       router.push('/login');
     },
