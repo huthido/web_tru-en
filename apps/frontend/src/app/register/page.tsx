@@ -89,7 +89,7 @@ export default function RegisterPage() {
   // Show loading while checking settings or auth
   if (isLoading || settingsLoading || isAuthLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="min-h-screen flex items-center justify-center bg-surface-container-low transition-colors duration-300">
         <Loading />
       </div>
     );
@@ -103,7 +103,7 @@ export default function RegisterPage() {
   // If registration is not allowed, show message (will redirect via useEffect)
   if (settings && !settings.allowRegistration) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="min-h-screen flex items-center justify-center bg-surface-container-low transition-colors duration-300">
         <div className="max-w-md w-full text-center p-6">
           <div className="mb-6">
             <svg
@@ -120,10 +120,10 @@ export default function RegisterPage() {
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-2xl font-bold text-on-surface mb-4">
             Đăng ký tạm thời bị tắt
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-on-surface-variant mb-6">
             Đăng ký tài khoản mới hiện đang bị tắt. Vui lòng liên hệ quản trị viên.
           </p>
           <Link
@@ -138,15 +138,15 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-3 md:p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen flex items-center justify-center p-3 md:p-4 bg-surface-container-low transition-colors duration-300">
       {/* Header - Logo and Theme Toggle */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-6 py-3 md:py-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-all duration-300 shadow-sm">
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-6 py-3 md:py-4 bg-surface/90/90 backdrop-blur-md border-b border-outline-variant transition-all duration-300 shadow-sm">
         {/* Logo */}
         <Link
           href="/"
           className="flex items-center gap-2 md:gap-2.5 transition-all duration-300 hover:opacity-80 hover:scale-105 active:scale-95"
         >
-          <h1 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-300">
+          <h1 className="text-lg md:text-2xl font-bold text-on-surface transition-colors duration-300">
             HÙNG YÊU
           </h1>
           <div className="w-8 h-8 transition-transform duration-300 hover:rotate-12">
@@ -157,7 +157,7 @@ export default function RegisterPage() {
                 strokeWidth="2.4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-gray-900 dark:text-white transition-colors duration-300"
+                className="text-on-surface transition-colors duration-300"
               />
               <path
                 d="M16 2.66667V24.1917"
@@ -165,7 +165,7 @@ export default function RegisterPage() {
                 strokeWidth="2.4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-gray-900 dark:text-white transition-colors duration-300"
+                className="text-on-surface transition-colors duration-300"
               />
             </svg>
           </div>
@@ -175,7 +175,7 @@ export default function RegisterPage() {
         <button
           type="button"
           onClick={toggleTheme}
-          className="flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-white dark:bg-gray-800 border-blue-500 dark:border-blue-400 shadow-sm hover:shadow-md"
+          className="flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-surface-container border-blue-500 dark:border-blue-400 shadow-sm hover:shadow-md"
           aria-label="Chuyển đổi giao diện"
         >
           {theme === 'light' ? (
@@ -186,10 +186,10 @@ export default function RegisterPage() {
                   stroke="currentColor"
                   strokeWidth="1.5"
                   strokeLinecap="round"
-                  className="text-gray-900 dark:text-white transition-colors duration-300"
+                  className="text-on-surface transition-colors duration-300"
                 />
               </svg>
-              <span className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-300">
+              <span className="text-sm font-medium text-on-surface transition-colors duration-300">
                 Sáng
               </span>
             </>
@@ -201,10 +201,10 @@ export default function RegisterPage() {
                   stroke="currentColor"
                   strokeWidth="1.5"
                   strokeLinecap="round"
-                  className="text-gray-900 dark:text-white transition-colors duration-300"
+                  className="text-on-surface transition-colors duration-300"
                 />
               </svg>
-              <span className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-300">
+              <span className="text-sm font-medium text-on-surface transition-colors duration-300">
                 Tối
               </span>
             </>
@@ -216,7 +216,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-[400px] mt-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col gap-5">
           {/* Title */}
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white transition-colors duration-300">
+          <h2 className="text-4xl font-bold text-on-surface transition-colors duration-300">
             Đăng ký
           </h2>
 
@@ -227,7 +227,7 @@ export default function RegisterPage() {
               const apiUrl = process.env.NODE_ENV === 'development' ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') : '';
               window.location.href = `${apiUrl}/api/auth/google`;
             }}
-            className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] border-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-white dark:bg-gray-800 border-gray-900 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md group"
+            className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] border-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-surface-container border-outline hover:bg-surface-container-high hover:shadow-md group"
           >
             <div className="w-5 h-5 relative transition-transform duration-300 group-hover:scale-110">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -249,7 +249,7 @@ export default function RegisterPage() {
                 />
               </svg>
             </div>
-            <span className="text-base font-medium text-gray-900 dark:text-white transition-colors duration-300">
+            <span className="text-base font-medium text-on-surface transition-colors duration-300">
               Đăng ký bằng Google
             </span>
           </button>
@@ -261,7 +261,7 @@ export default function RegisterPage() {
               const apiUrl = process.env.NODE_ENV === 'development' ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') : '';
               window.location.href = `${apiUrl}/api/auth/facebook`;
             }}
-            className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] border-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-transparent dark:bg-gray-800 border-gray-900 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md group"
+            className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] border-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-transparent border-outline hover:bg-surface-container-high hover:shadow-md group"
           >
             <div className="w-5 h-5 relative transition-transform duration-300 group-hover:scale-110">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -271,20 +271,20 @@ export default function RegisterPage() {
                 />
               </svg>
             </div>
-            <span className="text-base font-medium text-gray-900 dark:text-white transition-colors duration-300">
+            <span className="text-base font-medium text-on-surface transition-colors duration-300">
               Đăng ký bằng Facebook
             </span>
           </button>
 
           {/* Divider */}
           <div className="relative flex items-center my-2">
-            <div className="flex-1 border-t border-gray-900 dark:border-gray-300 transition-colors duration-300" />
-            <div className="px-2 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-              <span className="text-base text-gray-900 dark:text-white transition-colors duration-300">
+            <div className="flex-1 border-t border-outline transition-colors duration-300" />
+            <div className="px-2 bg-surface-container-low transition-colors duration-300">
+              <span className="text-base text-on-surface transition-colors duration-300">
                 Hoặc
               </span>
             </div>
-            <div className="flex-1 border-t border-gray-900 dark:border-gray-300 transition-colors duration-300" />
+            <div className="flex-1 border-t border-outline transition-colors duration-300" />
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -321,7 +321,7 @@ export default function RegisterPage() {
             {/* Email Input */}
             <div className="relative">
               <label
-                className={`absolute left-3 px-1 text-sm font-medium bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-300 z-10 ${focusedField === 'email' || formData.email
+                className={`absolute left-3 px-1 text-sm font-medium bg-surface-container-low text-on-surface transition-all duration-300 z-10 ${focusedField === 'email' || formData.email
                   ? '-top-2.5 opacity-100'
                   : 'top-3 opacity-0'
                   }`}
@@ -334,7 +334,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 onFocus={() => setFocusedField('email')}
                 onBlur={() => setFocusedField(null)}
-                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-400 dark:hover:border-gray-500"
+                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                 placeholder="Email"
                 required
               />
@@ -343,7 +343,7 @@ export default function RegisterPage() {
             {/* Username Input */}
             <div className="relative">
               <label
-                className={`absolute left-3 px-1 text-sm font-medium bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-300 z-10 ${focusedField === 'username' || formData.username
+                className={`absolute left-3 px-1 text-sm font-medium bg-surface-container-low text-on-surface transition-all duration-300 z-10 ${focusedField === 'username' || formData.username
                   ? '-top-2.5 opacity-100'
                   : 'top-3 opacity-0'
                   }`}
@@ -356,7 +356,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 onFocus={() => setFocusedField('username')}
                 onBlur={() => setFocusedField(null)}
-                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-400 dark:hover:border-gray-500"
+                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                 placeholder="Username"
                 required
               />
@@ -365,7 +365,7 @@ export default function RegisterPage() {
             {/* Display Name Input (Optional) */}
             <div className="relative">
               <label
-                className={`absolute left-3 px-1 text-sm font-medium bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-300 z-10 ${focusedField === 'displayName' || formData.displayName
+                className={`absolute left-3 px-1 text-sm font-medium bg-surface-container-low text-on-surface transition-all duration-300 z-10 ${focusedField === 'displayName' || formData.displayName
                   ? '-top-2.5 opacity-100'
                   : 'top-3 opacity-0'
                   }`}
@@ -378,7 +378,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
                 onFocus={() => setFocusedField('displayName')}
                 onBlur={() => setFocusedField(null)}
-                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-400 dark:hover:border-gray-500"
+                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                 placeholder="Tên hiển thị"
               />
             </div>
@@ -386,7 +386,7 @@ export default function RegisterPage() {
             {/* Password Input */}
             <div className="relative">
               <label
-                className={`absolute left-3 px-1 text-sm font-medium bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-300 z-10 ${focusedField === 'password' || formData.password
+                className={`absolute left-3 px-1 text-sm font-medium bg-surface-container-low text-on-surface transition-all duration-300 z-10 ${focusedField === 'password' || formData.password
                   ? '-top-2.5 opacity-100'
                   : 'top-3 opacity-0'
                   }`}
@@ -400,14 +400,14 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   onFocus={() => setFocusedField('password')}
                   onBlur={() => setFocusedField(null)}
-                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-400 dark:hover:border-gray-500"
+                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                   placeholder="Mật khẩu"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-600 dark:text-gray-400 transition-all duration-300 hover:text-gray-900 dark:hover:text-white hover:scale-110 active:scale-95"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant transition-all duration-300 hover:text-on-surface dark:hover:text-white hover:scale-110 active:scale-95"
                   aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   {showPassword ? (
@@ -438,7 +438,7 @@ export default function RegisterPage() {
             {/* Confirm Password Input */}
             <div className="relative">
               <label
-                className={`absolute left-3 px-1 text-sm font-medium bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-300 z-10 ${focusedField === 'confirmPassword' || formData.confirmPassword
+                className={`absolute left-3 px-1 text-sm font-medium bg-surface-container-low text-on-surface transition-all duration-300 z-10 ${focusedField === 'confirmPassword' || formData.confirmPassword
                   ? '-top-2.5 opacity-100'
                   : 'top-3 opacity-0'
                   }`}
@@ -452,14 +452,14 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   onFocus={() => setFocusedField('confirmPassword')}
                   onBlur={() => setFocusedField(null)}
-                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-400 dark:hover:border-gray-500"
+                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                   placeholder="Xác nhận mật khẩu"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-600 dark:text-gray-400 transition-all duration-300 hover:text-gray-900 dark:hover:text-white hover:scale-110 active:scale-95"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant transition-all duration-300 hover:text-on-surface dark:hover:text-white hover:scale-110 active:scale-95"
                   aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   {showConfirmPassword ? (
@@ -519,11 +519,11 @@ export default function RegisterPage() {
           </form>
 
           {/* Login Link */}
-          <p className="text-center text-base text-gray-900 dark:text-white transition-colors duration-300">
+          <p className="text-center text-base text-on-surface transition-colors duration-300">
             Đã có tài khoản?{' '}
             <Link
               href="/login"
-              className="font-medium text-blue-500 dark:text-blue-400 hover:underline transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-300"
+              className="font-medium text-primary hover:underline transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-300"
             >
               Đăng nhập
             </Link>

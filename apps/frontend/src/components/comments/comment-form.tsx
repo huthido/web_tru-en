@@ -48,8 +48,8 @@ export function CommentForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Rating Section */}
       {showRating && storyId && (
-        <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <div className="pb-4 border-b border-outline-variant">
+          <label className="block text-sm font-medium text-on-surface-variant mb-2">
             Đánh giá truyện {selectedRating ? `(${selectedRating} sao)` : '(Tùy chọn)'}
           </label>
           <div className="flex items-center gap-2">
@@ -63,7 +63,7 @@ export function CommentForm({
                   transition-all duration-200
                   ${selectedRating && star <= selectedRating
                     ? 'text-yellow-500 scale-110'
-                    : 'text-gray-300 dark:text-gray-600 hover:text-yellow-400'
+                    : 'text-outline-variant hover:text-yellow-400'
                   }
                   ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-125'}
                 `}
@@ -85,7 +85,7 @@ export function CommentForm({
               </button>
             ))}
             {currentRating > 0 && (
-              <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+              <span className="text-sm text-on-surface-variant ml-2">
                 (Đánh giá hiện tại: {currentRating.toFixed(1)} / {ratingCount} đánh giá)
               </span>
             )}
@@ -99,14 +99,14 @@ export function CommentForm({
         placeholder={placeholder}
         rows={4}
         maxLength={maxLength}
-        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
-                   bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+        className="w-full px-4 py-3 border border-outline-variant rounded-lg 
+                   bg-surface-container text-on-surface
                    focus:ring-2 focus:ring-pink-500 dark:focus:ring-pink-400 focus:border-transparent
                    resize-none transition-colors"
         disabled={isLoading}
       />
       <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="text-sm text-on-surface-variant">
           {remainingChars < 100 && (
             <span className={remainingChars < 0 ? 'text-red-500' : ''}>
               Còn {remainingChars} ký tự
@@ -118,8 +118,8 @@ export function CommentForm({
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 
-                         bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 
+              className="px-4 py-2 text-sm font-medium text-on-surface-variant 
+                         bg-surface-container-high rounded-lg hover:bg-surface-container-highest 
                          transition-colors"
               disabled={isLoading}
             >

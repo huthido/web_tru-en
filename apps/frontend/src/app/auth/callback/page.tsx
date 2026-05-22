@@ -48,12 +48,12 @@ export default function AuthCallbackPage() {
   }, [searchParams, router, queryClient]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen flex items-center justify-center bg-surface-container-low transition-colors duration-300">
       <div className="text-center">
         {status === 'loading' && (
           <>
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">Đang xử lý đăng nhập...</p>
+            <p className="mt-4 text-on-surface-variant">Đang xử lý đăng nhập...</p>
           </>
         )}
         {status === 'success' && (
@@ -63,8 +63,8 @@ export default function AuthCallbackPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p className="text-gray-900 dark:text-white font-medium">Đăng nhập thành công!</p>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">Đang chuyển hướng...</p>
+            <p className="text-on-surface font-medium">Đăng nhập thành công!</p>
+            <p className="text-on-surface-variant text-sm mt-2">Đang chuyển hướng...</p>
           </>
         )}
         {status === 'error' && (
@@ -74,8 +74,8 @@ export default function AuthCallbackPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <p className="text-gray-900 dark:text-white font-medium">Đăng nhập thất bại</p>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">Đang chuyển về trang đăng nhập...</p>
+            <p className="text-on-surface font-medium">Đăng nhập thất bại</p>
+            <p className="text-on-surface-variant text-sm mt-2">Đang chuyển về trang đăng nhập...</p>
           </>
         )}
       </div>

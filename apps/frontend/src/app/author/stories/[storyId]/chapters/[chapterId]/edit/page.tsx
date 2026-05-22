@@ -107,7 +107,7 @@ export default function EditChapterPage() {
     if (storyLoading || isLoading) {
         return (
             <ProtectedRoute>
-                <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+                <div className="min-h-screen bg-surface transition-colors duration-300">
                     <Sidebar />
                     <div className="md:ml-[120px] pb-16 md:pb-0">
                         <Header />
@@ -123,13 +123,13 @@ export default function EditChapterPage() {
     if (!chapter) {
         return (
             <ProtectedRoute>
-                <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+                <div className="min-h-screen bg-surface transition-colors duration-300">
                     <Sidebar />
                     <div className="md:ml-[120px] pb-16 md:pb-0">
                         <Header />
                         <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                             <div className="max-w-4xl mx-auto">
-                                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 text-center">
+                                <div className="bg-surface-container rounded-lg shadow-sm p-6 md:p-8 text-center">
                                     <p className="text-red-500 dark:text-red-400 mb-4">
                                         {errors.submit || 'Không tìm thấy chương'}
                                     </p>
@@ -150,7 +150,7 @@ export default function EditChapterPage() {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+            <div className="min-h-screen bg-surface transition-colors duration-300">
                 <Sidebar />
                 <div className="md:ml-[120px] pb-16 md:pb-0">
                     <Header />
@@ -158,31 +158,31 @@ export default function EditChapterPage() {
                         <div className="max-w-4xl mx-auto">
                             {/* Header */}
                             <div className="mb-6 md:mb-8">
-                                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                                <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-2">
                                     Chỉnh sửa chương
                                 </h1>
                                 {story && (
-                                    <p className="text-gray-600 dark:text-gray-400">
+                                    <p className="text-on-surface-variant">
                                         Truyện: {story.title}
                                     </p>
                                 )}
                             </div>
 
-                            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 space-y-6">
+                            <form onSubmit={handleSubmit} className="bg-surface-container rounded-lg shadow-sm p-6 md:p-8 space-y-6">
                                 {/* Title */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Tên chương <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                         placeholder="Nhập tên chương"
                                         maxLength={200}
                                     />
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    <p className="mt-1 text-xs text-on-surface-variant">
                                         {formData.title.length}/200 ký tự
                                     </p>
                                     {errors.title && (
@@ -192,7 +192,7 @@ export default function EditChapterPage() {
 
                                 {/* Content */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Nội dung chương <span className="text-red-500">*</span>
                                     </label>
                                     <RichTextEditor
@@ -204,10 +204,10 @@ export default function EditChapterPage() {
                                         listImagesEndpoint="/api/chapters/my-images"
                                     />
                                     <div className="mt-2 flex items-center justify-between">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        <p className="text-xs text-on-surface-variant">
                                             {formData.content.replace(/<[^>]*>/g, '').length} ký tự {formData.content.replace(/<[^>]*>/g, '').length < 100 && `(cần thêm ${100 - formData.content.replace(/<[^>]*>/g, '').length} ký tự nữa)`}
                                         </p>
-                                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                                        <p className="text-xs text-on-surface-variant">
                                             Hỗ trợ chèn ảnh
                                         </p>
                                     </div>
@@ -218,7 +218,7 @@ export default function EditChapterPage() {
 
                                 {/* Price */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Giá mở khóa (coin)
                                     </label>
                                     <input
@@ -227,10 +227,10 @@ export default function EditChapterPage() {
                                         step={1}
                                         value={formData.price}
                                         onChange={(e) => setFormData({ ...formData, price: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
-                                        className="w-full md:w-48 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full md:w-48 px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                         placeholder="0"
                                     />
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    <p className="mt-1 text-xs text-on-surface-variant">
                                         Để <span className="font-medium">0</span> nếu chương miễn phí. Khi {'>'} 0, độc giả phải trả số coin này để mở khóa; bạn nhận phần coin sau khi trừ phí nền tảng.
                                     </p>
                                 </div>
@@ -243,10 +243,10 @@ export default function EditChapterPage() {
                                 )}
 
                                 {/* Submit Button */}
-                                <div className="flex items-center justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <div className="flex items-center justify-end gap-4 pt-4 border-t border-outline-variant">
                                     <Link
                                         href={`/author/stories/${storySlug}/chapters`}
-                                        className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                        className="px-6 py-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
                                     >
                                         Hủy
                                     </Link>

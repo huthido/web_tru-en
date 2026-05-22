@@ -102,15 +102,15 @@ export function UserStats({ className = '' }: UserStatsProps) {
       {statItems.map((item, index) => (
         <div
           key={index}
-          className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+          className="bg-surface-container rounded-lg p-4 shadow-sm border border-outline-variant hover:shadow-md transition-shadow"
         >
           <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-3 ${item.color}`}>
             {item.icon}
           </div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+          <div className="text-2xl font-bold text-on-surface mb-1">
             {item.value}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-sm text-on-surface-variant">
             {item.label}
           </div>
         </div>

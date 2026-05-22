@@ -58,10 +58,10 @@ export default function AdminCoinPackagesPage() {
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">
                             Quản lý Gói Xu
                         </h1>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">
+                        <p className="text-sm sm:text-base text-on-surface-variant mt-1 sm:mt-2">
                             Thiết lập các gói xu để người dùng nạp tiền
                         </p>
                     </div>
@@ -82,17 +82,17 @@ export default function AdminCoinPackagesPage() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden text-black dark:text-white">
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <div className="bg-surface-container rounded-lg shadow-sm overflow-hidden text-black dark:text-white">
+                    <div className="p-4 border-b border-outline-variant flex justify-between items-center">
                         <div className="flex items-center gap-2">
                             <label className="flex items-center space-x-2 cursor-pointer text-sm">
                                 <input
                                     type="checkbox"
                                     checked={includeInactive}
                                     onChange={(e) => setIncludeInactive(e.target.checked)}
-                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
                                 />
-                                <span className="text-gray-700 dark:text-gray-300">
+                                <span className="text-on-surface-variant">
                                     Hiển thị gói ẩn
                                 </span>
                             </label>
@@ -106,29 +106,29 @@ export default function AdminCoinPackagesPage() {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-gray-700">
+                                <thead className="bg-surface-container-low">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                             Tên gói
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                             Số Xu
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                             Giá tiền (VNĐ)
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                             Trạng thái
                                         </th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                             Thao tác
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tbody className="bg-surface-container divide-y divide-outline-variant">
                                     {packages && packages.length > 0 ? (
                                         packages.map((pkg) => (
-                                            <tr key={pkg.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            <tr key={pkg.id} className="hover:bg-surface-container-high">
                                                 <td className="px-6 py-4 whitespace-nowrap font-medium">
                                                     {pkg.name}
                                                 </td>
@@ -141,7 +141,7 @@ export default function AdminCoinPackagesPage() {
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`px-2 py-1 text-xs rounded-full ${pkg.isActive
                                                             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                                            : 'bg-surface-container-high text-on-surface'
                                                         }`}>
                                                         {pkg.isActive ? 'Hoạt động' : 'Đã ẩn'}
                                                     </span>
@@ -176,7 +176,7 @@ export default function AdminCoinPackagesPage() {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={5} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                            <td colSpan={5} className="px-6 py-12 text-center text-on-surface-variant">
                                                 Chưa có gói xu nào.
                                             </td>
                                         </tr>

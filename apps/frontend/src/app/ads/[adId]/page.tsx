@@ -73,7 +73,7 @@ export default function AdPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900">
+            <div className="min-h-screen bg-surface">
                 <Sidebar />
                 <div className="md:ml-[120px]">
                     <Header />
@@ -87,13 +87,13 @@ export default function AdPage() {
 
     if (!selectedAd) {
         return (
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900">
+            <div className="min-h-screen bg-surface">
                 <Sidebar />
                 <div className="md:ml-[120px]">
                     <Header />
                     <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
                         <div className="text-center">
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                            <h1 className="text-2xl font-bold text-on-surface mb-4">
                                 Không tìm thấy quảng cáo
                             </h1>
                             <button
@@ -121,7 +121,7 @@ export default function AdPage() {
                             <div className="mb-6">
                                 <Link
                                     href={returnUrl || (storySlug ? `/truyen/${storySlug}` : '/')}
-                                    className="text-blue-500 hover:text-blue-600 dark:text-blue-400 mb-2 inline-block text-left"
+                                    className="text-blue-500 hover:text-primary mb-2 inline-block text-left"
                                 >
                                     ← Quay lại
                                 </Link>
@@ -132,7 +132,7 @@ export default function AdPage() {
                         <div className="rounded-lg md:rounded-[15px] shadow-sm overflow-hidden flex flex-col">
                             {/* Sponsored Label - Separated at top */}
                             <div className="w-full px-2 sm:px-3 md:px-4 py-2 md:py-3 text-left">
-                                <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
+                                <span className="text-xs sm:text-sm font-medium text-on-surface-variant">
                                     Được tài trợ
                                 </span>
                             </div>
@@ -153,7 +153,7 @@ export default function AdPage() {
                                                     }
                                                 }}
                                             >
-                                                <div className="relative w-full aspect-square bg-gray-100 dark:bg-gray-700">
+                                                <div className="relative w-full aspect-square bg-surface-container-high">
                                                     <OptimizedImage
                                                         src={selectedAd.imageUrl}
                                                         alt={selectedAd.title || 'Quảng cáo'}
@@ -168,7 +168,7 @@ export default function AdPage() {
                                                 </div>
                                             </a>
                                         ) : (
-                                            <div className="relative w-full aspect-square bg-gray-100 dark:bg-gray-700">
+                                            <div className="relative w-full aspect-square bg-surface-container-high">
                                                 <OptimizedImage
                                                     src={selectedAd.imageUrl}
                                                     alt={selectedAd.title || 'Quảng cáo'}
@@ -184,7 +184,7 @@ export default function AdPage() {
                                         )}
                                     </div>
                                 ) : (
-                                    <div className="text-center text-gray-500 dark:text-gray-400 py-20">
+                                    <div className="text-center text-on-surface-variant py-20">
                                         <p>Không có hình ảnh quảng cáo</p>
                                     </div>
                                 )}

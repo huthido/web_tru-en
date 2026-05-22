@@ -251,10 +251,10 @@ export default function AdminStoriesPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">
                             Quản lý truyện
                         </h1>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">
+                        <p className="text-sm sm:text-base text-on-surface-variant mt-1 sm:mt-2">
                             Quản lý tất cả truyện trong hệ thống
                         </p>
                     </div>
@@ -263,26 +263,26 @@ export default function AdminStoriesPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Tổng truyện</div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                        <div className="text-sm text-on-surface-variant">Tổng truyện</div>
+                        <div className="text-3xl font-bold text-on-surface mt-2">
                             {meta?.total || 0}
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Đã xuất bản</div>
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                        <div className="text-sm text-on-surface-variant">Đã xuất bản</div>
                         <div className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">
                             {stories.filter((s: Story) => s.isPublished).length}
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Đề xuất</div>
-                        <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                        <div className="text-sm text-on-surface-variant">Đề xuất</div>
+                        <div className="text-3xl font-bold text-primary mt-2">
                             {stories.filter((s: Story) => s.isRecommended ?? false).length}
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Tổng lượt xem</div>
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                        <div className="text-sm text-on-surface-variant">Tổng lượt xem</div>
                         <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mt-2">
                             {stories.reduce((sum: number, s: Story) => sum + s.viewCount, 0).toLocaleString()}
                         </div>
@@ -290,7 +290,7 @@ export default function AdminStoriesPage() {
                 </div>
 
                 {/* Filters and Actions */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-sm">
+                <div className="bg-surface-container rounded-lg p-4 sm:p-6 shadow-sm">
                     <div className="flex flex-col gap-4">
                         {/* Search and Filters */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -302,7 +302,7 @@ export default function AdminStoriesPage() {
                                     setSearchTerm(e.target.value);
                                     setPage(1);
                                 }}
-                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
                             <select
                                 value={statusFilter}
@@ -310,7 +310,7 @@ export default function AdminStoriesPage() {
                                     setStatusFilter(e.target.value as any);
                                     setPage(1);
                                 }}
-                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                             >
                                 <option value="">Tất cả trạng thái</option>
                                 <option value="DRAFT">Bản nháp</option>
@@ -326,7 +326,7 @@ export default function AdminStoriesPage() {
                                     setRecommendedFilter(value === '' ? '' : value === 'true');
                                     setPage(1);
                                 }}
-                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                             >
                                 <option value="">Tất cả đề xuất</option>
                                 <option value="true">Có đề xuất</option>
@@ -339,7 +339,7 @@ export default function AdminStoriesPage() {
                                     setSortBy(field as any);
                                     setSortOrder(order as any);
                                 }}
-                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                             >
                                 <option value="createdAt-desc">Mới nhất</option>
                                 <option value="createdAt-asc">Cũ nhất</option>
@@ -397,52 +397,52 @@ export default function AdminStoriesPage() {
                 {isLoading ? (
                     <Loading />
                 ) : filteredStories.length === 0 ? (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-12 text-center shadow-sm">
-                        <p className="text-gray-500 dark:text-gray-400">Không tìm thấy truyện nào</p>
+                    <div className="bg-surface-container rounded-lg p-12 text-center shadow-sm">
+                        <p className="text-on-surface-variant">Không tìm thấy truyện nào</p>
                     </div>
                 ) : (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                    <div className="bg-surface-container rounded-lg shadow-sm overflow-hidden">
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                <thead className="bg-gray-50 dark:bg-gray-700">
+                            <table className="min-w-full divide-y divide-outline-variant">
+                                <thead className="bg-surface-container-low">
                                     <tr>
                                         <th className="px-4 py-3 text-left">
                                             <input
                                                 type="checkbox"
                                                 checked={selectedStories.size === filteredStories.length && filteredStories.length > 0}
                                                 onChange={handleSelectAll}
-                                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                className="rounded border-outline-variant text-blue-600 focus:ring-primary"
                                             />
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                             Truyện
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                             Tác giả
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                             Trạng thái
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                             Thống kê
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                             Đề xuất
                                         </th>
-                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                             Thao tác
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tbody className="bg-surface-container divide-y divide-outline-variant">
                                     {filteredStories.map((story) => (
-                                        <tr key={story.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                        <tr key={story.id} className="hover:bg-surface-container-high transition-colors">
                                             <td className="px-4 py-4 whitespace-nowrap">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedStories.has(story.id)}
                                                     onChange={() => handleSelectStory(story.id)}
-                                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                    className="rounded border-outline-variant text-blue-600 focus:ring-primary"
                                                 />
                                             </td>
                                             <td className="px-4 py-4">
@@ -459,21 +459,21 @@ export default function AdminStoriesPage() {
                                                     <div className="min-w-0 flex-1">
                                                         <Link
                                                             href={`/truyen/${story.slug}`}
-                                                            className="text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 truncate block"
+                                                            className="text-sm font-medium text-on-surface hover:text-blue-600 dark:hover:text-blue-400 truncate block"
                                                         >
                                                             {story.title}
                                                         </Link>
-                                                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 space-y-0.5">
+                                                        <div className="text-xs text-on-surface-variant mt-1 space-y-0.5">
                                                             <div>{story._count?.chapters || 0} chương</div>
                                                             {story.storyCategories && story.storyCategories.length > 0 && (
                                                                 <div className="flex flex-wrap gap-1">
                                                                     {story.storyCategories.slice(0, 2).map((sc: any) => (
-                                                                        <span key={sc.id} className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+                                                                        <span key={sc.id} className="px-1.5 py-0.5 bg-surface-container-high rounded text-xs">
                                                                             {sc.category.name}
                                                                         </span>
                                                                     ))}
                                                                     {story.storyCategories.length > 2 && (
-                                                                        <span className="text-xs text-gray-400">+{story.storyCategories.length - 2}</span>
+                                                                        <span className="text-xs text-on-surface-variant">+{story.storyCategories.length - 2}</span>
                                                                     )}
                                                                 </div>
                                                             )}
@@ -481,7 +481,7 @@ export default function AdminStoriesPage() {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-on-surface">
                                                 {story.authorName || story.author?.displayName || story.author?.username || 'N/A'}
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
@@ -493,7 +493,7 @@ export default function AdminStoriesPage() {
                                                         : story.status === 'COMPLETED'
                                                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                                                         : story.status === 'ARCHIVED'
-                                                        ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                                                        ? 'bg-surface-container-high text-on-surface'
                                                         : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                                                     }`}>
                                                     {!story.isPublished
@@ -507,7 +507,7 @@ export default function AdminStoriesPage() {
                                                         : 'Đã xuất bản'}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-on-surface-variant">
                                                 <div className="space-y-1">
                                                     <div>👁️ {story.viewCount.toLocaleString()}</div>
                                                     <div>❤️ {story.likeCount.toLocaleString()}</div>
@@ -519,7 +519,7 @@ export default function AdminStoriesPage() {
                                                     onClick={() => handleToggleRecommended(story)}
                                                     className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${(story.isRecommended ?? false)
                                                         ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                                                        : 'bg-surface-container-high text-on-surface'
                                                         }`}
                                                 >
                                                     {(story.isRecommended ?? false) ? 'Có' : 'Không'}
@@ -550,25 +550,25 @@ export default function AdminStoriesPage() {
 
                         {/* Pagination */}
                         {totalPages > 1 && (
-                            <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
-                                <div className="text-sm text-gray-700 dark:text-gray-300">
+                            <div className="bg-surface-container-low px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div className="text-sm text-on-surface-variant">
                                     Hiển thị {(page - 1) * limit + 1} - {Math.min(page * limit, meta?.total || 0)} / {meta?.total || 0} truyện
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setPage(p => Math.max(1, p - 1))}
                                         disabled={page === 1}
-                                        className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+                                        className="px-3 py-2 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high"
                                     >
                                         Trước
                                     </button>
-                                    <span className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+                                    <span className="px-3 py-2 text-sm text-on-surface-variant">
                                         Trang {page} / {totalPages}
                                     </span>
                                     <button
                                         onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                         disabled={page === totalPages}
-                                        className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+                                        className="px-3 py-2 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high"
                                     >
                                         Sau
                                     </button>

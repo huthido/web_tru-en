@@ -61,7 +61,7 @@ function HistoryContent() {
 
 
   return (
-    <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-surface transition-colors duration-300">
       <Sidebar />
       <div className="md:ml-[120px] pb-16 md:pb-0">
         <Header />
@@ -70,12 +70,12 @@ function HistoryContent() {
             {/* Page Header */}
             <div className="mb-6 md:mb-8">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-2xl md:text-3xl font-bold text-on-surface">
                   Lịch sử đọc
                 </h1>
                 {!isLoading && history.length > 0 && (
                   <div className="flex items-center gap-3">
-                    <label className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                    <label className="text-sm text-on-surface-variant whitespace-nowrap">
                       Hiển thị:
                     </label>
                     <select
@@ -84,14 +84,14 @@ function HistoryContent() {
                         setLimit(Number(e.target.value));
                         setPage(1);
                       }}
-                      className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-300 cursor-pointer"
+                      className="px-3 py-2 rounded-lg border border-outline-variant bg-surface-container text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 transition-colors duration-300 cursor-pointer"
                     >
                       <option value="10">10</option>
                       <option value="20">20</option>
                       <option value="50">50</option>
                       <option value="100">100</option>
                     </select>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                    <span className="text-sm text-on-surface-variant whitespace-nowrap">
                       / trang
                     </span>
                     <button
@@ -103,7 +103,7 @@ function HistoryContent() {
                   </div>
                 )}
               </div>
-              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
+              <p className="text-sm md:text-base text-on-surface-variant">
                 {isLoading
                   ? 'Đang tải...'
                   : `${meta?.total || 0} truyện đã đọc${meta && meta.totalPages > 1 ? ` (Trang ${page}/${meta.totalPages})` : ''}`}
@@ -118,7 +118,7 @@ function HistoryContent() {
             ) : history.length === 0 ? (
               /* Empty State */
               <div className="flex flex-col items-center justify-center py-16 md:py-24">
-                <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full bg-surface-variant flex items-center justify-center">
                   <svg
                     width="48"
                     height="48"
@@ -128,15 +128,15 @@ function HistoryContent() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="text-gray-400 dark:text-gray-500"
+                    className="text-on-surface-variant"
                   >
                     <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
                   </svg>
                 </div>
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-xl md:text-2xl font-semibold text-on-surface mb-2">
                   Chưa có lịch sử đọc
                 </h2>
-                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 text-center max-w-md">
+                <p className="text-sm md:text-base text-on-surface-variant text-center max-w-md">
                   Bạn chưa đọc truyện nào. Hãy bắt đầu đọc để xem lịch sử đọc của bạn tại đây!
                 </p>
               </div>
@@ -150,11 +150,11 @@ function HistoryContent() {
                       <Link
                         key={item.id}
                         href={`/stories/${item.story.slug}/chapters/${item.chapter.slug}`}
-                        className="group flex gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-[1.01]"
+                        className="group flex gap-4 p-4 bg-surface-container rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-[1.01]"
                       >
                         {/* Story Cover */}
                         {item.story.coverImage && (
-                          <div className="relative w-20 h-28 md:w-24 md:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+                          <div className="relative w-20 h-28 md:w-24 md:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-surface-variant">
                             <OptimizedImage
                               src={item.story.coverImage}
                               alt={item.story.title}
@@ -171,10 +171,10 @@ function HistoryContent() {
                         {/* Story Info */}
                         <div className="flex-1 flex flex-col justify-between min-w-0">
                           <div>
-                            <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-1 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            <h3 className="text-base md:text-lg font-semibold text-on-surface mb-1 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                               {item.story.title}
                             </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <p className="text-sm text-on-surface-variant mb-2">
                               {item.chapter.title}
                             </p>
                           </div>
@@ -182,17 +182,17 @@ function HistoryContent() {
                           {/* Progress Info */}
                           <div className="space-y-2">
                             <div className="flex items-center justify-between text-xs md:text-sm">
-                              <span className="text-gray-600 dark:text-gray-400">Tiến độ đọc</span>
-                              <span className="text-gray-600 dark:text-gray-400">{formatDate(item.lastRead)}</span>
+                              <span className="text-on-surface-variant">Tiến độ đọc</span>
+                              <span className="text-on-surface-variant">{formatDate(item.lastRead)}</span>
                             </div>
                             {/* Progress Bar */}
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div className="w-full bg-surface-variant rounded-full h-2">
                               <div
                                 className="bg-blue-500 dark:bg-blue-600 h-2 rounded-full transition-all duration-300"
                                 style={{ width: `${item.storyProgress ?? item.progress}%` }}
                               />
                             </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-500 text-right">
+                            <div className="text-xs text-on-surface-variant text-right">
                               {item.storyProgress ?? item.progress}% hoàn thành
                             </div>
                           </div>
@@ -217,23 +217,23 @@ function HistoryContent() {
 
                 {/* Pagination */}
                 {meta && meta.totalPages > 1 && (
-                  <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                  <div className="mt-8 bg-surface-container rounded-lg p-4 shadow-sm">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <div className="text-sm text-gray-700 dark:text-gray-300">
+                      <div className="text-sm text-on-surface-variant">
                         Hiển thị {((page - 1) * limit) + 1} - {Math.min(page * limit, meta.total)} trong tổng số {meta.total} truyện
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => setPage(1)}
                           disabled={page === 1}
-                          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                          className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                         >
                           Đầu
                         </button>
                         <button
                           onClick={() => setPage(page - 1)}
                           disabled={!meta.hasPrev}
-                          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                          className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                         >
                           Trước
                         </button>
@@ -259,7 +259,7 @@ function HistoryContent() {
                                 className={`px-3 py-2 border rounded-lg text-sm transition-colors ${
                                   page === pageNum
                                     ? 'bg-blue-500 text-white border-blue-500'
-                                    : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                    : 'border-outline-variant hover:bg-surface-container-high'
                                 }`}
                               >
                                 {pageNum}
@@ -271,14 +271,14 @@ function HistoryContent() {
                         <button
                           onClick={() => setPage(page + 1)}
                           disabled={!meta.hasNext}
-                          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                          className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                         >
                           Sau
                         </button>
                         <button
                           onClick={() => setPage(meta.totalPages)}
                           disabled={page === meta.totalPages}
-                          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                          className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                         >
                           Cuối
                         </button>

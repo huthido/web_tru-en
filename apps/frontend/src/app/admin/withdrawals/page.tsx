@@ -47,7 +47,7 @@ export default function AdminWithdrawalsPage() {
     return (
         <AdminLayout>
             <div className="space-y-4">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Yêu cầu rút xu</h1>
+                <h1 className="text-2xl font-bold text-on-surface">Yêu cầu rút xu</h1>
 
                 <div className="flex gap-2">
                     {STATUS_TABS.map((t) => (
@@ -56,7 +56,7 @@ export default function AdminWithdrawalsPage() {
                             onClick={() => setTab(t.key)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${tab === t.key
                                 ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
                                 }`}
                         >
                             {t.label}
@@ -67,34 +67,34 @@ export default function AdminWithdrawalsPage() {
                 {isLoading ? (
                     <Loading />
                 ) : (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-x-auto">
+                    <div className="bg-surface-container rounded-lg shadow-sm overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 dark:bg-gray-900">
+                            <thead className="bg-surface-container-low">
                                 <tr>
                                     {['Tác giả', 'Số xu', 'Ngân hàng', 'Trạng thái', 'Ngày', 'Thao tác'].map((h) => (
-                                        <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{h}</th>
+                                        <th key={h} className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody className="divide-y divide-outline-variant">
                                 {rows.length === 0 ? (
-                                    <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">Không có yêu cầu nào</td></tr>
+                                    <tr><td colSpan={6} className="px-4 py-8 text-center text-on-surface-variant">Không có yêu cầu nào</td></tr>
                                 ) : rows.map((w) => (
-                                    <tr key={w.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                    <tr key={w.id} className="hover:bg-surface-container-high/50">
                                         <td className="px-4 py-3">
-                                            <div className="font-medium text-gray-900 dark:text-white">{w.user?.displayName || w.user?.username || '—'}</div>
-                                            <div className="text-xs text-gray-500 dark:text-gray-400">{w.user?.email}</div>
+                                            <div className="font-medium text-on-surface">{w.user?.displayName || w.user?.username || '—'}</div>
+                                            <div className="text-xs text-on-surface-variant">{w.user?.email}</div>
                                         </td>
-                                        <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">{w.amount.toLocaleString('vi-VN')}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                        <td className="px-4 py-3 font-semibold text-on-surface">{w.amount.toLocaleString('vi-VN')}</td>
+                                        <td className="px-4 py-3 text-sm text-on-surface-variant">
                                             {w.bankName}<br />
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">{w.bankAccountNumber} · {w.bankAccountName}</span>
+                                            <span className="text-xs text-on-surface-variant">{w.bankAccountNumber} · {w.bankAccountName}</span>
                                         </td>
                                         <td className="px-4 py-3">
                                             <span className={`px-2 py-1 rounded text-xs font-medium ${STATUS_CLS[w.status]}`}>{w.status}</span>
                                             {w.note && <div className="text-xs text-red-500 mt-1 max-w-[200px]">{w.note}</div>}
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{new Date(w.createdAt).toLocaleDateString('vi-VN')}</td>
+                                        <td className="px-4 py-3 text-sm text-on-surface-variant">{new Date(w.createdAt).toLocaleDateString('vi-VN')}</td>
                                         <td className="px-4 py-3">
                                             {w.status === 'PENDING' ? (
                                                 <div className="flex gap-2">
@@ -104,7 +104,7 @@ export default function AdminWithdrawalsPage() {
                                                         className="px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 text-white rounded disabled:opacity-50">Từ chối</button>
                                                 </div>
                                             ) : (
-                                                <span className="text-xs text-gray-400">Đã xử lý</span>
+                                                <span className="text-xs text-on-surface-variant">Đã xử lý</span>
                                             )}
                                         </td>
                                     </tr>

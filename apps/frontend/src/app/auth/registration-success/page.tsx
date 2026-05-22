@@ -51,13 +51,13 @@ export default function RegistrationSuccessPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-surface-container-low px-4 py-8">
       <div className="max-w-2xl w-full">
         {/* Main Card */}
-        <div className="bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-surface-container rounded shadow-sm border border-outline-variant">
 
           {/* Header */}
-          <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+          <div className="px-6 py-5 border-b border-outline-variant">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-600 rounded flex items-center justify-center flex-shrink-0">
                 <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -65,10 +65,10 @@ export default function RegistrationSuccessPage() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-xl font-medium text-gray-900 dark:text-white">
+                <h1 className="text-xl font-medium text-on-surface">
                   Xác thực địa chỉ email của bạn
                 </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                <p className="text-sm text-on-surface-variant mt-0.5">
                   Đăng ký thành công
                 </p>
               </div>
@@ -77,18 +77,18 @@ export default function RegistrationSuccessPage() {
 
           {/* Content */}
           <div className="px-6 py-6">
-            <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
+            <p className="text-on-surface-variant mb-4 leading-relaxed">
               Chúng tôi đã gửi một email xác thực đến địa chỉ email của bạn.
               Vui lòng kiểm tra hộp thư và làm theo hướng dẫn để hoàn tất quá trình đăng ký.
             </p>
 
             {/* Email Display */}
             {email && (
-              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-600">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">
+              <div className="mb-6 p-4 bg-surface-container-low/50 rounded border border-outline-variant">
+                <p className="text-xs text-on-surface-variant mb-1 uppercase tracking-wide">
                   Email đã gửi đến
                 </p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white break-all">
+                <p className="text-sm font-medium text-on-surface break-all">
                   {email}
                 </p>
               </div>
@@ -96,24 +96,24 @@ export default function RegistrationSuccessPage() {
 
             {/* Instructions */}
             <div className="mb-6">
-              <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+              <h2 className="text-sm font-medium text-on-surface mb-3">
                 Các bước tiếp theo:
               </h2>
-              <ol className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+              <ol className="space-y-2 text-sm text-on-surface-variant">
                 <li className="flex items-start">
-                  <span className="mr-2 text-gray-400">1.</span>
+                  <span className="mr-2 text-on-surface-variant">1.</span>
                   <span>Mở hộp thư email của bạn</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="mr-2 text-gray-400">2.</span>
+                  <span className="mr-2 text-on-surface-variant">2.</span>
                   <span>Tìm email từ YÊU</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="mr-2 text-gray-400">3.</span>
+                  <span className="mr-2 text-on-surface-variant">3.</span>
                   <span>Nhấp vào nút &quot;Xác thực email&quot; trong email</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="mr-2 text-gray-400">4.</span>
+                  <span className="mr-2 text-on-surface-variant">4.</span>
                   <span>Bạn sẽ được tự động đăng nhập</span>
                 </li>
               </ol>
@@ -139,11 +139,11 @@ export default function RegistrationSuccessPage() {
             </div>
 
             {/* Resend Section */}
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+            <div className="pt-4 border-t border-outline-variant">
+              <h3 className="text-sm font-medium text-on-surface mb-3">
                 Không nhận được email?
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-sm text-on-surface-variant mb-4">
                 Kiểm tra thư mục spam hoặc yêu cầu gửi lại email xác thực
               </p>
 
@@ -153,14 +153,14 @@ export default function RegistrationSuccessPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Nhập địa chỉ email của bạn"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm mb-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-outline-variant rounded text-sm mb-3 bg-surface-container text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               )}
 
               <button
                 onClick={handleResendEmail}
                 disabled={isResending || !email}
-                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:dark:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors duration-200 flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-surface-variant disabled:dark:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors duration-200 flex items-center justify-center gap-2"
               >
                 {isResending ? (
                   <>
@@ -184,10 +184,10 @@ export default function RegistrationSuccessPage() {
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700 rounded-b">
+          <div className="px-6 py-4 bg-surface-container-low/50 border-t border-outline-variant rounded-b">
             <Link
               href="/login"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium inline-flex items-center gap-1 transition-colors"
+              className="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 font-medium inline-flex items-center gap-1 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -198,7 +198,7 @@ export default function RegistrationSuccessPage() {
         </div>
 
         {/* Security Note */}
-        <p className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
+        <p className="mt-6 text-center text-xs text-on-surface-variant">
           Vì lý do bảo mật, đường dẫn xác thực chỉ có thể sử dụng một lần và sẽ hết hạn sau 24 giờ
         </p>
       </div>

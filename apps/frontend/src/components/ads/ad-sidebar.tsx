@@ -67,7 +67,7 @@ export function AdSidebar({ position, className = '' }: AdSidebarProps) {
         <aside className={`hidden lg:block w-56 flex-shrink-0 self-start sticky top-[80px] ${className}`} style={{ position: 'sticky', top: '80px', alignSelf: 'flex-start' }}>
             <div className="space-y-3">
                 {/* Sponsored Label */}
-                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-2">
+                <div className="text-xs text-on-surface-variant font-medium mb-2">
                     Được tài trợ
                 </div>
 
@@ -102,7 +102,7 @@ function AdSidebarCard({ ad, onClick }: { ad: Ad; onClick: () => void }) {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-surface-container rounded-lg overflow-hidden border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
             {ad.linkUrl ? (
                 <a
                     href={ad.linkUrl}
@@ -113,7 +113,7 @@ function AdSidebarCard({ ad, onClick }: { ad: Ad; onClick: () => void }) {
                 >
                     <div className="p-2.5">
                         {/* Image */}
-                        <div className="relative w-full h-32 mb-2 bg-gray-100 dark:bg-gray-700 rounded overflow-hidden">
+                        <div className="relative w-full h-32 mb-2 bg-surface-container-high rounded overflow-hidden">
                             {ad.imageUrl && !imageError ? (
                                 <OptimizedImage
                                     src={ad.imageUrl}
@@ -130,7 +130,7 @@ function AdSidebarCard({ ad, onClick }: { ad: Ad; onClick: () => void }) {
                                     }}
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                                <div className="w-full h-full flex items-center justify-center text-on-surface-variant text-xs">
                                     No Image
                                 </div>
                             )}
@@ -139,17 +139,17 @@ function AdSidebarCard({ ad, onClick }: { ad: Ad; onClick: () => void }) {
                         {/* Content */}
                         <div className="space-y-1">
                             {ad.title && (
-                                <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-tight">
+                                <h3 className="text-sm font-semibold text-on-surface line-clamp-2 leading-tight">
                                     {ad.title}
                                 </h3>
                             )}
                             {ad.description && (
-                                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                                <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
                                     {ad.description}
                                 </p>
                             )}
                             {ad.linkUrl && (
-                                <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                <div className="text-xs text-on-surface-variant mt-1">
                                     {getDomain(ad.linkUrl)}
                                 </div>
                             )}
@@ -159,7 +159,7 @@ function AdSidebarCard({ ad, onClick }: { ad: Ad; onClick: () => void }) {
             ) : (
                 <div className="p-2.5">
                     {/* Image */}
-                    <div className="relative w-full h-32 mb-2 bg-gray-100 dark:bg-gray-700 rounded overflow-hidden">
+                    <div className="relative w-full h-32 mb-2 bg-surface-container-high rounded overflow-hidden">
                         {ad.imageUrl && !imageError ? (
                             <OptimizedImage
                                 src={ad.imageUrl}
@@ -176,7 +176,7 @@ function AdSidebarCard({ ad, onClick }: { ad: Ad; onClick: () => void }) {
                                 }}
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                            <div className="w-full h-full flex items-center justify-center text-on-surface-variant text-xs">
                                 No Image
                             </div>
                         )}
@@ -185,12 +185,12 @@ function AdSidebarCard({ ad, onClick }: { ad: Ad; onClick: () => void }) {
                     {/* Content */}
                     <div className="space-y-1">
                         {ad.title && (
-                            <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-tight">
+                            <h3 className="text-sm font-semibold text-on-surface line-clamp-2 leading-tight">
                                 {ad.title}
                             </h3>
                         )}
                         {ad.description && (
-                            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                            <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
                                 {ad.description}
                             </p>
                         )}

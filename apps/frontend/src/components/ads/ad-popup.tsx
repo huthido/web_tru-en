@@ -48,7 +48,7 @@ export function AdPopup({ isOpen, onClose, imageUrl, linkUrl, onLinkClick }: AdP
             onClick={handleClose}
         >
             <div
-                className={`relative w-[90vw] sm:w-[80vw] md:w-[70vw] lg:max-w-2xl max-h-[90vh] bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-2xl transition-transform duration-200 ${isClosing ? 'scale-95' : 'scale-100'
+                className={`relative w-[90vw] sm:w-[80vw] md:w-[70vw] lg:max-w-2xl max-h-[90vh] bg-surface-container rounded-lg overflow-hidden shadow-2xl transition-transform duration-200 ${isClosing ? 'scale-95' : 'scale-100'
                     }`}
                 onClick={(e) => e.stopPropagation()}
             >
@@ -98,7 +98,7 @@ export function AdPopup({ isOpen, onClose, imageUrl, linkUrl, onLinkClick }: AdP
                                     }}
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700 text-gray-400">
+                                <div className="w-full h-full flex items-center justify-center bg-surface-container-high text-on-surface-variant">
                                     Không có hình ảnh
                                 </div>
                             )}
@@ -122,7 +122,7 @@ export function AdPopup({ isOpen, onClose, imageUrl, linkUrl, onLinkClick }: AdP
                                 }}
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700 text-gray-400">
+                            <div className="w-full h-full flex items-center justify-center bg-surface-container-high text-on-surface-variant">
                                 Không có hình ảnh
                             </div>
                         )}

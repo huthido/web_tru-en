@@ -119,7 +119,7 @@ function StoriesContent() {
     const hasActiveFilters = search || selectedCategory || status || sortBy !== 'newest';
 
     return (
-        <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+        <div className="min-h-screen bg-surface transition-colors duration-300">
             <Sidebar />
             <div className="md:ml-[120px] pb-16 md:pb-0">
                 <Header />
@@ -128,10 +128,10 @@ function StoriesContent() {
                     <div className="max-w-7xl mx-auto px-4 md:px-6">
                         {/* Page Header */}
                         <div className="mb-6">
-                            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                            <h1 className="text-3xl md:text-4xl font-bold text-on-surface mb-2">
                                 Danh sách truyện
                             </h1>
-                            <p className="text-gray-600 dark:text-gray-400">
+                            <p className="text-on-surface-variant">
                                 Khám phá hàng ngàn truyện đa dạng từ các tác giả trong nước và quốc tế
                             </p>
                         </div>
@@ -140,13 +140,13 @@ function StoriesContent() {
                         <div className="md:hidden mb-4">
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-between"
+                                className="w-full px-4 py-2 bg-surface-container border border-outline-variant rounded-lg flex items-center justify-between"
                             >
-                                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                <span className="text-on-surface-variant font-medium">
                                     {showFilters ? 'Ẩn bộ lọc' : 'Hiển thị bộ lọc'}
                                 </span>
                                 <svg
-                                    className={`w-5 h-5 text-gray-500 transition-transform ${showFilters ? 'rotate-180' : ''}`}
+                                    className={`w-5 h-5 text-on-surface-variant transition-transform ${showFilters ? 'rotate-180' : ''}`}
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -158,13 +158,13 @@ function StoriesContent() {
 
                         {/* Filters Section */}
                         <div className={`${showFilters ? 'block' : 'hidden'} md:block mb-6`}>
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+                            <div className="bg-surface-container rounded-lg shadow-sm border border-outline-variant p-4 md:p-6">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Bộ lọc nâng cao</h2>
+                                    <h2 className="text-lg font-semibold text-on-surface">Bộ lọc nâng cao</h2>
                                     {hasActiveFilters && (
                                         <button
                                             onClick={handleResetFilters}
-                                            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                                            className="text-sm text-primary hover:underline"
                                         >
                                             Xóa bộ lọc
                                         </button>
@@ -174,7 +174,7 @@ function StoriesContent() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                     {/* Search */}
                                     <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Tìm kiếm
                                         </label>
                                         <input
@@ -182,19 +182,19 @@ function StoriesContent() {
                                             value={search}
                                             onChange={(e) => setSearch(e.target.value)}
                                             placeholder="Tên truyện, tác giả, tag..."
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-blue-500"
                                         />
                                     </div>
 
                                     {/* Category */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Thể loại
                                         </label>
                                         <select
                                             value={selectedCategory}
                                             onChange={(e) => setSelectedCategory(e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-blue-500"
                                         >
                                             <option value="">Tất cả</option>
                                             {categories.map((cat: any) => (
@@ -207,13 +207,13 @@ function StoriesContent() {
 
                                     {/* Status */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Trạng thái
                                         </label>
                                         <select
                                             value={status}
                                             onChange={(e) => setStatus(e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-blue-500"
                                         >
                                             <option value="">Tất cả trạng thái</option>
                                             <option value="PUBLISHED">Đã xuất bản</option>
@@ -225,13 +225,13 @@ function StoriesContent() {
 
                                     {/* Sort By */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Sắp xếp theo
                                         </label>
                                         <select
                                             value={sortBy}
                                             onChange={(e) => setSortBy(e.target.value as any)}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-blue-500"
                                         >
                                             <option value="newest">Mới nhất</option>
                                             <option value="popular">Phổ biến</option>
@@ -245,12 +245,12 @@ function StoriesContent() {
 
                         {/* Results Info */}
                         {!isLoading && (
-                            <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                                Hiển thị <span className="font-medium text-gray-900 dark:text-white">
+                            <div className="mb-4 text-sm text-on-surface-variant">
+                                Hiển thị <span className="font-medium text-on-surface">
                                     {(page - 1) * limit + 1}
-                                </span> - <span className="font-medium text-gray-900 dark:text-white">
+                                </span> - <span className="font-medium text-on-surface">
                                     {Math.min(page * limit, meta?.total || 0)}
-                                </span> của <span className="font-medium text-gray-900 dark:text-white">
+                                </span> của <span className="font-medium text-on-surface">
                                     {meta?.total || 0}
                                 </span> truyện
                             </div>
@@ -262,7 +262,7 @@ function StoriesContent() {
                         ) : stories.length === 0 ? (
                             <div className="text-center py-12">
                                 <svg
-                                    className="mx-auto h-12 w-12 text-gray-400"
+                                    className="mx-auto h-12 w-12 text-on-surface-variant"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -274,8 +274,8 @@ function StoriesContent() {
                                         d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                                     />
                                 </svg>
-                                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Không tìm thấy truyện</h3>
-                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                <h3 className="mt-2 text-sm font-medium text-on-surface">Không tìm thấy truyện</h3>
+                                <p className="mt-1 text-sm text-on-surface-variant">
                                     Thử thay đổi bộ lọc để tìm thêm truyện
                                 </p>
                             </div>
@@ -299,21 +299,21 @@ function StoriesContent() {
                                 {/* Pagination */}
                                 {totalPages > 1 && (
                                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
-                                        <div className="text-sm text-gray-700 dark:text-gray-300">
+                                        <div className="text-sm text-on-surface-variant">
                                             Trang {page} / {totalPages}
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
                                                 onClick={() => setPage(1)}
                                                 disabled={page === 1}
-                                                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                                className="px-3 py-2 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
                                             >
                                                 Đầu
                                             </button>
                                             <button
                                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                                 disabled={page === 1}
-                                                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                                className="px-3 py-2 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
                                             >
                                                 Trước
                                             </button>
@@ -331,7 +331,7 @@ function StoriesContent() {
                                                             onClick={() => setPage(pageNum)}
                                                             className={`px-3 py-2 text-sm border rounded-lg transition-colors ${page === pageNum
                                                                     ? 'bg-blue-500 text-white border-blue-500'
-                                                                    : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                                                    : 'bg-surface-container border-outline-variant text-on-surface-variant hover:bg-surface-container-high'
                                                                 }`}
                                                         >
                                                             {pageNum}
@@ -342,7 +342,7 @@ function StoriesContent() {
                                                     (pageNum === page + 3 && page < totalPages - 3)
                                                 ) {
                                                     return (
-                                                        <span key={pageNum} className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+                                                        <span key={pageNum} className="px-3 py-2 text-sm text-on-surface-variant">
                                                             ...
                                                         </span>
                                                     );
@@ -352,14 +352,14 @@ function StoriesContent() {
                                             <button
                                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                                 disabled={page === totalPages}
-                                                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                                className="px-3 py-2 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
                                             >
                                                 Sau
                                             </button>
                                             <button
                                                 onClick={() => setPage(totalPages)}
                                                 disabled={page === totalPages}
-                                                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                                className="px-3 py-2 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
                                             >
                                                 Cuối
                                             </button>
@@ -380,10 +380,10 @@ function StoriesContent() {
 export default function StoriesPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 flex items-center justify-center">
+            <div className="min-h-screen bg-surface flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-4 text-gray-600 dark:text-gray-400">Đang tải...</p>
+                    <p className="mt-4 text-on-surface-variant">Đang tải...</p>
                 </div>
             </div>
         }>

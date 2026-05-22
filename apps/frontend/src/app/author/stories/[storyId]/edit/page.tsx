@@ -153,10 +153,10 @@ export default function EditStoryPage() {
             <ProtectedRoute>
                 <div className="min-h-screen flex items-center justify-center">
                     <div className="text-center">
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                        <h1 className="text-2xl font-bold text-on-surface mb-2">
                             Không tìm thấy truyện
                         </h1>
-                        <p className="text-gray-600 dark:text-gray-400">
+                        <p className="text-on-surface-variant">
                             Truyện bạn đang tìm không tồn tại hoặc bạn không có quyền truy cập.
                         </p>
                     </div>
@@ -167,17 +167,17 @@ export default function EditStoryPage() {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+            <div className="min-h-screen bg-surface transition-colors duration-300">
                 <Sidebar />
                 <div className="md:ml-[120px] pb-16 md:pb-0">
                     <Header />
                     <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                         <div className="max-w-4xl mx-auto">
                             <div className="mb-6">
-                                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                                <h1 className="text-3xl font-bold text-on-surface mb-2">
                                     Chỉnh sửa truyện
                                 </h1>
-                                <p className="text-gray-600 dark:text-gray-400">
+                                <p className="text-on-surface-variant">
                                     Cập nhật thông tin truyện của bạn
                                 </p>
                             </div>
@@ -185,7 +185,7 @@ export default function EditStoryPage() {
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 {/* Title */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Tiêu đề truyện <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -194,7 +194,7 @@ export default function EditStoryPage() {
                                         onChange={(e) =>
                                             setFormData({ ...formData, title: e.target.value })
                                         }
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                         placeholder="Nhập tiêu đề truyện"
                                     />
                                     {errors.title && (
@@ -206,7 +206,7 @@ export default function EditStoryPage() {
 
                                 {/* Description */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Mô tả
                                     </label>
                                     <textarea
@@ -215,19 +215,19 @@ export default function EditStoryPage() {
                                             setFormData({ ...formData, description: e.target.value })
                                         }
                                         rows={6}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                         placeholder="Nhập mô tả truyện"
                                     />
                                 </div>
 
                                 {/* Cover Image */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Ảnh bìa
                                     </label>
                                     <div className="space-y-4">
                                         {formData.coverImage && (
-                                            <div className="relative w-full h-64 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                                            <div className="relative w-full h-64 rounded-lg overflow-hidden border border-outline-variant">
                                                 <img
                                                     src={formData.coverImage}
                                                     alt="Cover"
@@ -246,7 +246,7 @@ export default function EditStoryPage() {
                                             type="button"
                                             onClick={() => fileInputRef.current?.click()}
                                             disabled={uploading}
-                                            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="px-4 py-2 bg-surface-variant text-on-surface-variant rounded-lg hover:bg-surface-variant transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             {uploading ? 'Đang upload...' : 'Chọn ảnh bìa'}
                                         </button>
@@ -260,7 +260,7 @@ export default function EditStoryPage() {
 
                                 {/* Categories */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Thể loại
                                     </label>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -287,9 +287,9 @@ export default function EditStoryPage() {
                                                             });
                                                         }
                                                     }}
-                                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                    className="rounded border-outline-variant text-blue-600 focus:ring-primary"
                                                 />
-                                                <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                <span className="text-sm text-on-surface-variant">
                                                     {category.name}
                                                 </span>
                                             </label>
@@ -299,7 +299,7 @@ export default function EditStoryPage() {
 
                                 {/* Country */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Quốc gia
                                     </label>
                                     <select
@@ -307,7 +307,7 @@ export default function EditStoryPage() {
                                         onChange={(e) =>
                                             setFormData({ ...formData, country: e.target.value })
                                         }
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                     >
                                         <option value="VN">Việt Nam</option>
                                         <option value="CN">Trung Quốc</option>
@@ -320,7 +320,7 @@ export default function EditStoryPage() {
 
                                 {/* Status */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Trạng thái
                                     </label>
                                     <select
@@ -331,7 +331,7 @@ export default function EditStoryPage() {
                                                 status: e.target.value as 'DRAFT' | 'ONGOING' | 'COMPLETED' | 'PUBLISHED' | 'ARCHIVED',
                                             })
                                         }
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                     >
                                         <option value="DRAFT">Bản nháp</option>
                                         <option value="ONGOING">Đang ra</option>
@@ -343,7 +343,7 @@ export default function EditStoryPage() {
 
                                 {/* Access type (spec mục 4) */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Hình thức truyện
                                     </label>
                                     <select
@@ -354,20 +354,20 @@ export default function EditStoryPage() {
                                                 accessType: e.target.value as 'FREE' | 'FREEMIUM' | 'VIP',
                                             })
                                         }
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                     >
                                         <option value="FREE">Miễn phí — ai cũng đọc được</option>
                                         <option value="FREEMIUM">Freemium — đặt giá coin từng chương</option>
                                         <option value="VIP">VIP — mua một lần mở khóa cả truyện</option>
                                     </select>
-                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <p className="mt-2 text-xs text-on-surface-variant">
                                         FREEMIUM: vào từng chương để đặt giá; nhãn trả phí được ẩn với độc giả.
                                     </p>
                                 </div>
 
                                 {formData.accessType === 'VIP' && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Giá mở khóa cả truyện (coin)
                                         </label>
                                         <input
@@ -376,10 +376,10 @@ export default function EditStoryPage() {
                                             step={1}
                                             value={formData.price}
                                             onChange={(e) => setFormData({ ...formData, price: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
-                                            className="w-full md:w-48 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                                            className="w-full md:w-48 px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                             placeholder="0"
                                         />
-                                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                        <p className="mt-2 text-xs text-on-surface-variant">
                                             Độc giả trả số coin này để đọc toàn bộ chương. Bạn nhận phần còn lại sau phí nền tảng.
                                         </p>
                                     </div>
@@ -404,7 +404,7 @@ export default function EditStoryPage() {
                                     <button
                                         type="button"
                                         onClick={() => router.back()}
-                                        className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                                        className="px-6 py-3 bg-surface-variant text-on-surface-variant rounded-lg hover:bg-surface-variant transition-colors"
                                     >
                                         Hủy
                                     </button>

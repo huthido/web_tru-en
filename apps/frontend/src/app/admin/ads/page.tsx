@@ -207,8 +207,8 @@ export default function AdminAdsPage() {
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Quản lý Quảng cáo</h1>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Quản lý và theo dõi quảng cáo trên hệ thống</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">Quản lý Quảng cáo</h1>
+                        <p className="text-sm sm:text-base text-on-surface-variant mt-1 sm:mt-2">Quản lý và theo dõi quảng cáo trên hệ thống</p>
                     </div>
                     <div className="flex flex-wrap gap-2 sm:gap-3">
                         <RefreshButton queryKeys={[['ads']]} />
@@ -245,7 +245,7 @@ export default function AdminAdsPage() {
                         )}
                         <button
                             onClick={() => setViewMode(viewMode === 'table' ? 'grid' : 'table')}
-                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                            className="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-high transition-colors flex items-center gap-2"
                         >
                             {viewMode === 'table' ? (
                                 <>
@@ -290,10 +290,10 @@ export default function AdminAdsPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                <div className="bg-surface-container rounded-lg p-4 shadow-sm">
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Tìm kiếm
                             </label>
                             <input
@@ -304,11 +304,11 @@ export default function AdminAdsPage() {
                                     setPage(1);
                                 }}
                                 placeholder="Tìm theo tiêu đề..."
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Loại
                             </label>
                             <select
@@ -317,7 +317,7 @@ export default function AdminAdsPage() {
                                     setTypeFilter(e.target.value as AdType | '');
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="">Tất cả</option>
                                 <option value={AdType.POPUP}>Popup</option>
@@ -326,7 +326,7 @@ export default function AdminAdsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Vị trí
                             </label>
                             <select
@@ -335,7 +335,7 @@ export default function AdminAdsPage() {
                                     setPositionFilter(e.target.value as AdPosition | '');
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="">Tất cả</option>
                                 <option value={AdPosition.BOTTOM}>Bottom</option>
@@ -344,7 +344,7 @@ export default function AdminAdsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Trạng thái
                             </label>
                             <select
@@ -353,7 +353,7 @@ export default function AdminAdsPage() {
                                     setIsActiveFilter(e.target.value === '' ? '' : e.target.value === 'true');
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="">Tất cả</option>
                                 <option value="true">Đang hoạt động</option>
@@ -361,7 +361,7 @@ export default function AdminAdsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Số lượng / trang
                             </label>
                             <select
@@ -370,7 +370,7 @@ export default function AdminAdsPage() {
                                     setLimit(Number(e.target.value));
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="10">10</option>
                                 <option value="20">20</option>
@@ -388,60 +388,60 @@ export default function AdminAdsPage() {
                     </div>
                 ) : viewMode === 'table' ? (
                     <>
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                        <div className="bg-surface-container rounded-lg shadow-sm overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full">
-                                    <thead className="bg-gray-50 dark:bg-gray-700">
+                                    <thead className="bg-surface-container-low">
                                         <tr>
                                             <th className="px-6 py-3 text-left">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedAds.size === ads.length && ads.length > 0}
                                                     onChange={toggleSelectAll}
-                                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                    className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
                                                 />
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                                 Quảng cáo
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                                 Loại / Vị trí
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                                 Thống kê
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                                 Trạng thái
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                                 Ngày tạo
                                             </th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-right text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                                 Thao tác
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <tbody className="bg-surface-container divide-y divide-outline-variant">
                                         {ads.length === 0 ? (
                                             <tr>
-                                                <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                                <td colSpan={7} className="px-6 py-12 text-center text-on-surface-variant">
                                                     Không có quảng cáo nào
                                                 </td>
                                             </tr>
                                         ) : (
                                             ads.map((ad) => (
-                                                <tr key={ad.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                <tr key={ad.id} className="hover:bg-surface-container-high">
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <input
                                                             type="checkbox"
                                                             checked={selectedAds.has(ad.id)}
                                                             onChange={() => toggleSelectAd(ad.id)}
-                                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                            className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
                                                         />
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="relative w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded overflow-hidden flex-shrink-0">
+                                                            <div className="relative w-16 h-16 bg-surface-container-high rounded overflow-hidden flex-shrink-0">
                                                                 {ad.imageUrl ? (
                                                                     <Image
                                                                         src={ad.imageUrl}
@@ -452,17 +452,17 @@ export default function AdminAdsPage() {
                                                                         unoptimized={ad.imageUrl.includes('cache.staticscdn.net')}
                                                                     />
                                                                 ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                                                                    <div className="w-full h-full flex items-center justify-center text-on-surface-variant text-xs">
                                                                         No Image
                                                                     </div>
                                                                 )}
                                                             </div>
                                                             <div className="min-w-0 flex-1">
-                                                                <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                                                <div className="text-sm font-medium text-on-surface truncate">
                                                                     {ad.title || 'Không có tiêu đề'}
                                                                 </div>
                                                                 {ad.description && (
-                                                                    <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                                                    <div className="text-sm text-on-surface-variant truncate">
                                                                         {ad.description}
                                                                     </div>
                                                                 )}
@@ -475,16 +475,16 @@ export default function AdminAdsPage() {
                                                                 ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                                                                 : ad.type === AdType.BANNER
                                                                     ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                                                    : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                                                    : 'bg-surface-container-high text-on-surface'
                                                                 }`}>
                                                                 {ad.type}
                                                             </span>
-                                                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                            <div className="text-xs text-on-surface-variant">
                                                                 {ad.position}
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-on-surface-variant">
                                                         <div className="space-y-1">
                                                             <div>Xem: {ad.viewCount.toLocaleString()}</div>
                                                             <div>Click: {ad.clickCount.toLocaleString()}</div>
@@ -496,12 +496,12 @@ export default function AdminAdsPage() {
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`px-2 py-1 text-xs rounded-full ${getAdStatus(ad) === 'Hoạt động'
                                                             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                                            : 'bg-surface-container-high text-on-surface'
                                                             }`}>
                                                             {getAdStatus(ad)}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-on-surface-variant">
                                                         {new Date(ad.createdAt).toLocaleDateString('vi-VN')}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -574,15 +574,15 @@ export default function AdminAdsPage() {
 
                         {/* Pagination */}
                         {meta && meta.totalPages > 1 && (
-                            <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-                                <div className="text-sm text-gray-700 dark:text-gray-300">
+                            <div className="flex items-center justify-between bg-surface-container rounded-lg p-4 shadow-sm">
+                                <div className="text-sm text-on-surface-variant">
                                     Hiển thị {((page - 1) * limit) + 1} - {Math.min(page * limit, meta.total)} trong tổng số {meta.total} quảng cáo
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setPage(1)}
                                         disabled={page === 1}
-                                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                                        className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                                         title="Trang đầu"
                                     >
                                         ««
@@ -590,7 +590,7 @@ export default function AdminAdsPage() {
                                     <button
                                         onClick={() => setPage(page - 1)}
                                         disabled={!meta.hasPrev}
-                                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                                        className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                                     >
                                         Trước
                                     </button>
@@ -599,7 +599,7 @@ export default function AdminAdsPage() {
                                             key={idx}
                                             onClick={() => typeof pageNum === 'number' && setPage(pageNum)}
                                             disabled={pageNum === '...' || pageNum === page}
-                                            className={`px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm ${pageNum === page ? 'bg-blue-500 text-white border-blue-500' : ''
+                                            className={`px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm ${pageNum === page ? 'bg-blue-500 text-white border-blue-500' : ''
                                                 }`}
                                         >
                                             {pageNum}
@@ -608,20 +608,20 @@ export default function AdminAdsPage() {
                                     <button
                                         onClick={() => setPage(page + 1)}
                                         disabled={!meta.hasNext}
-                                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                                        className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                                     >
                                         Sau
                                     </button>
                                     <button
                                         onClick={() => setPage(totalPages)}
                                         disabled={page === totalPages}
-                                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                                        className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                                         title="Trang cuối"
                                     >
                                         »»
                                     </button>
                                     <div className="ml-4 flex items-center gap-2">
-                                        <span className="text-sm text-gray-700 dark:text-gray-300">Đến trang:</span>
+                                        <span className="text-sm text-on-surface-variant">Đến trang:</span>
                                         <input
                                             type="number"
                                             min={1}
@@ -633,7 +633,7 @@ export default function AdminAdsPage() {
                                                     setPage(newPage);
                                                 }
                                             }}
-                                            className="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
+                                            className="w-16 px-2 py-1 border border-outline-variant rounded-lg dark:text-white text-sm"
                                         />
                                     </div>
                                 </div>
@@ -643,8 +643,8 @@ export default function AdminAdsPage() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {ads.length === 0 ? (
-                            <div className="col-span-full bg-white dark:bg-gray-800 rounded-lg p-12 text-center shadow-sm">
-                                <p className="text-gray-500 dark:text-gray-400">Không có quảng cáo nào</p>
+                            <div className="col-span-full bg-surface-container rounded-lg p-12 text-center shadow-sm">
+                                <p className="text-on-surface-variant">Không có quảng cáo nào</p>
                             </div>
                         ) : (
                             ads.map((ad) => (
@@ -770,8 +770,8 @@ function AdCard({
     const status = ad.isActive && isInSchedule ? 'Hoạt động' : 'Tắt';
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-            <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
+        <div className="bg-surface-container rounded-lg shadow-sm overflow-hidden">
+            <div className="relative h-48 bg-surface-container-high">
                 {ad.imageUrl ? (
                     <Image
                         src={ad.imageUrl}
@@ -782,26 +782,26 @@ function AdCard({
                         unoptimized={ad.imageUrl.includes('cache.staticscdn.net')}
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                    <div className="w-full h-full flex items-center justify-center text-on-surface-variant text-xs">
                         No Image
                     </div>
                 )}
             </div>
             <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-1">
+                    <h3 className="font-semibold text-on-surface line-clamp-1">
                         {ad.title || 'Không có tiêu đề'}
                     </h3>
                     <span
                         className={`px-2 py-1 text-xs rounded-full ${status === 'Hoạt động'
                             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                            : 'bg-surface-container-high text-on-surface'
                             }`}
                     >
                         {status}
                     </span>
                 </div>
-                <div className="space-y-1 mb-3 text-sm text-gray-600 dark:text-gray-400">
+                <div className="space-y-1 mb-3 text-sm text-on-surface-variant">
                     <div className="flex items-center gap-2">
                         <span className="font-medium">Loại:</span>
                         <span>{ad.type}</span>
@@ -823,7 +823,7 @@ function AdCard({
                         <span>{ad.viewCount > 0 ? ((ad.clickCount / ad.viewCount) * 100).toFixed(2) : '0.00'}%</span>
                     </div>
                     {isScheduled && (
-                        <div className="text-xs text-gray-500 dark:text-gray-500">
+                        <div className="text-xs text-on-surface-variant">
                             {ad.startDate && `Từ: ${new Date(ad.startDate).toLocaleDateString('vi-VN')}`}
                             {ad.startDate && ad.endDate && ' - '}
                             {ad.endDate && `Đến: ${new Date(ad.endDate).toLocaleDateString('vi-VN')}`}
@@ -881,13 +881,13 @@ function ViewAdModal({
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-surface-container rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Chi tiết quảng cáo</h2>
+                        <h2 className="text-2xl font-bold text-on-surface">Chi tiết quảng cáo</h2>
                         <button
                             onClick={onClose}
-                            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            className="text-on-surface-variant hover:text-on-surface-variant dark:hover:text-gray-200"
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M18 6L6 18M6 6l12 12" />
@@ -896,7 +896,7 @@ function ViewAdModal({
                     </div>
 
                     <div className="space-y-6">
-                        <div className="relative h-64 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                        <div className="relative h-64 bg-surface-container-high rounded-lg overflow-hidden">
                             {ad.imageUrl ? (
                                 <Image
                                     src={ad.imageUrl}
@@ -907,7 +907,7 @@ function ViewAdModal({
                                     unoptimized={ad.imageUrl.includes('cache.staticscdn.net')}
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <div className="w-full h-full flex items-center justify-center text-on-surface-variant">
                                     No Image
                                 </div>
                             )}
@@ -915,26 +915,26 @@ function ViewAdModal({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Tiêu đề
                                 </label>
-                                <p className="text-gray-900 dark:text-white">{ad.title || 'Không có tiêu đề'}</p>
+                                <p className="text-on-surface">{ad.title || 'Không có tiêu đề'}</p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Trạng thái
                                 </label>
                                 <span
                                     className={`inline-block px-2 py-1 text-xs rounded-full ${status === 'Hoạt động'
                                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                        : 'bg-surface-container-high text-on-surface'
                                         }`}
                                 >
                                     {status}
                                 </span>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Loại
                                 </label>
                                 <span
@@ -942,28 +942,28 @@ function ViewAdModal({
                                         ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                                         : ad.type === AdType.BANNER
                                             ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                            : 'bg-surface-container-high text-on-surface'
                                         }`}
                                 >
                                     {ad.type}
                                 </span>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Vị trí
                                 </label>
-                                <p className="text-gray-900 dark:text-white">{ad.position}</p>
+                                <p className="text-on-surface">{ad.position}</p>
                             </div>
                             {ad.linkUrl && (
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                         Link quảng cáo
                                     </label>
                                     <a
                                         href={ad.linkUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                                        className="text-primary hover:underline break-all"
                                     >
                                         {ad.linkUrl}
                                     </a>
@@ -971,40 +971,40 @@ function ViewAdModal({
                             )}
                             {ad.type === AdType.POPUP && ad.popupInterval && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                         Số chương cần đọc
                                     </label>
-                                    <p className="text-gray-900 dark:text-white">
+                                    <p className="text-on-surface">
                                         {ad.popupInterval} chương
                                     </p>
                                 </div>
                             )}
                             {ad.description && (
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                         Mô tả
                                     </label>
-                                    <p className="text-gray-900 dark:text-white">{ad.description}</p>
+                                    <p className="text-on-surface">{ad.description}</p>
                                 </div>
                             )}
                             {isScheduled && (
                                 <>
                                     {ad.startDate && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                                 Ngày bắt đầu
                                             </label>
-                                            <p className="text-gray-900 dark:text-white">
+                                            <p className="text-on-surface">
                                                 {new Date(ad.startDate).toLocaleString('vi-VN')}
                                             </p>
                                         </div>
                                     )}
                                     {ad.endDate && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                                 Ngày kết thúc
                                             </label>
-                                            <p className="text-gray-900 dark:text-white">
+                                            <p className="text-on-surface">
                                                 {new Date(ad.endDate).toLocaleString('vi-VN')}
                                             </p>
                                         </div>
@@ -1012,27 +1012,27 @@ function ViewAdModal({
                                 </>
                             )}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Ngày tạo
                                 </label>
-                                <p className="text-gray-900 dark:text-white">
+                                <p className="text-on-surface">
                                     {new Date(ad.createdAt).toLocaleString('vi-VN')}
                                 </p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Ngày cập nhật
                                 </label>
-                                <p className="text-gray-900 dark:text-white">
+                                <p className="text-on-surface">
                                     {new Date(ad.updatedAt).toLocaleString('vi-VN')}
                                 </p>
                             </div>
                             {ad.createdBy && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                         Người tạo
                                     </label>
-                                    <p className="text-gray-900 dark:text-white">
+                                    <p className="text-on-surface">
                                         {ad.createdBy.displayName || ad.createdBy.username}
                                     </p>
                                 </div>
@@ -1040,25 +1040,25 @@ function ViewAdModal({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Thống kê
                             </label>
                             <div className="grid grid-cols-3 gap-4">
-                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">Lượt xem</div>
-                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <div className="bg-surface-container-low p-3 rounded-lg">
+                                    <div className="text-sm text-on-surface-variant">Lượt xem</div>
+                                    <div className="text-2xl font-bold text-on-surface">
                                         {ad.viewCount.toLocaleString()}
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">Lượt click</div>
-                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <div className="bg-surface-container-low p-3 rounded-lg">
+                                    <div className="text-sm text-on-surface-variant">Lượt click</div>
+                                    <div className="text-2xl font-bold text-on-surface">
                                         {ad.clickCount.toLocaleString()}
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">CTR</div>
-                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <div className="bg-surface-container-low p-3 rounded-lg">
+                                    <div className="text-sm text-on-surface-variant">CTR</div>
+                                    <div className="text-2xl font-bold text-on-surface">
                                         {ctr}%
                                     </div>
                                 </div>
@@ -1219,15 +1219,15 @@ function AdFormModal({
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-surface-container rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        <h2 className="text-2xl font-bold text-on-surface">
                             {ad ? 'Chỉnh sửa quảng cáo' : 'Tạo quảng cáo mới'}
                         </h2>
                         <button
                             onClick={onClose}
-                            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            className="text-on-surface-variant hover:text-on-surface-variant dark:hover:text-gray-200"
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M18 6L6 18M6 6l12 12" />
@@ -1237,42 +1237,42 @@ function AdFormModal({
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Tiêu đề (tùy chọn)
                             </label>
                             <input
                                 type="text"
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Mô tả (tùy chọn)
                             </label>
                             <textarea
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 rows={3}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Ảnh quảng cáo <span className="text-red-500">*</span>
                             </label>
 
                             {/* Tabs for URL/Upload */}
-                            <div className="flex gap-2 mb-3 border-b border-gray-200 dark:border-gray-700">
+                            <div className="flex gap-2 mb-3 border-b border-outline-variant">
                                 <button
                                     type="button"
                                     onClick={() => setImageInputType('url')}
                                     className={`px-4 py-2 text-sm font-medium transition-colors ${imageInputType === 'url'
-                                        ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
-                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                        ? 'border-b-2 border-blue-500 text-primary'
+                                        : 'text-on-surface-variant hover:text-on-surface-variant'
                                         }`}
                                 >
                                     Nhập URL
@@ -1281,8 +1281,8 @@ function AdFormModal({
                                     type="button"
                                     onClick={() => setImageInputType('upload')}
                                     className={`px-4 py-2 text-sm font-medium transition-colors ${imageInputType === 'upload'
-                                        ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
-                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                        ? 'border-b-2 border-blue-500 text-primary'
+                                        : 'text-on-surface-variant hover:text-on-surface-variant'
                                         }`}
                                 >
                                     Upload ảnh
@@ -1299,10 +1299,10 @@ function AdFormModal({
                                             setFormData({ ...formData, imageUrl: e.target.value });
                                         }}
                                         placeholder="https://example.com/image.jpg"
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                     />
                                     {previewUrl && (
-                                        <div className="relative w-full h-48 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                                        <div className="relative w-full h-48 bg-surface-container-high rounded-lg overflow-hidden">
                                             <Image
                                                 src={previewUrl}
                                                 alt="Preview"
@@ -1324,14 +1324,14 @@ function AdFormModal({
                                                 onChange={handleFileChange}
                                                 className="hidden"
                                             />
-                                            <div className="px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors text-center">
+                                            <div className="px-4 py-2 border-2 border-dashed border-outline-variant rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors text-center">
                                                 <div className="flex flex-col items-center gap-2">
-                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-on-surface-variant">
                                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                                         <polyline points="17 8 12 3 7 8" />
                                                         <line x1="12" y1="3" x2="12" y2="15" />
                                                     </svg>
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                    <span className="text-sm text-on-surface-variant">
                                                         {uploadedFile ? uploadedFile.name : 'Chọn ảnh để upload'}
                                                     </span>
                                                 </div>
@@ -1349,7 +1349,7 @@ function AdFormModal({
                                         )}
                                     </div>
                                     {previewUrl && (
-                                        <div className="relative w-full h-48 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                                        <div className="relative w-full h-48 bg-surface-container-high rounded-lg overflow-hidden">
                                             <Image
                                                 src={previewUrl}
                                                 alt="Preview"
@@ -1370,26 +1370,26 @@ function AdFormModal({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Link quảng cáo (tùy chọn)
                             </label>
                             <input
                                 type="url"
                                 value={formData.linkUrl}
                                 onChange={(e) => setFormData({ ...formData, linkUrl: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Loại <span className="text-red-500">*</span>
                             </label>
                             <select
                                 required
                                 value={formData.type}
                                 onChange={(e) => setFormData({ ...formData, type: e.target.value as AdType })}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value={AdType.POPUP}>Popup</option>
                                 <option value={AdType.BANNER}>Banner</option>
@@ -1400,14 +1400,14 @@ function AdFormModal({
                         {/* Position field - chỉ hiển thị cho SIDEBAR type */}
                         {formData.type === AdType.SIDEBAR && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Vị trí <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     required
                                     value={formData.position}
                                     onChange={(e) => setFormData({ ...formData, position: e.target.value as AdPosition })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                 >
                                     <option value={AdPosition.SIDEBAR_LEFT}>Sidebar Left</option>
                                 </select>
@@ -1417,10 +1417,10 @@ function AdFormModal({
                         {/* Hiển thị thông tin position cho POPUP và BANNER (read-only) */}
                         {(formData.type === AdType.POPUP || formData.type === AdType.BANNER) && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Vị trí
                                 </label>
-                                <div className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400">
+                                <div className="w-full px-3 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-on-surface-variant">
                                     {formData.type === AdType.POPUP ? 'Giữa màn hình (tự động)' : 'Bottom (tự động)'}
                                 </div>
                             </div>
@@ -1429,7 +1429,7 @@ function AdFormModal({
                         {/* Popup Interval - Only show for POPUP type */}
                         {formData.type === AdType.POPUP && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Số chương cần đọc trước khi hiển thị
                                 </label>
                                 <input
@@ -1438,10 +1438,10 @@ function AdFormModal({
                                     max="20"
                                     value={formData.popupInterval}
                                     onChange={(e) => setFormData({ ...formData, popupInterval: parseInt(e.target.value) || 3 })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                     placeholder="3"
                                 />
-                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                <p className="mt-1 text-xs text-on-surface-variant">
                                     Quảng cáo sẽ hiển thị sau khi người dùng đọc đủ số chương này (mặc định: 3)
                                 </p>
                             </div>
@@ -1449,26 +1449,26 @@ function AdFormModal({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Ngày bắt đầu (tùy chọn)
                                 </label>
                                 <input
                                     type="date"
                                     value={formData.startDate}
                                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Ngày kết thúc (tùy chọn)
                                 </label>
                                 <input
                                     type="date"
                                     value={formData.endDate}
                                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                 />
                             </div>
                         </div>
@@ -1479,9 +1479,9 @@ function AdFormModal({
                                 id="isActive"
                                 checked={formData.isActive}
                                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
                             />
-                            <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label htmlFor="isActive" className="text-sm font-medium text-on-surface-variant">
                                 Đang hoạt động
                             </label>
                         </div>
@@ -1490,7 +1490,7 @@ function AdFormModal({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                className="flex-1 px-4 py-2 border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-high transition-colors"
                             >
                                 Hủy
                             </button>

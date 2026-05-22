@@ -125,9 +125,9 @@ export default function AdminNotificationsPage() {
             },
             INFO: {
                 label: 'Thông tin',
-                bg: 'bg-gray-50 dark:bg-gray-800',
-                text: 'text-gray-700 dark:text-gray-300',
-                border: 'border-gray-200 dark:border-gray-700',
+                bg: 'bg-surface-container-low',
+                text: 'text-on-surface-variant',
+                border: 'border-outline-variant',
             },
         };
         return configs[type] || configs.INFO;
@@ -137,8 +137,8 @@ export default function AdminNotificationsPage() {
         const configs: Record<string, { label: string; bg: string; text: string; dot: string }> = {
             LOW: {
                 label: 'Thấp',
-                bg: 'bg-gray-100 dark:bg-gray-800',
-                text: 'text-gray-700 dark:text-gray-300',
+                bg: 'bg-surface-container-high',
+                text: 'text-on-surface-variant',
                 dot: 'bg-gray-500',
             },
             NORMAL: {
@@ -169,22 +169,22 @@ export default function AdminNotificationsPage() {
                 {/* Header */}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">
                             Quản lý thông báo hệ thống
                         </h1>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">
+                        <p className="text-sm sm:text-base text-on-surface-variant mt-1 sm:mt-2">
                             Tạo và quản lý thông báo gửi đến người dùng
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
                         {/* View Mode Toggle */}
-                        <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-1">
+                        <div className="flex items-center bg-surface-container border border-outline-variant rounded-lg p-1">
                             <button
                                 onClick={() => setViewMode('grid')}
                                 className={`p-2 rounded transition-colors ${
                                     viewMode === 'grid'
                                         ? 'bg-blue-600 text-white'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                        : 'text-on-surface-variant hover:bg-surface-container-high'
                                 }`}
                                 title="Dạng lưới"
                             >
@@ -195,7 +195,7 @@ export default function AdminNotificationsPage() {
                                 className={`p-2 rounded transition-colors ${
                                     viewMode === 'list'
                                         ? 'bg-blue-600 text-white'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                        : 'text-on-surface-variant hover:bg-surface-container-high'
                                 }`}
                                 title="Dạng danh sách"
                             >
@@ -215,10 +215,10 @@ export default function AdminNotificationsPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="bg-surface-container rounded-xl p-4 sm:p-6 shadow-sm border border-outline-variant">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Loại thông báo
                             </label>
                             <select
@@ -227,7 +227,7 @@ export default function AdminNotificationsPage() {
                                     setTypeFilter(e.target.value);
                                     setPage(1);
                                 }}
-                                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                             >
                                 <option value="">Tất cả loại</option>
                                 <option value="SYSTEM_UPDATE">Cập nhật hệ thống</option>
@@ -240,7 +240,7 @@ export default function AdminNotificationsPage() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Mức độ ưu tiên
                             </label>
                             <select
@@ -249,7 +249,7 @@ export default function AdminNotificationsPage() {
                                     setPriorityFilter(e.target.value);
                                     setPage(1);
                                 }}
-                                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                             >
                                 <option value="">Tất cả mức độ</option>
                                 <option value="LOW">Thấp</option>
@@ -260,7 +260,7 @@ export default function AdminNotificationsPage() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Trạng thái
                             </label>
                             <select
@@ -269,7 +269,7 @@ export default function AdminNotificationsPage() {
                                     setIsActiveFilter(e.target.value);
                                     setPage(1);
                                 }}
-                                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                             >
                                 <option value="">Tất cả trạng thái</option>
                                 <option value="true">Đang hoạt động</option>
@@ -283,14 +283,14 @@ export default function AdminNotificationsPage() {
                 {isLoading ? (
                     <Loading />
                 ) : notifications.length === 0 ? (
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
-                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
-                            <Bell className="w-10 h-10 text-gray-400" />
+                    <div className="bg-surface-container rounded-xl p-12 text-center border border-outline-variant">
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-surface-container-high mb-4">
+                            <Bell className="w-10 h-10 text-on-surface-variant" />
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        <h3 className="text-lg font-semibold text-on-surface mb-2">
                             Chưa có thông báo nào
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                        <p className="text-on-surface-variant mb-6">
                             Tạo thông báo đầu tiên để gửi đến người dùng
                         </p>
                         <Link
@@ -312,7 +312,7 @@ export default function AdminNotificationsPage() {
                             return (
                                 <div
                                     key={notification.id}
-                                    className={`group relative bg-white dark:bg-gray-800 rounded-xl shadow-sm border-2 ${typeConfig.border} hover:shadow-lg transition-all duration-300 overflow-hidden`}
+                                    className={`group relative bg-surface-container rounded-xl shadow-sm border-2 ${typeConfig.border} hover:shadow-lg transition-all duration-300 overflow-hidden`}
                                 >
                                     {/* Type Banner */}
                                     <div className={`${typeConfig.bg} ${typeConfig.text} px-4 py-3 flex items-center justify-between border-b-2 ${typeConfig.border}`}>
@@ -331,22 +331,22 @@ export default function AdminNotificationsPage() {
 
                                     {/* Content */}
                                     <div className="p-5">
-                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 min-h-[3.5rem]">
+                                        <h3 className="text-lg font-bold text-on-surface mb-2 line-clamp-2 min-h-[3.5rem]">
                                             {notification.title}
                                         </h3>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3 min-h-[4.5rem]">
+                                        <p className="text-sm text-on-surface-variant mb-4 line-clamp-3 min-h-[4.5rem]">
                                             {notification.content}
                                         </p>
 
                                         {/* Stats */}
                                         <div className="space-y-2 mb-4">
-                                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                            <div className="flex items-center gap-2 text-xs text-on-surface-variant">
                                                 <Users className="w-3.5 h-3.5" />
                                                 <span>{notification._count?.recipients || 0} người nhận</span>
                                                 {notification.targetRole && (
                                                     <>
                                                         <span>•</span>
-                                                        <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium">
+                                                        <span className="px-2 py-0.5 bg-surface-container-high rounded text-xs font-medium">
                                                             {notification.targetRole}
                                                         </span>
                                                     </>
@@ -358,20 +358,20 @@ export default function AdminNotificationsPage() {
                                                     <span>Đã gửi email</span>
                                                 </div>
                                             )}
-                                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                            <div className="flex items-center gap-2 text-xs text-on-surface-variant">
                                                 <Clock className="w-3.5 h-3.5" />
                                                 <span>{new Date(notification.createdAt).toLocaleString('vi-VN')}</span>
                                             </div>
                                         </div>
 
                                         {/* Actions */}
-                                        <div className="flex items-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                        <div className="flex items-center gap-2 pt-4 border-t border-outline-variant">
                                             <button
                                                 onClick={() => toggleActive(notification.id, notification.isActive)}
                                                 className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                                                     notification.isActive
                                                         ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
-                                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                                        : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
                                                 }`}
                                                 title={notification.isActive ? 'Tắt thông báo' : 'Bật thông báo'}
                                             >
@@ -420,7 +420,7 @@ export default function AdminNotificationsPage() {
                             return (
                                 <div
                                     key={notification.id}
-                                    className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border-l-4 ${typeConfig.border} hover:shadow-md transition-all`}
+                                    className={`bg-surface-container rounded-xl p-6 shadow-sm border-l-4 ${typeConfig.border} hover:shadow-md transition-all`}
                                 >
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1 min-w-0">
@@ -442,13 +442,13 @@ export default function AdminNotificationsPage() {
                                                     </div>
                                                 )}
                                             </div>
-                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                                            <h3 className="text-lg font-bold text-on-surface mb-2">
                                                 {notification.title}
                                             </h3>
-                                            <p className="text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                                            <p className="text-on-surface-variant mb-3 line-clamp-2">
                                                 {notification.content}
                                             </p>
-                                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                            <div className="flex flex-wrap items-center gap-4 text-sm text-on-surface-variant">
                                                 <div className="flex items-center gap-1.5">
                                                     <Users className="w-4 h-4" />
                                                     <span>{notification._count?.recipients || 0} người nhận</span>
@@ -473,7 +473,7 @@ export default function AdminNotificationsPage() {
                                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                                                     notification.isActive
                                                         ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
-                                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                                        : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
                                                 }`}
                                             >
                                                 {notification.isActive ? <Power className="w-4 h-4" /> : <PowerOff className="w-4 h-4" />}
@@ -502,26 +502,26 @@ export default function AdminNotificationsPage() {
 
                 {/* Pagination */}
                 {meta && meta.totalPages > 1 && (
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                            Hiển thị <span className="font-semibold text-gray-900 dark:text-white">{notifications.length}</span> trong tổng số{' '}
-                            <span className="font-semibold text-gray-900 dark:text-white">{meta.total}</span> thông báo
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface-container rounded-xl p-4 shadow-sm border border-outline-variant">
+                        <div className="text-sm text-on-surface-variant">
+                            Hiển thị <span className="font-semibold text-on-surface">{notifications.length}</span> trong tổng số{' '}
+                            <span className="font-semibold text-on-surface">{meta.total}</span> thông báo
                         </div>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                                 disabled={page === 1}
-                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-sm"
+                                className="px-4 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors font-medium text-sm"
                             >
                                 ← Trước
                             </button>
-                            <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg font-semibold text-sm">
+                            <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-primary rounded-lg font-semibold text-sm">
                                 {page} / {meta.totalPages}
                             </div>
                             <button
                                 onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
                                 disabled={page >= meta.totalPages}
-                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-sm"
+                                className="px-4 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors font-medium text-sm"
                             >
                                 Sau →
                             </button>

@@ -179,13 +179,13 @@ export default function AdminApprovalsPage() {
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Duyệt truyện</h1>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Duyệt các yêu cầu publish truyện và chương</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">Duyệt truyện</h1>
+                        <p className="text-sm sm:text-base text-on-surface-variant mt-1 sm:mt-2">Duyệt các yêu cầu publish truyện và chương</p>
                     </div>
                     <div className="flex items-center gap-2">
                         {selectedRequests.size > 0 && (
                             <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-700 dark:text-gray-300">
+                                <span className="text-sm text-on-surface-variant">
                                     Đã chọn: {selectedRequests.size}
                                 </span>
                                 <button
@@ -208,13 +208,13 @@ export default function AdminApprovalsPage() {
                                 </button>
                             </div>
                         )}
-                        <div className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                        <div className="flex items-center gap-2 border border-outline-variant rounded-lg overflow-hidden">
                             <button
                                 onClick={() => setViewMode('list')}
                                 className={`px-3 py-2 text-sm font-medium transition-colors ${
                                     viewMode === 'list'
                                         ? 'bg-blue-500 text-white'
-                                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                        : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                                 }`}
                             >
                                 List
@@ -224,7 +224,7 @@ export default function AdminApprovalsPage() {
                                 className={`px-3 py-2 text-sm font-medium transition-colors ${
                                     viewMode === 'grid'
                                         ? 'bg-blue-500 text-white'
-                                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                        : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                                 }`}
                             >
                                 Grid
@@ -246,10 +246,10 @@ export default function AdminApprovalsPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                <div className="bg-surface-container rounded-lg p-4 shadow-sm">
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Tìm kiếm
                             </label>
                             <input
@@ -260,11 +260,11 @@ export default function AdminApprovalsPage() {
                                     setPage(1);
                                 }}
                                 placeholder="Tìm theo tên truyện, chương, tác giả..."
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Loại
                             </label>
                             <select
@@ -273,7 +273,7 @@ export default function AdminApprovalsPage() {
                                     setTypeFilter(e.target.value as any);
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="">Tất cả</option>
                                 <option value="STORY_PUBLISH">Truyện</option>
@@ -281,7 +281,7 @@ export default function AdminApprovalsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Trạng thái
                             </label>
                             <select
@@ -290,7 +290,7 @@ export default function AdminApprovalsPage() {
                                     setStatusFilter(e.target.value as any);
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="">Tất cả</option>
                                 <option value="PENDING">Đang chờ</option>
@@ -299,7 +299,7 @@ export default function AdminApprovalsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Số lượng/trang
                             </label>
                             <select
@@ -308,7 +308,7 @@ export default function AdminApprovalsPage() {
                                     setLimit(Number(e.target.value));
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="10">10</option>
                                 <option value="20">20</option>
@@ -317,13 +317,13 @@ export default function AdminApprovalsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Sắp xếp theo
                             </label>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value as any)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="createdAt">Ngày tạo</option>
                                 <option value="status">Trạng thái</option>
@@ -331,13 +331,13 @@ export default function AdminApprovalsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Thứ tự
                             </label>
                             <select
                                 value={sortOrder}
                                 onChange={(e) => setSortOrder(e.target.value as any)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="desc">Giảm dần</option>
                                 <option value="asc">Tăng dần</option>
@@ -352,21 +352,21 @@ export default function AdminApprovalsPage() {
                         <Loading />
                     </div>
                 ) : requests.length === 0 ? (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-12 text-center shadow-sm">
-                        <p className="text-gray-500 dark:text-gray-400">Không có yêu cầu nào</p>
+                    <div className="bg-surface-container rounded-lg p-12 text-center shadow-sm">
+                        <p className="text-on-surface-variant">Không có yêu cầu nào</p>
                     </div>
                 ) : (
                     <>
                         {sortedRequests.filter(r => r.status === 'PENDING').length > 0 && (
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm mb-4">
+                            <div className="bg-surface-container rounded-lg p-4 shadow-sm mb-4">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="checkbox"
                                         checked={selectedRequests.size === sortedRequests.filter(r => r.status === 'PENDING').length && sortedRequests.filter(r => r.status === 'PENDING').length > 0}
                                         onChange={toggleSelectAll}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
                                     />
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <span className="text-sm font-medium text-on-surface-variant">
                                         Chọn tất cả ({sortedRequests.filter(r => r.status === 'PENDING').length} yêu cầu đang chờ)
                                     </span>
                                 </label>
@@ -378,14 +378,14 @@ export default function AdminApprovalsPage() {
                                 {sortedRequests.map((request) => (
                                     <div
                                         key={request.id}
-                                        className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 ${
+                                        className={`bg-surface-container rounded-lg shadow-sm border-2 ${
                                             request.status === 'PENDING' ? 'border-yellow-500' :
                                             request.status === 'APPROVED' ? 'border-green-500' : 'border-red-500'
                                         } ${selectedRequests.has(request.id) ? 'ring-2 ring-blue-500' : ''} overflow-hidden`}
                                     >
                                         {/* Cover Image */}
                                         {request.story?.coverImage && (
-                                            <div className="relative w-full h-40 bg-gray-200 dark:bg-gray-700">
+                                            <div className="relative w-full h-40 bg-surface-variant">
                                                 <Image
                                                     src={request.story.coverImage}
                                                     alt={request.story.title}
@@ -399,7 +399,7 @@ export default function AdminApprovalsPage() {
                                                             type="checkbox"
                                                             checked={selectedRequests.has(request.id)}
                                                             onChange={() => toggleSelectRequest(request.id)}
-                                                            className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                            className="w-5 h-5 text-blue-600 border-outline-variant rounded focus:ring-primary"
                                                         />
                                                     </div>
                                                 )}
@@ -420,7 +420,7 @@ export default function AdminApprovalsPage() {
                                         {/* Content */}
                                         <div className="p-4">
                                             <h3 
-                                                className="text-base font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                                                className="text-base font-semibold text-on-surface mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
                                                 onClick={() => {
                                                     setViewingRequest(request);
                                                     setShowViewModal(true);
@@ -428,7 +428,7 @@ export default function AdminApprovalsPage() {
                                             >
                                                 {request.story?.title || request.chapter?.title}
                                             </h3>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                            <p className="text-sm text-on-surface-variant mb-3">
                                                 {request.user?.displayName || request.user?.username}
                                             </p>
                                             
@@ -448,7 +448,7 @@ export default function AdminApprovalsPage() {
                                                     : 'Đã từ chối'}
                                             </span>
                                             
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                            <p className="text-xs text-on-surface-variant mb-3">
                                                 {new Date(request.createdAt).toLocaleString('vi-VN')}
                                             </p>
                                             
@@ -486,7 +486,7 @@ export default function AdminApprovalsPage() {
                                 {sortedRequests.map((request) => (
                             <div
                                 key={request.id}
-                                className={`bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border-l-4 ${
+                                className={`bg-surface-container rounded-lg p-6 shadow-sm border-l-4 ${
                                     request.status === 'PENDING' ? 'border-yellow-500' :
                                     request.status === 'APPROVED' ? 'border-green-500' : 'border-red-500'
                                 } ${selectedRequests.has(request.id) ? 'ring-2 ring-blue-500' : ''}`}
@@ -499,7 +499,7 @@ export default function AdminApprovalsPage() {
                                                     type="checkbox"
                                                     checked={selectedRequests.has(request.id)}
                                                     onChange={() => toggleSelectRequest(request.id)}
-                                                    className="mt-2 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                    className="mt-2 w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
                                                 />
                                             )}
                                             {request.story?.coverImage && (
@@ -541,7 +541,7 @@ export default function AdminApprovalsPage() {
                                                     </span>
                                                 </div>
                                                 <h3 
-                                                    className="text-lg font-semibold text-gray-900 dark:text-white mb-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                                                    className="text-lg font-semibold text-on-surface mb-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
                                                     onClick={() => {
                                                         setViewingRequest(request);
                                                         setShowViewModal(true);
@@ -549,31 +549,31 @@ export default function AdminApprovalsPage() {
                                                 >
                                                     {request.story?.title || request.chapter?.title}
                                                 </h3>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                                <p className="text-sm text-on-surface-variant mb-2">
                                                     Tác giả: {request.user?.displayName || request.user?.username}
                                                 </p>
                                                 {request.message && (
-                                                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                                                    <p className="text-sm text-on-surface-variant mb-2">
                                                         {request.message}
                                                     </p>
                                                 )}
                                                 {request.adminNote && (
-                                                    <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                                    <div className="mt-2 p-2 bg-surface-container-low rounded">
+                                                        <p className="text-xs text-on-surface-variant mb-1">
                                                             Ghi chú của admin:
                                                         </p>
-                                                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                                                        <p className="text-sm text-on-surface-variant">
                                                             {request.adminNote}
                                                         </p>
                                                     </div>
                                                 )}
                                                 {request.reviewer && (
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                                    <p className="text-xs text-on-surface-variant mt-2">
                                                         Duyệt bởi: {request.reviewer.displayName || request.reviewer.username} 
                                                         {request.reviewedAt && ` - ${new Date(request.reviewedAt).toLocaleString('vi-VN')}`}
                                                     </p>
                                                 )}
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                                <p className="text-xs text-on-surface-variant mt-2">
                                                     {new Date(request.createdAt).toLocaleString('vi-VN')}
                                                 </p>
                                             </div>
@@ -624,23 +624,23 @@ export default function AdminApprovalsPage() {
 
                 {/* Pagination */}
                 {meta && meta.totalPages > 1 && (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                    <div className="bg-surface-container rounded-lg p-4 shadow-sm">
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <div className="text-sm text-gray-700 dark:text-gray-300">
+                            <div className="text-sm text-on-surface-variant">
                                 Hiển thị {((page - 1) * limit) + 1} - {Math.min(page * limit, meta.total)} trong tổng số {meta.total} yêu cầu
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setPage(1)}
                                     disabled={page === 1}
-                                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                                    className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                                 >
                                     Đầu
                                 </button>
                                 <button
                                     onClick={() => setPage(page - 1)}
                                     disabled={!meta.hasPrev}
-                                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                                    className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                                 >
                                     Trước
                                 </button>
@@ -666,7 +666,7 @@ export default function AdminApprovalsPage() {
                                                 className={`px-3 py-2 border rounded-lg text-sm transition-colors ${
                                                     page === pageNum
                                                         ? 'bg-blue-500 text-white border-blue-500'
-                                                        : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                                        : 'border-outline-variant hover:bg-surface-container-high'
                                                 }`}
                                             >
                                                 {pageNum}
@@ -678,14 +678,14 @@ export default function AdminApprovalsPage() {
                                 <button
                                     onClick={() => setPage(page + 1)}
                                     disabled={!meta.hasNext}
-                                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                                    className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                                 >
                                     Sau
                                 </button>
                                 <button
                                     onClick={() => setPage(meta.totalPages)}
                                     disabled={page === meta.totalPages}
-                                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                                    className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                                 >
                                     Cuối
                                 </button>
@@ -698,16 +698,16 @@ export default function AdminApprovalsPage() {
             {/* View Details Modal */}
             {showViewModal && viewingRequest && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div className="bg-surface-container rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Chi tiết yêu cầu</h2>
+                                <h2 className="text-2xl font-bold text-on-surface">Chi tiết yêu cầu</h2>
                                 <button
                                     onClick={() => {
                                         setShowViewModal(false);
                                         setViewingRequest(null);
                                     }}
-                                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                    className="text-on-surface-variant hover:text-on-surface-variant dark:hover:text-gray-200"
                                 >
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M18 6L6 18M6 6l12 12" />
@@ -718,15 +718,15 @@ export default function AdminApprovalsPage() {
                             <div className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                             Loại
                                         </label>
-                                        <p className="text-sm text-gray-900 dark:text-white">
+                                        <p className="text-sm text-on-surface">
                                             {viewingRequest.type === 'STORY_PUBLISH' ? 'Truyện' : 'Chương'}
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                             Trạng thái
                                         </label>
                                         <span
@@ -748,17 +748,17 @@ export default function AdminApprovalsPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                         Tiêu đề
                                     </label>
-                                    <p className="text-sm text-gray-900 dark:text-white">
+                                    <p className="text-sm text-on-surface">
                                         {viewingRequest.story?.title || viewingRequest.chapter?.title}
                                     </p>
                                 </div>
 
                                 {viewingRequest.story?.coverImage && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Ảnh bìa
                                         </label>
                                         <div className="relative w-32 h-44 rounded overflow-hidden">
@@ -774,20 +774,20 @@ export default function AdminApprovalsPage() {
                                 )}
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                         Tác giả
                                     </label>
-                                    <p className="text-sm text-gray-900 dark:text-white">
+                                    <p className="text-sm text-on-surface">
                                         {viewingRequest.user?.displayName || viewingRequest.user?.username}
                                     </p>
                                 </div>
 
                                 {viewingRequest.message && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                             Tin nhắn
                                         </label>
-                                        <p className="text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                                        <p className="text-sm text-on-surface bg-surface-container-low p-3 rounded">
                                             {viewingRequest.message}
                                         </p>
                                     </div>
@@ -795,10 +795,10 @@ export default function AdminApprovalsPage() {
 
                                 {viewingRequest.adminNote && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                             Ghi chú của admin
                                         </label>
-                                        <p className="text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                                        <p className="text-sm text-on-surface bg-surface-container-low p-3 rounded">
                                             {viewingRequest.adminNote}
                                         </p>
                                     </div>
@@ -806,10 +806,10 @@ export default function AdminApprovalsPage() {
 
                                 {viewingRequest.reviewer && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                             Người duyệt
                                         </label>
-                                        <p className="text-sm text-gray-900 dark:text-white">
+                                        <p className="text-sm text-on-surface">
                                             {viewingRequest.reviewer.displayName || viewingRequest.reviewer.username}
                                         </p>
                                     </div>
@@ -817,19 +817,19 @@ export default function AdminApprovalsPage() {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                             Ngày tạo
                                         </label>
-                                        <p className="text-sm text-gray-900 dark:text-white">
+                                        <p className="text-sm text-on-surface">
                                             {new Date(viewingRequest.createdAt).toLocaleString('vi-VN')}
                                         </p>
                                     </div>
                                     {viewingRequest.reviewedAt && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                                 Ngày duyệt
                                             </label>
-                                            <p className="text-sm text-gray-900 dark:text-white">
+                                            <p className="text-sm text-on-surface">
                                                 {new Date(viewingRequest.reviewedAt).toLocaleString('vi-VN')}
                                             </p>
                                         </div>
@@ -842,7 +842,7 @@ export default function AdminApprovalsPage() {
                                             setShowViewModal(false);
                                             setViewingRequest(null);
                                         }}
-                                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                        className="flex-1 px-4 py-2 border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-high transition-colors"
                                     >
                                         Đóng
                                     </button>
@@ -882,10 +882,10 @@ export default function AdminApprovalsPage() {
             {/* Bulk Action Modal */}
             {showBulkActionModal && bulkAction && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full">
+                    <div className="bg-surface-container rounded-lg max-w-md w-full">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <h2 className="text-2xl font-bold text-on-surface">
                                     {bulkAction === 'APPROVED' ? 'Duyệt hàng loạt' : 'Từ chối hàng loạt'}
                                 </h2>
                                 <button
@@ -894,7 +894,7 @@ export default function AdminApprovalsPage() {
                                         setBulkAction(null);
                                         setBulkNote('');
                                     }}
-                                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                    className="text-on-surface-variant hover:text-on-surface-variant dark:hover:text-gray-200"
                                 >
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M18 6L6 18M6 6l12 12" />
@@ -903,18 +903,18 @@ export default function AdminApprovalsPage() {
                             </div>
 
                             <div className="space-y-4">
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                <p className="text-sm text-on-surface-variant">
                                     Bạn đang {bulkAction === 'APPROVED' ? 'duyệt' : 'từ chối'} {selectedRequests.size} yêu cầu.
                                 </p>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Ghi chú (tùy chọn)
                                     </label>
                                     <textarea
                                         value={bulkNote}
                                         onChange={(e) => setBulkNote(e.target.value)}
                                         rows={4}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                         placeholder="Nhập ghi chú cho tác giả..."
                                     />
                                 </div>
@@ -927,7 +927,7 @@ export default function AdminApprovalsPage() {
                                             setBulkAction(null);
                                             setBulkNote('');
                                         }}
-                                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                        className="flex-1 px-4 py-2 border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-high transition-colors"
                                     >
                                         Hủy
                                     </button>
@@ -956,10 +956,10 @@ export default function AdminApprovalsPage() {
             {/* Review Modal */}
             {reviewingRequest && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full">
+                    <div className="bg-surface-container rounded-lg max-w-md w-full">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <h2 className="text-2xl font-bold text-on-surface">
                                     {reviewStatus === 'APPROVED' ? 'Duyệt yêu cầu' : 'Từ chối yêu cầu'}
                                 </h2>
                                 <button
@@ -967,7 +967,7 @@ export default function AdminApprovalsPage() {
                                         setReviewingRequest(null);
                                         setReviewNote('');
                                     }}
-                                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                    className="text-on-surface-variant hover:text-on-surface-variant dark:hover:text-gray-200"
                                 >
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M18 6L6 18M6 6l12 12" />
@@ -977,14 +977,14 @@ export default function AdminApprovalsPage() {
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Ghi chú (tùy chọn)
                                     </label>
                                     <textarea
                                         value={reviewNote}
                                         onChange={(e) => setReviewNote(e.target.value)}
                                         rows={4}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                         placeholder="Nhập ghi chú cho tác giả..."
                                     />
                                 </div>
@@ -996,7 +996,7 @@ export default function AdminApprovalsPage() {
                                             setReviewingRequest(null);
                                             setReviewNote('');
                                         }}
-                                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                        className="flex-1 px-4 py-2 border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-high transition-colors"
                                     >
                                         Hủy
                                     </button>

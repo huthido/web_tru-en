@@ -155,7 +155,7 @@ export default function AdminCommentsPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow space-y-4">
+                <div className="bg-surface-container p-4 rounded-lg shadow space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-1">Tìm kiếm</label>
@@ -167,7 +167,7 @@ export default function AdminCommentsPage() {
                                     setPage(1);
                                 }}
                                 placeholder="Tìm trong nội dung..."
-                                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                                className="w-full px-3 py-2 border rounded-lg"
                             />
                         </div>
                         <div>
@@ -180,7 +180,7 @@ export default function AdminCommentsPage() {
                                     setPage(1);
                                 }}
                                 placeholder="Lọc theo truyện..."
-                                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                                className="w-full px-3 py-2 border rounded-lg"
                             />
                         </div>
                         <div>
@@ -193,7 +193,7 @@ export default function AdminCommentsPage() {
                                     setPage(1);
                                 }}
                                 placeholder="Lọc theo người dùng..."
-                                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                                className="w-full px-3 py-2 border rounded-lg"
                             />
                         </div>
                         <div>
@@ -204,7 +204,7 @@ export default function AdminCommentsPage() {
                                     setIsDeletedFilter(e.target.value);
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                                className="w-full px-3 py-2 border rounded-lg"
                             >
                                 <option value="">Tất cả</option>
                                 <option value="false">Hoạt động</option>
@@ -218,7 +218,7 @@ export default function AdminCommentsPage() {
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value as 'createdAt' | 'updatedAt')}
-                                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                                className="w-full px-3 py-2 border rounded-lg"
                             >
                                 <option value="createdAt">Ngày tạo</option>
                                 <option value="updatedAt">Ngày cập nhật</option>
@@ -229,7 +229,7 @@ export default function AdminCommentsPage() {
                             <select
                                 value={sortOrder}
                                 onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                                className="w-full px-3 py-2 border rounded-lg"
                             >
                                 <option value="desc">Mới nhất</option>
                                 <option value="asc">Cũ nhất</option>
@@ -269,24 +269,24 @@ export default function AdminCommentsPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Tổng số</div>
+                    <div className="bg-surface-container p-4 rounded-lg shadow">
+                        <div className="text-sm text-on-surface-variant">Tổng số</div>
                         <div className="text-2xl font-bold">{meta?.total || 0}</div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Hoạt động</div>
+                    <div className="bg-surface-container p-4 rounded-lg shadow">
+                        <div className="text-sm text-on-surface-variant">Hoạt động</div>
                         <div className="text-2xl font-bold text-green-600">
                             {comments.filter((c) => !c.isDeleted).length}
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Đã xóa</div>
+                    <div className="bg-surface-container p-4 rounded-lg shadow">
+                        <div className="text-sm text-on-surface-variant">Đã xóa</div>
                         <div className="text-2xl font-bold text-red-600">
                             {comments.filter((c) => c.isDeleted).length}
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Trang hiện tại</div>
+                    <div className="bg-surface-container p-4 rounded-lg shadow">
+                        <div className="text-sm text-on-surface-variant">Trang hiện tại</div>
                         <div className="text-2xl font-bold">
                             {meta?.page || 1} / {meta?.totalPages || 1}
                         </div>
@@ -294,10 +294,10 @@ export default function AdminCommentsPage() {
                 </div>
 
                 {/* Table */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                <div className="bg-surface-container rounded-lg shadow overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 dark:bg-gray-700">
+                            <thead className="bg-surface-container-low">
                                 <tr>
                                     <th className="px-4 py-3 text-left">
                                         <input
@@ -316,16 +316,16 @@ export default function AdminCommentsPage() {
                                     <th className="px-4 py-3 text-left">Thao tác</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody className="divide-y divide-outline-variant">
                                 {filteredComments.length === 0 ? (
                                     <tr>
-                                        <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                                        <td colSpan={8} className="px-4 py-8 text-center text-on-surface-variant">
                                             Không có bình luận nào
                                         </td>
                                     </tr>
                                 ) : (
                                     filteredComments.map((comment) => (
-                                        <tr key={comment.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <tr key={comment.id} className="hover:bg-surface-container-high">
                                             <td className="px-4 py-3">
                                                 <input
                                                     type="checkbox"
@@ -337,14 +337,14 @@ export default function AdminCommentsPage() {
                                             <td className="px-4 py-3">
                                                 <div className="max-w-md">
                                                     {comment.isDeleted ? (
-                                                        <span className="text-gray-400 italic">[Đã xóa]</span>
+                                                        <span className="text-on-surface-variant italic">[Đã xóa]</span>
                                                     ) : (
                                                         <div className="line-clamp-2 text-sm">
                                                             {comment.content}
                                                         </div>
                                                     )}
                                                     {comment.parentId && (
-                                                        <span className="text-xs text-blue-600 dark:text-blue-400 ml-2">
+                                                        <span className="text-xs text-primary ml-2">
                                                             (Phản hồi)
                                                         </span>
                                                     )}
@@ -363,7 +363,7 @@ export default function AdminCommentsPage() {
                                                         <div className="font-medium">
                                                             {comment.user.displayName || comment.user.username}
                                                         </div>
-                                                        <div className="text-sm text-gray-500">{comment.user.username}</div>
+                                                        <div className="text-sm text-on-surface-variant">{comment.user.username}</div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -379,18 +379,18 @@ export default function AdminCommentsPage() {
                                                                 {comment.story.title}
                                                             </Link>
                                                             {comment.chapter && (
-                                                                <div className="text-xs text-gray-500 mt-1">
+                                                                <div className="text-xs text-on-surface-variant mt-1">
                                                                     Chương: {comment.chapter.title}
                                                                 </div>
                                                             )}
                                                         </div>
                                                     ) : comment.chapter ? (
                                                         <div className="text-sm">
-                                                            <span className="text-gray-600 dark:text-gray-400">Chương:</span>
+                                                            <span className="text-on-surface-variant">Chương:</span>
                                                             <span className="ml-1">{comment.chapter.title}</span>
                                                         </div>
                                                     ) : (
-                                                        <span className="text-gray-400 text-sm">N/A</span>
+                                                        <span className="text-on-surface-variant text-sm">N/A</span>
                                                     )}
                                                 </div>
                                             </td>
@@ -406,10 +406,10 @@ export default function AdminCommentsPage() {
                                             </td>
                                             <td className="px-4 py-3">{comment.replyCount || 0}</td>
                                             <td className="px-4 py-3">
-                                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                <div className="text-sm text-on-surface-variant">
                                                     {new Date(comment.createdAt).toLocaleDateString('vi-VN')}
                                                 </div>
-                                                <div className="text-xs text-gray-400 dark:text-gray-500">
+                                                <div className="text-xs text-on-surface-variant">
                                                     {new Date(comment.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                                                 </div>
                                             </td>
@@ -420,7 +420,7 @@ export default function AdminCommentsPage() {
                                                             setViewingComment(comment);
                                                             setShowViewModal(true);
                                                         }}
-                                                        className="px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors"
+                                                        className="px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-primary hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors"
                                                         title="Xem chi tiết"
                                                     >
                                                         Xem
@@ -486,7 +486,7 @@ export default function AdminCommentsPage() {
                 {/* View Modal */}
                 {showViewModal && viewingComment && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="bg-surface-container rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-2xl font-bold">Chi tiết bình luận</h2>
                                 <button
@@ -494,7 +494,7 @@ export default function AdminCommentsPage() {
                                         setShowViewModal(false);
                                         setViewingComment(null);
                                     }}
-                                    className="text-gray-500 hover:text-gray-700"
+                                    className="text-on-surface-variant hover:text-on-surface-variant"
                                 >
                                     ✕
                                 </button>
@@ -502,9 +502,9 @@ export default function AdminCommentsPage() {
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Nội dung</label>
-                                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded whitespace-pre-wrap break-words">
+                                    <div className="p-3 bg-surface-container-low rounded whitespace-pre-wrap break-words">
                                         {viewingComment.isDeleted ? (
-                                            <span className="text-gray-400 italic">[Đã xóa] {viewingComment.content}</span>
+                                            <span className="text-on-surface-variant italic">[Đã xóa] {viewingComment.content}</span>
                                         ) : (
                                             viewingComment.content
                                         )}
@@ -512,20 +512,20 @@ export default function AdminCommentsPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1">ID Bình luận</label>
-                                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded text-xs font-mono text-gray-600 dark:text-gray-400">
+                                    <div className="p-2 bg-surface-container-low rounded text-xs font-mono text-on-surface-variant">
                                         {viewingComment.id}
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Người dùng</label>
-                                        <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                                        <div className="p-2 bg-surface-container-low rounded">
                                             {viewingComment.user.displayName || viewingComment.user.username}
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Trạng thái</label>
-                                        <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                                        <div className="p-2 bg-surface-container-low rounded">
                                             {viewingComment.isDeleted ? 'Đã xóa' : 'Hoạt động'}
                                         </div>
                                     </div>
@@ -544,21 +544,21 @@ export default function AdminCommentsPage() {
                                 {viewingComment.chapter && (
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Chương</label>
-                                        <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                                        <div className="p-2 bg-surface-container-low rounded">
                                             {viewingComment.chapter.title}
                                         </div>
                                     </div>
                                 )}
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Số phản hồi</label>
-                                    <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                                    <div className="p-2 bg-surface-container-low rounded">
                                         {viewingComment.replyCount || 0}
                                     </div>
                                 </div>
                                 {viewingComment.parentId && (
                                     <div>
                                         <label className="block text-sm font-medium mb-1">ID Bình luận cha</label>
-                                        <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded text-xs font-mono text-gray-600 dark:text-gray-400">
+                                        <div className="p-2 bg-surface-container-low rounded text-xs font-mono text-on-surface-variant">
                                             {viewingComment.parentId}
                                         </div>
                                     </div>
@@ -566,13 +566,13 @@ export default function AdminCommentsPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Ngày tạo</label>
-                                        <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                                        <div className="p-2 bg-surface-container-low rounded">
                                             {new Date(viewingComment.createdAt).toLocaleString('vi-VN')}
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Ngày cập nhật</label>
-                                        <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                                        <div className="p-2 bg-surface-container-low rounded">
                                             {new Date(viewingComment.updatedAt).toLocaleString('vi-VN')}
                                         </div>
                                     </div>

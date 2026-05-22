@@ -212,10 +212,10 @@ export default function AdminCategoriesPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">
                             Quản lý thể loại
                         </h1>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
+                        <p className="text-sm sm:text-base text-on-surface-variant mt-1">
                             Quản lý tất cả thể loại truyện trong hệ thống
                         </p>
                     </div>
@@ -232,28 +232,28 @@ export default function AdminCategoriesPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Tổng thể loại</div>
-                        <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                    <div className="bg-surface-container rounded-lg p-4 border border-outline-variant">
+                        <div className="text-sm text-on-surface-variant">Tổng thể loại</div>
+                        <div className="text-2xl font-bold text-on-surface mt-1">
                             {categories?.length || 0}
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Đang tìm kiếm</div>
-                        <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                    <div className="bg-surface-container rounded-lg p-4 border border-outline-variant">
+                        <div className="text-sm text-on-surface-variant">Đang tìm kiếm</div>
+                        <div className="text-2xl font-bold text-on-surface mt-1">
                             {filteredAndSortedCategories.length}
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Đã chọn</div>
-                        <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                    <div className="bg-surface-container rounded-lg p-4 border border-outline-variant">
+                        <div className="text-sm text-on-surface-variant">Đã chọn</div>
+                        <div className="text-2xl font-bold text-on-surface mt-1">
                             {selectedCategories.size}
                         </div>
                     </div>
                 </div>
 
                 {/* Search and Filters */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <div className="bg-surface-container rounded-lg p-4 border border-outline-variant">
                     <div className="flex flex-col sm:flex-row gap-4">
                         <div className="flex-1">
                             <input
@@ -264,7 +264,7 @@ export default function AdminCategoriesPage() {
                                     setSearchTerm(e.target.value);
                                     setPage(1); // Reset to first page when searching
                                 }}
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             />
                         </div>
                         <div className="flex gap-2">
@@ -274,7 +274,7 @@ export default function AdminCategoriesPage() {
                                     setSortBy(e.target.value as 'name' | 'createdAt');
                                     setPage(1);
                                 }}
-                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="name">Sắp xếp theo tên</option>
                                 <option value="createdAt">Sắp xếp theo ngày tạo</option>
@@ -284,7 +284,7 @@ export default function AdminCategoriesPage() {
                                     setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
                                     setPage(1);
                                 }}
-                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                className="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-high transition-colors"
                                 title={sortOrder === 'asc' ? 'Tăng dần' : 'Giảm dần'}
                             >
                                 {sortOrder === 'asc' ? '↑' : '↓'}
@@ -315,7 +315,7 @@ export default function AdminCategoriesPage() {
                                 </button>
                                 <button
                                     onClick={() => setSelectedCategories(new Set())}
-                                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm"
+                                    className="px-4 py-2 bg-surface-variant text-on-surface-variant rounded-lg hover:bg-surface-variant transition-colors text-sm"
                                 >
                                     Bỏ chọn
                                 </button>
@@ -326,13 +326,13 @@ export default function AdminCategoriesPage() {
 
                 {/* Create/Edit Form */}
                 {(isCreating || editingCategory) && (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
-                        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                    <div className="bg-surface-container rounded-lg p-4 sm:p-6 border border-outline-variant">
+                        <h2 className="text-lg sm:text-xl font-semibold text-on-surface mb-4">
                             {editingCategory ? 'Chỉnh sửa thể loại' : 'Thêm thể loại mới'}
                         </h2>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Tên thể loại <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -341,12 +341,12 @@ export default function AdminCategoriesPage() {
                                     onChange={(e) =>
                                         setFormData({ ...formData, name: e.target.value })
                                     }
-                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                     placeholder="Nhập tên thể loại"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Mô tả
                                 </label>
                                 <textarea
@@ -355,7 +355,7 @@ export default function AdminCategoriesPage() {
                                         setFormData({ ...formData, description: e.target.value })
                                     }
                                     rows={3}
-                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                     placeholder="Nhập mô tả thể loại"
                                 />
                             </div>
@@ -373,7 +373,7 @@ export default function AdminCategoriesPage() {
                                 </button>
                                 <button
                                     onClick={cancelEdit}
-                                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                                    className="px-4 py-2 bg-surface-variant text-on-surface-variant rounded-lg hover:bg-surface-variant transition-colors"
                                 >
                                     Hủy
                                 </button>
@@ -383,10 +383,10 @@ export default function AdminCategoriesPage() {
                 )}
 
                 {/* Categories Table */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="bg-surface-container rounded-lg border border-outline-variant overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 dark:bg-gray-700">
+                            <thead className="bg-surface-container-low">
                                 <tr>
                                     <th className="px-4 py-3 text-left">
                                         <input
@@ -396,30 +396,30 @@ export default function AdminCategoriesPage() {
                                                 selectedCategories.size === paginatedCategories.length
                                             }
                                             onChange={handleSelectAll}
-                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            className="rounded border-outline-variant text-blue-600 focus:ring-primary"
                                         />
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                         Tên thể loại
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                         Slug
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                         Mô tả
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                         Ngày tạo
                                     </th>
-                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-right text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                         Thao tác
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody className="bg-surface-container divide-y divide-outline-variant">
                                 {paginatedCategories.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                        <td colSpan={6} className="px-4 py-8 text-center text-on-surface-variant">
                                             {searchTerm ? 'Không tìm thấy thể loại nào' : 'Chưa có thể loại nào'}
                                         </td>
                                     </tr>
@@ -427,33 +427,33 @@ export default function AdminCategoriesPage() {
                                     paginatedCategories.map((category) => (
                                         <tr
                                             key={category.id}
-                                            className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                            className="hover:bg-surface-container-high transition-colors"
                                         >
                                             <td className="px-4 py-3">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedCategories.has(category.id)}
                                                     onChange={() => handleSelectCategory(category.id)}
-                                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                    className="rounded border-outline-variant text-blue-600 focus:ring-primary"
                                                 />
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                <div className="text-sm font-medium text-on-surface">
                                                     {category.name}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">
-                                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                <div className="text-sm text-on-surface-variant">
                                                     {category.slug}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3">
-                                                <div className="text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
+                                                <div className="text-sm text-on-surface-variant max-w-xs truncate">
                                                     {category.description || '-'}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">
-                                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                <div className="text-sm text-on-surface-variant">
                                                     {new Date(category.createdAt).toLocaleDateString('vi-VN')}
                                                 </div>
                                             </td>
@@ -461,7 +461,7 @@ export default function AdminCategoriesPage() {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => startEdit(category)}
-                                                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                                                        className="text-primary hover:text-blue-900 dark:hover:text-blue-300"
                                                     >
                                                         Sửa
                                                     </button>
@@ -483,25 +483,25 @@ export default function AdminCategoriesPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                        <div className="text-sm text-gray-700 dark:text-gray-300">
+                    <div className="flex items-center justify-between bg-surface-container rounded-lg p-4 border border-outline-variant">
+                        <div className="text-sm text-on-surface-variant">
                             Hiển thị {(page - 1) * limit + 1} - {Math.min(page * limit, filteredAndSortedCategories.length)} trong tổng số {filteredAndSortedCategories.length} thể loại
                         </div>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setPage(Math.max(1, page - 1))}
                                 disabled={page === 1}
-                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-high transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Trước
                             </button>
-                            <span className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                            <span className="px-4 py-2 text-sm text-on-surface-variant">
                                 Trang {page} / {totalPages}
                             </span>
                             <button
                                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                                 disabled={page === totalPages}
-                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-high transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Sau
                             </button>

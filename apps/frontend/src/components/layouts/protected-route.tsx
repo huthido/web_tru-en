@@ -63,7 +63,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Đang tải...</p>
+          <p className="mt-4 text-on-surface-variant">Đang tải...</p>
         </div>
       </div>
     );
@@ -79,8 +79,8 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Không có quyền truy cập</h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">Bạn không có quyền truy cập trang này.</p>
+            <h1 className="text-2xl font-bold text-on-surface">Không có quyền truy cập</h1>
+            <p className="mt-2 text-on-surface-variant">Bạn không có quyền truy cập trang này.</p>
           </div>
         </div>
       );

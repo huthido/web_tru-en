@@ -55,15 +55,15 @@ export default function VerifyEmailPage() {
   }, [searchParams, router, queryClient]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-surface-container-low px-4">
+      <div className="max-w-md w-full bg-surface-container rounded-lg shadow-lg p-8 text-center">
         {status === 'loading' && (
           <>
             <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto mb-4"></div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-2xl font-bold text-on-surface mb-2">
               Đang xác thực email...
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-on-surface-variant">
               Vui lòng đợi trong giây lát
             </p>
           </>
@@ -76,13 +76,13 @@ export default function VerifyEmailPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-2xl font-bold text-on-surface mb-2">
               🎉 Xác thực thành công!
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-on-surface-variant mb-4">
               {message}
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-500">
+            <p className="text-sm text-on-surface-variant">
               Bạn sẽ được chuyển hướng đến trang chủ...
             </p>
           </>
@@ -95,10 +95,10 @@ export default function VerifyEmailPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-2xl font-bold text-on-surface mb-2">
               ❌ Xác thực thất bại
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-on-surface-variant mb-6">
               {message}
             </p>
             <div className="flex flex-col gap-3">
@@ -110,7 +110,7 @@ export default function VerifyEmailPage() {
               </Link>
               <button
                 onClick={() => window.location.reload()}
-                className="px-6 py-3 border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
+                className="px-6 py-3 border-2 border-outline-variant hover:border-blue-500 text-on-surface-variant font-medium rounded-lg transition-colors"
               >
                 Thử lại
               </button>

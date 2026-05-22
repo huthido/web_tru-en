@@ -74,13 +74,13 @@ export function AdBanner({ position, className = '' }: AdBannerProps) {
             <div className="w-full">
                 {/* Ad Label */}
                 <div className="text-center mb-2">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                    <span className="text-xs text-on-surface-variant">
                         Quảng cáo
                     </span>
                 </div>
 
                 {/* Ad Container */}
-                <div className="relative w-full bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm">
+                <div className="relative w-full bg-surface-container-high rounded-lg overflow-hidden shadow-sm">
                     {currentAd.linkUrl ? (
                         <a
                             href={currentAd.linkUrl}
@@ -145,7 +145,7 @@ export function AdBanner({ position, className = '' }: AdBannerProps) {
                 {/* Ad Description (Optional, shown below for INLINE position) */}
                 {position === AdPosition.INLINE && currentAd.description && (
                     <div className="text-center mt-2">
-                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-xs sm:text-sm text-on-surface-variant">
                             {currentAd.description}
                         </p>
                     </div>

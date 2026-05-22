@@ -157,7 +157,7 @@ export function OptimizedImage({
   if (imageError) {
     return (
       <div
-        className={`bg-gray-200 dark:bg-gray-700 flex items-center justify-center ${className}`}
+        className={`bg-surface-variant flex items-center justify-center ${className}`}
         style={fill ? {} : { width, height }}
         role="img"
         aria-label={alt}
@@ -167,7 +167,7 @@ export function OptimizedImage({
           height="40"
           viewBox="0 0 24 24"
           fill="none"
-          className="text-gray-400 dark:text-gray-500"
+          className="text-on-surface-variant"
         >
           <path
             d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"

@@ -76,47 +76,47 @@ export default function AdminStatisticsPage() {
             <div className="p-6 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Thống kê</h1>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Thống kê tổng quan về hệ thống</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">Thống kê</h1>
+                        <p className="text-sm sm:text-base text-on-surface-variant mt-1 sm:mt-2">Thống kê tổng quan về hệ thống</p>
                     </div>
                     <RefreshButton onRefresh={handleRefresh} />
                 </div>
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Tổng người dùng</div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                        <div className="text-sm text-on-surface-variant">Tổng người dùng</div>
+                        <div className="text-3xl font-bold text-on-surface mt-2">
                             {statsData.totalUsers.toLocaleString()}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        <div className="text-xs text-on-surface-variant mt-1">
                             Đang chờ duyệt: {statsData.pendingApprovals || 0}
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Tổng truyện</div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                        <div className="text-sm text-on-surface-variant">Tổng truyện</div>
+                        <div className="text-3xl font-bold text-on-surface mt-2">
                             {statsData.totalStories.toLocaleString()}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        <div className="text-xs text-on-surface-variant mt-1">
                             Tổng chương: {statsData.totalChapters.toLocaleString()}
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Tổng lượt xem</div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                        <div className="text-sm text-on-surface-variant">Tổng lượt xem</div>
+                        <div className="text-3xl font-bold text-on-surface mt-2">
                             {statsData.totalViews.toLocaleString()}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        <div className="text-xs text-on-surface-variant mt-1">
                             Trung bình: {statsData.totalStories > 0 ? Math.round(statsData.totalViews / statsData.totalStories).toLocaleString() : 0} lượt/truyện
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Quảng cáo</div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                        <div className="text-sm text-on-surface-variant">Quảng cáo</div>
+                        <div className="text-3xl font-bold text-on-surface mt-2">
                             {statsData.activeAds.toLocaleString()}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        <div className="text-xs text-on-surface-variant mt-1">
                             Quảng cáo đang hoạt động
                         </div>
                     </div>
@@ -132,8 +132,8 @@ export default function AdminStatisticsPage() {
                             color="#3b82f6" 
                         />
                     ) : (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm flex items-center justify-center h-64">
-                            <p className="text-gray-500">Chưa có dữ liệu tăng trưởng người dùng</p>
+                        <div className="bg-surface-container rounded-lg p-6 shadow-sm flex items-center justify-center h-64">
+                            <p className="text-on-surface-variant">Chưa có dữ liệu tăng trưởng người dùng</p>
                         </div>
                     )}
                     {storyViewsData.length > 0 && storyViewsLabels.length > 0 ? (
@@ -144,8 +144,8 @@ export default function AdminStatisticsPage() {
                             color="#10b981" 
                         />
                     ) : (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm flex items-center justify-center h-64">
-                            <p className="text-gray-500">Chưa có dữ liệu lượt xem</p>
+                        <div className="bg-surface-container rounded-lg p-6 shadow-sm flex items-center justify-center h-64">
+                            <p className="text-on-surface-variant">Chưa có dữ liệu lượt xem</p>
                         </div>
                     )}
                 </div>
@@ -158,8 +158,8 @@ export default function AdminStatisticsPage() {
                             title="Phân bổ theo thể loại"
                         />
                     ) : (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm flex items-center justify-center h-64">
-                            <p className="text-gray-500">Chưa có dữ liệu phân bổ thể loại</p>
+                        <div className="bg-surface-container rounded-lg p-6 shadow-sm flex items-center justify-center h-64">
+                            <p className="text-on-surface-variant">Chưa có dữ liệu phân bổ thể loại</p>
                         </div>
                     )}
                     {roleData.labels.length > 0 && roleData.data.length > 0 ? (
@@ -169,19 +169,19 @@ export default function AdminStatisticsPage() {
                             title="Phân bổ vai trò người dùng"
                         />
                     ) : (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm flex items-center justify-center h-64">
-                            <p className="text-gray-500">Chưa có dữ liệu phân bổ vai trò</p>
+                        <div className="bg-surface-container rounded-lg p-6 shadow-sm flex items-center justify-center h-64">
+                            <p className="text-on-surface-variant">Chưa có dữ liệu phân bổ vai trò</p>
                         </div>
                     )}
                 </div>
 
                 {/* Top Stories */}
                 {statsData.topStories && statsData.topStories.length > 0 && (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm">
                         <h2 className="text-xl font-bold mb-4">Top truyện được xem nhiều nhất</h2>
                         <div className="overflow-x-auto">
                             <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-gray-700">
+                                <thead className="bg-surface-container-low">
                                     <tr>
                                         <th className="px-4 py-3 text-left">Truyện</th>
                                         <th className="px-4 py-3 text-left">Tác giả</th>
@@ -189,13 +189,13 @@ export default function AdminStatisticsPage() {
                                         <th className="px-4 py-3 text-left">Ngày tạo</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tbody className="divide-y divide-outline-variant">
                                     {statsData.topStories.map((story) => (
-                                        <tr key={story.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <tr key={story.id} className="hover:bg-surface-container-high">
                                             <td className="px-4 py-3 font-medium">{story.title}</td>
                                             <td className="px-4 py-3">{story.authorName || 'N/A'}</td>
                                             <td className="px-4 py-3">{story.viewCount.toLocaleString()}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-500">
+                                            <td className="px-4 py-3 text-sm text-on-surface-variant">
                                                 {new Date(story.createdAt).toLocaleDateString('vi-VN')}
                                             </td>
                                         </tr>

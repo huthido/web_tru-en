@@ -52,23 +52,23 @@ export default function WithdrawalsPage() {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+            <div className="min-h-screen bg-surface transition-colors duration-300">
                 <Sidebar />
                 <div className="md:ml-[120px] pb-16 md:pb-0">
                     <Header />
                     <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                         <div className="max-w-3xl mx-auto">
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                            <div className="bg-surface-container rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-outline-variant">
+                                <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-2 flex items-center gap-2">
                                     <Banknote className="w-7 h-7 text-emerald-600" /> Rút xu
                                 </h1>
-                                <p className="text-gray-600 dark:text-gray-400">
+                                <p className="text-on-surface-variant">
                                     Số dư có thể rút:{' '}
                                     <span className="font-bold text-emerald-600 dark:text-emerald-400">
                                         {withdrawable.toLocaleString('vi-VN')} xu
                                     </span>
                                 </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <p className="text-xs text-on-surface-variant mt-1">
                                     Chỉ xu từ doanh thu / ủng hộ mới rút được.
                                     {purchased > 0 && (
                                         <> Xu nạp ({purchased.toLocaleString('vi-VN')}) chỉ dùng để mua nội dung.</>
@@ -76,33 +76,33 @@ export default function WithdrawalsPage() {
                                 </p>
                             </div>
 
-                            <form onSubmit={submit} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 space-y-5 border border-gray-200 dark:border-gray-700 mb-6">
+                            <form onSubmit={submit} className="bg-surface-container rounded-lg shadow-sm p-6 md:p-8 space-y-5 border border-outline-variant mb-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Số xu muốn rút</label>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">Số xu muốn rút</label>
                                     <input
                                         type="number" min={0} step={1}
                                         value={form.amount}
                                         onChange={(e) => setForm({ ...form, amount: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
-                                        className="w-full md:w-60 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                                        className="w-full md:w-60 px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-emerald-500"
                                         placeholder="VD: 1000"
                                     />
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Xu sẽ bị tạm giữ ngay khi gửi yêu cầu; nếu admin từ chối sẽ được hoàn lại.</p>
+                                    <p className="mt-1 text-xs text-on-surface-variant">Xu sẽ bị tạm giữ ngay khi gửi yêu cầu; nếu admin từ chối sẽ được hoàn lại.</p>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ngân hàng</label>
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">Ngân hàng</label>
                                         <input value={form.bankName} onChange={(e) => setForm({ ...form, bankName: e.target.value })}
-                                            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500" placeholder="VD: Vietcombank" />
+                                            className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-emerald-500" placeholder="VD: Vietcombank" />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Số tài khoản</label>
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">Số tài khoản</label>
                                         <input value={form.bankAccountNumber} onChange={(e) => setForm({ ...form, bankAccountNumber: e.target.value })}
-                                            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500" placeholder="Số TK" />
+                                            className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-emerald-500" placeholder="Số TK" />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chủ tài khoản</label>
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">Chủ tài khoản</label>
                                         <input value={form.bankAccountName} onChange={(e) => setForm({ ...form, bankAccountName: e.target.value })}
-                                            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500" placeholder="NGUYEN VAN A" />
+                                            className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-emerald-500" placeholder="NGUYEN VAN A" />
                                     </div>
                                 </div>
 
@@ -123,25 +123,25 @@ export default function WithdrawalsPage() {
                                 </button>
                             </form>
 
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-                                <h2 className="font-bold text-gray-900 dark:text-white mb-4">Lịch sử yêu cầu rút</h2>
+                            <div className="bg-surface-container rounded-lg shadow-sm p-6 border border-outline-variant">
+                                <h2 className="font-bold text-on-surface mb-4">Lịch sử yêu cầu rút</h2>
                                 {isLoading ? (
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Đang tải...</p>
+                                    <p className="text-sm text-on-surface-variant">Đang tải...</p>
                                 ) : withdrawals.length === 0 ? (
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Chưa có yêu cầu rút nào.</p>
+                                    <p className="text-sm text-on-surface-variant">Chưa có yêu cầu rút nào.</p>
                                 ) : (
                                     <div className="space-y-3">
                                         {withdrawals.map((w) => {
                                             const meta = STATUS_META[w.status] || STATUS_META.PENDING;
                                             const Icon = meta.icon;
                                             return (
-                                                <div key={w.id} className="flex items-start justify-between gap-3 border border-gray-100 dark:border-gray-700 rounded-lg p-3">
+                                                <div key={w.id} className="flex items-start justify-between gap-3 border border-outline-variant rounded-lg p-3">
                                                     <div className="min-w-0">
-                                                        <p className="font-semibold text-gray-900 dark:text-white">{w.amount.toLocaleString('vi-VN')} xu</p>
-                                                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                        <p className="font-semibold text-on-surface">{w.amount.toLocaleString('vi-VN')} xu</p>
+                                                        <p className="text-xs text-on-surface-variant truncate">
                                                             {w.bankName} · {w.bankAccountNumber} · {w.bankAccountName}
                                                         </p>
-                                                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                                                        <p className="text-xs text-on-surface-variant">
                                                             {new Date(w.createdAt).toLocaleString('vi-VN')}
                                                         </p>
                                                         {w.note && <p className="text-xs text-red-500 mt-1">Ghi chú: {w.note}</p>}

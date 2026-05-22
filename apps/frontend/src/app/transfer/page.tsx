@@ -46,45 +46,45 @@ export default function TransferPage() {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+            <div className="min-h-screen bg-surface transition-colors duration-300">
                 <Sidebar />
                 <div className="md:ml-[120px] pb-16 md:pb-0">
                     <Header />
                     <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                         <div className="max-w-xl mx-auto">
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                            <div className="bg-surface-container rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-outline-variant">
+                                <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-2 flex items-center gap-2">
                                     <ArrowLeftRight className="w-7 h-7 text-indigo-600" /> Chuyển xu
                                 </h1>
-                                <p className="text-gray-600 dark:text-gray-400">
+                                <p className="text-on-surface-variant">
                                     Xu có thể chuyển:{' '}
                                     <span className="font-bold text-indigo-600 dark:text-indigo-400">
                                         {purchased.toLocaleString('vi-VN')} xu
                                     </span>
                                 </p>
                                 {earned > 0 && (
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    <p className="text-xs text-on-surface-variant mt-1">
                                         Xu doanh thu ({earned.toLocaleString('vi-VN')}) không thể chuyển — chỉ rút được.
                                     </p>
                                 )}
                             </div>
 
-                            <form onSubmit={submit} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 space-y-5 border border-gray-200 dark:border-gray-700">
+                            <form onSubmit={submit} className="bg-surface-container rounded-lg shadow-sm p-6 md:p-8 space-y-5 border border-outline-variant">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Người nhận (username hoặc email)</label>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">Người nhận (username hoặc email)</label>
                                     <input value={form.recipient} onChange={(e) => setForm({ ...form, recipient: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500" placeholder="vd: nguyenvana hoặc a@email.com" />
+                                        className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-indigo-500" placeholder="vd: nguyenvana hoặc a@email.com" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Số xu</label>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">Số xu</label>
                                     <input type="number" min={0} step={1} value={form.amount}
                                         onChange={(e) => setForm({ ...form, amount: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
-                                        className="w-full md:w-48 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500" placeholder="0" />
+                                        className="w-full md:w-48 px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-indigo-500" placeholder="0" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Lời nhắn (tùy chọn)</label>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">Lời nhắn (tùy chọn)</label>
                                     <input value={form.message} maxLength={200} onChange={(e) => setForm({ ...form, message: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500" placeholder="Lời nhắn ngắn" />
+                                        className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-indigo-500" placeholder="Lời nhắn ngắn" />
                                 </div>
 
                                 {insufficient && (
@@ -107,7 +107,7 @@ export default function TransferPage() {
                                     className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50">
                                     {transfer.isPending ? (<><Loader2 size={18} className="animate-spin" /> Đang chuyển...</>) : 'Chuyển xu'}
                                 </button>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-xs text-on-surface-variant">
                                     Chuyển xu không mất phí. Tính năng có thể bị admin tắt.
                                 </p>
                             </form>

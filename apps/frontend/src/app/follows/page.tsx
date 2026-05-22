@@ -35,7 +35,7 @@ function FollowsContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-surface transition-colors duration-300">
       <Sidebar />
       <div className="md:ml-[120px] pb-16 md:pb-0">
         <Header />
@@ -59,11 +59,11 @@ function FollowsContent() {
                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                   </svg>
                 </div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-2xl md:text-3xl font-bold text-on-surface">
                   Đang theo dõi
                 </h1>
               </div>
-              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 ml-[52px] md:ml-[60px]">
+              <p className="text-sm md:text-base text-on-surface-variant ml-[52px] md:ml-[60px]">
                 {isLoading ? 'Đang tải...' : `${total} truyện đang theo dõi`}
               </p>
             </div>
@@ -95,17 +95,17 @@ function FollowsContent() {
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
                 </div>
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-xl md:text-2xl font-semibold text-on-surface mb-2">
                   Có lỗi xảy ra
                 </h2>
-                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 text-center max-w-md">
+                <p className="text-sm md:text-base text-on-surface-variant text-center max-w-md">
                   Không thể tải danh sách truyện đang theo dõi. Vui lòng thử lại sau.
                 </p>
               </div>
             ) : follows.length === 0 ? (
               /* Empty State */
               <div className="flex flex-col items-center justify-center py-16 md:py-24">
-                <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full bg-surface-variant flex items-center justify-center">
                   <svg
                     width="48"
                     height="48"
@@ -115,15 +115,15 @@ function FollowsContent() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="text-gray-400 dark:text-gray-500"
+                    className="text-on-surface-variant"
                   >
                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                   </svg>
                 </div>
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-xl md:text-2xl font-semibold text-on-surface mb-2">
                   Chưa theo dõi truyện nào
                 </h2>
-                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
+                <p className="text-sm md:text-base text-on-surface-variant text-center max-w-md mb-6">
                   Bạn chưa theo dõi truyện nào. Hãy khám phá và theo dõi những truyện bạn muốn đọc tiếp nhé!
                 </p>
                 <Link
@@ -161,17 +161,17 @@ function FollowsContent() {
                     <button
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page === 1}
-                      className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2 bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Trước
                     </button>
-                    <span className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                    <span className="px-4 py-2 text-sm text-on-surface-variant">
                       Trang {page} / {totalPages}
                     </span>
                     <button
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       disabled={page === totalPages}
-                      className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2 bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Sau
                     </button>

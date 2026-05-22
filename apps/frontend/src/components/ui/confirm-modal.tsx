@@ -43,31 +43,31 @@ export function ConfirmModal({
 
       {/* Modal */}
       <div
-        className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full overflow-hidden z-10 animate-in zoom-in-95 duration-200"
+        className="relative bg-surface-container rounded-xl shadow-2xl max-w-md w-full overflow-hidden z-10 animate-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
         {/* Header */}
         <div className="px-6 pt-6 pb-4">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-xl font-semibold text-on-surface">
             {title}
           </h3>
         </div>
 
         {/* Content */}
         <div className="px-6 pb-6">
-          <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+          <p className="text-base text-on-surface-variant leading-relaxed">
             {message}
           </p>
         </div>
 
         {/* Actions */}
-        <div className="bg-gray-50 dark:bg-gray-900/50 px-6 py-4 flex gap-3 justify-end border-t border-gray-200 dark:border-gray-700">
+        <div className="bg-surface-container-low/50 px-6 py-4 flex gap-3 justify-end border-t border-outline-variant">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-5 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-low font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {cancelText}
           </button>

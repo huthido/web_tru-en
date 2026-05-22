@@ -27,14 +27,14 @@ export default function MaintenancePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <Loading />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-surface flex items-center justify-center px-4">
       <div className="max-w-2xl w-full text-center">
         <div className="mb-8">
           <svg
@@ -51,17 +51,17 @@ export default function MaintenancePage() {
             />
           </svg>
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+        <h1 className="text-4xl md:text-5xl font-bold text-on-surface mb-6">
           Website đang bảo trì
         </h1>
-        <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-8">
+        <p className="text-xl md:text-2xl text-on-surface-variant mb-8">
           {settings?.maintenanceMessage || 'Chúng tôi đang thực hiện bảo trì hệ thống để cải thiện trải nghiệm của bạn.'}
         </p>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg mb-8">
-          <p className="text-gray-700 dark:text-gray-300 mb-4">
+        <div className="bg-surface-container rounded-lg p-6 shadow-lg mb-8">
+          <p className="text-on-surface-variant mb-4">
             Chúng tôi sẽ quay lại sớm. Vui lòng thử lại sau.
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-on-surface-variant">
             Tự động làm mới sau {countdown} giây...
           </p>
         </div>

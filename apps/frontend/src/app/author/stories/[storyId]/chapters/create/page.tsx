@@ -71,7 +71,7 @@ export default function CreateChapterPage() {
     if (storyLoading) {
         return (
             <ProtectedRoute>
-                <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+                <div className="min-h-screen bg-surface transition-colors duration-300">
                     <Sidebar />
                     <div className="md:ml-[120px] pb-16 md:pb-0">
                         <Header />
@@ -86,49 +86,49 @@ export default function CreateChapterPage() {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+            <div className="min-h-screen bg-surface transition-colors duration-300">
                 <Sidebar />
                 <div className="md:ml-[120px] pb-16 md:pb-0">
                     <Header />
                     <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                         <div className="max-w-5xl mx-auto">
                             {/* Header */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div className="bg-surface-container rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-outline-variant">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                                        <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-2">
                                             Tạo chương mới
                                         </h1>
                                         {story && (
-                                            <p className="text-gray-600 dark:text-gray-400">
-                                                Truyện: <span className="font-medium text-gray-900 dark:text-white">{story.title}</span>
+                                            <p className="text-on-surface-variant">
+                                                Truyện: <span className="font-medium text-on-surface">{story.title}</span>
                                             </p>
                                         )}
                                     </div>
                                     <Link
                                         href={`/author/stories/${storySlug}/chapters`}
-                                        className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
+                                        className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg font-medium transition-colors"
                                     >
                                         Quay lại
                                     </Link>
                                 </div>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 space-y-6 border border-gray-200 dark:border-gray-700">
+                            <form onSubmit={handleSubmit} className="bg-surface-container rounded-lg shadow-sm p-6 md:p-8 space-y-6 border border-outline-variant">
                                 {/* Title */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Tên chương <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                         placeholder="VD: Chương 1: Khởi đầu"
                                         maxLength={200}
                                     />
-                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <p className="mt-2 text-xs text-on-surface-variant">
                                         {formData.title.length}/200 ký tự
                                     </p>
                                     {errors.title && (
@@ -138,7 +138,7 @@ export default function CreateChapterPage() {
 
                                 {/* Content */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Nội dung chương <span className="text-red-500">*</span>
                                     </label>
                                     <RichTextEditor
@@ -149,14 +149,14 @@ export default function CreateChapterPage() {
                                         uploadFolder="chapter-images"
                                         listImagesEndpoint="/api/chapters/my-images"
                                     />
-                                    <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                    <div className="mt-2 flex items-center justify-between text-xs text-on-surface-variant">
                                         <div className="flex items-center gap-4">
                                             <span className={formData.content.replace(/<[^>]*>/g, '').length < 100 ? 'text-orange-500 dark:text-orange-400 font-medium' : ''}>
                                                 {formData.content.replace(/<[^>]*>/g, '').length.toLocaleString()} ký tự
                                                 {formData.content.replace(/<[^>]*>/g, '').length < 100 && ` (cần thêm ${100 - formData.content.replace(/<[^>]*>/g, '').length})`}
                                             </span>
                                         </div>
-                                        <span className="text-gray-400 dark:text-gray-500">Hỗ trợ chèn ảnh</span>
+                                        <span className="text-on-surface-variant">Hỗ trợ chèn ảnh</span>
                                     </div>
                                     {errors.content && (
                                         <p className="mt-2 text-sm text-red-500">{errors.content}</p>
@@ -165,7 +165,7 @@ export default function CreateChapterPage() {
 
                                 {/* Price */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Giá mở khóa (coin)
                                     </label>
                                     <input
@@ -174,10 +174,10 @@ export default function CreateChapterPage() {
                                         step={1}
                                         value={formData.price}
                                         onChange={(e) => setFormData({ ...formData, price: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
-                                        className="w-full md:w-48 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full md:w-48 px-4 py-3 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                         placeholder="0"
                                     />
-                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <p className="mt-2 text-xs text-on-surface-variant">
                                         Để <span className="font-medium">0</span> nếu chương miễn phí. Khi {'>'} 0, độc giả phải trả số coin này để mở khóa; bạn nhận phần coin sau khi trừ phí nền tảng.
                                     </p>
                                 </div>
@@ -190,10 +190,10 @@ export default function CreateChapterPage() {
                                 )}
 
                                 {/* Submit Button */}
-                                <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                <div className="flex items-center justify-end gap-3 pt-6 border-t border-outline-variant">
                                     <Link
                                         href={`/author/stories/${storySlug}/chapters`}
-                                        className="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
+                                        className="px-6 py-2.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg font-medium transition-colors"
                                     >
                                         Hủy
                                     </Link>

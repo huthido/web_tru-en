@@ -51,16 +51,16 @@ export default function InstallPrompt() {
 
     return (
         <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 flex items-start gap-4 ring-1 ring-black/5">
+            <div className="bg-surface-container rounded-xl shadow-2xl border border-outline-variant p-4 flex items-start gap-4 ring-1 ring-black/5">
                 <div className="bg-primary/10 p-3 rounded-full text-primary shrink-0">
                     <Download size={24} />
                 </div>
 
                 <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                    <h3 className="font-semibold text-on-surface mb-1">
                         Cài đặt ứng dụng
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    <p className="text-sm text-on-surface-variant mb-3">
                         Cài đặt YÊU để đọc nhanh hơn và dùng khi không có mạng!
                     </p>
 
@@ -73,7 +73,7 @@ export default function InstallPrompt() {
                         </button>
                         <button
                             onClick={handleDismiss}
-                            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-sm px-3 py-2 font-medium"
+                            className="text-on-surface-variant hover:text-on-surface-variant text-sm px-3 py-2 font-medium"
                         >
                             Để sau
                         </button>
@@ -82,7 +82,7 @@ export default function InstallPrompt() {
 
                 <button
                     onClick={handleDismiss}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                    className="text-on-surface-variant hover:text-on-surface-variant dark:hover:text-gray-200 transition-colors"
                     aria-label="Close"
                 >
                     <X size={20} />

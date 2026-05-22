@@ -161,29 +161,29 @@ export default function ChapterManagementPage() {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+            <div className="min-h-screen bg-surface transition-colors duration-300">
                 <Sidebar />
                 <div className="md:ml-[120px] pb-16 md:pb-0">
                     <Header />
                     <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                         <div className="max-w-7xl mx-auto">
                             {/* Header */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div className="bg-surface-container rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-outline-variant">
                                 <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                                     <div>
-                                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                                        <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-2">
                                             Quản lý chương
                                         </h1>
                                         {story && (
-                                            <p className="text-gray-600 dark:text-gray-400">
-                                                Truyện: <span className="font-medium text-gray-900 dark:text-white">{story.title}</span>
+                                            <p className="text-on-surface-variant">
+                                                Truyện: <span className="font-medium text-on-surface">{story.title}</span>
                                             </p>
                                         )}
                                     </div>
                                     <div className="flex gap-3 mt-4 md:mt-0">
                                         <Link
                                             href="/author/dashboard"
-                                            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
+                                            className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg font-medium transition-colors"
                                         >
                                             Quay lại
                                         </Link>
@@ -246,11 +246,11 @@ export default function ChapterManagementPage() {
                             )}
 
                             {/* Filters */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700">
+                            <div className="bg-surface-container rounded-lg shadow-sm p-4 mb-6 border border-outline-variant">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {/* Search */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Tìm kiếm
                                         </label>
                                         <input
@@ -261,13 +261,13 @@ export default function ChapterManagementPage() {
                                                 setPage(1);
                                             }}
                                             placeholder="Tìm theo tên..."
-                                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                         />
                                     </div>
 
                                     {/* Sort */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Sắp xếp
                                         </label>
                                         <select
@@ -276,7 +276,7 @@ export default function ChapterManagementPage() {
                                                 setSortBy(e.target.value as any);
                                                 setPage(1);
                                             }}
-                                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                         >
                                             <option value="order-asc">Thứ tự: Tăng dần</option>
                                             <option value="order-desc">Thứ tự: Giảm dần</option>
@@ -289,7 +289,7 @@ export default function ChapterManagementPage() {
 
                                     {/* Status Filter */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Trạng thái
                                         </label>
                                         <select
@@ -298,7 +298,7 @@ export default function ChapterManagementPage() {
                                                 setStatusFilter(e.target.value as any);
                                                 setPage(1);
                                             }}
-                                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                         >
                                             <option value="all">Tất cả</option>
                                             <option value="published">Đã xuất bản</option>
@@ -309,7 +309,7 @@ export default function ChapterManagementPage() {
 
                                 {/* Results count */}
                                 {filteredAndSortedChapters.length > 0 && (
-                                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <div className="text-sm text-on-surface-variant mt-4 pt-4 border-t border-outline-variant">
                                         Hiển thị {paginatedChapters.length} / {filteredAndSortedChapters.length} chương
                                         {filteredAndSortedChapters.length !== allChapters.length && ` (lọc từ ${allChapters.length} chương)`}
                                     </div>
@@ -322,8 +322,8 @@ export default function ChapterManagementPage() {
                                     <Loading />
                                 </div>
                             ) : paginatedChapters.length === 0 ? (
-                                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
-                                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                                <div className="text-center py-12 bg-surface-container rounded-lg">
+                                    <p className="text-on-surface-variant mb-4">
                                         {allChapters.length === 0
                                             ? 'Chưa có chương nào'
                                             : 'Không tìm thấy chương nào phù hợp với bộ lọc'}
@@ -339,25 +339,25 @@ export default function ChapterManagementPage() {
                                 </div>
                             ) : (
                                 <>
-                                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                                        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <div className="bg-surface-container rounded-lg shadow-sm overflow-hidden">
+                                        <div className="divide-y divide-outline-variant">
                                             {paginatedChapters.map((chapter: any) => (
                                                 <div
                                                     key={chapter.id}
-                                                    className="p-4 md:p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                                    className="p-4 md:p-6 hover:bg-surface-container-high/50 transition-colors"
                                                 >
                                                     <div className="flex flex-col md:flex-row md:items-center gap-4">
                                                         {/* Chapter Info */}
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-3 mb-2">
-                                                                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-semibold text-sm">
+                                                                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-primary font-semibold text-sm">
                                                                     {chapter.order || 0}
                                                                 </span>
-                                                                <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white line-clamp-2">
+                                                                <h3 className="text-lg md:text-xl font-bold text-on-surface line-clamp-2">
                                                                     {chapter.title}
                                                                 </h3>
                                                             </div>
-                                                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 ml-11">
+                                                            <div className="flex flex-wrap items-center gap-4 text-sm text-on-surface-variant ml-11">
                                                                 <span>Lượt xem: {chapter.viewCount?.toLocaleString() || 0}</span>
                                                                 <span>•</span>
                                                                 <span>{chapter.wordCount?.toLocaleString() || 0} từ</span>
@@ -377,13 +377,13 @@ export default function ChapterManagementPage() {
                                                         <div className="flex flex-col gap-2 md:flex-row md:items-center ml-11 md:ml-0">
                                                             <Link
                                                                 href={`/stories/${storySlug}/chapters/${chapter.slug}`}
-                                                                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors text-center"
+                                                                className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-sm font-medium transition-colors text-center"
                                                             >
                                                                 Xem
                                                             </Link>
                                                             <Link
                                                                 href={`/author/stories/${storySlug}/chapters/${chapter.id}/edit`}
-                                                                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors text-center"
+                                                                className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-sm font-medium transition-colors text-center"
                                                             >
                                                                 Chỉnh sửa
                                                             </Link>
@@ -452,14 +452,14 @@ export default function ChapterManagementPage() {
                                     {/* Pagination */}
                                     {totalPages > 1 && (
                                         <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                                            <div className="text-sm text-on-surface-variant">
                                                 Trang {page} / {totalPages} ({filteredAndSortedChapters.length} chương)
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => setPage(page - 1)}
                                                     disabled={page === 1}
-                                                    className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                    className="px-4 py-2 rounded-lg border border-outline-variant bg-surface-container text-on-surface-variant hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                 >
                                                     Trước
                                                 </button>
@@ -468,7 +468,7 @@ export default function ChapterManagementPage() {
                                                         const showPage = p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1);
                                                         if (!showPage) {
                                                             if (p === page - 2 || p === page + 2) {
-                                                                return <span key={p} className="px-2 text-gray-500">...</span>;
+                                                                return <span key={p} className="px-2 text-on-surface-variant">...</span>;
                                                             }
                                                             return null;
                                                         }
@@ -478,7 +478,7 @@ export default function ChapterManagementPage() {
                                                                 onClick={() => setPage(p)}
                                                                 className={`min-w-[40px] px-3 py-2 rounded-lg border transition-colors ${page === p
                                                                     ? 'bg-blue-500 dark:bg-blue-600 border-blue-500 dark:border-blue-600 text-white'
-                                                                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                                                    : 'border-outline-variant bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                                                                     }`}
                                                             >
                                                                 {p}
@@ -489,7 +489,7 @@ export default function ChapterManagementPage() {
                                                 <button
                                                     onClick={() => setPage(page + 1)}
                                                     disabled={page >= totalPages}
-                                                    className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                    className="px-4 py-2 rounded-lg border border-outline-variant bg-surface-container text-on-surface-variant hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                 >
                                                     Sau
                                                 </button>

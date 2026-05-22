@@ -72,7 +72,7 @@ export default function LoginPage() {
   // Show loading while checking auth or initial loading
   if (isLoading || isAuthLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="min-h-screen flex items-center justify-center bg-surface-container-low transition-colors duration-300">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
@@ -84,9 +84,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-3 md:p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen flex items-center justify-center p-3 md:p-4 bg-surface-container-low transition-colors duration-300">
       {/* Header - Logo and Theme Toggle */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-6 py-3 md:py-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-all duration-300 shadow-sm">
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-6 py-3 md:py-4 bg-surface/90/90 backdrop-blur-md border-b border-outline-variant transition-all duration-300 shadow-sm">
         {/* Logo */}
         <Link
           href="/"
@@ -122,7 +122,7 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={toggleTheme}
-          className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-white dark:bg-gray-800 border-blue-500 dark:border-blue-400 shadow-sm hover:shadow-md"
+          className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-surface-container border-blue-500 dark:border-blue-400 shadow-sm hover:shadow-md"
           aria-label="Chuyển đổi giao diện"
         >
           {theme === 'light' ? (
@@ -133,10 +133,10 @@ export default function LoginPage() {
                   stroke="currentColor"
                   strokeWidth="1.5"
                   strokeLinecap="round"
-                  className="text-gray-900 dark:text-white transition-colors duration-300"
+                  className="text-on-surface transition-colors duration-300"
                 />
               </svg>
-              <span className="text-xs md:text-sm font-medium text-gray-900 dark:text-white transition-colors duration-300">
+              <span className="text-xs md:text-sm font-medium text-on-surface transition-colors duration-300">
                 Sáng
               </span>
             </>
@@ -148,10 +148,10 @@ export default function LoginPage() {
                   stroke="currentColor"
                   strokeWidth="1.5"
                   strokeLinecap="round"
-                  className="text-gray-900 dark:text-white transition-colors duration-300"
+                  className="text-on-surface transition-colors duration-300"
                 />
               </svg>
-              <span className="text-xs md:text-sm font-medium text-gray-900 dark:text-white transition-colors duration-300">
+              <span className="text-xs md:text-sm font-medium text-on-surface transition-colors duration-300">
                 Tối
               </span>
             </>
@@ -163,7 +163,7 @@ export default function LoginPage() {
       <div className="w-full max-w-[400px] mt-16 md:mt-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col gap-4 md:gap-5">
           {/* Title */}
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white transition-colors duration-300">
+          <h2 className="text-3xl md:text-4xl font-bold text-on-surface transition-colors duration-300">
             Đăng nhập
           </h2>
 
@@ -174,7 +174,7 @@ export default function LoginPage() {
               const apiUrl = process.env.NODE_ENV === 'development' ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') : '';
               window.location.href = `${apiUrl}/api/auth/google`;
             }}
-            className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] border-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-white dark:bg-gray-800 border-gray-900 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md group"
+            className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] border-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-surface-container border-outline hover:bg-surface-container-high hover:shadow-md group"
           >
             <div className="w-5 h-5 relative transition-transform duration-300 group-hover:scale-110">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -196,7 +196,7 @@ export default function LoginPage() {
                 />
               </svg>
             </div>
-            <span className="text-sm md:text-base font-medium text-gray-900 dark:text-white transition-colors duration-300">
+            <span className="text-sm md:text-base font-medium text-on-surface transition-colors duration-300">
               Đăng nhập bằng Google
             </span>
           </button>
@@ -208,7 +208,7 @@ export default function LoginPage() {
               const apiUrl = process.env.NODE_ENV === 'development' ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') : '';
               window.location.href = `${apiUrl}/api/auth/facebook`;
             }}
-            className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] border-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-transparent dark:bg-gray-800 border-gray-900 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md group"
+            className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] border-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-transparent border-outline hover:bg-surface-container-high hover:shadow-md group"
           >
             <div className="w-5 h-5 relative transition-transform duration-300 group-hover:scale-110">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -218,20 +218,20 @@ export default function LoginPage() {
                 />
               </svg>
             </div>
-            <span className="text-sm md:text-base font-medium text-gray-900 dark:text-white transition-colors duration-300">
+            <span className="text-sm md:text-base font-medium text-on-surface transition-colors duration-300">
               Đăng nhập bằng Facebook
             </span>
           </button>
 
           {/* Divider */}
           <div className="relative flex items-center my-2">
-            <div className="flex-1 border-t border-gray-900 dark:border-gray-300 transition-colors duration-300" />
-            <div className="px-2 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-              <span className="text-base text-gray-900 dark:text-white transition-colors duration-300">
+            <div className="flex-1 border-t border-outline transition-colors duration-300" />
+            <div className="px-2 bg-surface-container-low transition-colors duration-300">
+              <span className="text-base text-on-surface transition-colors duration-300">
                 Hoặc
               </span>
             </div>
-            <div className="flex-1 border-t border-gray-900 dark:border-gray-300 transition-colors duration-300" />
+            <div className="flex-1 border-t border-outline transition-colors duration-300" />
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -268,7 +268,7 @@ export default function LoginPage() {
             {/* Email Input */}
             <div className="relative">
               <label
-                className={`absolute left-3 px-1 text-sm font-medium bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-300 ${focusedField === 'email' || formData.emailOrUsername
+                className={`absolute left-3 px-1 text-sm font-medium bg-surface-container-low text-on-surface transition-all duration-300 ${focusedField === 'email' || formData.emailOrUsername
                   ? '-top-2.5 opacity-100'
                   : 'top-3 opacity-0'
                   }`}
@@ -281,7 +281,7 @@ export default function LoginPage() {
                 onChange={(e) => setFormData({ ...formData, emailOrUsername: e.target.value })}
                 onFocus={() => setFocusedField('email')}
                 onBlur={() => setFocusedField(null)}
-                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-400 dark:hover:border-gray-500"
+                className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                 placeholder="Email hoặc Username"
                 required
               />
@@ -290,7 +290,7 @@ export default function LoginPage() {
             {/* Password Input */}
             <div className="relative">
               <label
-                className={`absolute left-3 px-1 text-sm font-medium bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-300 z-10 ${focusedField === 'password' || formData.password
+                className={`absolute left-3 px-1 text-sm font-medium bg-surface-container-low text-on-surface transition-all duration-300 z-10 ${focusedField === 'password' || formData.password
                   ? '-top-2.5 opacity-100'
                   : 'top-3 opacity-0'
                   }`}
@@ -304,14 +304,14 @@ export default function LoginPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   onFocus={() => setFocusedField('password')}
                   onBlur={() => setFocusedField(null)}
-                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-400 dark:hover:border-gray-500"
+                  className="w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant hover:border-outline-variant dark:hover:border-gray-500"
                   placeholder="Mật khẩu"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-600 dark:text-gray-400 transition-all duration-300 hover:text-gray-900 dark:hover:text-white hover:scale-110 active:scale-95"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant transition-all duration-300 hover:text-on-surface dark:hover:text-white hover:scale-110 active:scale-95"
                   aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   {showPassword ? (
@@ -347,7 +347,7 @@ export default function LoginPage() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-5 h-5 rounded border-2 border-gray-900 dark:border-gray-300 accent-blue-500 transition-all duration-300 cursor-pointer appearance-none checked:bg-blue-500 checked:border-blue-500"
+                    className="w-5 h-5 rounded border-2 border-outline accent-blue-500 transition-all duration-300 cursor-pointer appearance-none checked:bg-blue-500 checked:border-blue-500"
                   />
                   {rememberMe && (
                     <svg
@@ -360,13 +360,13 @@ export default function LoginPage() {
                     </svg>
                   )}
                 </div>
-                <span className="text-base text-gray-900 dark:text-white transition-colors duration-300 group-hover:opacity-80">
+                <span className="text-base text-on-surface transition-colors duration-300 group-hover:opacity-80">
                   Ghi nhớ đăng nhập
                 </span>
               </label>
               <Link
                 href="/forgot-password"
-                className="text-base text-blue-500 dark:text-blue-400 hover:underline transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-300"
+                className="text-base text-primary hover:underline transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-300"
               >
                 Quên mật khẩu?
               </Link>
@@ -405,11 +405,11 @@ export default function LoginPage() {
 
           {/* Register Link - Only show if registration is allowed */}
           {settings?.allowRegistration !== false && (
-            <p className="text-center text-base text-gray-900 dark:text-white transition-colors duration-300">
+            <p className="text-center text-base text-on-surface transition-colors duration-300">
               Chưa có tài khoản?{' '}
               <Link
                 href="/register"
-                className="font-medium text-blue-500 dark:text-blue-400 hover:underline transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-300"
+                className="font-medium text-primary hover:underline transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-300"
               >
                 Đăng ký ngay
               </Link>

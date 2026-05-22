@@ -84,16 +84,16 @@ export default function AdminWalletsPage() {
     return (
         <AdminLayout>
             <div className="space-y-4 max-w-2xl">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Khóa ví / Chống gian lận</h1>
+                <h1 className="text-2xl font-bold text-on-surface">Khóa ví / Chống gian lận</h1>
 
                 <form onSubmit={lookup} className="flex gap-2">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
                         <input
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Username hoặc email người dùng"
-                            className="w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                            className="w-full pl-10 pr-3 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary"
                         />
                     </div>
                     <button type="submit" disabled={loading}
@@ -109,17 +109,17 @@ export default function AdminWalletsPage() {
                 )}
 
                 {info && (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                    <div className="bg-surface-container rounded-lg shadow-sm p-6 border border-outline-variant">
                         <div className="flex items-start justify-between gap-4">
                             <div>
-                                <p className="font-semibold text-gray-900 dark:text-white">
+                                <p className="font-semibold text-on-surface">
                                     {info.user.displayName || info.user.username}
                                 </p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">@{info.user.username} · {info.user.email}</p>
-                                <div className="mt-3 text-sm text-gray-700 dark:text-gray-300 space-y-0.5">
+                                <p className="text-sm text-on-surface-variant">@{info.user.username} · {info.user.email}</p>
+                                <div className="mt-3 text-sm text-on-surface-variant space-y-0.5">
                                     <p>Xu đã nạp (không rút được): <b>{info.purchasedBalance.toLocaleString('vi-VN')} xu</b></p>
                                     <p>Xu doanh thu (rút được): <b className="text-emerald-600 dark:text-emerald-400">{info.earnedBalance.toLocaleString('vi-VN')} xu</b></p>
-                                    <p className="text-gray-500 dark:text-gray-400">Tổng: <b>{info.balance.toLocaleString('vi-VN')} xu</b></p>
+                                    <p className="text-on-surface-variant">Tổng: <b>{info.balance.toLocaleString('vi-VN')} xu</b></p>
                                 </div>
                                 <p className="mt-1 text-sm">
                                     Trạng thái ví:{' '}
@@ -136,34 +136,34 @@ export default function AdminWalletsPage() {
                                 {info.isLocked ? 'Mở khóa ví' : 'Khóa ví'}
                             </button>
                         </div>
-                        <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+                        <p className="mt-4 text-xs text-on-surface-variant">
                             Ví bị khóa: người dùng không thể mua chương/truyện, ủng hộ, chuyển xu hoặc rút xu. Số dư vẫn giữ nguyên.
                         </p>
                     </div>
                 )}
 
                 {info && (
-                    <form onSubmit={submitAdjust} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700 space-y-4">
-                        <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <form onSubmit={submitAdjust} className="bg-surface-container rounded-lg shadow-sm p-6 border border-outline-variant space-y-4">
+                        <h2 className="font-bold text-on-surface flex items-center gap-2">
                             <Sliders size={18} /> Điều chỉnh ví thủ công
                         </h2>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-on-surface-variant">
                             Cộng/trừ trực tiếp một bucket. Dùng cho support compensation, fraud cleanup, hoặc fix tác giả có doanh thu cũ đã bị backfill vào xu nạp. Mỗi thao tác ghi audit log.
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bucket</label>
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">Bucket</label>
                                 <select value={adjustBucket} onChange={(e) => setAdjustBucket(e.target.value as 'PURCHASED' | 'EARNED')}
-                                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+                                    className="w-full px-3 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary">
                                     <option value="EARNED">Xu doanh thu (rút được)</option>
                                     <option value="PURCHASED">Xu nạp (chi tiêu được)</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Delta (âm = trừ)</label>
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">Delta (âm = trừ)</label>
                                 <input type="number" step={1} value={adjustDelta}
                                     onChange={(e) => setAdjustDelta(Math.trunc(Number(e.target.value) || 0))}
-                                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary"
                                     placeholder="VD: 1000 hoặc -500" />
                             </div>
                             <div className="md:col-span-1 flex items-end">
@@ -174,9 +174,9 @@ export default function AdminWalletsPage() {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Lý do (bắt buộc, audit log)</label>
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">Lý do (bắt buộc, audit log)</label>
                             <textarea value={adjustNote} onChange={(e) => setAdjustNote(e.target.value)} rows={2} maxLength={500}
-                                className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary"
                                 placeholder="VD: Hoàn xu doanh thu bị backfill nhầm vào xu nạp khi migrate wallet split (ticket #1234)" />
                         </div>
                         {adjustOk && (

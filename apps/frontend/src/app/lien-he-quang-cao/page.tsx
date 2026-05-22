@@ -11,7 +11,7 @@ function ContactAdvertisingContent() {
 export default function ContactAdvertisingPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <Loading />
       </div>
     }>

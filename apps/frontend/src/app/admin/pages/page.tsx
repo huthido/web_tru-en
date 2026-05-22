@@ -109,10 +109,10 @@ export default function AdminPagesPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-2xl md:text-3xl font-bold text-on-surface">
                             Quản lý trang nội dung
                         </h1>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">
+                        <p className="text-on-surface-variant mt-1">
                             Quản lý nội dung các trang tĩnh trên website
                         </p>
                     </div>
@@ -132,14 +132,14 @@ export default function AdminPagesPage() {
 
                 {/* Create/Edit Form */}
                 {(isCreating || editingPage) && (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                    <div className="bg-surface-container rounded-lg shadow-sm border border-outline-variant p-6">
+                        <h2 className="text-xl font-semibold text-on-surface mb-4">
                             {isCreating ? 'Tạo trang mới' : 'Chỉnh sửa trang'}
                         </h2>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Slug (URL) {!isCreating && <span className="text-gray-500">(không thể thay đổi)</span>}
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                                    Slug (URL) {!isCreating && <span className="text-on-surface-variant">(không thể thay đổi)</span>}
                                 </label>
                                 <input
                                     type="text"
@@ -147,11 +147,11 @@ export default function AdminPagesPage() {
                                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                                     disabled={!isCreating}
                                     placeholder="lien-he-quang-cao"
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface disabled:opacity-50 disabled:cursor-not-allowed"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Tiêu đề
                                 </label>
                                 <input
@@ -159,11 +159,11 @@ export default function AdminPagesPage() {
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                     placeholder="Liên hệ quảng cáo"
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Mô tả
                                 </label>
                                 <input
@@ -171,11 +171,11 @@ export default function AdminPagesPage() {
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     placeholder="Mô tả ngắn về trang"
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Nội dung
                                 </label>
                                 <RichTextEditor
@@ -191,9 +191,9 @@ export default function AdminPagesPage() {
                                     id="isActive"
                                     checked={formData.isActive}
                                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
                                 />
-                                <label htmlFor="isActive" className="text-sm text-gray-700 dark:text-gray-300">
+                                <label htmlFor="isActive" className="text-sm text-on-surface-variant">
                                     Kích hoạt
                                 </label>
                             </div>
@@ -207,7 +207,7 @@ export default function AdminPagesPage() {
                                 </button>
                                 <button
                                     onClick={handleCancel}
-                                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                                    className="px-4 py-2 bg-surface-variant text-on-surface-variant rounded-lg hover:bg-surface-variant transition-colors"
                                 >
                                     Hủy
                                 </button>
@@ -217,49 +217,49 @@ export default function AdminPagesPage() {
                 )}
 
                 {/* Pages List */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                <div className="bg-surface-container rounded-lg shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead className="bg-gray-50 dark:bg-gray-900">
+                        <table className="min-w-full divide-y divide-outline-variant">
+                            <thead className="bg-surface-container-low">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                         Slug
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                         Tiêu đề
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                         Trạng thái
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                         Cập nhật
                                     </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                         Thao tác
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody className="bg-surface-container divide-y divide-outline-variant">
                                 {pages && pages.length > 0 ? (
                                     pages.map((page) => (
-                                        <tr key={page.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
+                                        <tr key={page.id} className="hover:bg-surface-container-high">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-on-surface">
                                                 {page.slug}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                            <td className="px-6 py-4 text-sm text-on-surface">
                                                 {page.title}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span
                                                     className={`px-2 py-1 text-xs font-medium rounded-full ${page.isActive
                                                             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                                            : 'bg-surface-container-high text-on-surface'
                                                         }`}
                                                 >
                                                     {page.isActive ? 'Hoạt động' : 'Tắt'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-on-surface-variant">
                                                 {new Date(page.updatedAt).toLocaleDateString('vi-VN')}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -282,7 +282,7 @@ export default function AdminPagesPage() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        <td colSpan={5} className="px-6 py-4 text-center text-sm text-on-surface-variant">
                                             Chưa có trang nào
                                         </td>
                                     </tr>

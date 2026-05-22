@@ -49,20 +49,20 @@ function ResetPasswordForm() {
   };
 
   const inputClass =
-    'w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500';
+    'w-full h-12 px-3 pr-12 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant';
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-surface-container-low transition-colors duration-300">
       <div className="w-full max-w-[400px]">
         <div className="flex flex-col gap-5">
           <Link href="/" className="self-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">HÙNG YÊU</h1>
+            <h1 className="text-2xl font-bold text-on-surface">HÙNG YÊU</h1>
           </Link>
 
           {!token ? (
             <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Link không hợp lệ</h2>
-              <p className="text-gray-600 dark:text-gray-400">
+              <h2 className="text-2xl font-bold text-on-surface">Link không hợp lệ</h2>
+              <p className="text-on-surface-variant">
                 Link đặt lại mật khẩu thiếu token hoặc đã hỏng. Vui lòng yêu cầu link mới.
               </p>
               <Link
@@ -74,8 +74,8 @@ function ResetPasswordForm() {
             </div>
           ) : done ? (
             <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Thành công</h2>
-              <p className="text-gray-600 dark:text-gray-400">
+              <h2 className="text-2xl font-bold text-on-surface">Thành công</h2>
+              <p className="text-on-surface-variant">
                 Mật khẩu đã được đặt lại. Vui lòng đăng nhập bằng mật khẩu mới.
               </p>
               <Link
@@ -87,8 +87,8 @@ function ResetPasswordForm() {
             </div>
           ) : (
             <>
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Đặt lại mật khẩu</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <h2 className="text-3xl font-bold text-on-surface">Đặt lại mật khẩu</h2>
+              <p className="text-sm text-on-surface-variant">
                 Nhập mật khẩu mới cho tài khoản của bạn.
               </p>
 
@@ -100,7 +100,7 @@ function ResetPasswordForm() {
                 )}
 
                 <div>
-                  <label className="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block mb-1.5 text-sm font-medium text-on-surface-variant">
                     Mật khẩu mới
                   </label>
                   <div className="relative">
@@ -115,7 +115,7 @@ function ResetPasswordForm() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-blue-500 dark:text-blue-400"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-primary"
                     >
                       {showPassword ? 'Ẩn' : 'Hiện'}
                     </button>
@@ -123,7 +123,7 @@ function ResetPasswordForm() {
                 </div>
 
                 <div>
-                  <label className="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block mb-1.5 text-sm font-medium text-on-surface-variant">
                     Xác nhận mật khẩu mới
                   </label>
                   <input
@@ -136,7 +136,7 @@ function ResetPasswordForm() {
                   />
                 </div>
 
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-on-surface-variant">
                   Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số.
                 </p>
 
@@ -149,10 +149,10 @@ function ResetPasswordForm() {
                 </button>
               </form>
 
-              <p className="text-center text-sm text-gray-900 dark:text-white">
+              <p className="text-center text-sm text-on-surface">
                 <Link
                   href="/login"
-                  className="font-medium text-blue-500 dark:text-blue-400 hover:underline"
+                  className="font-medium text-primary hover:underline"
                 >
                   Quay lại đăng nhập
                 </Link>
@@ -169,7 +169,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900" />
+        <div className="min-h-screen flex items-center justify-center bg-surface-container-low" />
       }
     >
       <ResetPasswordForm />

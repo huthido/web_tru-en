@@ -125,7 +125,7 @@ function SearchContent() {
     const hasActiveFilters = selectedCategory || status || sortBy !== 'newest';
 
     return (
-        <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+        <div className="min-h-screen bg-surface transition-colors duration-300">
             <Sidebar />
             <div className="md:ml-[120px] pb-16 md:pb-0">
                 <Header />
@@ -134,15 +134,15 @@ function SearchContent() {
                     <div className="max-w-7xl mx-auto px-4 md:px-6">
                         {/* Page Header */}
                         <div className="mb-6">
-                            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                            <h1 className="text-3xl md:text-4xl font-bold text-on-surface mb-2">
                                 Tìm kiếm truyện
                             </h1>
                             {query ? (
-                                <p className="text-gray-600 dark:text-gray-400">
-                                    Kết quả tìm kiếm cho: <span className="font-semibold text-gray-900 dark:text-white">&quot;{query}&quot;</span>
+                                <p className="text-on-surface-variant">
+                                    Kết quả tìm kiếm cho: <span className="font-semibold text-on-surface">&quot;{query}&quot;</span>
                                 </p>
                             ) : (
-                                <p className="text-gray-600 dark:text-gray-400">
+                                <p className="text-on-surface-variant">
                                     Nhập từ khóa để tìm kiếm truyện
                                 </p>
                             )}
@@ -152,13 +152,13 @@ function SearchContent() {
                         <div className="mb-6">
                             <form onSubmit={handleSearch} className="relative">
                                 <div className="relative">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant" />
                                     <input
                                         type="text"
                                         value={tempQuery}
                                         onChange={(e) => setTempQuery(e.target.value)}
                                         placeholder="Tìm kiếm truyện theo tên, tác giả, mô tả..."
-                                        className="w-full pl-12 pr-24 py-4 text-base border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+                                        className="w-full pl-12 pr-24 py-4 text-base border border-outline-variant rounded-xl bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent shadow-sm"
                                     />
                                     {tempQuery && (
                                         <button
@@ -167,9 +167,9 @@ function SearchContent() {
                                                 setTempQuery('');
                                                 setQuery('');
                                             }}
-                                            className="absolute right-20 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                                            className="absolute right-20 top-1/2 -translate-y-1/2 p-1 hover:bg-surface-container-high rounded-full transition-colors"
                                         >
-                                            <X className="w-5 h-5 text-gray-400" />
+                                            <X className="w-5 h-5 text-on-surface-variant" />
                                         </button>
                                     )}
                                     <button
@@ -186,16 +186,16 @@ function SearchContent() {
                         <div className="md:hidden mb-4">
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-between shadow-sm"
+                                className="w-full px-4 py-3 bg-surface-container border border-outline-variant rounded-lg flex items-center justify-between shadow-sm"
                             >
                                 <div className="flex items-center gap-2">
-                                    <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                    <Filter className="w-5 h-5 text-on-surface-variant" />
+                                    <span className="text-on-surface-variant font-medium">
                                         {showFilters ? 'Ẩn bộ lọc' : 'Hiển thị bộ lọc'}
                                     </span>
                                 </div>
                                 <svg
-                                    className={`w-5 h-5 text-gray-500 transition-transform ${showFilters ? 'rotate-180' : ''}`}
+                                    className={`w-5 h-5 text-on-surface-variant transition-transform ${showFilters ? 'rotate-180' : ''}`}
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -207,16 +207,16 @@ function SearchContent() {
 
                         {/* Filters Section */}
                         <div className={`${showFilters ? 'block' : 'hidden'} md:block mb-6`}>
-                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+                            <div className="bg-surface-container rounded-xl shadow-sm border border-outline-variant p-4 md:p-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-2">
-                                        <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Bộ lọc nâng cao</h2>
+                                        <Filter className="w-5 h-5 text-on-surface-variant" />
+                                        <h2 className="text-lg font-semibold text-on-surface">Bộ lọc nâng cao</h2>
                                     </div>
                                     {hasActiveFilters && (
                                         <button
                                             onClick={handleResetFilters}
-                                            className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                                            className="text-sm text-primary hover:underline font-medium"
                                         >
                                             Xóa bộ lọc
                                         </button>
@@ -226,13 +226,13 @@ function SearchContent() {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {/* Category */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Thể loại
                                         </label>
                                         <select
                                             value={selectedCategory}
                                             onChange={(e) => setSelectedCategory(e.target.value)}
-                                            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                                         >
                                             <option value="">Tất cả thể loại</option>
                                             {categories.map((cat: any) => (
@@ -245,13 +245,13 @@ function SearchContent() {
 
                                     {/* Status */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Trạng thái
                                         </label>
                                         <select
                                             value={status}
                                             onChange={(e) => setStatus(e.target.value)}
-                                            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                                         >
                                             <option value="">Tất cả trạng thái</option>
                                             <option value="PUBLISHED">Đã xuất bản</option>
@@ -263,13 +263,13 @@ function SearchContent() {
 
                                     {/* Sort By */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Sắp xếp theo
                                         </label>
                                         <select
                                             value={sortBy}
                                             onChange={(e) => setSortBy(e.target.value as any)}
-                                            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                                         >
                                             <option value="newest">Mới nhất</option>
                                             <option value="popular">Phổ biến</option>
@@ -284,24 +284,24 @@ function SearchContent() {
                         {/* Results Info */}
                         {!isLoading && query && (
                             <div className="mb-4 flex items-center justify-between">
-                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                <div className="text-sm text-on-surface-variant">
                                     {meta?.total ? (
                                         <>
-                                            Hiển thị <span className="font-medium text-gray-900 dark:text-white">
+                                            Hiển thị <span className="font-medium text-on-surface">
                                                 {(page - 1) * limit + 1}
-                                            </span> - <span className="font-medium text-gray-900 dark:text-white">
+                                            </span> - <span className="font-medium text-on-surface">
                                                 {Math.min(page * limit, meta.total)}
-                                            </span> trong tổng số <span className="font-semibold text-gray-900 dark:text-white">
+                                            </span> trong tổng số <span className="font-semibold text-on-surface">
                                                 {meta.total}
                                             </span> kết quả
                                         </>
                                     ) : (
-                                        <span className="text-gray-500 dark:text-gray-400">Không tìm thấy kết quả</span>
+                                        <span className="text-on-surface-variant">Không tìm thấy kết quả</span>
                                     )}
                                 </div>
                                 <Link
                                     href="/stories"
-                                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                                    className="text-sm text-primary hover:underline font-medium"
                                 >
                                     Xem tất cả truyện →
                                 </Link>
@@ -311,13 +311,13 @@ function SearchContent() {
                         {/* Results Grid */}
                         {!query ? (
                             <div className="text-center py-16">
-                                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-                                    <Search className="w-10 h-10 text-gray-400" />
+                                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-surface-container-high mb-4">
+                                    <Search className="w-10 h-10 text-on-surface-variant" />
                                 </div>
-                                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                                <h3 className="text-xl font-semibold text-on-surface mb-2">
                                     Bắt đầu tìm kiếm
                                 </h3>
-                                <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                                <p className="text-on-surface-variant mb-6 max-w-md mx-auto">
                                     Nhập từ khóa vào ô tìm kiếm bên trên để khám phá hàng ngàn truyện hấp dẫn
                                 </p>
                                 <Link
@@ -331,9 +331,9 @@ function SearchContent() {
                             <Loading />
                         ) : stories.length === 0 ? (
                             <div className="text-center py-16">
-                                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+                                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-surface-container-high mb-4">
                                     <svg
-                                        className="w-10 h-10 text-gray-400"
+                                        className="w-10 h-10 text-on-surface-variant"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -346,10 +346,10 @@ function SearchContent() {
                                         />
                                     </svg>
                                 </div>
-                                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                                <h3 className="text-xl font-semibold text-on-surface mb-2">
                                     Không tìm thấy kết quả
                                 </h3>
-                                <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                                <p className="text-on-surface-variant mb-6 max-w-md mx-auto">
                                     Không tìm thấy truyện nào phù hợp với từ khóa &quot;{query}&quot;. Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc.
                                 </p>
                                 <div className="flex items-center justify-center gap-3">
@@ -358,7 +358,7 @@ function SearchContent() {
                                             setTempQuery('');
                                             setQuery('');
                                         }}
-                                        className="px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-medium transition-colors"
+                                        className="px-6 py-3 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg font-medium transition-colors"
                                     >
                                         Xóa tìm kiếm
                                     </button>
@@ -389,39 +389,39 @@ function SearchContent() {
 
                                 {/* Pagination */}
                                 {totalPages > 1 && (
-                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-                                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                                            Trang <span className="font-semibold text-gray-900 dark:text-white">{page}</span> / <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span>
+                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface-container rounded-xl p-4 shadow-sm border border-outline-variant">
+                                        <div className="text-sm text-on-surface-variant">
+                                            Trang <span className="font-semibold text-on-surface">{page}</span> / <span className="font-semibold text-on-surface">{totalPages}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
                                                 onClick={() => setPage(1)}
                                                 disabled={page === 1}
-                                                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+                                                className="px-3 py-2 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors font-medium"
                                             >
                                                 Đầu
                                             </button>
                                             <button
                                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                                 disabled={page === 1}
-                                                className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                                className="p-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
                                             >
                                                 <ChevronLeft className="w-5 h-5" />
                                             </button>
-                                            <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg font-semibold text-sm">
+                                            <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-primary rounded-lg font-semibold text-sm">
                                                 {page}
                                             </div>
                                             <button
                                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                                 disabled={page >= totalPages}
-                                                className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                                className="p-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
                                             >
                                                 <ChevronRight className="w-5 h-5" />
                                             </button>
                                             <button
                                                 onClick={() => setPage(totalPages)}
                                                 disabled={page === totalPages}
-                                                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+                                                className="px-3 py-2 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors font-medium"
                                             >
                                                 Cuối
                                             </button>
@@ -442,10 +442,10 @@ function SearchContent() {
 export default function SearchPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 flex items-center justify-center">
+            <div className="min-h-screen bg-surface flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-4 text-gray-600 dark:text-gray-400">Đang tải...</p>
+                    <p className="mt-4 text-on-surface-variant">Đang tải...</p>
                 </div>
             </div>
         }>

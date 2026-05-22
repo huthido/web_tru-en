@@ -65,10 +65,10 @@ export default function CreateNotificationPage() {
                     <div className="flex items-center gap-4 mb-4">
                         <Link
                             href="/admin/notifications"
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                            className="p-2 hover:bg-surface-container-high rounded-lg transition-colors"
                         >
                             <svg
-                                className="w-6 h-6 text-gray-600 dark:text-gray-400"
+                                className="w-6 h-6 text-on-surface-variant"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -82,10 +82,10 @@ export default function CreateNotificationPage() {
                             </svg>
                         </Link>
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">
                                 Tạo thông báo mới
                             </h1>
-                            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
+                            <p className="text-sm sm:text-base text-on-surface-variant mt-1">
                                 Gửi thông báo đến người dùng
                             </p>
                         </div>
@@ -94,17 +94,17 @@ export default function CreateNotificationPage() {
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm space-y-6">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm space-y-6">
                         {/* Title */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Tiêu đề <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-4 py-3 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                 placeholder="Nhập tiêu đề thông báo..."
                             />
                             {errors.title && (
@@ -114,14 +114,14 @@ export default function CreateNotificationPage() {
 
                         {/* Content */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Nội dung <span className="text-red-500">*</span>
                             </label>
                             <textarea
                                 value={formData.content}
                                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                                 rows={6}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                                className="w-full px-4 py-3 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent resize-y"
                                 placeholder="Nhập nội dung thông báo..."
                             />
                             {errors.content && (
@@ -132,13 +132,13 @@ export default function CreateNotificationPage() {
                         {/* Type & Priority */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Loại thông báo <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     value={formData.type}
                                     onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                 >
                                     <option value="ANNOUNCEMENT">Thông báo</option>
                                     <option value="SYSTEM_UPDATE">Cập nhật hệ thống</option>
@@ -150,13 +150,13 @@ export default function CreateNotificationPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Mức độ ưu tiên <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     value={formData.priority}
                                     onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                 >
                                     <option value="LOW">Thấp</option>
                                     <option value="NORMAL">Bình thường</option>
@@ -168,20 +168,20 @@ export default function CreateNotificationPage() {
 
                         {/* Target Role */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Đối tượng nhận
                             </label>
                             <select
                                 value={formData.targetRole}
                                 onChange={(e) => setFormData({ ...formData, targetRole: e.target.value as any })}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-4 py-3 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                             >
                                 <option value="">Tất cả người dùng</option>
                                 <option value="USER">Chỉ USER</option>
                                 <option value="AUTHOR">Chỉ AUTHOR</option>
                                 <option value="ADMIN">Chỉ ADMIN</option>
                             </select>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            <p className="mt-1 text-sm text-on-surface-variant">
                                 Chọn nhóm người dùng sẽ nhận thông báo này
                             </p>
                         </div>
@@ -193,11 +193,11 @@ export default function CreateNotificationPage() {
                                 id="sendEmail"
                                 checked={formData.sendEmail}
                                 onChange={(e) => setFormData({ ...formData, sendEmail: e.target.checked })}
-                                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                className="w-5 h-5 text-blue-600 border-outline-variant rounded focus:ring-primary"
                             />
                             <label
                                 htmlFor="sendEmail"
-                                className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                                className="text-sm font-medium text-on-surface-variant cursor-pointer"
                             >
                                 Gửi thông báo qua email
                             </label>
@@ -243,7 +243,7 @@ export default function CreateNotificationPage() {
                     <div className="flex items-center justify-end gap-4">
                         <Link
                             href="/admin/notifications"
-                            className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            className="px-6 py-3 border border-outline-variant text-on-surface-variant rounded-lg font-medium hover:bg-surface-container-high transition-colors"
                         >
                             Hủy
                         </Link>

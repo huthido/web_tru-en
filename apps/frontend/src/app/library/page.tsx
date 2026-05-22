@@ -29,7 +29,7 @@ function LibraryContent() {
   const isLoading = followsLoading || likedLoading || historyLoading;
 
   return (
-    <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-surface transition-colors duration-300">
       <Sidebar />
       <div className="md:ml-[120px] pb-16 md:pb-0">
         <Header />
@@ -37,16 +37,16 @@ function LibraryContent() {
           <div className="max-w-7xl mx-auto">
             {/* Page Header */}
             <div className="mb-6 md:mb-8">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-2">
                 Thư viện của tôi
               </h1>
-              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
+              <p className="text-sm md:text-base text-on-surface-variant">
                 Quản lý truyện đang theo dõi, đã thích và lịch sử đọc
               </p>
             </div>
 
             {/* Tabs */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-1 mb-6 shadow-sm">
+            <div className="bg-surface-container rounded-lg p-1 mb-6 shadow-sm">
               <div className="flex gap-2">
                 <button
                   onClick={() => {
@@ -56,7 +56,7 @@ function LibraryContent() {
                   className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'follows'
                       ? 'bg-blue-500 text-white'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      : 'text-on-surface-variant hover:bg-surface-container-high'
                   }`}
                 >
                   Đang theo dõi ({followsData?.meta?.total || 0})
@@ -69,7 +69,7 @@ function LibraryContent() {
                   className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'liked'
                       ? 'bg-blue-500 text-white'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      : 'text-on-surface-variant hover:bg-surface-container-high'
                   }`}
                 >
                   Đã thích ({likedData?.meta?.total || 0})
@@ -82,7 +82,7 @@ function LibraryContent() {
                   className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'history'
                       ? 'bg-blue-500 text-white'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      : 'text-on-surface-variant hover:bg-surface-container-high'
                   }`}
                 >
                   Lịch sử đọc ({historyData?.meta?.total || 0})
@@ -101,7 +101,7 @@ function LibraryContent() {
                 {activeTab === 'follows' && (
                   <div>
                     {follows.length === 0 ? (
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-12 text-center shadow-sm">
+                      <div className="bg-surface-container rounded-lg p-12 text-center shadow-sm">
                         <svg
                           width="64"
                           height="64"
@@ -109,11 +109,11 @@ function LibraryContent() {
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
-                          className="mx-auto mb-4 text-gray-400 dark:text-gray-500"
+                          className="mx-auto mb-4 text-on-surface-variant"
                         >
                           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                         </svg>
-                        <p className="text-gray-500 dark:text-gray-400">Bạn chưa theo dõi truyện nào</p>
+                        <p className="text-on-surface-variant">Bạn chưa theo dõi truyện nào</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
@@ -126,7 +126,7 @@ function LibraryContent() {
                               href={`/stories/${story.slug}`}
                               className="group relative"
                             >
-                              <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 mb-2">
+                              <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-surface-variant mb-2">
                                 {story.coverImage ? (
                                   <OptimizedImage
                                     src={story.coverImage}
@@ -140,13 +140,13 @@ function LibraryContent() {
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center">
-                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-on-surface-variant">
                                       <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
                                     </svg>
                                   </div>
                                 )}
                               </div>
-                              <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                              <h3 className="text-sm font-medium text-on-surface line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                 {story.title}
                               </h3>
                             </Link>
@@ -161,7 +161,7 @@ function LibraryContent() {
                 {activeTab === 'liked' && (
                   <div>
                     {liked.length === 0 ? (
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-12 text-center shadow-sm">
+                      <div className="bg-surface-container rounded-lg p-12 text-center shadow-sm">
                         <svg
                           width="64"
                           height="64"
@@ -169,11 +169,11 @@ function LibraryContent() {
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
-                          className="mx-auto mb-4 text-gray-400 dark:text-gray-500"
+                          className="mx-auto mb-4 text-on-surface-variant"
                         >
                           <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z" />
                         </svg>
-                        <p className="text-gray-500 dark:text-gray-400">Bạn chưa thích truyện nào</p>
+                        <p className="text-on-surface-variant">Bạn chưa thích truyện nào</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
@@ -186,7 +186,7 @@ function LibraryContent() {
                               href={`/stories/${story.slug}`}
                               className="group relative"
                             >
-                              <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 mb-2">
+                              <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-surface-variant mb-2">
                                 {story.coverImage ? (
                                   <OptimizedImage
                                     src={story.coverImage}
@@ -200,13 +200,13 @@ function LibraryContent() {
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center">
-                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-on-surface-variant">
                                       <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
                                     </svg>
                                   </div>
                                 )}
                               </div>
-                              <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                              <h3 className="text-sm font-medium text-on-surface line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                 {story.title}
                               </h3>
                             </Link>
@@ -221,7 +221,7 @@ function LibraryContent() {
                 {activeTab === 'history' && (
                   <div>
                     {history.length === 0 ? (
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-12 text-center shadow-sm">
+                      <div className="bg-surface-container rounded-lg p-12 text-center shadow-sm">
                         <svg
                           width="64"
                           height="64"
@@ -229,11 +229,11 @@ function LibraryContent() {
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
-                          className="mx-auto mb-4 text-gray-400 dark:text-gray-500"
+                          className="mx-auto mb-4 text-on-surface-variant"
                         >
                           <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
                         </svg>
-                        <p className="text-gray-500 dark:text-gray-400">Bạn chưa đọc truyện nào</p>
+                        <p className="text-on-surface-variant">Bạn chưa đọc truyện nào</p>
                       </div>
                     ) : (
                       <div className="space-y-4">
@@ -243,10 +243,10 @@ function LibraryContent() {
                             <Link
                               key={item.id}
                               href={`/stories/${item.story.slug}/chapters/${item.chapter.slug}`}
-                              className="group flex gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.01]"
+                              className="group flex gap-4 p-4 bg-surface-container rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.01]"
                             >
                               {item.story.coverImage && (
-                                <div className="relative w-20 h-28 md:w-24 md:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+                                <div className="relative w-20 h-28 md:w-24 md:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-surface-variant">
                                   <OptimizedImage
                                     src={item.story.coverImage}
                                     alt={item.story.title}
@@ -260,25 +260,25 @@ function LibraryContent() {
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                <h3 className="text-lg font-semibold text-on-surface mb-1 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                   {item.story.title}
                                 </h3>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                <p className="text-sm text-on-surface-variant mb-2">
                                   {item.chapter.title}
                                 </p>
                                 <div className="space-y-1">
-                                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                  <div className="flex items-center justify-between text-xs text-on-surface-variant">
                                     <span>Tiến độ</span>
                                     <span>{item.progress}%</span>
                                   </div>
-                                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                  <div className="w-full bg-surface-variant rounded-full h-2">
                                     <div
                                       className="bg-blue-500 dark:bg-blue-600 h-2 rounded-full transition-all duration-300"
                                       style={{ width: `${item.progress}%` }}
                                     />
                                   </div>
                                 </div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                <p className="text-xs text-on-surface-variant mt-2">
                                   {new Date(item.lastRead).toLocaleDateString('vi-VN')}
                                 </p>
                               </div>
@@ -294,16 +294,16 @@ function LibraryContent() {
                 {((activeTab === 'follows' && followsData?.meta?.totalPages > 1) ||
                   (activeTab === 'liked' && likedData?.meta?.totalPages > 1) ||
                   (activeTab === 'history' && historyData?.meta?.totalPages > 1)) && (
-                  <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                  <div className="mt-8 bg-surface-container rounded-lg p-4 shadow-sm">
                     <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => setPage(page - 1)}
                         disabled={page === 1}
-                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                        className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                       >
                         Trước
                       </button>
-                      <span className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                      <span className="px-4 py-2 text-sm text-on-surface-variant">
                         Trang {page} /{' '}
                         {activeTab === 'follows'
                           ? followsData?.meta?.totalPages
@@ -321,7 +321,7 @@ function LibraryContent() {
                             ? likedData?.meta?.totalPages || 1
                             : historyData?.meta?.totalPages || 1)
                         }
-                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                        className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                       >
                         Sau
                       </button>

@@ -107,27 +107,27 @@ export default function CreateStoryPage() {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+            <div className="min-h-screen bg-surface transition-colors duration-300">
                 <Sidebar />
                 <div className="md:ml-[120px] pb-16 md:pb-0">
                     <Header />
                     <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                         <div className="max-w-4xl mx-auto">
-                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">
+                            <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-6">
                                 Tạo truyện mới
                             </h1>
 
-                            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 space-y-6">
+                            <form onSubmit={handleSubmit} className="bg-surface-container rounded-lg shadow-sm p-6 md:p-8 space-y-6">
                                 {/* Title */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Tiêu đề <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                         placeholder="Nhập tiêu đề truyện (slug sẽ được tạo tự động)"
                                     />
                                     {errors.title && (
@@ -137,21 +137,21 @@ export default function CreateStoryPage() {
 
                                 {/* Description */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Mô tả
                                     </label>
                                     <textarea
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                         rows={6}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                                         placeholder="Nhập mô tả truyện"
                                     />
                                 </div>
 
                                 {/* Cover Image */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Ảnh bìa
                                     </label>
                                     <div className="space-y-3">
@@ -172,12 +172,12 @@ export default function CreateStoryPage() {
                                                 onChange={handleFileUpload}
                                                 className="hidden"
                                             />
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">hoặc</span>
+                                            <span className="text-sm text-on-surface-variant">hoặc</span>
                                             <input
                                                 type="url"
                                                 value={formData.coverImage}
                                                 onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
-                                                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                className="flex-1 px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                                 placeholder="Nhập URL ảnh"
                                             />
                                         </div>
@@ -185,7 +185,7 @@ export default function CreateStoryPage() {
                                             <p className="text-sm text-red-500">{errors.coverImage}</p>
                                         )}
                                         {formData.coverImage && (
-                                            <div className="relative w-32 h-48 rounded-lg overflow-hidden border-2 border-gray-300 dark:border-gray-600">
+                                            <div className="relative w-32 h-48 rounded-lg overflow-hidden border-2 border-outline-variant">
                                                 <img
                                                     src={formData.coverImage}
                                                     alt="Preview"
@@ -201,14 +201,14 @@ export default function CreateStoryPage() {
 
                                 {/* Categories (Tags = Categories) */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Thể loại (Tags) <span className="text-xs text-gray-500">Chọn từ danh sách thể loại có sẵn</span>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                                        Thể loại (Tags) <span className="text-xs text-on-surface-variant">Chọn từ danh sách thể loại có sẵn</span>
                                     </label>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                         {categories.map((category: any) => (
                                             <label
                                                 key={category.id}
-                                                className="flex items-center gap-2 p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                                className="flex items-center gap-2 p-3 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-high transition-colors"
                                             >
                                                 <input
                                                     type="checkbox"
@@ -226,14 +226,14 @@ export default function CreateStoryPage() {
                                                             });
                                                         }
                                                     }}
-                                                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                                    className="w-4 h-4 text-blue-600 rounded focus:ring-primary"
                                                 />
-                                                <span className="text-sm text-gray-700 dark:text-gray-300">{category.name}</span>
+                                                <span className="text-sm text-on-surface-variant">{category.name}</span>
                                             </label>
                                         ))}
                                     </div>
                                     {categories.length === 0 && (
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                                        <p className="text-sm text-on-surface-variant mt-2">
                                             Chưa có thể loại nào. Vui lòng liên hệ admin để thêm thể loại.
                                         </p>
                                     )}
@@ -241,13 +241,13 @@ export default function CreateStoryPage() {
 
                                 {/* Country */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Quốc gia
                                     </label>
                                     <select
                                         value={formData.country}
                                         onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                     >
                                         <option value="VN">Việt Nam</option>
                                         <option value="CN">Trung Quốc</option>
@@ -260,19 +260,19 @@ export default function CreateStoryPage() {
 
                                 {/* Access type (spec mục 4) */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Hình thức truyện
                                     </label>
                                     <select
                                         value={formData.accessType}
                                         onChange={(e) => setFormData({ ...formData, accessType: e.target.value as 'FREE' | 'FREEMIUM' | 'VIP' })}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                     >
                                         <option value="FREE">Miễn phí — ai cũng đọc được</option>
                                         <option value="FREEMIUM">Freemium — đặt giá coin từng chương ở trang chương</option>
                                         <option value="VIP">VIP — mua một lần để mở khóa cả truyện</option>
                                     </select>
-                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <p className="mt-2 text-xs text-on-surface-variant">
                                         FREEMIUM: vào từng chương để đặt giá; nhãn trả phí được ẩn với độc giả.
                                         VIP: đặt giá cả truyện bên dưới.
                                     </p>
@@ -280,7 +280,7 @@ export default function CreateStoryPage() {
 
                                 {formData.accessType === 'VIP' && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                             Giá mở khóa cả truyện (coin)
                                         </label>
                                         <input
@@ -289,10 +289,10 @@ export default function CreateStoryPage() {
                                             step={1}
                                             value={formData.price}
                                             onChange={(e) => setFormData({ ...formData, price: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
-                                            className="w-full md:w-48 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            className="w-full md:w-48 px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                             placeholder="0"
                                         />
-                                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                        <p className="mt-2 text-xs text-on-surface-variant">
                                             Độc giả trả số coin này để đọc toàn bộ chương. Bạn nhận phần còn lại sau phí nền tảng.
                                         </p>
                                     </div>
@@ -310,7 +310,7 @@ export default function CreateStoryPage() {
                                     <button
                                         type="button"
                                         onClick={() => router.back()}
-                                        className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                        className="px-6 py-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
                                     >
                                         Hủy
                                     </button>

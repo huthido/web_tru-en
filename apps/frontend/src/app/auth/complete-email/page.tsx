@@ -70,14 +70,14 @@ export default function CompleteEmailPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center bg-surface-container-low px-4">
+      <div className="max-w-md w-full bg-surface-container rounded-lg shadow-lg p-8">
         {!isSuccess ? (
           <>
             <div className="text-center mb-6">
               <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
                 <svg
-                  className="w-8 h-8 text-blue-600 dark:text-blue-400"
+                  className="w-8 h-8 text-primary"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -90,10 +90,10 @@ export default function CompleteEmailPage() {
                   />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-2xl font-bold text-on-surface mb-2">
                 Hoàn tất đăng nhập
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-on-surface-variant">
                 Facebook của bạn không có email. Vui lòng nhập email để hoàn tất đăng nhập.
               </p>
             </div>
@@ -102,7 +102,7 @@ export default function CompleteEmailPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  className="block text-sm font-medium text-on-surface-variant mb-2"
                 >
                   Email
                 </label>
@@ -112,7 +112,7 @@ export default function CompleteEmailPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your.email@example.com"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                   required
                   disabled={isSubmitting}
                 />
@@ -136,7 +136,7 @@ export default function CompleteEmailPage() {
             <div className="mt-4 text-center">
               <Link
                 href="/login"
-                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                className="text-sm text-primary hover:underline"
               >
                 Quay lại đăng nhập
               </Link>
@@ -159,10 +159,10 @@ export default function CompleteEmailPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-xl font-bold text-on-surface mb-2">
               Thành công!
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-on-surface-variant mb-4">
               Email đã được cập nhật. Đang chuyển hướng...
             </p>
           </div>

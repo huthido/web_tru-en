@@ -180,14 +180,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
     return (
         <ProtectedRoute requiredRole={[UserRole.ADMIN]}>
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="min-h-screen bg-surface-container-low">
                 {/* Admin Header */}
-                <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+                <header className="bg-surface-container border-b border-outline-variant sticky top-0 z-50">
                     <div className="flex items-center justify-between px-3 sm:px-4 py-3">
                         <div className="flex items-center gap-2 sm:gap-4">
                             <button
                                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                className="p-2 rounded-lg hover:bg-surface-container-high transition-colors"
                                 aria-label="Toggle sidebar"
                             >
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -196,7 +196,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                                     <line x1="3" y1="18" x2="21" y2="18" />
                                 </svg>
                             </button>
-                            <Link href="/admin" className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                            <Link href="/admin" className="text-lg sm:text-xl font-bold text-on-surface">
                                 <span className="hidden sm:inline">Admin Panel</span>
                                 <span className="sm:hidden">Admin</span>
                             </Link>
@@ -205,7 +205,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                             {/* Dark Mode Toggle */}
                             <button
                                 onClick={toggleTheme}
-                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                className="p-2 rounded-lg hover:bg-surface-container-high transition-colors"
                                 aria-label="Toggle theme"
                             >
                                 {theme === 'dark' ? (
@@ -221,22 +221,22 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                                     </svg>
                                 ) : (
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-on-surface-variant">
                                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                                     </svg>
                                 )}
                             </button>
                             <Link
                                 href="/"
-                                className="hidden sm:block text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                                className="hidden sm:block text-sm text-on-surface-variant hover:text-on-surface dark:hover:text-white"
                             >
                                 Về trang chủ
                             </Link>
                             {user && (
                                 <div className="flex items-center gap-2">
                                     <div className="hidden sm:block text-right">
-                                        <div className="text-sm font-medium text-gray-900 dark:text-white">{user.displayName || user.username}</div>
-                                        <div className="text-xs text-gray-500 dark:text-gray-400">Admin</div>
+                                        <div className="text-sm font-medium text-on-surface">{user.displayName || user.username}</div>
+                                        <div className="text-xs text-on-surface-variant">Admin</div>
                                     </div>
                                     {user.avatar ? (
                                         <img src={user.avatar} alt={user.username} className="w-8 h-8 rounded-full" />
@@ -262,7 +262,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
                     {/* Admin Sidebar */}
                     <aside
-                        className={`bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 h-full fixed lg:static z-50 ${isSidebarOpen ? 'w-64' : 'w-0 lg:w-0 overflow-hidden'
+                        className={`bg-surface-container border-r border-outline-variant transition-all duration-300 h-full fixed lg:static z-50 ${isSidebarOpen ? 'w-64' : 'w-0 lg:w-0 overflow-hidden'
                             }`}
                     >
                         <nav className="p-3 sm:p-4 space-y-2 h-full overflow-y-auto">
@@ -279,8 +279,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                                             }
                                         }}
                                         className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors ${isActive
-                                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                            ? 'bg-blue-50 dark:bg-blue-900/20 text-primary'
+                                            : 'text-on-surface-variant hover:bg-surface-container-high'
                                             }`}
                                     >
                                         {item.icon}

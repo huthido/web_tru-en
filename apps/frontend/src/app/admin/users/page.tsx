@@ -173,8 +173,8 @@ export default function AdminUsersPage() {
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Quản lý người dùng</h1>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Quản lý tất cả người dùng trong hệ thống</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">Quản lý người dùng</h1>
+                        <p className="text-sm sm:text-base text-on-surface-variant mt-1 sm:mt-2">Quản lý tất cả người dùng trong hệ thống</p>
                     </div>
                     <div className="flex flex-wrap gap-2 sm:gap-3">
                         <RefreshButton queryKeys={[['users']]} />
@@ -215,10 +215,10 @@ export default function AdminUsersPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                <div className="bg-surface-container rounded-lg p-4 shadow-sm">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Tìm kiếm
                             </label>
                             <input
@@ -229,11 +229,11 @@ export default function AdminUsersPage() {
                                     setPage(1);
                                 }}
                                 placeholder="Tìm theo tên, email, username..."
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Vai trò
                             </label>
                             <select
@@ -242,7 +242,7 @@ export default function AdminUsersPage() {
                                     setRoleFilter(e.target.value);
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="">Tất cả</option>
                                 <option value="USER">User</option>
@@ -251,7 +251,7 @@ export default function AdminUsersPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Trạng thái
                             </label>
                             <select
@@ -260,7 +260,7 @@ export default function AdminUsersPage() {
                                     setIsActiveFilter(e.target.value);
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="">Tất cả</option>
                                 <option value="true">Đang hoạt động</option>
@@ -268,7 +268,7 @@ export default function AdminUsersPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Số lượng / trang
                             </label>
                             <select
@@ -277,7 +277,7 @@ export default function AdminUsersPage() {
                                     setLimit(Number(e.target.value));
                                     setPage(1);
                                 }}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="10">10</option>
                                 <option value="20">20</option>
@@ -295,55 +295,55 @@ export default function AdminUsersPage() {
                     </div>
                 ) : (
                     <>
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                        <div className="bg-surface-container rounded-lg shadow-sm overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full">
-                                    <thead className="bg-gray-50 dark:bg-gray-700">
+                                    <thead className="bg-surface-container-low">
                                         <tr>
                                             <th className="px-6 py-3 text-left">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedUsers.size === users.length && users.length > 0}
                                                     onChange={toggleSelectAll}
-                                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                    className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
                                                 />
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                                 Người dùng
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                                 Vai trò
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                                 Thống kê
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                                 Trạng thái
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                                 Ngày tạo
                                             </th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-right text-xs font-medium text-on-surface-variant uppercase tracking-wider">
                                                 Thao tác
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <tbody className="bg-surface-container divide-y divide-outline-variant">
                                         {users.length === 0 ? (
                                             <tr>
-                                                <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                                <td colSpan={7} className="px-6 py-12 text-center text-on-surface-variant">
                                                     Không có người dùng nào
                                                 </td>
                                             </tr>
                                         ) : (
                                             users.map((user) => (
-                                                <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                <tr key={user.id} className="hover:bg-surface-container-high">
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <input
                                                             type="checkbox"
                                                             checked={selectedUsers.has(user.id)}
                                                             onChange={() => toggleSelectUser(user.id)}
-                                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                            className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
                                                         />
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -360,10 +360,10 @@ export default function AdminUsersPage() {
                                                                 </div>
                                                             )}
                                                             <div>
-                                                                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                <div className="text-sm font-medium text-on-surface">
                                                                     {user.displayName || user.username}
                                                                 </div>
-                                                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                                <div className="text-sm text-on-surface-variant">
                                                                     {user.email}
                                                                 </div>
                                                             </div>
@@ -375,13 +375,13 @@ export default function AdminUsersPage() {
                                                                 ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                                                                 : user.role === 'AUTHOR'
                                                                     ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                                                    : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                                                    : 'bg-surface-container-high text-on-surface'
                                                                 }`}
                                                         >
                                                             {user.role}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-on-surface-variant">
                                                         <div className="space-y-1">
                                                             <div>Truyện: {user._count?.authoredStories || 0}</div>
                                                             <div>Bình luận: {user._count?.comments || 0}</div>
@@ -397,7 +397,7 @@ export default function AdminUsersPage() {
                                                             {user.isActive ? 'Hoạt động' : 'Đã khóa'}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-on-surface-variant">
                                                         {new Date(user.createdAt).toLocaleDateString('vi-VN')}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -466,15 +466,15 @@ export default function AdminUsersPage() {
 
                         {/* Pagination */}
                         {meta && meta.totalPages > 1 && (
-                            <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-                                <div className="text-sm text-gray-700 dark:text-gray-300">
+                            <div className="flex items-center justify-between bg-surface-container rounded-lg p-4 shadow-sm">
+                                <div className="text-sm text-on-surface-variant">
                                     Hiển thị {((page - 1) * limit) + 1} - {Math.min(page * limit, meta.total)} trong tổng số {meta.total} người dùng
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setPage(1)}
                                         disabled={page === 1}
-                                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                                        className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                                         title="Trang đầu"
                                     >
                                         ««
@@ -482,7 +482,7 @@ export default function AdminUsersPage() {
                                     <button
                                         onClick={() => setPage(page - 1)}
                                         disabled={!meta.hasPrev}
-                                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                                        className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                                     >
                                         Trước
                                     </button>
@@ -491,7 +491,7 @@ export default function AdminUsersPage() {
                                             key={idx}
                                             onClick={() => typeof pageNum === 'number' && setPage(pageNum)}
                                             disabled={pageNum === '...' || pageNum === page}
-                                            className={`px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm ${pageNum === page ? 'bg-blue-500 text-white border-blue-500' : ''
+                                            className={`px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm ${pageNum === page ? 'bg-blue-500 text-white border-blue-500' : ''
                                                 }`}
                                         >
                                             {pageNum}
@@ -500,20 +500,20 @@ export default function AdminUsersPage() {
                                     <button
                                         onClick={() => setPage(page + 1)}
                                         disabled={!meta.hasNext}
-                                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                                        className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                                     >
                                         Sau
                                     </button>
                                     <button
                                         onClick={() => setPage(totalPages)}
                                         disabled={page === totalPages}
-                                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                                        className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high text-sm"
                                         title="Trang cuối"
                                     >
                                         »»
                                     </button>
                                     <div className="ml-4 flex items-center gap-2">
-                                        <span className="text-sm text-gray-700 dark:text-gray-300">Đến trang:</span>
+                                        <span className="text-sm text-on-surface-variant">Đến trang:</span>
                                         <input
                                             type="number"
                                             min={1}
@@ -525,7 +525,7 @@ export default function AdminUsersPage() {
                                                     setPage(newPage);
                                                 }
                                             }}
-                                            className="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
+                                            className="w-16 px-2 py-1 border border-outline-variant rounded-lg dark:text-white text-sm"
                                         />
                                     </div>
                                 </div>
@@ -607,13 +607,13 @@ function ViewUserModal({
 }) {
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-surface-container rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Chi tiết người dùng</h2>
+                        <h2 className="text-2xl font-bold text-on-surface">Chi tiết người dùng</h2>
                         <button
                             onClick={onClose}
-                            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            className="text-on-surface-variant hover:text-on-surface-variant dark:hover:text-gray-200"
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M18 6L6 18M6 6l12 12" />
@@ -631,22 +631,22 @@ function ViewUserModal({
                                 </div>
                             )}
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                                <h3 className="text-xl font-bold text-on-surface">
                                     {user.displayName || user.username}
                                 </h3>
-                                <p className="text-gray-600 dark:text-gray-400">{user.email}</p>
+                                <p className="text-on-surface-variant">{user.email}</p>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Username
                                 </label>
-                                <p className="text-gray-900 dark:text-white">{user.username}</p>
+                                <p className="text-on-surface">{user.username}</p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Vai trò
                                 </label>
                                 <span
@@ -654,14 +654,14 @@ function ViewUserModal({
                                         ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                                         : user.role === 'AUTHOR'
                                             ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                            : 'bg-surface-container-high text-on-surface'
                                         }`}
                                 >
                                     {user.role}
                                 </span>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Trạng thái
                                 </label>
                                 <span
@@ -674,18 +674,18 @@ function ViewUserModal({
                                 </span>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Ngày tạo
                                 </label>
-                                <p className="text-gray-900 dark:text-white">
+                                <p className="text-on-surface">
                                     {new Date(user.createdAt).toLocaleString('vi-VN')}
                                 </p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Ngày cập nhật
                                 </label>
-                                <p className="text-gray-900 dark:text-white">
+                                <p className="text-on-surface">
                                     {new Date(user.updatedAt).toLocaleString('vi-VN')}
                                 </p>
                             </div>
@@ -693,39 +693,39 @@ function ViewUserModal({
 
                         {user.bio && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Giới thiệu
                                 </label>
-                                <p className="text-gray-900 dark:text-white">{user.bio}</p>
+                                <p className="text-on-surface">{user.bio}</p>
                             </div>
                         )}
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Thống kê
                             </label>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">Truyện đã tạo</div>
-                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <div className="bg-surface-container-low p-3 rounded-lg">
+                                    <div className="text-sm text-on-surface-variant">Truyện đã tạo</div>
+                                    <div className="text-2xl font-bold text-on-surface">
                                         {user._count?.authoredStories || 0}
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">Bình luận</div>
-                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <div className="bg-surface-container-low p-3 rounded-lg">
+                                    <div className="text-sm text-on-surface-variant">Bình luận</div>
+                                    <div className="text-2xl font-bold text-on-surface">
                                         {user._count?.comments || 0}
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">Yêu thích</div>
-                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <div className="bg-surface-container-low p-3 rounded-lg">
+                                    <div className="text-sm text-on-surface-variant">Yêu thích</div>
+                                    <div className="text-2xl font-bold text-on-surface">
                                         {user._count?.favorites || 0}
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">Theo dõi</div>
-                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <div className="bg-surface-container-low p-3 rounded-lg">
+                                    <div className="text-sm text-on-surface-variant">Theo dõi</div>
+                                    <div className="text-2xl font-bold text-on-surface">
                                         {user._count?.follows || 0}
                                     </div>
                                 </div>
@@ -772,13 +772,13 @@ function EditUserModal({
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full">
+            <div className="bg-surface-container rounded-lg max-w-md w-full">
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Chỉnh sửa người dùng</h2>
+                        <h2 className="text-2xl font-bold text-on-surface">Chỉnh sửa người dùng</h2>
                         <button
                             onClick={onClose}
-                            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            className="text-on-surface-variant hover:text-on-surface-variant dark:hover:text-gray-200"
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M18 6L6 18M6 6l12 12" />
@@ -788,13 +788,13 @@ function EditUserModal({
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Vai trò
                             </label>
                             <select
                                 value={formData.role}
                                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             >
                                 <option value="USER">User</option>
                                 <option value="AUTHOR">Author</option>
@@ -803,26 +803,26 @@ function EditUserModal({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Tên hiển thị
                             </label>
                             <input
                                 type="text"
                                 value={formData.displayName}
                                 onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Giới thiệu
                             </label>
                             <textarea
                                 value={formData.bio}
                                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                                 rows={3}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             />
                         </div>
 
@@ -832,9 +832,9 @@ function EditUserModal({
                                 id="isActive"
                                 checked={formData.isActive}
                                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                className="w-4 h-4 text-blue-600 border-outline-variant rounded focus:ring-primary"
                             />
-                            <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label htmlFor="isActive" className="text-sm font-medium text-on-surface-variant">
                                 Đang hoạt động
                             </label>
                         </div>
@@ -843,7 +843,7 @@ function EditUserModal({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                className="flex-1 px-4 py-2 border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-high transition-colors"
                             >
                                 Hủy
                             </button>

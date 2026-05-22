@@ -66,7 +66,7 @@ export default function NotificationsPage() {
 
     const getPriorityBadge = (priority: string) => {
         const badges: Record<string, { bg: string; text: string }> = {
-            LOW: { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-700 dark:text-gray-300' },
+            LOW: { bg: 'bg-surface-container-high', text: 'text-on-surface-variant' },
             NORMAL: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400' },
             HIGH: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-400' },
             URGENT: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-400' },
@@ -87,7 +87,7 @@ export default function NotificationsPage() {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+            <div className="min-h-screen bg-surface transition-colors duration-300">
                 <Sidebar />
                 <div className="md:ml-[120px] pb-16 md:pb-0">
                     <Header />
@@ -95,16 +95,16 @@ export default function NotificationsPage() {
                         <div className="max-w-4xl mx-auto">
                             {/* Header */}
                             <div className="mb-6">
-                                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                                <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-2">
                                     Thông báo
                                 </h1>
-                                <p className="text-gray-600 dark:text-gray-400">
+                                <p className="text-on-surface-variant">
                                     Tất cả thông báo từ hệ thống
                                 </p>
                             </div>
 
                             {/* Filters */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div className="bg-surface-container rounded-lg p-4 mb-6 shadow-sm border border-outline-variant">
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                     <select
                                         value={isReadFilter}
@@ -112,7 +112,7 @@ export default function NotificationsPage() {
                                             setIsReadFilter(e.target.value);
                                             setPage(1);
                                         }}
-                                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                     >
                                         <option value="">Tất cả</option>
                                         <option value="false">Chưa đọc</option>
@@ -135,9 +135,9 @@ export default function NotificationsPage() {
                             {isLoading ? (
                                 <Loading />
                             ) : notifications.length === 0 ? (
-                                <div className="bg-white dark:bg-gray-800 rounded-lg p-12 text-center border border-gray-200 dark:border-gray-700">
+                                <div className="bg-surface-container rounded-lg p-12 text-center border border-outline-variant">
                                     <svg
-                                        className="w-16 h-16 mx-auto text-gray-400 mb-4"
+                                        className="w-16 h-16 mx-auto text-on-surface-variant mb-4"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -149,7 +149,7 @@ export default function NotificationsPage() {
                                             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                                         />
                                     </svg>
-                                    <p className="text-gray-600 dark:text-gray-400">
+                                    <p className="text-on-surface-variant">
                                         {isReadFilter === 'false' ? 'Không có thông báo chưa đọc' : 'Chưa có thông báo nào'}
                                     </p>
                                 </div>
@@ -158,9 +158,9 @@ export default function NotificationsPage() {
                                     {notifications.map((notification: any) => (
                                         <div
                                             key={notification.id}
-                                            className={`bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border transition-all ${
+                                            className={`bg-surface-container rounded-lg p-6 shadow-sm border transition-all ${
                                                 notification.isRead
-                                                    ? 'border-gray-200 dark:border-gray-700'
+                                                    ? 'border-outline-variant'
                                                     : 'border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10'
                                             }`}
                                         >
@@ -170,22 +170,22 @@ export default function NotificationsPage() {
                                                 </span>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-3 mb-2">
-                                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                        <h3 className="text-lg font-semibold text-on-surface">
                                                             {notification.title}
                                                         </h3>
                                                         {getPriorityBadge(notification.priority)}
-                                                        <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                                                        <span className="px-2 py-1 rounded text-xs font-medium bg-surface-container-high text-on-surface-variant">
                                                             {getTypeLabel(notification.type)}
                                                         </span>
                                                         {!notification.isRead && (
                                                             <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
                                                         )}
                                                     </div>
-                                                    <p className="text-gray-600 dark:text-gray-400 mb-3 whitespace-pre-wrap">
+                                                    <p className="text-on-surface-variant mb-3 whitespace-pre-wrap">
                                                         {notification.content}
                                                     </p>
                                                     <div className="flex items-center justify-between">
-                                                        <p className="text-sm text-gray-500 dark:text-gray-500">
+                                                        <p className="text-sm text-on-surface-variant">
                                                             {new Date(notification.createdAt).toLocaleDateString('vi-VN', {
                                                                 year: 'numeric',
                                                                 month: 'long',
@@ -198,7 +198,7 @@ export default function NotificationsPage() {
                                                             <button
                                                                 onClick={() => handleMarkAsRead(notification.recipientId)}
                                                                 disabled={markAsReadMutation.isPending}
-                                                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors disabled:opacity-50"
+                                                                className="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors disabled:opacity-50"
                                                             >
                                                                 Đánh dấu đã đọc
                                                             </button>
@@ -214,21 +214,21 @@ export default function NotificationsPage() {
                             {/* Pagination */}
                             {meta && meta.totalPages > 1 && (
                                 <div className="mt-6 flex items-center justify-between">
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    <div className="text-sm text-on-surface-variant">
                                         Trang {page} / {meta.totalPages} ({meta.total} thông báo)
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => setPage((p) => Math.max(1, p - 1))}
                                             disabled={page === 1}
-                                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                            className="px-4 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
                                         >
                                             Trước
                                         </button>
                                         <button
                                             onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
                                             disabled={page >= meta.totalPages}
-                                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                            className="px-4 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
                                         >
                                             Sau
                                         </button>

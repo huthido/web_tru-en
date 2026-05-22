@@ -29,18 +29,18 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-surface-container-low transition-colors duration-300">
       <div className="w-full max-w-[400px]">
         <div className="flex flex-col gap-5">
           <Link href="/" className="self-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">HÙNG YÊU</h1>
+            <h1 className="text-2xl font-bold text-on-surface">HÙNG YÊU</h1>
           </Link>
 
           {submitted ? (
             <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Kiểm tra email</h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                Nếu email <strong className="text-gray-900 dark:text-white">{email}</strong> tồn
+              <h2 className="text-2xl font-bold text-on-surface">Kiểm tra email</h2>
+              <p className="text-on-surface-variant">
+                Nếu email <strong className="text-on-surface">{email}</strong> tồn
                 tại trong hệ thống, chúng tôi đã gửi link đặt lại mật khẩu. Vui lòng kiểm tra hộp
                 thư (kể cả mục spam). Link có hiệu lực trong 1 giờ.
               </p>
@@ -53,8 +53,8 @@ export default function ForgotPasswordPage() {
             </div>
           ) : (
             <>
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Quên mật khẩu</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <h2 className="text-3xl font-bold text-on-surface">Quên mật khẩu</h2>
+              <p className="text-sm text-on-surface-variant">
                 Nhập email tài khoản của bạn. Chúng tôi sẽ gửi link để đặt lại mật khẩu.
               </p>
 
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
                 )}
 
                 <div>
-                  <label className="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block mb-1.5 text-sm font-medium text-on-surface-variant">
                     Email
                   </label>
                   <input
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     placeholder="email@example.com"
-                    className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                    className="w-full h-12 px-3 rounded-[10px] border-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-blue-500 transition-all duration-300 bg-surface-container border-outline-variant text-on-surface placeholder:text-on-surface-variant"
                   />
                 </div>
 
@@ -88,11 +88,11 @@ export default function ForgotPasswordPage() {
                 </button>
               </form>
 
-              <p className="text-center text-sm text-gray-900 dark:text-white">
+              <p className="text-center text-sm text-on-surface">
                 Nhớ mật khẩu rồi?{' '}
                 <Link
                   href="/login"
-                  className="font-medium text-blue-500 dark:text-blue-400 hover:underline"
+                  className="font-medium text-primary hover:underline"
                 >
                   Đăng nhập
                 </Link>

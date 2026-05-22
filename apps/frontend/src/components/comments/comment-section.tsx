@@ -84,14 +84,14 @@ export function CommentSection({ storyId, chapterId, story, page = 1, limit = 5 
     <div className="mt-8 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h2 className="text-2xl font-bold text-on-surface">
           Bình luận {total > 0 && `(${total})`}
         </h2>
       </div>
 
       {/* Comment Form with Rating */}
       {user ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-surface-container rounded-lg p-6 shadow-sm border border-outline-variant">
           <CommentForm
             onSubmit={handleSubmit}
             isLoading={createStoryComment.isPending || createChapterComment.isPending || rateStory.isPending}
@@ -102,8 +102,8 @@ export function CommentSection({ storyId, chapterId, story, page = 1, limit = 5 
           />
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+        <div className="bg-surface-container rounded-lg p-6 shadow-sm border border-outline-variant text-center">
+          <p className="text-on-surface-variant mb-4">
             Vui lòng đăng nhập để bình luận
           </p>
           <Link
@@ -121,8 +121,8 @@ export function CommentSection({ storyId, chapterId, story, page = 1, limit = 5 
       {isLoading ? (
         <Loading />
       ) : comments.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
-          <p className="text-gray-500 dark:text-gray-400">
+        <div className="bg-surface-container rounded-lg p-8 shadow-sm border border-outline-variant text-center">
+          <p className="text-on-surface-variant">
             Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
           </p>
         </div>
@@ -140,22 +140,22 @@ export function CommentSection({ storyId, chapterId, story, page = 1, limit = 5 
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 
-                           bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 
-                           rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 
+                className="px-4 py-2 text-sm font-medium text-on-surface-variant 
+                           bg-surface-container border border-outline-variant 
+                           rounded-lg hover:bg-surface-container-high 
                            disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Trước
               </button>
-              <span className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+              <span className="px-4 py-2 text-sm text-on-surface-variant">
                 Trang {currentPage} / {totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 
-                           bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 
-                           rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 
+                className="px-4 py-2 text-sm font-medium text-on-surface-variant 
+                           bg-surface-container border border-outline-variant 
+                           rounded-lg hover:bg-surface-container-high 
                            disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Sau

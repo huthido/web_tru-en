@@ -57,8 +57,8 @@ export function NotificationBell() {
 
     const getPriorityColor = (priority: string) => {
         const colors: Record<string, string> = {
-            LOW: 'text-gray-600 dark:text-gray-400',
-            NORMAL: 'text-blue-600 dark:text-blue-400',
+            LOW: 'text-on-surface-variant',
+            NORMAL: 'text-primary',
             HIGH: 'text-orange-600 dark:text-orange-400',
             URGENT: 'text-red-600 dark:text-red-400',
         };
@@ -72,7 +72,7 @@ export function NotificationBell() {
             {/* Bell Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="relative p-2 text-on-surface-variant hover:text-on-surface dark:hover:text-white hover:bg-surface-container-high rounded-lg transition-colors"
             >
                 <svg
                     className="w-6 h-6"
@@ -98,11 +98,11 @@ export function NotificationBell() {
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 mt-2 w-96 bg-surface-container rounded-lg shadow-xl border border-outline-variant z-50 animate-in fade-in zoom-in-95 duration-200">
                     {/* Header */}
-                    <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                    <div className="px-4 py-3 border-b border-outline-variant">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            <h3 className="text-lg font-semibold text-on-surface">
                                 Thông báo
                             </h3>
                             {unreadCount > 0 && (
@@ -118,7 +118,7 @@ export function NotificationBell() {
                         {notifications.length === 0 ? (
                             <div className="px-4 py-8 text-center">
                                 <svg
-                                    className="w-12 h-12 mx-auto text-gray-400 mb-2"
+                                    className="w-12 h-12 mx-auto text-on-surface-variant mb-2"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -130,12 +130,12 @@ export function NotificationBell() {
                                         d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                                     />
                                 </svg>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                <p className="text-sm text-on-surface-variant">
                                     Không có thông báo mới
                                 </p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                            <div className="divide-y divide-outline-variant">
                                 {notifications.map((notification: any) => (
                                     <div
                                         key={notification.id}
@@ -144,7 +144,7 @@ export function NotificationBell() {
                                                 handleMarkAsRead(notification.recipientId);
                                             }
                                         }}
-                                        className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+                                        className="px-4 py-3 hover:bg-surface-container-high/50 cursor-pointer transition-colors"
                                     >
                                         <div className="flex items-start gap-3">
                                             <span className="text-2xl flex-shrink-0">
@@ -156,10 +156,10 @@ export function NotificationBell() {
                                                         {notification.title}
                                                     </h4>
                                                 </div>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                                                <p className="text-sm text-on-surface-variant line-clamp-2">
                                                     {notification.content}
                                                 </p>
-                                                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                                <p className="text-xs text-on-surface-variant mt-1">
                                                     {new Date(notification.createdAt).toLocaleDateString('vi-VN', {
                                                         day: '2-digit',
                                                         month: '2-digit',
@@ -180,11 +180,11 @@ export function NotificationBell() {
 
                     {/* Footer */}
                     {notifications.length > 0 && (
-                        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                        <div className="px-4 py-3 border-t border-outline-variant">
                             <Link
                                 href="/notifications"
                                 onClick={() => setIsOpen(false)}
-                                className="block text-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                                className="block text-center text-sm font-medium text-primary hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                             >
                                 Xem tất cả thông báo
                             </Link>

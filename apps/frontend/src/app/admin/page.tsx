@@ -149,8 +149,8 @@ export default function AdminDashboardPage() {
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Tổng quan về hệ thống</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">Dashboard</h1>
+                        <p className="text-sm sm:text-base text-on-surface-variant mt-1 sm:mt-2">Tổng quan về hệ thống</p>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3">
                         <button
@@ -171,14 +171,14 @@ export default function AdminDashboardPage() {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-blue-200 dark:hover:border-blue-800">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-blue-200 dark:hover:border-blue-800">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Tổng người dùng</p>
-                                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{statsData.totalUsers.toLocaleString()}</p>
+                                <p className="text-sm text-on-surface-variant">Tổng người dùng</p>
+                                <p className="text-3xl font-bold text-on-surface mt-2">{statsData.totalUsers.toLocaleString()}</p>
                             </div>
                             <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600 dark:text-blue-400">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                                     <circle cx="9" cy="7" r="4" />
                                     <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -188,11 +188,11 @@ export default function AdminDashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-green-200 dark:hover:border-green-800">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-green-200 dark:hover:border-green-800">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Tổng truyện</p>
-                                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{statsData.totalStories.toLocaleString()}</p>
+                                <p className="text-sm text-on-surface-variant">Tổng truyện</p>
+                                <p className="text-3xl font-bold text-on-surface mt-2">{statsData.totalStories.toLocaleString()}</p>
                             </div>
                             <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600 dark:text-green-400">
@@ -203,11 +203,11 @@ export default function AdminDashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-purple-200 dark:hover:border-purple-800">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-purple-200 dark:hover:border-purple-800">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Tổng lượt xem</p>
-                                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{statsData.totalViews.toLocaleString()}</p>
+                                <p className="text-sm text-on-surface-variant">Tổng lượt xem</p>
+                                <p className="text-3xl font-bold text-on-surface mt-2">{statsData.totalViews.toLocaleString()}</p>
                             </div>
                             <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600 dark:text-purple-400">
@@ -218,11 +218,11 @@ export default function AdminDashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-yellow-200 dark:hover:border-yellow-800">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-yellow-200 dark:hover:border-yellow-800">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Chương cần duyệt</p>
-                                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{statsData.pendingApprovals}</p>
+                                <p className="text-sm text-on-surface-variant">Chương cần duyệt</p>
+                                <p className="text-3xl font-bold text-on-surface mt-2">{statsData.pendingApprovals}</p>
                             </div>
                             <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg flex items-center justify-center">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-yellow-600 dark:text-yellow-400">
@@ -233,11 +233,11 @@ export default function AdminDashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Quảng cáo đang chạy</p>
-                                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{statsData.activeAds}</p>
+                                <p className="text-sm text-on-surface-variant">Quảng cáo đang chạy</p>
+                                <p className="text-3xl font-bold text-on-surface mt-2">{statsData.activeAds}</p>
                             </div>
                             <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-indigo-600 dark:text-indigo-400">
@@ -249,11 +249,11 @@ export default function AdminDashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-red-200 dark:hover:border-red-800">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-red-200 dark:hover:border-red-800">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Tổng chương</p>
-                                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{statsData.totalChapters.toLocaleString()}</p>
+                                <p className="text-sm text-on-surface-variant">Tổng chương</p>
+                                <p className="text-3xl font-bold text-on-surface mt-2">{statsData.totalChapters.toLocaleString()}</p>
                             </div>
                             <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-600 dark:text-red-400">
@@ -289,35 +289,35 @@ export default function AdminDashboardPage() {
 
                 {/* Top Stories */}
                 {topStories.length > 0 && (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Top truyện xem nhiều nhất</h2>
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                        <h2 className="text-xl font-bold text-on-surface mb-4">Top truyện xem nhiều nhất</h2>
                         <div className="overflow-x-auto">
                             <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-gray-700">
+                                <thead className="bg-surface-container-low">
                                     <tr>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">STT</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tiêu đề</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tác giả</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Lượt xem</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ngày tạo</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">STT</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tiêu đề</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tác giả</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Lượt xem</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Ngày tạo</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tbody className="bg-surface-container divide-y divide-outline-variant">
                                     {topStories.map((story, idx) => (
-                                        <tr key={story.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                        <tr key={story.id} className="hover:bg-surface-container-high transition-colors">
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-on-surface">
                                                 {idx + 1}
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-gray-900 dark:text-white">
+                                            <td className="px-4 py-4 text-sm text-on-surface">
                                                 {story.title}
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-on-surface-variant">
                                                 {story.authorName}
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-on-surface-variant">
                                                 {story.viewCount.toLocaleString()}
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-on-surface-variant">
                                                 {new Date(story.createdAt).toLocaleDateString('vi-VN')}
                                             </td>
                                         </tr>

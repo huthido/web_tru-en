@@ -269,14 +269,14 @@ function ProfileContent() {
 
   if (isLoadingAuth || !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex items-center justify-center min-h-screen bg-surface-container-low">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-surface transition-colors duration-300">
       {/* Sidebar */}
       <Sidebar />
 
@@ -291,8 +291,8 @@ function ProfileContent() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
               {/* Left Section - Form */}
               <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8">
-                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">
+                <div className="bg-surface-container rounded-2xl shadow-lg p-6 md:p-8">
+                  <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-6">
                     Hồ sơ của tôi
                   </h1>
 
@@ -313,33 +313,33 @@ function ProfileContent() {
                   <form onSubmit={handleSubmit} className="space-y-5">
                     {/* Email */}
                     <div className="relative">
-                      <label className="absolute -top-2.5 left-3 px-2 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 z-10">
+                      <label className="absolute -top-2.5 left-3 px-2 bg-surface-container text-sm font-medium text-on-surface-variant z-10">
                         Email
                       </label>
                       <input
                         type="email"
                         value={formData.email}
                         disabled
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white cursor-not-allowed"
+                        className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container-low text-on-surface cursor-not-allowed"
                       />
                     </div>
 
                     {/* Username */}
                     <div className="relative">
-                      <label className="absolute -top-2.5 left-3 px-2 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 z-10">
+                      <label className="absolute -top-2.5 left-3 px-2 bg-surface-container text-sm font-medium text-on-surface-variant z-10">
                         Tên đăng nhập
                       </label>
                       <input
                         type="text"
                         value={user?.username || ''}
                         disabled
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white cursor-not-allowed"
+                        className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container-low text-on-surface cursor-not-allowed"
                       />
                     </div>
 
                     {/* Password */}
                     <div className="relative">
-                      <label className="absolute -top-2.5 left-3 px-2 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 z-10">
+                      <label className="absolute -top-2.5 left-3 px-2 bg-surface-container text-sm font-medium text-on-surface-variant z-10">
                         Mật khẩu
                       </label>
                       <div className="flex items-center gap-2">
@@ -353,7 +353,7 @@ function ProfileContent() {
                           }}
                           onFocus={() => setShowPasswordForm(true)}
                           placeholder={showPasswordForm ? 'Nhập mật khẩu mới' : '••••••••'}
-                          className="flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+                          className="flex-1 px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
                         />
                         {showPasswordForm && (
                           <button
@@ -367,7 +367,7 @@ function ProfileContent() {
                               });
                               setErrors({ password: '' });
                             }}
-                            className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            className="px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface dark:hover:text-white"
                           >
                             Hủy
                           </button>
@@ -380,14 +380,14 @@ function ProfileContent() {
                             value={passwordData.currentPassword}
                             onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
                             placeholder="Mật khẩu hiện tại"
-                            className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+                            className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
                           />
                           <input
                             type="password"
                             value={passwordData.confirmNewPassword}
                             onChange={(e) => handlePasswordChange('confirmNewPassword', e.target.value)}
                             placeholder="Xác nhận mật khẩu mới"
-                            className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+                            className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
                           />
                         </div>
                       )}
@@ -398,14 +398,14 @@ function ProfileContent() {
 
                     {/* Full Name */}
                     <div className="relative">
-                      <label className="absolute -top-2.5 left-3 px-2 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 z-10">
+                      <label className="absolute -top-2.5 left-3 px-2 bg-surface-container text-sm font-medium text-on-surface-variant z-10">
                         Họ và tên
                       </label>
                       <input
                         type="text"
                         value={formData.displayName}
                         onChange={(e) => handleInputChange('displayName', e.target.value)}
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+                        className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
                       />
                       {errors.displayName && (
                         <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.displayName}</p>
@@ -429,8 +429,8 @@ function ProfileContent() {
                 </div>
 
                 {/* User Stats Section - Mobile only */}
-                <div className="lg:hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8">
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                <div className="lg:hidden bg-surface-container rounded-2xl shadow-lg p-6 md:p-8">
+                  <h2 className="text-xl md:text-2xl font-bold text-on-surface mb-6">
                     Thống kê của tôi
                   </h2>
                   <UserStats />
@@ -439,11 +439,11 @@ function ProfileContent() {
 
               {/* Right Section - Avatar */}
               <div className="lg:col-span-1">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 flex flex-col items-center sticky top-4">
+                <div className="bg-surface-container rounded-2xl shadow-lg p-6 md:p-8 flex flex-col items-center sticky top-4">
                   {/* Avatar */}
                   <div className="relative mb-6">
                     <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-orange-400 p-1">
-                      <div className="w-full h-full rounded-full bg-white dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+                      <div className="w-full h-full rounded-full bg-surface-container flex items-center justify-center overflow-hidden">
                         {user?.avatar ? (
                           <img
                             src={user.avatar}
@@ -451,7 +451,7 @@ function ProfileContent() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <span className="text-4xl md:text-5xl font-bold text-gray-600 dark:text-gray-300">
+                          <span className="text-4xl md:text-5xl font-bold text-on-surface-variant">
                             {(user?.displayName || user?.username || 'U').charAt(0).toUpperCase()}
                           </span>
                         )}
@@ -493,8 +493,8 @@ function ProfileContent() {
 
             {/* User Stats Section - Desktop full width */}
             <div className="hidden lg:block mt-6 md:mt-8">
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-6">
+              <div className="bg-surface-container rounded-2xl shadow-lg p-6 md:p-8">
+                <h2 className="text-xl md:text-2xl font-bold text-on-surface mb-6">
                   Thống kê của tôi
                 </h2>
                 <UserStats />
@@ -510,9 +510,9 @@ function ProfileContent() {
       {/* Avatar Modal */}
       {showAvatarModal && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+          <div className="bg-surface-container rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Thay đổi ảnh đại diện</h2>
+              <h2 className="text-xl font-bold text-on-surface">Thay đổi ảnh đại diện</h2>
               <button
                 type="button"
                 onClick={() => {
@@ -520,7 +520,7 @@ function ProfileContent() {
                   setAvatarUrl('');
                   setErrors({ avatar: '' });
                 }}
-                className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                className="text-on-surface-variant hover:text-on-surface dark:hover:text-white transition-colors"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 6L6 18M6 6l12 12" />
@@ -529,7 +529,7 @@ function ProfileContent() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex gap-2 mb-6 border-b border-outline-variant">
               <button
                 type="button"
                 onClick={() => {
@@ -539,7 +539,7 @@ function ProfileContent() {
                 }}
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${uploadMode === 'url'
                   ? 'text-blue-500 border-b-2 border-blue-500'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  : 'text-on-surface-variant hover:text-on-surface dark:hover:text-white'
                   }`}
               >
                 Dán URL
@@ -553,7 +553,7 @@ function ProfileContent() {
                 }}
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${uploadMode === 'upload'
                   ? 'text-blue-500 border-b-2 border-blue-500'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  : 'text-on-surface-variant hover:text-on-surface dark:hover:text-white'
                   }`}
               >
                 Tải ảnh lên
@@ -564,7 +564,7 @@ function ProfileContent() {
             {uploadMode === 'url' ? (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-on-surface-variant mb-2">
                     URL ảnh
                   </label>
                   <input
@@ -575,7 +575,7 @@ function ProfileContent() {
                       if (errors.avatar) setErrors({ avatar: '' });
                     }}
                     placeholder="https://example.com/avatar.jpg"
-                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+                    className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
                   />
                 </div>
                 {errors.avatar && (
@@ -589,7 +589,7 @@ function ProfileContent() {
                       setAvatarUrl('');
                       setErrors({ avatar: '' });
                     }}
-                    className="flex-1 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="flex-1 px-4 py-2 border-2 border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
                   >
                     Hủy
                   </button>
@@ -606,13 +606,13 @@ function ProfileContent() {
             ) : (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-on-surface-variant mb-2">
                     Chọn ảnh từ máy tính
                   </label>
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="w-full px-4 py-3 border-2 border-dashed border-outline-variant rounded-lg text-on-surface-variant hover:border-blue-500 dark:hover:border-blue-400 hover:bg-surface-container-high transition-colors"
                   >
                     <div className="flex flex-col items-center gap-2">
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -632,7 +632,7 @@ function ProfileContent() {
                       setShowAvatarModal(false);
                       setErrors({ avatar: '' });
                     }}
-                    className="flex-1 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="flex-1 px-4 py-2 border-2 border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
                   >
                     Hủy
                   </button>

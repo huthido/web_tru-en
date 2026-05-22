@@ -110,18 +110,18 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-surface-container rounded-lg p-4 shadow-sm border border-outline-variant">
             {/* Header */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="font-semibold text-on-surface">
                   {comment.user.displayName || comment.user.username}
                 </span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="text-sm text-on-surface-variant">
                   {formatDate(comment.createdAt)}
                 </span>
                 {comment.updatedAt !== comment.createdAt && (
-                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                  <span className="text-xs text-on-surface-variant">
                     (đã chỉnh sửa)
                   </span>
                 )}
@@ -139,20 +139,20 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
               />
             ) : (
               <>
-                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
+                <p className="text-on-surface-variant whitespace-pre-wrap break-words">
                   {comment.content}
                 </p>
 
                 {/* Actions */}
                 {!comment.isDeleted && (
-                  <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-4 mt-3 pt-3 border-t border-outline-variant">
                     {canReply && (
                       <button
                         onClick={() => {
                           setIsReplying(!isReplying);
                           setShowReplies(true);
                         }}
-                        className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                        className="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                       >
                         {isReplying ? 'Hủy' : 'Trả lời'}
                       </button>
@@ -161,7 +161,7 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
                       <>
                         <button
                           onClick={() => setIsEditing(true)}
-                          className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                          className="text-sm text-on-surface-variant hover:text-on-surface-variant transition-colors"
                         >
                           Chỉnh sửa
                         </button>
@@ -198,7 +198,7 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
             <div className="mt-4">
               <button
                 onClick={() => setShowReplies(!showReplies)}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors mb-2"
+                className="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 transition-colors mb-2"
               >
                 {showReplies ? 'Ẩn' : 'Hiện'} {comment.replyCount || comment.replies?.length} trả lời
               </button>

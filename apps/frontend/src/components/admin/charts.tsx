@@ -52,8 +52,8 @@ export function Chart({ data, labels, title, type = 'bar', color = '#3b82f6' }: 
     // Validate data
     if (!data || !Array.isArray(data) || data.length === 0) {
         return (
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                <div className="h-80 flex items-center justify-center text-gray-500 dark:text-gray-400">
+            <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                <div className="h-80 flex items-center justify-center text-on-surface-variant">
                     Không có dữ liệu để hiển thị
                 </div>
             </div>
@@ -62,8 +62,8 @@ export function Chart({ data, labels, title, type = 'bar', color = '#3b82f6' }: 
 
     if (!labels || !Array.isArray(labels) || labels.length === 0) {
         return (
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                <div className="h-80 flex items-center justify-center text-gray-500 dark:text-gray-400">
+            <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                <div className="h-80 flex items-center justify-center text-on-surface-variant">
                     Không có nhãn để hiển thị
                 </div>
             </div>
@@ -77,8 +77,8 @@ export function Chart({ data, labels, title, type = 'bar', color = '#3b82f6' }: 
 
     if (!isMounted) {
         return (
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                <div className="h-80 flex items-center justify-center text-gray-500 dark:text-gray-400">
+            <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                <div className="h-80 flex items-center justify-center text-on-surface-variant">
                     Đang tải...
                 </div>
             </div>
@@ -205,7 +205,7 @@ export function Chart({ data, labels, title, type = 'bar', color = '#3b82f6' }: 
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+        <div className="bg-surface-container rounded-lg p-6 shadow-sm">
             <div className="h-80">
                 {type === 'bar' && <Bar data={chartData} options={options} />}
                 {type === 'line' && <Line data={chartData} options={options} />}

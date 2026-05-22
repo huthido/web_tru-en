@@ -38,14 +38,14 @@ export default function FavoritesPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+      <div className="min-h-screen bg-surface transition-colors duration-300">
         <Sidebar />
         <div className="md:ml-[120px] pb-16 md:pb-0">
           <Header />
           <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
               <div className="flex flex-col items-center justify-center py-16 md:py-24">
-                <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full bg-surface-variant flex items-center justify-center">
                   <svg
                     width="48"
                     height="48"
@@ -55,15 +55,15 @@ export default function FavoritesPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="text-gray-400 dark:text-gray-500"
+                    className="text-on-surface-variant"
                   >
                     <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z" />
                   </svg>
                 </div>
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-xl md:text-2xl font-semibold text-on-surface mb-2">
                   Vui lòng đăng nhập
                 </h2>
-                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
+                <p className="text-sm md:text-base text-on-surface-variant text-center max-w-md mb-6">
                   Bạn cần đăng nhập để xem danh sách truyện yêu thích của mình.
                 </p>
                 <Link
@@ -82,7 +82,7 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-surface transition-colors duration-300">
       <Sidebar />
       <div className="md:ml-[120px] pb-16 md:pb-0">
         <Header />
@@ -106,11 +106,11 @@ export default function FavoritesPage() {
                     <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z" fill="currentColor" />
                   </svg>
                 </div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-2xl md:text-3xl font-bold text-on-surface">
                   Yêu thích
                 </h1>
               </div>
-              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 ml-[52px] md:ml-[60px]">
+              <p className="text-sm md:text-base text-on-surface-variant ml-[52px] md:ml-[60px]">
                 {isLoading ? 'Đang tải...' : `${total} truyện yêu thích`}
               </p>
             </div>
@@ -142,17 +142,17 @@ export default function FavoritesPage() {
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
                 </div>
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-xl md:text-2xl font-semibold text-on-surface mb-2">
                   Có lỗi xảy ra
                 </h2>
-                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 text-center max-w-md">
+                <p className="text-sm md:text-base text-on-surface-variant text-center max-w-md">
                   Không thể tải danh sách truyện yêu thích. Vui lòng thử lại sau.
                 </p>
               </div>
             ) : likedStories.length === 0 ? (
               /* Empty State */
               <div className="flex flex-col items-center justify-center py-16 md:py-24">
-                <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full bg-surface-variant flex items-center justify-center">
                   <svg
                     width="48"
                     height="48"
@@ -162,15 +162,15 @@ export default function FavoritesPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="text-gray-400 dark:text-gray-500"
+                    className="text-on-surface-variant"
                   >
                     <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z" />
                   </svg>
                 </div>
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-xl md:text-2xl font-semibold text-on-surface mb-2">
                   Chưa có truyện yêu thích
                 </h2>
-                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
+                <p className="text-sm md:text-base text-on-surface-variant text-center max-w-md mb-6">
                   Bạn chưa thêm truyện nào vào danh sách yêu thích. Hãy khám phá và thêm những truyện bạn thích nhé!
                 </p>
                 <Link
@@ -207,17 +207,17 @@ export default function FavoritesPage() {
                     <button
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page === 1}
-                      className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2 bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Trước
                     </button>
-                    <span className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                    <span className="px-4 py-2 text-sm text-on-surface-variant">
                       Trang {page} / {totalPages}
                     </span>
                     <button
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       disabled={page === totalPages}
-                      className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2 bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Sau
                     </button>

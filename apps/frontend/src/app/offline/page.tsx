@@ -6,15 +6,15 @@ import { WifiOff } from 'lucide-react';
 export default function OfflinePage() {
     return (
         <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 text-center">
-            <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-6 animate-pulse">
-                <WifiOff className="w-16 h-16 text-gray-500 dark:text-gray-400" />
+            <div className="bg-surface-container-high p-6 rounded-full mb-6 animate-pulse">
+                <WifiOff className="w-16 h-16 text-on-surface-variant" />
             </div>
 
-            <h1 className="text-3xl font-bold mb-3 text-gray-900 dark:text-gray-100">
+            <h1 className="text-3xl font-bold mb-3 text-on-surface">
                 Bạn đang Offline
             </h1>
 
-            <p className="text-gray-600 dark:text-gray-400 max-w-md mb-8">
+            <p className="text-on-surface-variant max-w-md mb-8">
                 Không có kết nối mạng. Hãy kiểm tra lại đường truyền WiFi hoặc 4G của bạn.
                 Bạn vẫn có thể đọc những truyện đã lưu trong máy.
             </p>

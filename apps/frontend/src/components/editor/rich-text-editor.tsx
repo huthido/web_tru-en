@@ -389,7 +389,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                     <button
                         type="button"
                         onClick={openGallery}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border border-outline-variant bg-surface-container text-on-surface-variant hover:bg-surface-container-low transition-colors"
                     >
                         📁 Ảnh đã tải ({galleryImages.length > 0 ? galleryImages.length : '...'})
                     </button>
@@ -406,7 +406,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                     modules: modules,
                     formats: formats,
                     placeholder: placeholder || 'Nhập nội dung...',
-                    className: "bg-white dark:bg-gray-700"
+                    className: "bg-surface-container"
                 } as any)}
 
                 {/* Image Resize Toolbar */}
@@ -422,7 +422,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                         }}
                         onMouseDown={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center gap-1 px-2 py-1.5 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 text-xs">
+                        <div className="flex items-center gap-1 px-2 py-1.5 bg-surface-container rounded-lg shadow-lg border border-outline-variant text-xs">
                             {[25, 50, 75, 100].map(size => (
                                 <button
                                     key={size}
@@ -430,13 +430,13 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                                     onClick={() => updateImageSize(selectedImage, size)}
                                     className={`px-2 py-1 rounded font-medium transition-colors ${customWidth === String(size)
                                         ? 'bg-blue-500 text-white'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                        : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
                                         }`}
                                 >
                                     {size}%
                                 </button>
                             ))}
-                            <span className="mx-1 text-gray-400">|</span>
+                            <span className="mx-1 text-on-surface-variant">|</span>
                             <input
                                 type="number"
                                 value={customWidth}
@@ -455,12 +455,12 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                                         updateImageSize(selectedImage, val);
                                     }
                                 }}
-                                className="w-12 px-1 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                                className="w-12 px-1 py-1 text-center border border-outline-variant rounded bg-surface-container text-on-surface-variant"
                                 min="10"
                                 max="100"
                             />
-                            <span className="text-gray-500">%</span>
-                            <span className="mx-1 text-gray-400">|</span>
+                            <span className="text-on-surface-variant">%</span>
+                            <span className="mx-1 text-on-surface-variant">|</span>
                             {[
                                 { align: 'left' as const, icon: '⬅', title: 'Canh trái' },
                                 { align: 'center' as const, icon: '↔', title: 'Canh giữa' },
@@ -473,7 +473,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                                     onClick={() => updateImageAlign(selectedImage, imageAlign === align ? '' : align)}
                                     className={`px-2 py-1 rounded font-medium transition-colors ${imageAlign === align
                                         ? 'bg-blue-500 text-white'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                        : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
                                         }`}
                                 >
                                     {icon}
@@ -488,18 +488,18 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
             {showGallery && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowGallery(false)}>
                     <div
-                        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-[90vw] max-w-3xl max-h-[80vh] flex flex-col"
+                        className="bg-surface-container rounded-xl shadow-2xl w-[90vw] max-w-3xl max-h-[80vh] flex flex-col"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
+                            <h3 className="text-lg font-semibold text-on-surface">
                                 📁 Thư viện ảnh của bạn
                             </h3>
                             <button
                                 type="button"
                                 onClick={() => setShowGallery(false)}
-                                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                className="p-1 rounded-lg text-on-surface-variant hover:text-on-surface-variant hover:bg-surface-container-high transition-colors"
                             >
                                 ✕
                             </button>
@@ -510,10 +510,10 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                             {galleryLoading ? (
                                 <div className="flex items-center justify-center py-12">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                                    <span className="ml-3 text-gray-500 dark:text-gray-400">Đang tải...</span>
+                                    <span className="ml-3 text-on-surface-variant">Đang tải...</span>
                                 </div>
                             ) : galleryImages.length === 0 ? (
-                                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                                <div className="text-center py-12 text-on-surface-variant">
                                     <div className="text-4xl mb-3">🖼️</div>
                                     <p className="font-medium">Chưa có ảnh nào</p>
                                     <p className="text-sm mt-1">Ảnh sẽ xuất hiện ở đây sau khi bạn upload</p>
@@ -523,7 +523,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                                     {galleryImages.map((image) => (
                                         <div
                                             key={image.id}
-                                            className="group relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 cursor-pointer transition-all bg-gray-100 dark:bg-gray-700"
+                                            className="group relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 cursor-pointer transition-all bg-surface-container-high"
                                             onClick={() => handleSelectGalleryImage(image.url)}
                                         >
                                             <img
@@ -559,7 +559,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="px-6 py-3 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between">
+                        <div className="px-6 py-3 border-t border-outline-variant text-xs text-on-surface-variant flex items-center justify-between">
                             <span>Click vào ảnh để chèn vào nội dung</span>
                             <span>{galleryImages.length} ảnh</span>
                         </div>

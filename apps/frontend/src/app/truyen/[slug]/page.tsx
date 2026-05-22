@@ -403,7 +403,7 @@ export default function BookDetailPage() {
                   <p className={`text-base font-medium ${!story.isPublished
                     ? 'text-yellow-600 dark:text-yellow-400'
                     : story.status === 'ONGOING'
-                      ? 'text-blue-600 dark:text-blue-400'
+                      ? 'text-primary'
                       : story.status === 'COMPLETED'
                         ? 'text-green-600 dark:text-green-400'
                         : 'text-on-surface'

@@ -91,8 +91,8 @@ export default function AdminChaptersPage() {
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Quản lý chương</h1>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Quản lý tất cả chương trong hệ thống</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">Quản lý chương</h1>
+                        <p className="text-sm sm:text-base text-on-surface-variant mt-1 sm:mt-2">Quản lý tất cả chương trong hệ thống</p>
                     </div>
                     <RefreshButton queryKeys={[['admin', 'chapters']]} />
                 </div>
@@ -101,37 +101,37 @@ export default function AdminChaptersPage() {
                 {statsLoading ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                         {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm animate-pulse">
-                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-2"></div>
-                                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                            <div key={i} className="bg-surface-container rounded-lg p-6 shadow-sm animate-pulse">
+                                <div className="h-4 bg-surface-variant rounded w-24 mb-2"></div>
+                                <div className="h-8 bg-surface-variant rounded w-16"></div>
                             </div>
                         ))}
                     </div>
                 ) : stats ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Tổng chương</div>
-                            <div className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stats.total.toLocaleString()}</div>
+                        <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                            <div className="text-sm text-on-surface-variant">Tổng chương</div>
+                            <div className="text-3xl font-bold text-on-surface mt-2">{stats.total.toLocaleString()}</div>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Đã publish</div>
+                        <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                            <div className="text-sm text-on-surface-variant">Đã publish</div>
                             <div className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">{stats.published.toLocaleString()}</div>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Bản nháp</div>
+                        <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                            <div className="text-sm text-on-surface-variant">Bản nháp</div>
                             <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mt-2">{stats.draft.toLocaleString()}</div>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Tổng lượt xem</div>
-                            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">{stats.totalViews.toLocaleString()}</div>
+                        <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                            <div className="text-sm text-on-surface-variant">Tổng lượt xem</div>
+                            <div className="text-3xl font-bold text-primary mt-2">{stats.totalViews.toLocaleString()}</div>
                         </div>
                     </div>
                 ) : null}
 
                 {/* Chart */}
                 {chartLoading ? (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm animate-pulse">
-                        <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm animate-pulse">
+                        <div className="h-64 bg-surface-variant rounded"></div>
                     </div>
                 ) : chartData && chartData.data && chartData.labels ? (
                     <LineChart
@@ -141,18 +141,18 @@ export default function AdminChaptersPage() {
                         color="#ec4899"
                     />
                 ) : (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold text-on-surface mb-4">
                             Số chương được tạo theo thời gian
                         </h3>
-                        <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                        <div className="h-64 flex items-center justify-center text-on-surface-variant">
                             Không có dữ liệu biểu đồ trong 30 ngày gần đây
                         </div>
                     </div>
                 )}
 
                 {/* Filters and Actions */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-sm">
+                <div className="bg-surface-container rounded-lg p-4 sm:p-6 shadow-sm">
                     <div className="flex flex-col sm:flex-row gap-4 mb-4">
                         <input
                             type="text"
@@ -162,7 +162,7 @@ export default function AdminChaptersPage() {
                                 setSearchTerm(e.target.value);
                                 setPage(1);
                             }}
-                            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                         <select
                             value={isPublishedFilter === '' ? '' : isPublishedFilter ? 'true' : 'false'}
@@ -170,7 +170,7 @@ export default function AdminChaptersPage() {
                                 setIsPublishedFilter(e.target.value === '' ? '' : e.target.value === 'true');
                                 setPage(1);
                             }}
-                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                         >
                             <option value="">Tất cả trạng thái</option>
                             <option value="true">Đã publish</option>
@@ -183,7 +183,7 @@ export default function AdminChaptersPage() {
                                 setSortBy(by as any);
                                 setSortOrder(order as 'asc' | 'desc');
                             }}
-                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                         >
                             <option value="createdAt-desc">Mới nhất</option>
                             <option value="createdAt-asc">Cũ nhất</option>
@@ -215,64 +215,64 @@ export default function AdminChaptersPage() {
                 {isLoading ? (
                     <Loading />
                 ) : (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                    <div className="bg-surface-container rounded-lg shadow-sm overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-gray-900">
+                                <thead className="bg-surface-container-low">
                                     <tr>
                                         <th className="px-4 py-3 text-left">
                                             <input
                                                 type="checkbox"
                                                 checked={selectedChapters.size === chapters.length && chapters.length > 0}
                                                 onChange={handleSelectAll}
-                                                className="rounded border-gray-300"
+                                                className="rounded border-outline-variant"
                                             />
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tiêu đề</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Truyện</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Thứ tự</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Giá (coin)</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Trạng thái</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lượt xem</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ngày tạo</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Thao tác</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tiêu đề</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Truyện</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Thứ tự</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Giá (coin)</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Trạng thái</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Lượt xem</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Ngày tạo</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Thao tác</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tbody className="divide-y divide-outline-variant">
                                     {chapters.length === 0 ? (
                                         <tr>
-                                            <td colSpan={9} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                            <td colSpan={9} className="px-4 py-8 text-center text-on-surface-variant">
                                                 Không có chương nào
                                             </td>
                                         </tr>
                                     ) : (
                                         chapters.map((chapter: Chapter) => (
-                                            <tr key={chapter.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                            <tr key={chapter.id} className="hover:bg-surface-container-high/50">
                                                 <td className="px-4 py-3">
                                                     <input
                                                         type="checkbox"
                                                         checked={selectedChapters.has(chapter.id)}
                                                         onChange={() => handleSelectChapter(chapter.id)}
-                                                        className="rounded border-gray-300"
+                                                        className="rounded border-outline-variant"
                                                     />
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <div className="font-medium text-gray-900 dark:text-white">{chapter.title}</div>
-                                                    <div className="text-sm text-gray-500 dark:text-gray-400">{chapter.slug}</div>
+                                                    <div className="font-medium text-on-surface">{chapter.title}</div>
+                                                    <div className="text-sm text-on-surface-variant">{chapter.slug}</div>
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     {chapter.story ? (
                                                         <Link
                                                             href={`/truyen/${chapter.story.slug}`}
-                                                            className="text-blue-600 dark:text-blue-400 hover:underline"
+                                                            className="text-primary hover:underline"
                                                         >
                                                             {chapter.story.title}
                                                         </Link>
                                                     ) : (
-                                                        <span className="text-gray-400">N/A</span>
+                                                        <span className="text-on-surface-variant">N/A</span>
                                                     )}
                                                 </td>
-                                                <td className="px-4 py-3 text-gray-900 dark:text-white">{chapter.order}</td>
+                                                <td className="px-4 py-3 text-on-surface">{chapter.order}</td>
                                                 <td className="px-4 py-3">
                                                     <AdminPriceCell chapter={chapter} showToast={showToast} />
                                                 </td>
@@ -284,8 +284,8 @@ export default function AdminChaptersPage() {
                                                         {chapter.isPublished ? 'Đã publish' : 'Bản nháp'}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-3 text-gray-900 dark:text-white">{chapter.viewCount.toLocaleString()}</td>
-                                                <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                                                <td className="px-4 py-3 text-on-surface">{chapter.viewCount.toLocaleString()}</td>
+                                                <td className="px-4 py-3 text-sm text-on-surface-variant">
                                                     {new Date(chapter.createdAt).toLocaleDateString('vi-VN')}
                                                 </td>
                                                 <td className="px-4 py-3">
@@ -294,7 +294,7 @@ export default function AdminChaptersPage() {
                                                             <Link
                                                                 href={`/stories/${chapter.story.slug}/chapters/${chapter.slug}`}
                                                                 target="_blank"
-                                                                className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+                                                                className="text-primary hover:underline text-sm"
                                                             >
                                                                 Xem
                                                             </Link>
@@ -316,22 +316,22 @@ export default function AdminChaptersPage() {
 
                         {/* Pagination */}
                         {meta && (
-                            <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
+                            <div className="px-4 py-4 border-t border-outline-variant">
                                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                                     {/* Left: Items info and limit selector */}
                                     <div className="flex flex-col sm:flex-row items-center gap-4">
-                                        <div className="text-sm text-gray-700 dark:text-gray-300">
+                                        <div className="text-sm text-on-surface-variant">
                                             Hiển thị <span className="font-medium">{(page - 1) * limit + 1}</span> - <span className="font-medium">{Math.min(page * limit, meta.total)}</span> của <span className="font-medium">{meta.total}</span> chương
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <label className="text-sm text-gray-700 dark:text-gray-300">Hiển thị:</label>
+                                            <label className="text-sm text-on-surface-variant">Hiển thị:</label>
                                             <select
                                                 value={limit}
                                                 onChange={(e) => {
                                                     setLimit(Number(e.target.value));
                                                     setPage(1);
                                                 }}
-                                                className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="px-2 py-1 border border-outline-variant rounded-lg bg-surface-container text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                             >
                                                 <option value={10}>10</option>
                                                 <option value={20}>20</option>
@@ -348,7 +348,7 @@ export default function AdminChaptersPage() {
                                             <button
                                                 onClick={() => setPage(1)}
                                                 disabled={page === 1}
-                                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
+                                                className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors text-sm"
                                                 title="Trang đầu"
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -360,7 +360,7 @@ export default function AdminChaptersPage() {
                                             <button
                                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                                 disabled={page === 1}
-                                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
+                                                className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors text-sm"
                                             >
                                                 Trước
                                             </button>
@@ -409,7 +409,7 @@ export default function AdminChaptersPage() {
                                                     return pages.map((p, idx) => {
                                                         if (p === '...') {
                                                             return (
-                                                                <span key={`ellipsis-${idx}`} className="px-2 py-1 text-gray-500 dark:text-gray-400">
+                                                                <span key={`ellipsis-${idx}`} className="px-2 py-1 text-on-surface-variant">
                                                                     ...
                                                                 </span>
                                                             );
@@ -421,7 +421,7 @@ export default function AdminChaptersPage() {
                                                                 onClick={() => setPage(pageNum)}
                                                                 className={`px-3 py-1 min-w-[2.5rem] rounded-lg text-sm font-medium transition-colors ${pageNum === currentPage
                                                                     ? 'bg-blue-500 text-white hover:bg-blue-600'
-                                                                    : 'border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                                                    : 'border border-outline-variant text-on-surface-variant hover:bg-surface-container-high'
                                                                     }`}
                                                             >
                                                                 {pageNum}
@@ -435,7 +435,7 @@ export default function AdminChaptersPage() {
                                             <button
                                                 onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
                                                 disabled={page === meta.totalPages}
-                                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
+                                                className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors text-sm"
                                             >
                                                 Sau
                                             </button>
@@ -444,7 +444,7 @@ export default function AdminChaptersPage() {
                                             <button
                                                 onClick={() => setPage(meta.totalPages)}
                                                 disabled={page === meta.totalPages}
-                                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
+                                                className="px-3 py-2 border border-outline-variant rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors text-sm"
                                                 title="Trang cuối"
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -526,7 +526,7 @@ function AdminPriceCell({
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' && dirty) save();
                 }}
-                className="w-20 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-20 px-2 py-1 text-sm border border-outline-variant rounded bg-surface-container text-on-surface focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
             />
             {dirty && (
                 <button

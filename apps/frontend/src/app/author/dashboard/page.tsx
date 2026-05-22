@@ -108,20 +108,20 @@ export default function AuthorDashboardPage() {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-[#FFF2F8] dark:bg-gray-900 transition-colors duration-300">
+            <div className="min-h-screen bg-surface transition-colors duration-300">
                 <Sidebar />
                 <div className="md:ml-[120px] pb-16 md:pb-0">
                 <Header />
                 <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                     <div className="max-w-7xl mx-auto">
                         {/* Header */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div className="bg-surface-container rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-outline-variant">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                                 <div>
-                                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                                    <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-2">
                                         Quản lý truyện của tôi
                                     </h1>
-                                    <p className="text-gray-600 dark:text-gray-400">
+                                    <p className="text-on-surface-variant">
                                         Tổng số: {meta?.total || 0} truyện
                                     </p>
                                 </div>
@@ -154,51 +154,51 @@ export default function AuthorDashboardPage() {
 
                         {/* Stats Cards */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div className="bg-surface-container rounded-lg p-4 shadow-sm border border-outline-variant">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <BookOpen className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <div className="w-10 h-10 bg-surface-container-high rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <BookOpen className="w-5 h-5 text-on-surface-variant" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-600 dark:text-gray-400">Tổng truyện</p>
-                                        <p className="text-xl font-bold text-gray-900 dark:text-white">{meta?.total || 0}</p>
+                                        <p className="text-xs text-on-surface-variant">Tổng truyện</p>
+                                        <p className="text-xl font-bold text-on-surface">{meta?.total || 0}</p>
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div className="bg-surface-container rounded-lg p-4 shadow-sm border border-outline-variant">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <Send className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <div className="w-10 h-10 bg-surface-container-high rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <Send className="w-5 h-5 text-on-surface-variant" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-600 dark:text-gray-400">Đã xuất bản</p>
-                                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                                        <p className="text-xs text-on-surface-variant">Đã xuất bản</p>
+                                        <p className="text-xl font-bold text-on-surface">
                                             {stories.filter(s => s.isPublished).length}
                                         </p>
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div className="bg-surface-container rounded-lg p-4 shadow-sm border border-outline-variant">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <Eye className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <div className="w-10 h-10 bg-surface-container-high rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <Eye className="w-5 h-5 text-on-surface-variant" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-600 dark:text-gray-400">Lượt xem</p>
-                                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                                        <p className="text-xs text-on-surface-variant">Lượt xem</p>
+                                        <p className="text-xl font-bold text-on-surface">
                                             {stories.reduce((sum, s) => sum + s.viewCount, 0).toLocaleString()}
                                         </p>
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div className="bg-surface-container rounded-lg p-4 shadow-sm border border-outline-variant">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <Star className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <div className="w-10 h-10 bg-surface-container-high rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <Star className="w-5 h-5 text-on-surface-variant" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-600 dark:text-gray-400">Đánh giá TB</p>
-                                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                                        <p className="text-xs text-on-surface-variant">Đánh giá TB</p>
+                                        <p className="text-xl font-bold text-on-surface">
                                             {stories.length > 0 
                                                 ? (stories.reduce((sum, s) => sum + s.rating, 0) / stories.length).toFixed(1)
                                                 : '0.0'}
@@ -221,11 +221,11 @@ export default function AuthorDashboardPage() {
                         <StorySalesEarningsCard />
 
                         {/* Filters & View Toggle */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700">
+                        <div className="bg-surface-container rounded-lg shadow-sm p-4 mb-6 border border-outline-variant">
                             <div className="flex flex-col md:flex-row gap-4">
                                 {/* Search */}
                                 <div className="flex-1">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Tìm kiếm
                                     </label>
                                     <input
@@ -236,12 +236,12 @@ export default function AuthorDashboardPage() {
                                             setPage(1);
                                         }}
                                         placeholder="Tìm theo tiêu đề, mô tả..."
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                     />
                                 </div>
                                 {/* Status Filter */}
                                 <div className="md:w-48">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Trạng thái
                                     </label>
                                     <select
@@ -250,7 +250,7 @@ export default function AuthorDashboardPage() {
                                             setStatus(e.target.value);
                                             setPage(1);
                                         }}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                     >
                                         <option value="">Tất cả</option>
                                         <option value="DRAFT">Bản nháp</option>
@@ -262,16 +262,16 @@ export default function AuthorDashboardPage() {
                                 </div>
                                 {/* View Mode Toggle */}
                                 <div className="md:w-auto">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                         Hiển thị
                                     </label>
-                                    <div className="flex gap-1 border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                                    <div className="flex gap-1 border border-outline-variant rounded-lg overflow-hidden">
                                         <button
                                             onClick={() => setViewMode('grid')}
                                             className={`px-4 py-2 transition-colors ${
                                                 viewMode === 'grid'
                                                     ? 'bg-blue-600 text-white'
-                                                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                                                    : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-low'
                                             }`}
                                         >
                                             <LayoutGrid className="w-5 h-5" />
@@ -281,7 +281,7 @@ export default function AuthorDashboardPage() {
                                             className={`px-4 py-2 transition-colors ${
                                                 viewMode === 'list'
                                                     ? 'bg-blue-600 text-white'
-                                                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                                                    : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-low'
                                             }`}
                                         >
                                             <List className="w-5 h-5" />
@@ -301,8 +301,8 @@ export default function AuthorDashboardPage() {
                                 <p className="text-red-500 dark:text-red-400">Có lỗi xảy ra khi tải danh sách truyện</p>
                             </div>
                         ) : stories.length === 0 ? (
-                            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
-                                <p className="text-gray-600 dark:text-gray-400 mb-4">Bạn chưa có truyện nào</p>
+                            <div className="text-center py-12 bg-surface-container rounded-lg">
+                                <p className="text-on-surface-variant mb-4">Bạn chưa có truyện nào</p>
                                 <Link
                                     href="/author/stories/create"
                                     className="inline-block px-6 py-3 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
@@ -317,10 +317,10 @@ export default function AuthorDashboardPage() {
                                         {stories.map((story) => (
                                             <div
                                                 key={story.id}
-                                                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col h-full"
+                                                className="bg-surface-container rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-outline-variant flex flex-col h-full"
                                             >
                                                 {/* Cover Image */}
-                                                <Link href={`/truyen/${story.slug}`} className="block relative h-56 overflow-hidden bg-gray-100 dark:bg-gray-700">
+                                                <Link href={`/truyen/${story.slug}`} className="block relative h-56 overflow-hidden bg-surface-container-high">
                                                     {story.coverImage ? (
                                                         <img
                                                             src={story.coverImage}
@@ -329,7 +329,7 @@ export default function AuthorDashboardPage() {
                                                         />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center">
-                                                            <BookOpen className="w-12 h-12 text-gray-400" />
+                                                            <BookOpen className="w-12 h-12 text-on-surface-variant" />
                                                         </div>
                                                     )}
                                                     {/* Status Badge */}
@@ -345,7 +345,7 @@ export default function AuthorDashboardPage() {
                                                                 : story.status === 'COMPLETED'
                                                                 ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200'
                                                                 : story.status === 'ARCHIVED'
-                                                                ? 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-200'
+                                                                ? 'bg-surface-container-high text-on-surface/50'
                                                                 : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200';
                                                             const statusText = pendingApproval
                                                                 ? 'Đang chờ phê duyệt'
@@ -370,16 +370,16 @@ export default function AuthorDashboardPage() {
                                                 {/* Content */}
                                                 <div className="p-4 flex flex-col flex-1">
                                                     <Link href={`/truyen/${story.slug}`}>
-                                                        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2 line-clamp-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                                        <h3 className="text-base font-semibold text-on-surface mb-2 line-clamp-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                                             {story.title}
                                                         </h3>
                                                     </Link>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-1 flex-1">
+                                                    <p className="text-sm text-on-surface-variant mb-3 line-clamp-1 flex-1">
                                                         {story.description || 'Chưa có mô tả'}
                                                     </p>
 
                                                     {/* Stats */}
-                                                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                                    <div className="flex items-center gap-3 text-xs text-on-surface-variant mb-3">
                                                         <div className="flex items-center gap-1">
                                                             <Eye className="w-4 h-4" />
                                                             <span>{story.viewCount.toLocaleString()}</span>
@@ -399,14 +399,14 @@ export default function AuthorDashboardPage() {
                                                         <div className="grid grid-cols-2 gap-2">
                                                             <Link
                                                                 href={`/author/stories/${story.slug}/chapters`}
-                                                                className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium transition-colors text-center flex items-center justify-center gap-1"
+                                                                className="px-3 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-xs font-medium transition-colors text-center flex items-center justify-center gap-1"
                                                             >
                                                                 <BookOpen className="w-4 h-4" />
                                                                 Chương
                                                             </Link>
                                                             <Link
                                                                 href={`/author/stories/${story.id}/edit`}
-                                                                className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium transition-colors text-center flex items-center justify-center gap-1"
+                                                                className="px-3 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-xs font-medium transition-colors text-center flex items-center justify-center gap-1"
                                                             >
                                                                 <Edit className="w-4 h-4" />
                                                                 Sửa
@@ -429,7 +429,7 @@ export default function AuthorDashboardPage() {
                                                         <button
                                                             onClick={() => handleDelete(story.id, story.title)}
                                                             disabled={deleteMutation.isPending}
-                                                            className="w-full px-3 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                                                            className="w-full px-3 py-2 bg-surface-container hover:bg-surface-container-high text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                             {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa'}
@@ -444,13 +444,13 @@ export default function AuthorDashboardPage() {
                                         {stories.map((story) => (
                                             <div
                                                 key={story.id}
-                                                className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700"
+                                                className="bg-surface-container rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow border border-outline-variant"
                                             >
                                                 <div className="flex flex-col md:flex-row gap-4">
                                                     {/* Cover Image */}
                                                     <Link
                                                         href={`/truyen/${story.slug}`}
-                                                        className="flex-shrink-0 w-24 h-32 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700"
+                                                        className="flex-shrink-0 w-24 h-32 rounded-lg overflow-hidden bg-surface-container-high"
                                                     >
                                                         {story.coverImage ? (
                                                             <img
@@ -460,7 +460,7 @@ export default function AuthorDashboardPage() {
                                                             />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center">
-                                                                <BookOpen className="w-10 h-10 text-gray-400" />
+                                                                <BookOpen className="w-10 h-10 text-on-surface-variant" />
                                                             </div>
                                                         )}
                                                     </Link>
@@ -469,7 +469,7 @@ export default function AuthorDashboardPage() {
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-start justify-between mb-2">
                                                             <Link href={`/truyen/${story.slug}`}>
-                                                                <h3 className="text-base font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors line-clamp-2">
+                                                                <h3 className="text-base font-semibold text-on-surface hover:text-blue-600 dark:hover:text-blue-400 transition-colors line-clamp-2">
                                                                     {story.title}
                                                                 </h3>
                                                             </Link>
@@ -484,7 +484,7 @@ export default function AuthorDashboardPage() {
                                                                     : story.status === 'COMPLETED'
                                                                     ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200'
                                                                     : story.status === 'ARCHIVED'
-                                                                    ? 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-200'
+                                                                    ? 'bg-surface-container-high text-on-surface/50'
                                                                     : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200';
                                                                 const statusText = pendingApproval
                                                                     ? 'Đang chờ phê duyệt'
@@ -504,10 +504,10 @@ export default function AuthorDashboardPage() {
                                                                 );
                                                             })()}
                                                         </div>
-                                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                                                        <p className="text-sm text-on-surface-variant mb-3 line-clamp-2">
                                                             {story.description || 'Chưa có mô tả'}
                                                         </p>
-                                                        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                                        <div className="flex flex-wrap items-center gap-3 text-xs text-on-surface-variant mb-3">
                                                             <div className="flex items-center gap-1">
                                                                 <Eye className="w-4 h-4" />
                                                                 <span>{story.viewCount.toLocaleString()}</span>
@@ -528,14 +528,14 @@ export default function AuthorDashboardPage() {
                                                         <div className="flex flex-wrap gap-2">
                                                             <Link
                                                                 href={`/author/stories/${story.slug}/chapters`}
-                                                                className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium transition-colors inline-flex items-center gap-1.5"
+                                                                className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-xs font-medium transition-colors inline-flex items-center gap-1.5"
                                                             >
                                                                 <BookOpen className="w-4 h-4" />
                                                                 Quản lý chương
                                                             </Link>
                                                             <Link
                                                                 href={`/author/stories/${story.id}/edit`}
-                                                                className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium transition-colors inline-flex items-center gap-1.5"
+                                                                className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-xs font-medium transition-colors inline-flex items-center gap-1.5"
                                                             >
                                                                 <Edit className="w-4 h-4" />
                                                                 Chỉnh sửa
@@ -557,7 +557,7 @@ export default function AuthorDashboardPage() {
                                                             <button
                                                                 onClick={() => handleDelete(story.id, story.title)}
                                                                 disabled={deleteMutation.isPending}
-                                                                className="px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
+                                                                className="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
                                                             >
                                                                 <Trash2 className="w-4 h-4" />
                                                                 {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa'}
@@ -576,17 +576,17 @@ export default function AuthorDashboardPage() {
                                         <button
                                             onClick={() => setPage(page - 1)}
                                             disabled={page === 1}
-                                            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            className="px-4 py-2 rounded-lg border border-outline-variant bg-surface-container text-on-surface-variant hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                         >
                                             Trước
                                         </button>
-                                        <span className="px-4 py-2 text-gray-700 dark:text-gray-300 font-medium">
+                                        <span className="px-4 py-2 text-on-surface-variant font-medium">
                                             Trang {page} / {meta.totalPages}
                                         </span>
                                         <button
                                             onClick={() => setPage(page + 1)}
                                             disabled={page >= meta.totalPages}
-                                            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            className="px-4 py-2 rounded-lg border border-outline-variant bg-surface-container text-on-surface-variant hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                         >
                                             Sau
                                         </button>

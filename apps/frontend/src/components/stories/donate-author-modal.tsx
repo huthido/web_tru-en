@@ -126,13 +126,13 @@ export function DonateAuthorModal({
                         <div className="relative bg-gradient-to-r from-pink-500 to-rose-500 px-6 py-5 rounded-t-2xl">
                             <button
                                 onClick={onClose}
-                                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+                                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-surface-container/20 hover:bg-surface-container/30 text-white transition-colors"
                                 aria-label="Đóng"
                             >
                                 <X size={18} />
                             </button>
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-full bg-surface-container/20 flex items-center justify-center">
                                     <HeartHandshake size={24} className="text-white" />
                                 </div>
                                 <div>
