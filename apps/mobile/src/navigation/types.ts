@@ -2,6 +2,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 export type RootStackParamList = {
     Login: undefined;
+    ForgotPassword: undefined;
     MainTabs: undefined;
     StoryDetail: { slug: string };
     Reader: { storySlug: string; chapterSlug: string };

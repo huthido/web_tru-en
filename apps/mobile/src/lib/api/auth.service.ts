@@ -54,4 +54,28 @@ export const AuthApi = {
         }
         await tokenStorage.clear();
     },
+
+    /**
+     * Request a password-reset email. Backend returns a generic success
+     * message regardless of whether the email exists (anti-enumeration).
+     */
+    async forgotPassword(email: string): Promise<void> {
+        await apiClient.post('/auth/forgot-password', { email });
+    },
+
+    /**
+     * Complete a password reset with the token from the email link.
+     * Not used by any screen yet — kept for an eventual in-app deep-link flow.
+     */
+    async resetPassword(
+        token: string,
+        newPassword: string,
+        confirmNewPassword: string,
+    ): Promise<void> {
+        await apiClient.post('/auth/reset-password', {
+            token,
+            newPassword,
+            confirmNewPassword,
+        });
+    },
 };

@@ -8,6 +8,7 @@ import { colors } from '@/theme';
 import { useAuth } from '@/contexts/auth-context';
 import type { MainTabsParamList, RootStackParamList } from '@/navigation/types';
 import { LoginScreen } from '@/screens/LoginScreen';
+import { ForgotPasswordScreen } from '@/screens/ForgotPasswordScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { SearchScreen } from '@/screens/SearchScreen';
 import { LibraryScreen } from '@/screens/LibraryScreen';
@@ -103,11 +104,18 @@ export const RootNavigator: React.FC = () => {
                         />
                     </>
                 ) : (
-                    <Stack.Screen
-                        name="Login"
-                        component={LoginScreen}
-                        options={{ headerShown: false }}
-                    />
+                    <>
+                        <Stack.Screen
+                            name="Login"
+                            component={LoginScreen}
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="ForgotPassword"
+                            component={ForgotPasswordScreen}
+                            options={{ title: 'Quên mật khẩu' }}
+                        />
+                    </>
                 )}
             </Stack.Navigator>
         </NavigationContainer>
