@@ -20,6 +20,18 @@ export class PaymentsService {
   ) {}
 
   /**
+   * List coin packages on sale — used by the public shop page. Only active
+   * packages, cheapest first. Behind the global JWT guard (must be logged in
+   * to buy anyway).
+   */
+  async listActiveCoinPackages() {
+    return this.prisma.coinPackage.findMany({
+      where: { isActive: true },
+      orderBy: { priceVND: 'asc' },
+    });
+  }
+
+  /**
    * Create a pending Payment row + VNPay payment URL for the user to redirect to.
    */
   async createCoinPackagePayment(opts: {

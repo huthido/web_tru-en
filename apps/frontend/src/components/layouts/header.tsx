@@ -10,12 +10,17 @@ import { useTheme } from '@/components/providers/theme-provider';
 import { useSearchSuggestions } from '@/lib/api/hooks/use-search';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { useSettings } from '@/lib/api/hooks/use-settings';
+import { useWalletBalance } from '@/lib/api/hooks/use-wallet';
+import { Coins } from 'lucide-react';
 
 export function Header() {
   const { user, isAuthenticated, isLoading, logout, isLoggingOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const { data: settings } = useSettings();
+  // Số dư xu hiển thị ở badge — chỉ fetch khi đã đăng nhập.
+  const { data: wallet } = useWalletBalance(isAuthenticated);
+  const coinBalance = (wallet?.purchasedBalance ?? 0) + (wallet?.earnedBalance ?? 0);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -224,6 +229,20 @@ export function Header() {
             </>
           )}
         </button>
+
+        {/* Badge số dư xu — bấm vào để tới Cửa hàng */}
+        {isAuthenticated && user && (
+          <Link
+            href="/shop"
+            aria-label="Cửa hàng — nạp xu"
+            className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-surface-container border-primary/60 shadow-sm hover:shadow-md"
+          >
+            <Coins size={16} className="md:w-[18px] md:h-[18px] text-amber-500" />
+            <span className="text-xs font-semibold text-on-surface">
+              {coinBalance.toLocaleString('vi-VN')}
+            </span>
+          </Link>
+        )}
 
         {/* Notification Bell */}
         {isAuthenticated && user && <NotificationBell />}

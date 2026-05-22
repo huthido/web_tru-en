@@ -5,7 +5,7 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Compass, Library, Clock, Bookmark, Heart, Upload, LayoutDashboard, Wallet, Settings, BookOpen, HelpCircle, type LucideIcon } from 'lucide-react';
+import { Home, Compass, Library, Clock, Bookmark, Heart, Store, Upload, LayoutDashboard, Wallet, Settings, BookOpen, HelpCircle, type LucideIcon } from 'lucide-react';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
 function roleLabel(role?: string): string {
@@ -56,8 +56,7 @@ export function Sidebar() {
   const canCreateStories = !!user;
 
   // Danh mục bám theo mockup theme Stitch (Home · Discover · Library ·
-  // History · Bookmarks · Upload · Monetization). "Cửa hàng xu" trong theme
-  // chưa có route trong app nên tạm bỏ — thêm lại khi có trang.
+  // History · Bookmarks · Shop · Upload · Monetization).
   const links: NavLink[] = [
     { href: '/', label: 'Trang chủ', icon: Home, active: pathname === '/' },
     { href: '/stories', label: 'Khám phá', icon: Compass, active: pathname === '/stories' },
@@ -65,6 +64,7 @@ export function Sidebar() {
     { href: '/history', label: 'Lịch sử', icon: Clock, active: pathname === '/history' },
     { href: '/follows', label: 'Theo dõi', icon: Bookmark, active: pathname === '/follows', fillWhenActive: true },
     { href: '/favorites', label: 'Yêu thích', icon: Heart, active: pathname === '/favorites', fillWhenActive: true },
+    { href: '/shop', label: 'Cửa hàng', icon: Store, active: pathname === '/shop' },
     { href: '/author/stories/create', label: 'Đăng truyện', icon: Upload, active: pathname === '/author/stories/create', authOnly: true },
     { href: '/author/dashboard', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
     { href: '/author/earnings', label: 'Kiếm tiền', icon: Wallet, active: pathname === '/author/earnings', authOnly: true },

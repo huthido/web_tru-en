@@ -148,6 +148,18 @@ export class PaymentsController {
     return this.payments.handleGoogleWebhook(body);
   }
 
+  /**
+   * List active coin packages for the shop page.
+   *   GET /api/payments/coin-packages
+   * NOTE: must stay above @Get(':id') so the literal path isn't captured
+   * by the param route.
+   */
+  @Get('coin-packages')
+  async listCoinPackages() {
+    const data = await this.payments.listActiveCoinPackages();
+    return { success: true, data };
+  }
+
   @Get('me')
   async listMine(@CurrentUser() user: any) {
     const data = await this.payments.listMyPayments(user.id);
