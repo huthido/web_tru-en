@@ -1,0 +1,51 @@
+# =====================================================================
+# CHẠY FULL STACK TRONG DOCKER Ở MÁY LOCAL (tuỳ chọn ngoài native dev).
+# =====================================================================
+# Dùng:
+#   pnpm docker:local         -> build + up -d toàn bộ stack
+#   pnpm docker:local:down    -> dừng & gỡ container
+#   pnpm docker:local:logs    -> xem log
+# Tương đương:
+#   docker compose -f docker-compose.yaml -f docker-compose.local.yml up -d --build
+#
+# Vì truyền -f tường minh, Docker KHÔNG tự nạp docker-compose.override.yml
+# (file đó chỉ dành cho chế độ NATIVE dev — publish cổng hạ tầng cho
+# `pnpm dev`). Hai chế độ tách bạch, không đụng nhau.
+#
+# Sau khi up:
+#   • Frontend: http://localhost:3000   (đổi FRONTEND_PORT trong .env nếu bận)
+#   • Backend:  http://localhost:3009/api  (đổi BACKEND_PORT nếu bận)
+#
+# LƯU Ý: dừng native dev trước (giải phóng cổng 3009) và bảo đảm cổng
+# 3000 trống. Backend Dockerfile tự chạy `prisma migrate deploy` lúc khởi
+# động nên DB được áp migration tự động.
+# =====================================================================
+services:
+  # restart "no" — máy local tự bật/tắt, không auto-restart theo Docker Desktop.
+  postgres:
+    restart: "no"
+    # Publish ra host để DBeaver / prisma studio kết nối (giống native dev).
+    ports:
+      - "127.0.0.1:5433:5432"
+
+  redis:
+    restart: "no"
+    ports:
+      - "127.0.0.1:6380:6379"
+
+  meilisearch:
+    restart: "no"
+
+  pgbouncer:
+    restart: "no"
+
+  garage:
+    restart: "no"
+
+  backend:
+    restart: "no"
+    # Cổng host lấy từ BACKEND_PORT trong .env (mặc định 3009).
+
+  frontend:
+    restart: "no"
+    # Cổng host lấy từ FRONTEND_PORT trong .env (mặc định 3000).
