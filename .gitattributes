@@ -1,0 +1,4 @@
+# Shell script BẮT BUỘC giữ LF — nếu bị CRLF, bash báo
+# "bad interpreter: /usr/bin/env bash^M" và script không chạy.
+# (Repo bật core.autocrlf=true nên cần ép tường minh.)
+*.sh text eol=lf
