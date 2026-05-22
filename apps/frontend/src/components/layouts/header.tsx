@@ -89,6 +89,7 @@ export function Header() {
             width={32}
             height={32}
             objectFit="contain"
+            placeholder="empty"
             className="w-8 h-8"
           />
         ) : (

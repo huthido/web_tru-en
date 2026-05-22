@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { OptimizedImage } from '@/components/ui/optimized-image';
-import { ImageSizes } from '@/utils/image-utils';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
@@ -82,18 +81,16 @@ export function Sidebar() {
           className="px-6 mb-10 flex items-center gap-3 transition-transform duration-300 hover:scale-[1.03] active:scale-95"
         >
           {settings?.siteLogo ? (
-            <span className="relative w-9 h-9 flex-shrink-0">
-              <OptimizedImage
-                src={settings.siteLogo}
-                alt={settings.siteName || 'YÊU'}
-                fill
-                objectFit="contain"
-                sizes={ImageSizes.logo}
-                quality={90}
-                placeholder="blur"
-                priority
-              />
-            </span>
+            <OptimizedImage
+              src={settings.siteLogo}
+              alt={settings.siteName || 'YÊU'}
+              width={36}
+              height={36}
+              objectFit="contain"
+              placeholder="empty"
+              priority
+              className="w-9 h-9 flex-shrink-0"
+            />
           ) : (
             <BookOpen size={30} className="text-primary flex-shrink-0" />
           )}
