@@ -74,6 +74,16 @@ const config = {
           'App YÊU cần truy cập thư viện ảnh để bạn chọn ảnh bìa cho truyện của mình.',
       },
     ],
+    // App Tracking Transparency — bắt buộc ở iOS 14.5+ khi app có quảng cáo
+    // third-party (AdMob/FAN/...). Chuẩn bị scaffold sẵn để khi tích hợp SDK
+    // quảng cáo bên ngoài v2 không cần đổi config nữa.
+    [
+      'expo-tracking-transparency',
+      {
+        userTrackingPermission:
+          'App YÊU dùng dữ liệu này để hiển thị quảng cáo phù hợp hơn với sở thích của bạn.',
+      },
+    ],
   ],
 };
 
