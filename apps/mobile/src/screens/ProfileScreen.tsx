@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@/contexts/auth-context';
 import { describeError } from '@/lib/error';
-import type { TabNavigation } from '@/navigation/types';
+import type { RootNavigation, TabNavigation } from '@/navigation/types';
 import { colors, fontSize, radius, spacing } from '@/theme';
 
 const ROLE_LABEL: Record<string, string> = {
@@ -26,6 +26,7 @@ const ROLE_LABEL: Record<string, string> = {
 export const ProfileScreen: React.FC = () => {
     const { user, logout, deleteAccount } = useAuth();
     const tabNav = useNavigation<TabNavigation>();
+    const rootNav = useNavigation<RootNavigation>();
     const name = user?.displayName || user?.username || 'bạn';
     const initial = name.trim().charAt(0).toUpperCase() || '?';
 
@@ -75,6 +76,34 @@ export const ProfileScreen: React.FC = () => {
                 </View>
                 <Text style={styles.placeholder}>
                     Xem số dư, lịch sử giao dịch và các gói nạp xu.
+                </Text>
+            </Pressable>
+
+            <View style={styles.sectionLabel}>
+                <Text style={styles.sectionLabelText}>KHU VỰC TÁC GIẢ</Text>
+            </View>
+
+            <Pressable style={styles.card} onPress={() => rootNav.navigate('MyStories')}>
+                <View style={styles.cardHeader}>
+                    <Ionicons name="document-text-outline" size={20} color={colors.primary} />
+                    <Text style={styles.cardTitle}>Truyện của tôi</Text>
+                    <View style={{ flex: 1 }} />
+                    <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+                </View>
+                <Text style={styles.placeholder}>
+                    Quản lý truyện, thêm chương, gửi duyệt xuất bản.
+                </Text>
+            </Pressable>
+
+            <Pressable style={styles.card} onPress={() => rootNav.navigate('Earnings')}>
+                <View style={styles.cardHeader}>
+                    <Ionicons name="cash-outline" size={20} color={colors.primary} />
+                    <Text style={styles.cardTitle}>Doanh thu</Text>
+                    <View style={{ flex: 1 }} />
+                    <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+                </View>
+                <Text style={styles.placeholder}>
+                    Thu nhập từ donate, bán chương, bán truyện VIP và rút xu.
                 </Text>
             </Pressable>
 
@@ -191,6 +220,13 @@ const styles = StyleSheet.create({
     cardHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     cardTitle: { fontSize: fontSize.lg, fontWeight: '700', color: colors.text },
     placeholder: { fontSize: fontSize.sm, color: colors.textMuted, lineHeight: 20 },
+    sectionLabel: { paddingHorizontal: spacing.xs, paddingTop: spacing.sm },
+    sectionLabelText: {
+        color: colors.textMuted,
+        fontSize: 11,
+        fontWeight: '700',
+        letterSpacing: 1,
+    },
     logout: {
         flexDirection: 'row',
         alignSelf: 'center',
