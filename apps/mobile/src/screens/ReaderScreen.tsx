@@ -23,6 +23,7 @@ import { htmlToBlocks } from '@/lib/html';
 import { resolveImageUrl } from '@/lib/url';
 import { useBuyChapter, useBuyStory, useChapter, useChapters } from '@/lib/hooks/chapters';
 import { useChapterProgress, useSaveProgress } from '@/lib/hooks/library';
+import { describeError } from '@/lib/error';
 import { ErrorView, Loading } from '@/components/ui';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Reader'>;
@@ -166,7 +167,10 @@ export const ReaderScreen: React.FC<Props> = ({ route, navigation }) => {
     if (chapter.isError || !chapter.data) {
         return (
             <View style={[styles.fill, { backgroundColor: theme.bg }]}>
-                <ErrorView message="Không tải được chương" onRetry={() => chapter.refetch()} />
+                <ErrorView
+                    message={describeError(chapter.error) || 'Không tải được chương'}
+                    onRetry={() => chapter.refetch()}
+                />
             </View>
         );
     }

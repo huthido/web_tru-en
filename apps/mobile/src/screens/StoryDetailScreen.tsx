@@ -18,6 +18,7 @@ import { useStory } from '@/lib/hooks/stories';
 import { useChapters } from '@/lib/hooks/chapters';
 import { useStoryLiked, useToggleLike } from '@/lib/hooks/stories';
 import { useFollowStatus, useToggleFollow } from '@/lib/hooks/library';
+import { describeError } from '@/lib/error';
 import { EmptyView, ErrorView, Loading, Stars } from '@/components/ui';
 import { StoryCover } from '@/components/StoryCover';
 
@@ -76,7 +77,12 @@ export const StoryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
     if (story.isLoading) return <Loading />;
     if (story.isError || !story.data) {
-        return <ErrorView message="Không tải được truyện" onRetry={() => story.refetch()} />;
+        return (
+            <ErrorView
+                message={describeError(story.error) || 'Không tải được truyện'}
+                onRetry={() => story.refetch()}
+            />
+        );
     }
 
     const s = story.data;

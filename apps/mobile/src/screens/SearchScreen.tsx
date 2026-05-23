@@ -15,6 +15,7 @@ import type { RootNavigation } from '@/navigation/types';
 import type { Story } from '@/lib/api/types';
 import { useCategories } from '@/lib/hooks/categories';
 import { useStorySearch } from '@/lib/hooks/search';
+import { describeError } from '@/lib/error';
 import { formatCount, formatRating } from '@/lib/format';
 import { EmptyView, ErrorView, Loading } from '@/components/ui';
 import { StoryListItem } from '@/components/StoryListItem';
@@ -128,7 +129,10 @@ export const SearchScreen: React.FC = () => {
                     ) : search.isLoading ? (
                         <Loading />
                     ) : search.isError ? (
-                        <ErrorView onRetry={() => search.refetch()} />
+                        <ErrorView
+                            message={describeError(search.error)}
+                            onRetry={() => search.refetch()}
+                        />
                     ) : (
                         <EmptyView icon="sad-outline" message="Không tìm thấy truyện phù hợp" />
                     )

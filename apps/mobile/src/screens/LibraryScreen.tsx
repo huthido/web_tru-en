@@ -18,6 +18,7 @@ import {
     useMyFollows,
     useReadingHistory,
 } from '@/lib/hooks/library';
+import { describeError } from '@/lib/error';
 import { EmptyView, ErrorView, Loading } from '@/components/ui';
 import { StoryListItem } from '@/components/StoryListItem';
 
@@ -108,7 +109,10 @@ export const LibraryScreen: React.FC = () => {
                         follows.isLoading ? (
                             <Loading />
                         ) : follows.isError ? (
-                            <ErrorView onRetry={() => follows.refetch()} />
+                            <ErrorView
+                                message={describeError(follows.error)}
+                                onRetry={() => follows.refetch()}
+                            />
                         ) : (
                             <EmptyView
                                 icon="bookmark-outline"
@@ -173,7 +177,10 @@ export const LibraryScreen: React.FC = () => {
                         history.isLoading ? (
                             <Loading />
                         ) : history.isError ? (
-                            <ErrorView onRetry={() => history.refetch()} />
+                            <ErrorView
+                                message={describeError(history.error)}
+                                onRetry={() => history.refetch()}
+                            />
                         ) : (
                             <EmptyView icon="time-outline" message="Chưa có lịch sử đọc" />
                         )
