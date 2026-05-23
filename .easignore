@@ -1,0 +1,35 @@
+# EAS Build chỉ build apps/mobile — không cần backend/frontend/packages.
+# Loại workspace metadata để pnpm install trên cloud chạy ở apps/mobile
+# như project độc lập (giống `cd apps/mobile && pnpm install --ignore-workspace`
+# trên local).
+
+# Workspace metadata — nếu giữ, EAS detect workspace và install ở root,
+# pnpm-lock root không có expo deps → expo-secure-store không resolve được.
+/pnpm-workspace.yaml
+/pnpm-lock.yaml
+/package.json
+/turbo.json
+/.turbo/
+
+# Sibling apps / packages — không build trên EAS.
+/apps/backend/
+/apps/frontend/
+/packages/
+
+# Backend uploads / artifacts — to và không liên quan mobile build.
+/backups/
+/scripts/
+/docs/
+/storage/
+/uploads/
+
+# Dev-only stuff
+/.vscode/
+/.idea/
+/.codegraph/
+/.claude/
+
+# Local config files mobile không cần
+/.env
+/.env.local
+/.env.example

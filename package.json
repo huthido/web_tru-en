@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "predev": "node scripts/check-prod-env.js .env apps/backend/.env --warn",
     "dev": "concurrently -n backend,frontend -c blue,green \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
     "dev:backend": "pnpm --filter backend dev",
     "dev:frontend": "pnpm --filter frontend dev",
@@ -21,7 +22,8 @@
     "start:frontend": "pnpm --filter frontend start",
     "lint": "pnpm -r lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "check:prod-env": "node scripts/check-prod-env.js"
   },
   "dependencies": {
     "@nestjs/cli": "^10.2.1"
