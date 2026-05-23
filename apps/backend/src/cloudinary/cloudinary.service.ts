@@ -36,11 +36,23 @@ export class CloudinaryService {
     const s3Endpoint = this.configService.get<string>('S3_ENDPOINT');
     const s3AccessKey = this.configService.get<string>('S3_ACCESS_KEY');
     const s3SecretKey = this.configService.get<string>('S3_SECRET_KEY');
+    const s3PublicBase = this.configService.get<string>('S3_PUBLIC_BASE_URL');
     this.garageBucket = this.configService.get<string>('S3_BUCKET') || 'web-truyen';
-    this.garagePublicBase =
-      this.configService.get<string>('S3_PUBLIC_BASE_URL') ||
-      (s3Endpoint ? `${s3Endpoint.replace(/\/$/, '')}/${this.garageBucket}` : '');
-    this.useGarage = !!(s3Endpoint && s3AccessKey && s3SecretKey);
+    this.garagePublicBase = (s3PublicBase || '').replace(/\/$/, '');
+
+    // Garage chỉ bật khi đã có ĐỦ credential + URL public reachable từ Internet.
+    // Không tự ghép từ S3_ENDPOINT (internal) — sẽ sinh URL chết phía client.
+    const garageCredsReady = !!(s3Endpoint && s3AccessKey && s3SecretKey);
+    const publicBaseReady = this.isPublicBaseUsable(this.garagePublicBase);
+    this.useGarage = garageCredsReady && publicBaseReady;
+
+    if (garageCredsReady && !publicBaseReady) {
+      this.logger.error(
+        `Garage credentials present but S3_PUBLIC_BASE_URL invalid or missing ` +
+        `(got "${s3PublicBase || ''}"). Set it to a public HTTPS URL clients can ` +
+        `reach (e.g. https://cdn.yourdomain.com). Falling back to Cloudinary/local.`,
+      );
+    }
 
     if (this.useGarage) {
       this.garage = new S3Client({
@@ -52,7 +64,10 @@ export class CloudinaryService {
         },
         forcePathStyle: true, // Required for Garage / MinIO / non-AWS S3
       });
-      this.logger.log(`Garage S3 storage configured - bucket: ${this.garageBucket}`);
+      this.logger.log(
+        `Garage S3 storage configured - bucket: ${this.garageBucket}, ` +
+        `public base: ${this.garagePublicBase}`,
+      );
     }
 
     if (this.useCloudinary) {
@@ -234,6 +249,8 @@ export class CloudinaryService {
     const ext = path.extname(originalName) || '.jpg';
     const key = `${folder}/${randomUUID()}${ext}`;
 
+    // Garage không honor ACL chuẩn S3 — quyền public set ở cấp bucket
+    // (`garage bucket website --allow`). Bỏ ACL để không tạo cảm giác sai.
     await this.garage.send(
       new PutObjectCommand({
         Bucket: this.garageBucket,
@@ -241,11 +258,29 @@ export class CloudinaryService {
         Body: buffer,
         ContentType: contentType,
         CacheControl: 'public, max-age=31536000, immutable',
-        ACL: 'public-read', // Garage honors this only if bucket policy allows; harmless otherwise
       }),
     );
 
-    return `${this.garagePublicBase.replace(/\/$/, '')}/${key}`;
+    return `${this.garagePublicBase}/${key}`;
+  }
+
+  /**
+   * Public base URL phải là URL client thật sự reach được (http/https + hostname
+   * không phải tên service Docker internal). Nếu không, trả URL về client sẽ chết.
+   */
+  private isPublicBaseUsable(value: string): boolean {
+    if (!value) return false;
+    let parsed: URL;
+    try {
+      parsed = new URL(value);
+    } catch {
+      return false;
+    }
+    if (!['http:', 'https:'].includes(parsed.protocol)) return false;
+    // Hostname Docker-internal phổ biến — chặn để bắt sai cấu hình sớm.
+    const internalHosts = new Set(['garage', 'backend']);
+    if (internalHosts.has(parsed.hostname)) return false;
+    return true;
   }
 
   /**

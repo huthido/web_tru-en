@@ -202,7 +202,11 @@ S3_REGION=garage
 S3_ACCESS_KEY=<từ Garage key new>
 S3_SECRET_KEY=<từ Garage key new>
 S3_BUCKET=web-truyen
+# CDN public — KHÔNG kèm /web-truyen ở cuối (bucket alias đã map Host).
 S3_PUBLIC_BASE_URL=https://cdn.yourdomain.com
+# Hostname CDN cho next/image whitelist (build arg frontend). Khớp hostname
+# trong S3_PUBLIC_BASE_URL — không scheme, không path.
+NEXT_PUBLIC_CDN_HOST=cdn.yourdomain.com
 
 # Payment (tuỳ chọn — có thể bật sau)
 VNPAY_TMN_CODE=<sandbox hoặc prod TMN code>
@@ -219,7 +223,7 @@ VNPAY_IPN_URL=https://api.yourdomain.com/api/payments/vnpay/ipn
 Tab **Domains**:
 - Service `frontend` → `yourdomain.com`, port `3000`, Force HTTPS ✓
 - Service `backend` → `api.yourdomain.com`, port `3009`, Force HTTPS ✓
-- (Tuỳ chọn) Service `garage` → `cdn.yourdomain.com`, port `3902` — serve static files public
+- **Service `garage` → `cdn.yourdomain.com`, port `3902`, Force HTTPS ✓** — bắt buộc nếu dùng Garage làm storage public (kết hợp với `bucket alias` + `bucket website --allow` ở [Section 7.1](#71-bootstrap-garage-s3-compatible-storage)).
 - (Tuỳ chọn) Service `meilisearch` → `meili-admin.yourdomain.com`, port `7700` — chỉ dùng để vào admin UI, nên giới hạn IP
 
 SSL: Coolify dùng Traefik + Let's Encrypt tự động.
@@ -314,7 +318,8 @@ Mỗi app dùng cùng **internal network** để gọi nhau qua hostname service
 | `S3_ACCESS_KEY` | Garage | Sinh từ `garage key new` (section 7) |
 | `S3_SECRET_KEY` | Garage | Sinh từ `garage key new` |
 | `S3_BUCKET` | Garage | `web-truyen` |
-| `S3_PUBLIC_BASE_URL` | Garage | URL public để client tải file. Ví dụ `https://cdn.yourdomain.com` |
+| `S3_PUBLIC_BASE_URL` | Garage | URL public client tải file (Garage Web port 3902). `https://cdn.yourdomain.com` — **KHÔNG** kèm `/web-truyen` ở cuối (bucket alias đã map Host header → bucket). Backend tự **disable Garage** nếu giá trị này rỗng / trỏ vào hostname internal (`garage`, `backend`). |
+| `NEXT_PUBLIC_CDN_HOST` | Garage (frontend build arg) | Hostname CDN cho `next/image` whitelist, vd `cdn.yourdomain.com`. Khớp với `S3_PUBLIC_BASE_URL`. Bỏ trống = `<Image>` không load được ảnh Garage. |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary | Optional, fallback cuối |
 | `CLOUDINARY_API_KEY` | Cloudinary | |
 | `CLOUDINARY_API_SECRET` | Cloudinary | |
@@ -368,7 +373,13 @@ Khung backend đã sẵn (commit `e8ac597`); `verifyPurchase()` đang stub trả
 
 ### 7.1 Bootstrap Garage (S3-compatible storage)
 
-Garage cần khởi tạo cluster lần đầu trước khi nhận data. Sau khi `docker compose up -d` xong:
+Garage cần khởi tạo cluster lần đầu trước khi nhận data, và phải mở **public read** đúng cách thì client mới load ảnh được sau upload (Garage **KHÔNG honor ACL chuẩn S3** — header `x-amz-acl: public-read` bị ignore; backend đã ngừng gửi). Quyền public set ở **cấp bucket** qua Garage CLI.
+
+Hai mặt phẳng cần cấu hình:
+- **Upload** (backend → Garage): qua **S3 API port 3900**, signed request, internal Docker network.
+- **Đọc public** (browser → Garage): qua **Web endpoint port 3902**, anonymous + theo Host header → bucket (mapping bằng `bucket alias`).
+
+Sau khi `docker compose up -d` xong:
 
 ```bash
 # Vào container Garage
@@ -385,18 +396,41 @@ garage layout apply --version 1
 # 3. Tạo bucket
 garage bucket create web-truyen
 
-# 4. Tạo access key
+# 4. Tạo access key (để backend upload qua S3 API)
 garage key create app-key
 # Output sẽ in ra:
 #   Key ID: GK<...>
 #   Secret key: <secret-base64>
 # → COPY 2 giá trị này
 
-# 5. Cấp quyền key cho bucket
+# 5. Cấp quyền key cho bucket (read+write)
 garage bucket allow --read --write --owner web-truyen --key app-key
 
-# 6. (Tuỳ chọn) Bật public read cho bucket — để serve file qua web
-garage bucket website --allow web-truyen
+# 6. BẮT BUỘC: bật website mode cho bucket — cho phép anonymous GET
+#    qua web endpoint port 3902. Không có bước này → client load 403.
+garage bucket website --allow web-truyen --index-document index.html
+
+# 7. BẮT BUỘC: alias bucket vào domain CDN. Garage web dispatch theo Host
+#    header → request tới cdn.yourdomain.com được map vào bucket web-truyen.
+#    Phải khớp domain bạn cấu hình Coolify Domains ở bước tiếp theo.
+garage bucket alias web-truyen cdn.yourdomain.com
+
+# 8. (Tuỳ chọn) CORS — chỉ cần nếu frontend cần fetch ảnh bằng JS
+#    (vd: vẽ vào canvas, đọc blob). <img>/<Image> bình thường KHÔNG cần.
+#    Garage chưa có CLI cho CORS — phải gọi qua S3 API:
+#    1) Tạo file /tmp/cors.json:
+#       { "CORSRules": [{
+#           "AllowedOrigins": ["https://yourdomain.com"],
+#           "AllowedMethods": ["GET", "HEAD"],
+#           "AllowedHeaders": ["*"],
+#           "MaxAgeSeconds": 3600
+#       }]}
+#    2) Cần cài aws-cli trong container (image Garage không có sẵn) hoặc
+#       chạy từ máy có aws-cli + trỏ endpoint vào public S3 API.
+
+# Xác nhận cấu hình
+garage bucket info web-truyen
+# Output phải thấy: Website access: true, Aliases: cdn.yourdomain.com
 
 # Thoát
 exit
@@ -405,7 +439,26 @@ exit
 Sau đó:
 1. Paste **Key ID** → biến `S3_ACCESS_KEY`
 2. Paste **Secret key** → biến `S3_SECRET_KEY`
-3. **Redeploy backend** trong Coolify để service đọc env mới.
+3. Set `S3_PUBLIC_BASE_URL=https://cdn.yourdomain.com` (khớp alias trên).
+4. Set `NEXT_PUBLIC_CDN_HOST=cdn.yourdomain.com` (frontend whitelist).
+5. **Coolify → tab Domains → service `garage`**: thêm domain `cdn.yourdomain.com`, **port `3902`**, Force HTTPS ✓ — để Traefik proxy public traffic vào Garage Web endpoint.
+6. **Redeploy backend** + **Rebuild frontend** (vì `NEXT_PUBLIC_CDN_HOST` là build arg).
+
+**Verify**:
+```bash
+# Upload thử 1 ảnh qua giao diện (login tác giả → upload cover truyện)
+# Kiểm tra response trả URL có dạng https://cdn.yourdomain.com/story-covers/<uuid>.jpg
+# Mở URL đó bằng curl:
+curl -I https://cdn.yourdomain.com/story-covers/<uuid>.jpg
+# → HTTP/2 200
+# → cache-control: public, max-age=31536000, immutable
+# → content-type: image/jpeg
+```
+
+**Troubleshoot nhanh nếu fail**:
+- `403 Forbidden`: chưa chạy bước 6 (`bucket website --allow`).
+- `404 Not Found` / "no bucket for domain": chưa chạy bước 7 (`bucket alias`) hoặc Host Coolify gửi xuống Garage không khớp alias.
+- URL trả về có `localhost` / `garage` / `127.0.0.1`: `S3_PUBLIC_BASE_URL` chưa set hoặc backend log dòng "Garage credentials present but S3_PUBLIC_BASE_URL invalid" → fix env rồi redeploy.
 
 ### 7.2 Tạo trang Meilisearch index lần đầu
 
@@ -737,10 +790,23 @@ Meilisearch index trống. Gọi `POST /api/admin/search/reindex` để rebuild 
 Backend và container meilisearch dùng chung biến `MEILI_MASTER_KEY` (nạp qua `env_file`). Lỗi này nghĩa là biến bị bỏ trống hoặc 2 service nhận giá trị khác nhau — set **một** `MEILI_MASTER_KEY` trong Coolify, redeploy cả hai service.
 
 ### ❌ Upload ảnh trả URL `localhost` hoặc `/uploads/...`
-Garage chưa được bootstrap (chưa tạo bucket + key) hoặc env `S3_*` chưa set. Tạm thời file lưu local. Xem [Section 7.1](#71-bootstrap-garage-s3-compatible-storage).
+Garage chưa được bootstrap (chưa tạo bucket + key) hoặc env `S3_*` chưa set, **hoặc** `S3_PUBLIC_BASE_URL` không hợp lệ (rỗng / trỏ vào hostname internal). Backend giờ chủ động **disable Garage** trong trường hợp này — kiểm tra log lúc start tìm dòng `Garage credentials present but S3_PUBLIC_BASE_URL invalid` để biết chính xác. Fix env rồi redeploy. Xem [Section 7.1](#71-bootstrap-garage-s3-compatible-storage).
 
 ### ❌ Garage trả lỗi `bucket not found`
 Quên bước `garage bucket create web-truyen`. Vào container Garage chạy lại.
+
+### ❌ Mở URL ảnh Garage trên CDN bị `403 Forbidden`
+Chưa chạy `garage bucket website --allow web-truyen` (bước 6 ở Section 7.1). Garage không honor ACL `public-read` cấp object — quyền public set ở cấp bucket. Vào container Garage chạy lệnh đó rồi thử lại (không cần restart).
+
+### ❌ Mở URL ảnh CDN bị `404 Not Found` / "no bucket for this domain"
+Garage Web endpoint dispatch theo Host header — chưa khớp bucket. Nguyên nhân thường gặp:
+- Quên `garage bucket alias web-truyen cdn.yourdomain.com` (bước 7).
+- Coolify Domain trỏ vào port sai (phải là **3902**, không phải 3900).
+- Traefik / proxy rewrite Host header → set `traefik.http.middlewares.cdn-host.headers.customRequestHeaders.Host=cdn.yourdomain.com` hoặc tắt rewrite.
+Verify bằng `garage bucket info web-truyen` — phải thấy `Aliases: cdn.yourdomain.com`.
+
+### ❌ next/image không load ảnh CDN, console log "hostname not configured"
+Thiếu build arg `NEXT_PUBLIC_CDN_HOST` lúc build frontend. Set trong Coolify build env (service `frontend` → Build → Environment Variables) **rồi Redeploy** (Restart không đủ — biến `NEXT_PUBLIC_*` inline lúc build).
 
 ### ❌ VNPay redirect về trang lỗi "Invalid signature"
 - `VNPAY_HASH_SECRET` sai (copy thừa khoảng trắng / sai sandbox vs prod).
@@ -809,7 +875,10 @@ Chưa chạy seed → `coin_packages` rỗng. Coolify → backend Terminal: `npx
 - [ ] Redis healthy, log backend hiện "Email service ready"
 - [ ] Meilisearch healthy, đã chạy reindex ban đầu (`POST /admin/search/reindex`)
 - [ ] Garage bucket `web-truyen` tồn tại, có key với quyền read/write
-- [ ] `S3_PUBLIC_BASE_URL` accessible từ Internet (nếu khác CDN, có thể là `https://api.yourdomain.com/uploads` nếu chưa setup CDN domain)
+- [ ] Garage bucket đã bật website mode (`bucket website --allow`) + có alias domain (`bucket alias web-truyen cdn.yourdomain.com`)
+- [ ] Coolify Domain `cdn.yourdomain.com` → service `garage` port **3902**, HTTPS ✓
+- [ ] `S3_PUBLIC_BASE_URL=https://cdn.yourdomain.com` (KHÔNG kèm `/web-truyen`), `NEXT_PUBLIC_CDN_HOST=cdn.yourdomain.com`
+- [ ] `curl -I https://cdn.yourdomain.com/<folder>/<uuid>.jpg` trả `200 OK` (test với 1 ảnh đã upload)
 
 ### Tính năng
 - [ ] `/api/health` trả `200 ok`

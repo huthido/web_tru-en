@@ -1,10 +1,28 @@
 /** @type {import('next').NextConfig} */
+// PWA cache cho CDN Garage — bật khi NEXT_PUBLIC_CDN_HOST có giá trị.
+const pwaCdnHost = (process.env.NEXT_PUBLIC_CDN_HOST || '').trim();
+const cdnRuntimeCache = pwaCdnHost
+  ? [{
+      // Escape dot trong hostname để regex không match wildcard.
+      urlPattern: new RegExp(`^https://${pwaCdnHost.replace(/\./g, '\\.')}/.*`, 'i'),
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'cdn-images',
+        expiration: {
+          maxEntries: 200,
+          maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+        },
+      },
+    }]
+  : [];
+
 const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
   runtimeCaching: [
+    ...cdnRuntimeCache,
     {
       urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
       handler: 'CacheFirst',
@@ -82,6 +100,15 @@ try {
   // NEXT_PUBLIC_API_URL không hợp lệ -> bỏ qua, vẫn còn localhost bên dưới.
 }
 
+// Garage CDN: ảnh upload đẩy thẳng lên Garage trả URL có hostname của
+// S3_PUBLIC_BASE_URL (backend). Tách qua build arg NEXT_PUBLIC_CDN_HOST để
+// next/image whitelist được. Bỏ trống = không bật (chưa dùng Garage).
+const cdnImagePatterns = [];
+const cdnHost = (process.env.NEXT_PUBLIC_CDN_HOST || '').trim();
+if (cdnHost) {
+  cdnImagePatterns.push({ protocol: 'https', hostname: cdnHost });
+}
+
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone', // Produces a self-contained server in .next/standalone for Docker
@@ -122,6 +149,8 @@ const nextConfig = {
       },
       // Ảnh upload local do backend phục vụ (story-covers, avatar...).
       ...apiImagePatterns,
+      // Garage CDN public (cdn.yourdomain.com) — bật bằng NEXT_PUBLIC_CDN_HOST.
+      ...cdnImagePatterns,
       {
         protocol: 'http',
         hostname: 'localhost',
