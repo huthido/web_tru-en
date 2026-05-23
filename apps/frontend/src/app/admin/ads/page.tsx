@@ -913,7 +913,7 @@ function ViewAdModal({
                             )}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                     Tiêu đề
@@ -1043,7 +1043,7 @@ function ViewAdModal({
                             <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Thống kê
                             </label>
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div className="bg-surface-container-low p-3 rounded-lg">
                                     <div className="text-sm text-on-surface-variant">Lượt xem</div>
                                     <div className="text-2xl font-bold text-on-surface">
@@ -1447,7 +1447,7 @@ function AdFormModal({
                             </div>
                         )}
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                     Ngày bắt đầu (tùy chọn)

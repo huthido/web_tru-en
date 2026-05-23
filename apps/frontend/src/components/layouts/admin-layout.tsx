@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
@@ -16,7 +16,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     const pathname = usePathname();
     const { user } = useAuth();
     const { theme, toggleTheme } = useTheme();
+    // SSR-safe default = mở. Sau khi mount nếu màn hình hẹp hơn lg (1024px) thì
+    // tự đóng lại — tránh sidebar che hết nội dung trên mobile/tablet.
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            setIsSidebarOpen(false);
+        }
+    }, []);
 
     const menuItems = [
         {

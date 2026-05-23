@@ -247,7 +247,7 @@ export default function AdminApprovalsPage() {
 
                 {/* Filters */}
                 <div className="bg-surface-container rounded-lg p-4 shadow-sm">
-                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Tìm kiếm
@@ -716,7 +716,7 @@ export default function AdminApprovalsPage() {
                             </div>
 
                             <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                             Loại
@@ -815,7 +815,7 @@ export default function AdminApprovalsPage() {
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-on-surface-variant mb-1">
                                             Ngày tạo
