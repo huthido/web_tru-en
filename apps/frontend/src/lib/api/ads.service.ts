@@ -59,6 +59,24 @@ export interface CreateAdRequest {
 
 export interface UpdateAdRequest extends Partial<CreateAdRequest> { }
 
+export interface AdAnalytics {
+    ad: {
+        id: string;
+        title?: string | null;
+        type: AdType;
+        position: AdPosition;
+        campaign: { id: string; name: string } | null;
+    };
+    stats: {
+        totalImpressions: number;
+        totalClicks: number;
+        ctr: number;
+        deviceBreakdown: Array<{ device: string; count: number; percentage: number }>;
+    };
+    dailyData: Array<{ date: string; impressions: number; clicks: number; ctr: number }>;
+    hourlyData: Array<{ hour: number; impressions: number; clicks: number }>;
+}
+
 export const adsService = {
     /**
      * Get active ads for display (public)
@@ -164,6 +182,25 @@ export const adsService = {
      */
     trackClick: async (id: string): Promise<void> => {
         await apiClient.post(`/ads/${id}/click`);
+    },
+
+    /**
+     * Get analytics for one ad (admin only) — daily / hourly / device breakdown.
+     */
+    getAnalytics: async (
+        id: string,
+        dateRange?: { from: string; to: string },
+    ): Promise<AdAnalytics> => {
+        const params = new URLSearchParams();
+        if (dateRange?.from) params.append('from', dateRange.from);
+        if (dateRange?.to) params.append('to', dateRange.to);
+        const qs = params.toString();
+        const response = await apiClient.get<AdAnalytics | ApiResponse<AdAnalytics>>(
+            `/ads/${id}/analytics${qs ? `?${qs}` : ''}`,
+        );
+        const data = response.data as any;
+        if (data && data.stats) return data as AdAnalytics;
+        return (data as ApiResponse<AdAnalytics>).data as AdAnalytics;
     },
 
     /**

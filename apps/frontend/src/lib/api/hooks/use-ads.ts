@@ -96,6 +96,21 @@ export const useDeleteAd = () => {
 };
 
 /**
+ * Get analytics for one ad (admin only).
+ */
+export const useAdAnalytics = (
+  id: string,
+  dateRange?: { from: string; to: string },
+) => {
+  return useQuery({
+    queryKey: ['ad', id, 'analytics', dateRange],
+    queryFn: () => adsService.getAnalytics(id, dateRange),
+    enabled: !!id,
+    staleTime: 30 * 1000,
+  });
+};
+
+/**
  * Track ad view mutation (public)
  */
 export const useTrackAdView = () => {

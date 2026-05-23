@@ -15,7 +15,7 @@ import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { UserRole } from '@shared/types';
 import { Story } from '@/lib/api/stories.service';
 import { useToastContext } from '@/components/providers/toast-provider';
-import { BookOpen, Eye, Star, Edit, Trash2, Send, LayoutGrid, List } from 'lucide-react';
+import { BookOpen, Eye, Star, Edit, Trash2, Send, LayoutGrid, List, BarChart3 } from 'lucide-react';
 
 export default function AuthorDashboardPage() {
     const router = useRouter();
@@ -382,7 +382,7 @@ export default function AuthorDashboardPage() {
 
                                                     {/* Actions */}
                                                     <div className="flex flex-col gap-2">
-                                                        <div className="grid grid-cols-2 gap-2">
+                                                        <div className="grid grid-cols-3 gap-2">
                                                             <Link
                                                                 href={`/author/stories/${story.slug}/chapters`}
                                                                 className="px-3 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-xs font-medium transition-colors text-center flex items-center justify-center gap-1"
@@ -396,6 +396,14 @@ export default function AuthorDashboardPage() {
                                                             >
                                                                 <Edit className="w-4 h-4" />
                                                                 Sửa
+                                                            </Link>
+                                                            <Link
+                                                                href={`/author/stories/${story.id}/analytics`}
+                                                                className="px-3 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-xs font-medium transition-colors text-center flex items-center justify-center gap-1"
+                                                                title="Xem thống kê"
+                                                            >
+                                                                <BarChart3 className="w-4 h-4" />
+                                                                Stats
                                                             </Link>
                                                         </div>
                                                         {!story.isPublished && (
@@ -525,6 +533,13 @@ export default function AuthorDashboardPage() {
                                                             >
                                                                 <Edit className="w-4 h-4" />
                                                                 Chỉnh sửa
+                                                            </Link>
+                                                            <Link
+                                                                href={`/author/stories/${story.id}/analytics`}
+                                                                className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-xs font-medium transition-colors inline-flex items-center gap-1.5"
+                                                            >
+                                                                <BarChart3 className="w-4 h-4" />
+                                                                Thống kê
                                                             </Link>
                                                             {!story.isPublished && (
                                                                 <button

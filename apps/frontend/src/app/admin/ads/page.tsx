@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { isUsableImageSrc } from '@/utils/image-utils';
 import { Loading } from '@/components/ui/loading';
 import { useAds, useCreateAd, useUpdateAd, useDeleteAd } from '@/lib/api/hooks/use-ads';
@@ -506,6 +507,17 @@ export default function AdminAdsPage() {
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                         <div className="flex items-center justify-end gap-2">
+                                                            <Link
+                                                                href={`/admin/ads/${ad.id}/analytics`}
+                                                                className="text-primary hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                                                title="Xem thống kê"
+                                                            >
+                                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                    <line x1="18" y1="20" x2="18" y2="10" />
+                                                                    <line x1="12" y1="20" x2="12" y2="4" />
+                                                                    <line x1="6" y1="20" x2="6" y2="14" />
+                                                                </svg>
+                                                            </Link>
                                                             <button
                                                                 onClick={() => {
                                                                     setViewingAd(ad);
