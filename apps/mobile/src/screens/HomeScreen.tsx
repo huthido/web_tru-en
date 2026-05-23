@@ -18,6 +18,7 @@ import { useContinueReading } from '@/lib/hooks/library';
 import { ProgressBar, SectionHeader } from '@/components/ui';
 import { StoryCover } from '@/components/StoryCover';
 import { StoryRow } from '@/components/StoryRow';
+import { AdBanner } from '@/components/AdBanner';
 
 export const HomeScreen: React.FC = () => {
     const nav = useNavigation<RootNavigation>();
@@ -99,6 +100,8 @@ export const HomeScreen: React.FC = () => {
                 </View>
             ) : null}
 
+            <AdBanner position="TOP" />
+
             <StoryRow
                 title="Mới cập nhật"
                 stories={newest.data}
@@ -111,6 +114,9 @@ export const HomeScreen: React.FC = () => {
                 loading={recommended.isLoading}
                 onPressStory={openStory}
             />
+
+            <AdBanner position="INLINE" />
+
             <StoryRow
                 title="Hay nhất tháng"
                 stories={bestOfMonth.data}

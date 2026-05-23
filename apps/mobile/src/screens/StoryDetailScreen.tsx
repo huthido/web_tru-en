@@ -27,6 +27,7 @@ import { REPORT_REASONS, ReportsApi, type ReportReason } from '@/lib/api/reports
 import { UserBlocksApi } from '@/lib/api/user-blocks.service';
 import { EmptyView, ErrorView, Loading, Stars } from '@/components/ui';
 import { StoryCover } from '@/components/StoryCover';
+import { AdBanner } from '@/components/AdBanner';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'StoryDetail'>;
 
@@ -262,6 +263,8 @@ export const StoryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                     </View>
                 </View>
             ) : null}
+
+            <AdBanner position="INLINE" />
 
             <Text style={[styles.blockTitle, styles.chapterHeading]}>
                 Danh sách chương ({chapterList.length})
