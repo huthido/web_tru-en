@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Image, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -30,6 +30,20 @@ const TAB_ICONS: Record<keyof MainTabsParamList, { on: IoniconName; off: Ionicon
     Profile: { on: 'person', off: 'person-outline' },
 };
 
+/** Logo + wordmark "Yêu" hiển thị ở giữa header tab. */
+function BrandHeader() {
+    return (
+        <View style={styles.brandRow}>
+            <Image
+                source={require('../../assets/icon.png')}
+                style={styles.brandLogo}
+                resizeMode="contain"
+            />
+            <Text style={styles.brandText}>Yêu</Text>
+        </View>
+    );
+}
+
 function MainTabs() {
     return (
         <Tab.Navigator
@@ -37,6 +51,8 @@ function MainTabs() {
                 headerStyle: { backgroundColor: colors.primary },
                 headerTintColor: colors.white,
                 headerTitleStyle: { fontWeight: '700' },
+                headerTitleAlign: 'center',
+                headerTitle: () => <BrandHeader />,
                 tabBarActiveTintColor: colors.primary,
                 tabBarInactiveTintColor: colors.textMuted,
                 tabBarIcon: ({ color, size, focused }) => {
@@ -135,5 +151,21 @@ const styles = {
         justifyContent: 'center' as const,
         alignItems: 'center' as const,
         backgroundColor: colors.bg,
+    },
+    brandRow: {
+        flexDirection: 'row' as const,
+        alignItems: 'center' as const,
+        gap: 8,
+    },
+    brandLogo: {
+        width: 28,
+        height: 28,
+        borderRadius: 6,
+    },
+    brandText: {
+        color: colors.white,
+        fontSize: 20,
+        fontWeight: '800' as const,
+        letterSpacing: 0.5,
     },
 };
