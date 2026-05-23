@@ -24,7 +24,11 @@ import {
 } from '@/lib/hooks/wallet';
 import { EmptyView, ErrorView, Loading, SectionHeader } from '@/components/ui';
 import { PaymentsApi } from '@/lib/api/payments.service';
-import { finish as finishIap, purchase as runIapPurchase } from '@/lib/iap';
+import {
+    finish as finishIap,
+    purchase as runIapPurchase,
+    restorePurchases as runIapRestore,
+} from '@/lib/iap';
 
 /* ── transaction styling ─────────────────────────────────────────────── */
 
@@ -133,6 +137,56 @@ export const WalletScreen: React.FC = () => {
     const packages = useCoinPackages();
     const [refreshing, setRefreshing] = useState(false);
     const [buyingSku, setBuyingSku] = useState<string | null>(null);
+    const [restoring, setRestoring] = useState(false);
+
+    const onRestore = useCallback(async () => {
+        if (restoring) return;
+        setRestoring(true);
+        let credited = 0;
+        try {
+            const list = await runIapRestore();
+            for (const p of list) {
+                try {
+                    if (p.kind === 'apple') {
+                        await PaymentsApi.redeemAppleIap({
+                            productId: p.productId,
+                            transactionId: p.transactionId,
+                            receipt: p.receipt,
+                        });
+                    } else {
+                        await PaymentsApi.redeemGooglePlay({
+                            productId: p.productId,
+                            purchaseToken: p.purchaseToken,
+                        });
+                    }
+                    await finishIap(p);
+                    credited += 1;
+                } catch {
+                    // Đã redeem trước đó (idempotent) hoặc giao dịch bị reject —
+                    // bỏ qua từng item để không chặn cả batch.
+                }
+            }
+            await Promise.all([
+                qc.invalidateQueries({ queryKey: walletKeys.balance }),
+                qc.invalidateQueries({ queryKey: walletKeys.history }),
+            ]);
+            if (credited > 0) {
+                Alert.alert(
+                    'Đã khôi phục',
+                    `${credited} giao dịch đã được cộng xu lại vào ví.`,
+                );
+            } else {
+                Alert.alert(
+                    'Không có giao dịch nào',
+                    'Không tìm thấy giao dịch chưa được cộng xu. Nếu bạn vừa mua mà chưa thấy xu, vui lòng liên hệ hỗ trợ.',
+                );
+            }
+        } catch (e: any) {
+            Alert.alert('Khôi phục thất bại', describeError(e) || e?.message || String(e));
+        } finally {
+            setRestoring(false);
+        }
+    }, [restoring, qc]);
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
@@ -242,6 +296,18 @@ export const WalletScreen: React.FC = () => {
             {/* Coin packages */}
             <View style={styles.section}>
                 <SectionHeader title="Mua xu" />
+                {Platform.OS !== 'web' ? (
+                    <Pressable
+                        onPress={onRestore}
+                        disabled={restoring}
+                        style={[styles.restoreBtn, restoring && styles.restoreBtnBusy]}
+                    >
+                        <Ionicons name="refresh-outline" size={14} color={colors.primary} />
+                        <Text style={styles.restoreBtnText}>
+                            {restoring ? 'Đang khôi phục…' : 'Khôi phục giao dịch'}
+                        </Text>
+                    </Pressable>
+                ) : null}
                 {packages.isLoading ? (
                     <View style={styles.smallLoader}>
                         <Loading />
@@ -366,6 +432,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     pkgBtnDisabledText: { fontSize: fontSize.xs, color: colors.textMuted },
+    restoreBtn: {
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
+        marginHorizontal: spacing.lg,
+        marginBottom: spacing.sm,
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 4,
+    },
+    restoreBtnBusy: { opacity: 0.6 },
+    restoreBtnText: {
+        color: colors.primary,
+        fontSize: fontSize.xs,
+        fontWeight: '600',
+        textDecorationLine: 'underline',
+    },
     /* transactions */
     txList: {
         marginHorizontal: spacing.lg,

@@ -146,6 +146,33 @@ export async function finish(purchase: IapPurchase): Promise<void> {
   await iap.finishTransaction({ purchase: purchase.raw, isConsumable: true });
 }
 
+/**
+ * Lấy danh sách purchase chưa được finish / chưa redeem trên backend.
+ *
+ * - iOS: hỏi StoreKit về unfinished transactions (`getAvailablePurchases()`).
+ * - Android: trả về purchase đã thanh toán nhưng chưa consume.
+ *
+ * Caller nên POST từng purchase lên backend (`redeemAppleIap` /
+ * `redeemGooglePlay`) rồi gọi `finish(purchase)` để kết thúc.
+ *
+ * BẮT BUỘC theo Apple StoreKit — user thay máy / cài lại app phải có nút
+ * Restore để khôi phục giao dịch chưa được credit.
+ */
+export async function restorePurchases(): Promise<IapPurchase[]> {
+  await initIap();
+  const iap = loadModule();
+  const raws: any[] = (await iap.getAvailablePurchases()) ?? [];
+  const out: IapPurchase[] = [];
+  for (const raw of raws) {
+    try {
+      out.push(normalizePurchase(raw));
+    } catch {
+      // Bỏ qua purchase không parse được (tránh chặn cả batch).
+    }
+  }
+  return out;
+}
+
 function normalizePurchase(raw: any): IapPurchase {
   if (Platform.OS === 'ios') {
     const transactionId = raw.transactionId ?? raw.originalTransactionIdentifierIOS;

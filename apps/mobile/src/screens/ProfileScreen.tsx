@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Linking,
     Modal,
     Pressable,
     ScrollView,
@@ -22,6 +23,20 @@ const ROLE_LABEL: Record<string, string> = {
     AUTHOR: 'Tác giả',
     ADMIN: 'Quản trị viên',
 };
+
+const LEGAL_LINKS: Array<{ icon: keyof typeof Ionicons.glyphMap; label: string; url: string }> = [
+    { icon: 'shield-checkmark-outline', label: 'Chính sách bảo mật', url: 'https://yeuyeu.net/privacy' },
+    { icon: 'document-text-outline', label: 'Điều khoản sử dụng', url: 'https://yeuyeu.net/terms' },
+    { icon: 'mail-outline', label: 'Hỗ trợ & Phản ánh', url: 'https://yeuyeu.net/gop-y-phan-anh' },
+];
+
+async function openExternal(url: string) {
+    try {
+        await Linking.openURL(url);
+    } catch {
+        Alert.alert('Không mở được', 'Hãy kiểm tra kết nối mạng và thử lại.');
+    }
+}
 
 export const ProfileScreen: React.FC = () => {
     const { user, logout, deleteAccount } = useAuth();
@@ -106,6 +121,28 @@ export const ProfileScreen: React.FC = () => {
                     Thu nhập từ donate, bán chương, bán truyện VIP và rút xu.
                 </Text>
             </Pressable>
+
+            <View style={styles.sectionLabel}>
+                <Text style={styles.sectionLabelText}>THÔNG TIN & HỖ TRỢ</Text>
+            </View>
+
+            <View style={styles.legalGroup}>
+                {LEGAL_LINKS.map((item, idx) => (
+                    <Pressable
+                        key={item.url}
+                        style={[
+                            styles.legalRow,
+                            idx < LEGAL_LINKS.length - 1 && styles.legalRowDivider,
+                        ]}
+                        onPress={() => openExternal(item.url)}
+                    >
+                        <Ionicons name={item.icon} size={18} color={colors.primary} />
+                        <Text style={styles.legalText}>{item.label}</Text>
+                        <View style={{ flex: 1 }} />
+                        <Ionicons name="open-outline" size={16} color={colors.textMuted} />
+                    </Pressable>
+                ))}
+            </View>
 
             <Pressable style={styles.logout} onPress={logout}>
                 <Ionicons name="log-out-outline" size={18} color={colors.danger} />
@@ -227,6 +264,23 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         letterSpacing: 1,
     },
+    legalGroup: {
+        backgroundColor: colors.surface,
+        borderRadius: radius.lg,
+        overflow: 'hidden',
+    },
+    legalRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+    },
+    legalRowDivider: {
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+    },
+    legalText: { fontSize: fontSize.md, color: colors.text },
     logout: {
         flexDirection: 'row',
         alignSelf: 'center',
