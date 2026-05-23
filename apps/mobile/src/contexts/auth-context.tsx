@@ -9,6 +9,10 @@ interface AuthContextValue {
     isBooting: boolean;
     login: (emailOrUsername: string, password: string) => Promise<void>;
     signInWith: (provider: OAuthProvider) => Promise<void>;
+    signInWithApple: (input: {
+        identityToken: string;
+        fullName?: { givenName?: string | null; familyName?: string | null };
+    }) => Promise<void>;
     logout: () => Promise<void>;
     deleteAccount: (password?: string) => Promise<void>;
 }
@@ -64,6 +68,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(me);
     }, []);
 
+    const signInWithApple = useCallback(
+        async (input: { identityToken: string; fullName?: { givenName?: string | null; familyName?: string | null } }) => {
+            const u = await AuthApi.verifyApple(input);
+            setUser(u);
+        },
+        [],
+    );
+
     const logout = useCallback(async () => {
         await AuthApi.logout();
         setUser(null);
@@ -81,10 +93,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isBooting,
             login,
             signInWith,
+            signInWithApple,
             logout,
             deleteAccount,
         }),
-        [user, isBooting, login, signInWith, logout, deleteAccount],
+        [user, isBooting, login, signInWith, signInWithApple, logout, deleteAccount],
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

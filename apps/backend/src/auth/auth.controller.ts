@@ -25,6 +25,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateEmailDto } from './dto/update-email.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { AppleSignInDto } from './dto/apple-signin.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginThrottleGuard } from './guards/login-throttle.guard';
 import { Public } from './decorators/public.decorator';
@@ -113,6 +114,21 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 attempts per minute
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  /**
+   * Sign in with Apple (Apple §4.8). Mobile sends identityToken from
+   * expo-apple-authentication. Server verifies it against Apple's JWKS,
+   * then upserts the User and returns tokens via CookieInterceptor
+   * (cookies on web; body on X-Client-Type=mobile).
+   */
+  @Public()
+  @Post('apple/verify')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(CookieInterceptor)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  async appleVerify(@Body() dto: AppleSignInDto) {
+    return this.authService.verifyAppleSignIn(dto);
   }
 
   @Post('logout')

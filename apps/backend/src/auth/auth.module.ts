@@ -8,6 +8,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { FacebookStrategy } from './strategies/facebook.strategy';
+import { AppleSignInStrategy } from './strategies/apple.strategy';
 import { PrismaModule } from '../prisma/prisma.module';
 import { EmailModule } from '../email/email.module';
 
@@ -34,6 +35,7 @@ import { EmailModule } from '../email/email.module';
     LocalStrategy,
     GoogleStrategy,
     FacebookStrategy,
+    AppleSignInStrategy,
   ],
   exports: [AuthService, JwtModule],
 })

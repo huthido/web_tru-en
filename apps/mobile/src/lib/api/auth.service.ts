@@ -90,4 +90,20 @@ export const AuthApi = {
             confirmNewPassword,
         });
     },
+
+    /**
+     * Sign in with Apple — POST identityToken (from expo-apple-authentication)
+     * to backend. `fullName` is only provided by Apple on the first sign-in;
+     * forward it once so backend can capture displayName.
+     */
+    async verifyApple(input: {
+        identityToken: string;
+        fullName?: { givenName?: string | null; familyName?: string | null };
+    }): Promise<AuthUser> {
+        const res = await apiClient.post<LoginResponse>('/auth/apple/verify', input);
+        const data = (res.data.data ?? (res.data as any)) as LoginResponse;
+        if (!data?.accessToken) throw new Error('Apple sign-in returned no accessToken');
+        await tokenStorage.setPair(data.accessToken, data.refreshToken);
+        return data.user;
+    },
 };

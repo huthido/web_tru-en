@@ -11,6 +11,7 @@ import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
+import { AppleSignInStrategy } from './strategies/apple.strategy';
 import { Prisma } from '@prisma/client';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -25,7 +26,8 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
-    private emailService: EmailService
+    private emailService: EmailService,
+    private appleSignIn: AppleSignInStrategy
   ) { }
 
   async register(registerDto: RegisterDto): Promise<{
@@ -423,6 +425,50 @@ export class AuthService {
     const baseUsername = email.split('@')[0];
     const randomSuffix = Math.floor(Math.random() * 10000);
     return `${baseUsername}_${randomSuffix}`;
+  }
+
+  /**
+   * Sign in with Apple — verify the identityToken issued by Apple to the
+   * mobile app (expo-apple-authentication), then delegate to validateOAuthUser
+   * for the find-or-create + token generation. `fullName` is only delivered
+   * by Apple on the user's FIRST sign-in; mobile MUST persist it locally and
+   * forward it here so we capture displayName before Apple stops sending it.
+   */
+  async verifyAppleSignIn(input: {
+    identityToken: string;
+    fullName?: { givenName?: string; familyName?: string };
+  }): Promise<TokenResponseDto> {
+    const claims = await this.appleSignIn.verifyIdentityToken(input.identityToken);
+
+    // Email may be missing (Apple only sends on first auth; user may have
+    // re-installed). Synthesize a stable placeholder so validateOAuthUser
+    // can still upsert. Real email is captured the first time.
+    const email = claims.email || `apple-${claims.sub}@privaterelay.appleid.com`;
+    const displayName = [input.fullName?.givenName, input.fullName?.familyName]
+      .filter(Boolean)
+      .join(' ')
+      .trim() || undefined;
+
+    const { user } = await this.validateOAuthUser({
+      provider: 'apple',
+      providerId: claims.sub,
+      email,
+      displayName,
+    });
+
+    const tokens = await this.generateTokens(user, false);
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        displayName: user.displayName,
+        avatar: user.avatar,
+        role: user.role,
+      },
+    };
   }
 
   async updateEmail(userId: string, newEmail: string) {
