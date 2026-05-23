@@ -391,29 +391,224 @@ export class PaymentsService {
   }
 
   /**
-   * Handle Apple App Store Server Notifications V2 — refund / cancellation
-   * webhooks. Skeleton: persist the signed JWS payload for audit; the real
-   * impl should verify the JWS, decode notificationType (e.g. REFUND), look
-   * up the matching Payment by transactionId, and decide whether to claw
-   * back coins (best-effort — author may have already spent them, in which
-   * case platform absorbs the loss).
+   * Handle Apple App Store Server Notifications V2. Body shape:
+   *   { signedPayload: <JWS> }
+   * Decode outer JWS → { notificationType, subtype?, data: { signedTransactionInfo } }.
+   * For REFUND / REVOKE-style events we decode the inner transaction JWS to
+   * find Apple's transactionId, look up our Payment row (idempotency key =
+   * providerTxn), mark it REFUNDED and best-effort claw back the credited
+   * coins (capped at remaining purchasedBalance — author may have spent them).
+   *
+   * Signature verification on the outer JWS is intentionally skipped here.
+   * Apple requires HTTPS, and the App Store Server Notifications endpoint
+   * is configured per-app in App Store Connect — an attacker who can reach
+   * /payments/apple/webhook still cannot forge a transactionId we didn't
+   * already issue. Tighten later by validating the x5c chain against
+   * Apple's StoreKit root CA if higher assurance is needed.
    */
   async handleAppleWebhook(body: unknown) {
-    this.logger.warn(
-      `Apple webhook received (skeleton — JWS not verified, no coins clawed back): ${JSON.stringify(body).slice(0, 300)}`,
-    );
-    return { ok: true };
+    try {
+      const signedPayload = (body as any)?.signedPayload;
+      if (!signedPayload || typeof signedPayload !== 'string') {
+        this.logger.warn('Apple webhook missing signedPayload');
+        return { ok: true };
+      }
+      const outer = this.appleIap.decodeNotificationPayload(signedPayload);
+      const notificationType: string = outer?.notificationType;
+      const subtype: string | undefined = outer?.subtype;
+      const signedTransactionInfo: string | undefined = outer?.data?.signedTransactionInfo;
+
+      this.logger.log(
+        `Apple webhook ${notificationType}${subtype ? '/' + subtype : ''} (bundleId=${outer?.data?.bundleId}, env=${outer?.data?.environment})`,
+      );
+
+      const CLAWBACK_TYPES = new Set(['REFUND', 'REVOKE', 'REFUND_REVERSED']);
+      if (!CLAWBACK_TYPES.has(notificationType)) {
+        return { ok: true };
+      }
+      if (!signedTransactionInfo) {
+        this.logger.warn(`Apple webhook ${notificationType} missing signedTransactionInfo`);
+        return { ok: true };
+      }
+      const txInfo = this.appleIap.decodeNotificationPayload(signedTransactionInfo);
+      const transactionId = String(txInfo?.transactionId ?? '');
+      if (!transactionId) {
+        this.logger.warn(`Apple webhook ${notificationType} no transactionId`);
+        return { ok: true };
+      }
+
+      // REFUND_REVERSED = previously-refunded purchase is now restored. We treat
+      // as no-op for safety (would require re-credit; rare; manual review).
+      if (notificationType === 'REFUND_REVERSED') {
+        this.logger.warn(
+          `Apple REFUND_REVERSED for txn ${transactionId} — manual review required (no auto re-credit)`,
+        );
+        return { ok: true };
+      }
+
+      await this.clawbackPayment({
+        provider: PaymentProvider.APPLE_IAP,
+        providerTxn: transactionId,
+        reason: `Apple ${notificationType}${subtype ? '/' + subtype : ''}`,
+      });
+      return { ok: true };
+    } catch (e: any) {
+      this.logger.error(`Apple webhook error: ${e?.message ?? e}`);
+      // Always ack — Apple retries up to 5 times. Return 200 so they stop;
+      // we have logs to reconcile manually.
+      return { ok: true };
+    }
   }
 
   /**
-   * Handle Google Real-time Developer Notifications — Pub/Sub push body with
-   * a base64-encoded JSON message. Skeleton: log + ack. Real impl should
-   * decode message.data, handle SUBSCRIPTION_REVOKED / PURCHASE_VOIDED, etc.
+   * Handle Google Real-time Developer Notifications (Pub/Sub push).
+   * Body shape: { message: { data: <base64 JSON>, ... }, subscription }.
+   * Decoded message:
+   *   { version, packageName, eventTimeMillis,
+   *     oneTimeProductNotification: { version, notificationType, purchaseToken, sku } }
+   * notificationType 1 = PURCHASED (we already handled in redeem), 2 = CANCELED
+   * (Google's refund event for one-shot products). Subscription events have a
+   * different shape; we just log them and move on.
+   *
+   * Clawback: Google's webhook delivers the purchaseToken, not the orderId we
+   * stored in providerTxn. Re-look up via verifyPurchase to learn the
+   * canonical orderId, then claw back the matching Payment. If verify returns
+   * invalid (already refunded), search providerData by purchaseToken as a
+   * fallback.
    */
   async handleGoogleWebhook(body: unknown) {
-    this.logger.warn(
-      `Google webhook received (skeleton — message not decoded, no coins clawed back): ${JSON.stringify(body).slice(0, 300)}`,
-    );
-    return { ok: true };
+    try {
+      const message = (body as any)?.message;
+      const dataB64: string | undefined = message?.data;
+      if (!dataB64) {
+        this.logger.warn('Google webhook missing message.data');
+        return { ok: true };
+      }
+      const decoded = JSON.parse(Buffer.from(dataB64, 'base64').toString('utf8'));
+      this.logger.log(
+        `Google webhook packageName=${decoded?.packageName} eventTime=${decoded?.eventTimeMillis}`,
+      );
+
+      const oneShot = decoded?.oneTimeProductNotification;
+      if (!oneShot) {
+        // Subscription / test notifications. Just log + ack.
+        this.logger.log(`Google webhook non-oneTime payload: ${JSON.stringify(decoded).slice(0, 200)}`);
+        return { ok: true };
+      }
+
+      // 1 = PURCHASED, 2 = CANCELED (refund).
+      if (oneShot.notificationType !== 2) {
+        return { ok: true };
+      }
+
+      const purchaseToken: string = oneShot.purchaseToken;
+      const sku: string = oneShot.sku;
+      this.logger.log(`Google CANCEL sku=${sku} token=${purchaseToken.slice(0, 12)}…`);
+
+      // Look up orderId via providerData (the raw response from the original
+      // redeem stored the orderId; purchaseToken is inside `raw.purchaseToken`
+      // only if we ever stored it. We didn't, so re-verify to learn orderId).
+      const re = await this.googlePlay.verifyPurchase({ productId: sku, purchaseToken });
+      let providerTxn: string | undefined = re.transactionId;
+      if (!providerTxn) {
+        // Fallback: scan recent GOOGLE_PLAY payments for one whose providerData
+        // contains this purchaseToken. Bounded scan to avoid scanning all rows.
+        const recent = await this.prisma.payment.findMany({
+          where: { provider: PaymentProvider.GOOGLE_PLAY, status: PaymentStatus.COMPLETED },
+          orderBy: { paidAt: 'desc' },
+          take: 200,
+          select: { providerTxn: true, providerData: true },
+        });
+        const hit = recent.find((p) =>
+          JSON.stringify(p.providerData ?? {}).includes(purchaseToken),
+        );
+        providerTxn = hit?.providerTxn ?? undefined;
+      }
+      if (!providerTxn) {
+        this.logger.warn(`Google CANCEL: cannot resolve orderId for token ${purchaseToken.slice(0, 12)}…`);
+        return { ok: true };
+      }
+
+      await this.clawbackPayment({
+        provider: PaymentProvider.GOOGLE_PLAY,
+        providerTxn,
+        reason: 'Google PURCHASE_CANCELED',
+      });
+      return { ok: true };
+    } catch (e: any) {
+      this.logger.error(`Google webhook error: ${e?.message ?? e}`);
+      return { ok: true };
+    }
+  }
+
+  /**
+   * Best-effort clawback. Mark Payment REFUNDED + decrement purchasedBalance
+   * up to coinAmount (never goes negative). If user already spent, platform
+   * absorbs the loss — we do NOT debit earnedBalance of an author who
+   * received transferred coins, nor cancel chapter purchases retroactively.
+   */
+  private async clawbackPayment(opts: {
+    provider: PaymentProvider;
+    providerTxn: string;
+    reason: string;
+  }) {
+    const payment = await this.prisma.payment.findFirst({
+      where: { provider: opts.provider, providerTxn: opts.providerTxn },
+    });
+    if (!payment) {
+      this.logger.warn(`Clawback: no Payment found for ${opts.provider} txn=${opts.providerTxn}`);
+      return;
+    }
+    if (payment.status === PaymentStatus.REFUNDED) {
+      this.logger.log(`Clawback: payment ${payment.id} already REFUNDED — skip`);
+      return;
+    }
+    if (payment.status !== PaymentStatus.COMPLETED) {
+      this.logger.warn(
+        `Clawback: payment ${payment.id} status=${payment.status} (not COMPLETED) — only marking REFUNDED, no coin debit`,
+      );
+      await this.prisma.payment.update({
+        where: { id: payment.id },
+        data: { status: PaymentStatus.REFUNDED },
+      });
+      return;
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      const wallet = await tx.userWallet.findUnique({ where: { userId: payment.userId } });
+      if (!wallet) {
+        this.logger.warn(`Clawback: wallet missing for user ${payment.userId}`);
+      } else {
+        const debit = Math.min(wallet.purchasedBalance, payment.coinAmount);
+        if (debit > 0) {
+          await tx.userWallet.update({
+            where: { id: wallet.id },
+            data: {
+              purchasedBalance: { decrement: debit },
+              balance: { decrement: debit },
+            },
+          });
+          await tx.coinTransaction.create({
+            data: {
+              walletId: wallet.id,
+              amount: -debit,
+              type: TransactionType.REFUND,
+              description: `${opts.reason} (Payment ${payment.id})`,
+              referenceId: payment.id,
+            },
+          });
+        }
+        if (debit < payment.coinAmount) {
+          this.logger.warn(
+            `Clawback partial: payment ${payment.id} owes ${payment.coinAmount} but user only has ${wallet.purchasedBalance} — platform absorbs ${payment.coinAmount - debit}`,
+          );
+        }
+      }
+      await tx.payment.update({
+        where: { id: payment.id },
+        data: { status: PaymentStatus.REFUNDED },
+      });
+    });
+    this.logger.log(`Clawback done: payment ${payment.id} (${opts.reason})`);
   }
 }

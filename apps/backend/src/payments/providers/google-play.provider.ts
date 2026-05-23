@@ -1,22 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { google, androidpublisher_v3 } from 'googleapis';
 
-/**
- * Verification result for a Google Play Billing purchase. Same shape pattern
- * as AppleIapVerifyResult so the service layer treats both providers
- * identically.
- */
 export interface GooglePlayVerifyResult {
     valid: boolean;
-    /** SKU on Google Play Console. Maps to CoinPackage.googleProductId. */
     productId?: string;
-    /** orderId from Google Play. UNIQUE per purchase. Used for idempotency. */
     transactionId?: string;
-    /** purchaseState 0=PURCHASED, 1=CANCELED, 2=PENDING. We only credit on 0. */
     purchaseState?: number;
-    /** Raw response from androidpublisher.purchases.products.get for audit. */
     raw?: unknown;
-    /** Human-readable reason when valid=false. */
     error?: string;
 }
 
@@ -24,32 +15,46 @@ export interface GooglePlayVerifyResult {
 export class GooglePlayProvider {
     private readonly logger = new Logger(GooglePlayProvider.name);
     private readonly packageName: string;
-    private readonly serviceAccountJson: string;
+    private readonly serviceAccountRaw: string;
+    private cachedClient: androidpublisher_v3.Androidpublisher | null = null;
 
     constructor(private config: ConfigService) {
         this.packageName = this.config.get<string>('GOOGLE_PLAY_PACKAGE_NAME') || '';
-        // Service account JSON inline (base64 or stringified). Alternatively
-        // GOOGLE_APPLICATION_CREDENTIALS could be a path; the real impl
-        // should support both.
-        this.serviceAccountJson = this.config.get<string>('GOOGLE_PLAY_SERVICE_ACCOUNT_JSON') || '';
+        this.serviceAccountRaw = this.config.get<string>('GOOGLE_PLAY_SERVICE_ACCOUNT_JSON') || '';
     }
 
     isConfigured(): boolean {
-        return !!(this.packageName && this.serviceAccountJson);
+        return !!(this.packageName && this.serviceAccountRaw);
+    }
+
+    private getClient(): androidpublisher_v3.Androidpublisher {
+        if (this.cachedClient) return this.cachedClient;
+        let creds: { client_email: string; private_key: string };
+        try {
+            // Try inline JSON first, fall back to base64-decoded JSON.
+            try {
+                creds = JSON.parse(this.serviceAccountRaw);
+            } catch {
+                const decoded = Buffer.from(this.serviceAccountRaw, 'base64').toString('utf8');
+                creds = JSON.parse(decoded);
+            }
+        } catch (e: any) {
+            throw new Error(`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON parse error: ${e?.message}`);
+        }
+        const auth = new google.auth.GoogleAuth({
+            credentials: {
+                client_email: creds.client_email,
+                private_key: creds.private_key.replace(/\\n/g, '\n'),
+            },
+            scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+        });
+        this.cachedClient = google.androidpublisher({ version: 'v3', auth });
+        return this.cachedClient;
     }
 
     /**
-     * Verify a one-shot purchase by calling Google's Android Publisher API
-     *   GET https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{purchaseToken}
-     * with an OAuth2 bearer from the service account
-     * (scope: https://www.googleapis.com/auth/androidpublisher).
-     *
-     * The response includes `purchaseState`, `consumptionState`, `orderId`,
-     * `purchaseTimeMillis`, `acknowledgementState`. We must also POST to the
-     *   :acknowledge endpoint within 3 days or Google auto-refunds.
-     *
-     * Wire it once a service account + Play Console linkage exists. The
-     * downstream service is already idempotent on orderId.
+     * Verify a one-shot consumable purchase via Android Publisher API and
+     * acknowledge it (Google auto-refunds if not acknowledged within 72h).
      */
     async verifyPurchase(input: {
         productId: string;
@@ -59,24 +64,55 @@ export class GooglePlayProvider {
             this.logger.warn('Google Play verifyPurchase called but provider is not configured');
             return {
                 valid: false,
-                error: 'Google Play integration is not configured on this server. Set GOOGLE_PLAY_PACKAGE_NAME and GOOGLE_PLAY_SERVICE_ACCOUNT_JSON.',
+                error: 'Google Play integration is not configured. Set GOOGLE_PLAY_PACKAGE_NAME and GOOGLE_PLAY_SERVICE_ACCOUNT_JSON.',
             };
         }
 
-        // TODO(real-impl):
-        //   1. Use googleapis or a JWT signer to mint a bearer for
-        //      scope https://www.googleapis.com/auth/androidpublisher.
-        //   2. GET .../purchases/products/{productId}/tokens/{purchaseToken}.
-        //   3. Verify purchaseState === 0 (PURCHASED).
-        //   4. POST .../acknowledge with empty body — required within 72h.
-        //   5. Return { valid: true, productId, transactionId: orderId, raw }.
-        this.logger.warn(
-            `Google Play verify stub returning invalid (productId=${input.productId} token=${input.purchaseToken.slice(0, 8)}…) — real impl pending`,
-        );
-        return {
-            valid: false,
-            productId: input.productId,
-            error: 'Google Play verification not yet implemented (skeleton). Replace GooglePlayProvider.verifyPurchase to enable.',
-        };
+        try {
+            const client = this.getClient();
+            const lookup = await client.purchases.products.get({
+                packageName: this.packageName,
+                productId: input.productId,
+                token: input.purchaseToken,
+            });
+            const data = lookup.data;
+
+            if (data.purchaseState !== 0) {
+                return {
+                    valid: false,
+                    productId: input.productId,
+                    purchaseState: data.purchaseState ?? undefined,
+                    raw: data,
+                    error: `purchaseState=${data.purchaseState} (0=PURCHASED, 1=CANCELED, 2=PENDING)`,
+                };
+            }
+            if (!data.orderId) {
+                return { valid: false, error: 'Google response missing orderId', raw: data };
+            }
+
+            // Acknowledge if not already (best-effort — never throw on this).
+            if (data.acknowledgementState === 0) {
+                try {
+                    await client.purchases.products.acknowledge({
+                        packageName: this.packageName,
+                        productId: input.productId,
+                        token: input.purchaseToken,
+                    });
+                } catch (e: any) {
+                    this.logger.warn(`Google acknowledge failed (non-fatal): ${e?.message}`);
+                }
+            }
+
+            return {
+                valid: true,
+                productId: input.productId,
+                transactionId: data.orderId,
+                purchaseState: 0,
+                raw: data,
+            };
+        } catch (e: any) {
+            this.logger.error(`Google verify exception: ${e?.message ?? e}`);
+            return { valid: false, error: `Google verify exception: ${e?.message ?? e}` };
+        }
     }
 }

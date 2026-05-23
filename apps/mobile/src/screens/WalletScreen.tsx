@@ -1,6 +1,9 @@
 import React, { useCallback, useState } from 'react';
 import {
+    Alert,
     FlatList,
+    Platform,
+    Pressable,
     RefreshControl,
     ScrollView,
     StyleSheet,
@@ -20,6 +23,8 @@ import {
     walletKeys,
 } from '@/lib/hooks/wallet';
 import { EmptyView, ErrorView, Loading, SectionHeader } from '@/components/ui';
+import { PaymentsApi } from '@/lib/api/payments.service';
+import { finish as finishIap, purchase as runIapPurchase } from '@/lib/iap';
 
 /* ── transaction styling ─────────────────────────────────────────────── */
 
@@ -71,8 +76,25 @@ function TransactionRow({ tx }: { tx: CoinTransaction }) {
 
 /* ── coin package card ──────────────────────────────────────────────── */
 
-function PackageCard({ pkg }: { pkg: CoinPackage }) {
-    const onMobile = !!(pkg.appleProductId || pkg.googleProductId);
+function pickSku(pkg: CoinPackage): string | null {
+    if (Platform.OS === 'ios') return pkg.appleProductId ?? null;
+    if (Platform.OS === 'android') return pkg.googleProductId ?? null;
+    return null;
+}
+
+function PackageCard({
+    pkg,
+    onBuy,
+    busySku,
+}: {
+    pkg: CoinPackage;
+    onBuy: (pkg: CoinPackage, sku: string) => void;
+    busySku: string | null;
+}) {
+    const sku = pickSku(pkg);
+    const onMobile = !!sku;
+    const busy = !!sku && busySku === sku;
+
     return (
         <View style={styles.pkgCard}>
             <View style={styles.pkgCoinRow}>
@@ -81,11 +103,23 @@ function PackageCard({ pkg }: { pkg: CoinPackage }) {
             </View>
             <Text style={styles.pkgName}>{pkg.name}</Text>
             <Text style={styles.pkgPrice}>{formatNumber(pkg.priceVND)} đ</Text>
-            <View style={styles.pkgBtnDisabled}>
-                <Text style={styles.pkgBtnDisabledText}>
-                    {onMobile ? 'Sắp mở (Phase 3c)' : 'Chỉ bán trên web'}
-                </Text>
-            </View>
+            {onMobile ? (
+                <Pressable
+                    disabled={busy || !!busySku}
+                    onPress={() => sku && onBuy(pkg, sku)}
+                    style={({ pressed }) => [
+                        styles.pkgBtn,
+                        (busy || !!busySku) && styles.pkgBtnBusy,
+                        pressed && styles.pkgBtnPressed,
+                    ]}
+                >
+                    <Text style={styles.pkgBtnText}>{busy ? 'Đang xử lý…' : 'Mua xu'}</Text>
+                </Pressable>
+            ) : (
+                <View style={styles.pkgBtnDisabled}>
+                    <Text style={styles.pkgBtnDisabledText}>Chỉ bán trên web</Text>
+                </View>
+            )}
         </View>
     );
 }
@@ -98,6 +132,7 @@ export const WalletScreen: React.FC = () => {
     const history = useWalletHistory();
     const packages = useCoinPackages();
     const [refreshing, setRefreshing] = useState(false);
+    const [buyingSku, setBuyingSku] = useState<string | null>(null);
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
@@ -108,6 +143,39 @@ export const WalletScreen: React.FC = () => {
         ]);
         setRefreshing(false);
     }, [qc]);
+
+    const onBuy = useCallback(
+        async (_pkg: CoinPackage, sku: string) => {
+            if (buyingSku) return;
+            setBuyingSku(sku);
+            try {
+                const p = await runIapPurchase(sku);
+                if (p.kind === 'apple') {
+                    await PaymentsApi.redeemAppleIap({
+                        productId: p.productId,
+                        transactionId: p.transactionId,
+                        receipt: p.receipt,
+                    });
+                } else {
+                    await PaymentsApi.redeemGooglePlay({
+                        productId: p.productId,
+                        purchaseToken: p.purchaseToken,
+                    });
+                }
+                await finishIap(p);
+                await Promise.all([
+                    qc.invalidateQueries({ queryKey: walletKeys.balance }),
+                    qc.invalidateQueries({ queryKey: walletKeys.history }),
+                ]);
+                Alert.alert('Thành công', 'Xu đã được cộng vào ví.');
+            } catch (e: any) {
+                Alert.alert('Mua xu thất bại', describeError(e) || e?.message || String(e));
+            } finally {
+                setBuyingSku(null);
+            }
+        },
+        [buyingSku, qc],
+    );
 
     if (balance.isLoading) return <Loading />;
     if (balance.isError || !balance.data) {
@@ -192,7 +260,9 @@ export const WalletScreen: React.FC = () => {
                         keyExtractor={(p) => p.id}
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.pkgList}
-                        renderItem={({ item }) => <PackageCard pkg={item} />}
+                        renderItem={({ item }) => (
+                            <PackageCard pkg={item} onBuy={onBuy} busySku={buyingSku} />
+                        )}
                     />
                 )}
             </View>
@@ -278,6 +348,16 @@ const styles = StyleSheet.create({
     pkgCoinAmount: { fontSize: fontSize.xl, fontWeight: '700', color: colors.text },
     pkgName: { fontSize: fontSize.sm, fontWeight: '600', color: colors.text },
     pkgPrice: { fontSize: fontSize.sm, color: colors.primary, fontWeight: '700' },
+    pkgBtn: {
+        marginTop: spacing.sm,
+        paddingVertical: spacing.sm,
+        borderRadius: radius.pill,
+        backgroundColor: colors.primary,
+        alignItems: 'center',
+    },
+    pkgBtnPressed: { opacity: 0.85 },
+    pkgBtnBusy: { backgroundColor: colors.textMuted },
+    pkgBtnText: { fontSize: fontSize.xs, color: '#fff', fontWeight: '700' },
     pkgBtnDisabled: {
         marginTop: spacing.sm,
         paddingVertical: spacing.sm,
