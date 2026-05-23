@@ -25,6 +25,7 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ReadingHistoryService } from '../reading-history/reading-history.service';
 import { UserRole } from '@prisma/client';
 import { memoryStorage } from 'multer';
+import { ImageValidationPipe } from '../common/pipes/image-validation.pipe';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -76,12 +77,9 @@ export class UsersController {
   )
   async uploadAvatar(
     @CurrentUser() user: any,
-    @UploadedFile() file: Express.Multer.File | undefined
+    @UploadedFile(new ImageValidationPipe({ maxSizeBytes: 1 * 1024 * 1024, maxWidth: 800 }))
+    file: Express.Multer.File
   ) {
-    if (!file) {
-      throw new Error('No file uploaded');
-    }
-
     const imageUrl = await this.cloudinaryService.uploadImage(file, 'avatars');
     await this.usersService.updateProfile(user.id, { avatar: imageUrl });
 

@@ -7,6 +7,7 @@ import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
 import { useAuth } from '@/contexts/auth-context';
 import { usersService } from '@/lib/api/users.service';
+import { compressImage } from '@/lib/utils/compress-image';
 import { authService } from '@/lib/api/auth.service';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -226,10 +227,16 @@ function ProfileContent() {
     }
 
     setErrors({ avatar: '' });
-    setSuccessMessage('Đang tải ảnh lên Cloudinary...');
+    setSuccessMessage('Đang xử lý ảnh...');
 
     try {
-      const response = await usersService.uploadAvatar(file);
+      const compressed = await compressImage(file, {
+        maxWidth: 512,
+        maxHeight: 512,
+        quality: 0.85,
+      });
+      setSuccessMessage('Đang tải ảnh lên...');
+      const response = await usersService.uploadAvatar(compressed);
       const avatarUrl = response?.data?.avatar || (response as any)?.avatar;
 
       if (avatarUrl) {

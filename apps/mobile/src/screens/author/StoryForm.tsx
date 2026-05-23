@@ -19,6 +19,11 @@ import { StoriesApi, type CreateStoryInput } from '@/lib/api/stories.service';
 import type { StoryAccessType } from '@/lib/api/types';
 import { describeError } from '@/lib/error';
 import { resolveImageUrl } from '@/lib/url';
+import {
+    COVER_NORMALIZE,
+    MAX_UPLOAD_BYTES,
+    normalizeImage,
+} from '@/lib/image/normalize';
 
 const ACCESS_OPTIONS: Array<{ value: StoryAccessType; label: string; desc: string }> = [
     { value: 'FREE', label: 'Miễn phí', desc: 'Mọi người đọc miễn phí' },
@@ -88,15 +93,23 @@ export function StoryForm({ initialValues, submitLabel, onSubmit }: StoryFormPro
                 mediaTypes: ImagePicker.MediaTypeOptions.Images,
                 allowsEditing: true,
                 aspect: [3, 4],
-                quality: 0.85,
+                quality: 1,
             });
             if (result.canceled || !result.assets[0]) return;
             const asset = result.assets[0];
             setUploading(true);
+            const normalized = await normalizeImage(asset.uri, COVER_NORMALIZE);
+            if (normalized.sizeBytes && normalized.sizeBytes > MAX_UPLOAD_BYTES) {
+                Alert.alert(
+                    'Ảnh quá lớn',
+                    'Sau khi nén ảnh vẫn vượt 2MB. Vui lòng chọn ảnh khác.',
+                );
+                return;
+            }
             const { coverImage: url } = await StoriesApi.uploadCover({
-                uri: asset.uri,
+                uri: normalized.uri,
                 name: asset.fileName ?? 'cover.jpg',
-                type: asset.mimeType ?? 'image/jpeg',
+                type: 'image/jpeg',
             });
             setCoverImage(url);
         } catch (err) {

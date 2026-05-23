@@ -25,6 +25,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserRole } from '@prisma/client';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { ImageValidationPipe } from '../common/pipes/image-validation.pipe';
 
 @Controller('stories/:storySlug/chapters')
 export class ChaptersController {
@@ -177,13 +178,10 @@ export class ChapterUploadController {
         })
     )
     async uploadImage(
-        @UploadedFile() file: Express.Multer.File | undefined,
+        @UploadedFile(new ImageValidationPipe({ maxSizeBytes: 2 * 1024 * 1024, maxWidth: 1600 }))
+        file: Express.Multer.File,
         @CurrentUser() user: any,
     ) {
-        if (!file) {
-            throw new Error('No file uploaded');
-        }
-
         const imageUrl = await this.cloudinaryService.uploadImage(file, 'chapter-images', user.id);
 
         return {

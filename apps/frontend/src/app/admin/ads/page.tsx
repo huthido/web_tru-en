@@ -10,6 +10,7 @@ import { AdType, AdPosition, Ad } from '@/lib/api/ads.service';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { useToast, ToastContainer } from '@/components/ui/toast';
+import { compressImage } from '@/lib/utils/compress-image';
 import * as XLSX from 'xlsx';
 
 export default function AdminAdsPage() {
@@ -1168,8 +1169,13 @@ function AdFormModal({
 
         setIsUploading(true);
         try {
+            const compressed = await compressImage(uploadedFile, {
+                maxWidth: 1600,
+                maxHeight: 1200,
+                quality: 0.85,
+            });
             const { adsService } = await import('@/lib/api/ads.service');
-            const response = await adsService.uploadImage(uploadedFile);
+            const response = await adsService.uploadImage(compressed);
             if (response.data?.imageUrl) {
                 setFormData({ ...formData, imageUrl: response.data.imageUrl });
                 setPreviewUrl(response.data.imageUrl);
