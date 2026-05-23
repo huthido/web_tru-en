@@ -66,6 +66,14 @@ const config = {
         paymentProvider: 'Play Store',
       },
     ],
+    // Image picker — tác giả chọn ảnh bìa truyện từ thư viện.
+    [
+      'expo-image-picker',
+      {
+        photosPermission:
+          'App YÊU cần truy cập thư viện ảnh để bạn chọn ảnh bìa cho truyện của mình.',
+      },
+    ],
   ],
 };
 
