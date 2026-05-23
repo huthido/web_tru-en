@@ -219,6 +219,12 @@ export class AuthService {
       );
     }
 
+    // Soft-deleted accounts (Apple §5.1.1(v) self-delete) — reject explicitly
+    // trước check isActive để báo lỗi rõ hơn.
+    if ((user as any).deletedAt) {
+      throw new UnauthorizedException('Tài khoản này đã bị xoá. Vui lòng đăng ký tài khoản mới.');
+    }
+
     // 🔥 CHECK: Account must be active
     if (!user.isActive) {
       throw new UnauthorizedException('Tài khoản đã bị khóa hoặc chưa được kích hoạt');

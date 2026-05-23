@@ -1,9 +1,84 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(private prisma: PrismaService) { }
+
+  /**
+   * Self-delete tài khoản (Apple §5.1.1(v)). Soft delete + anonymise PII:
+   * email / username đổi sang placeholder unique theo id, displayName/avatar/
+   * bio/password/oauth fields nullified, isActive=false, deletedAt=now().
+   * Refresh tokens và session-y data bị xoá; truyện / comment vẫn còn để giữ
+   * tính toàn vẹn dữ liệu (authorId không đổi, chỉ tên hiển thị mất).
+   */
+  async deleteMyAccount(userId: string, password?: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, password: true, deletedAt: true },
+    });
+    if (!user) throw new NotFoundException('User không tồn tại');
+    if (user.deletedAt) {
+      throw new BadRequestException('Tài khoản đã bị xoá trước đó');
+    }
+
+    // Nếu user có mật khẩu (đăng nhập local), bắt buộc xác nhận để tránh
+    // device chiếm quyền thao tác xoá nhầm. OAuth-only thì JWT là đủ chứng cứ.
+    if (user.password) {
+      if (!password) {
+        throw new BadRequestException('Vui lòng nhập mật khẩu để xác nhận');
+      }
+      const ok = await bcrypt.compare(password, user.password);
+      if (!ok) {
+        throw new UnauthorizedException('Mật khẩu không đúng');
+      }
+    }
+
+    const placeholderEmail = `deleted-${userId}@deleted.local`;
+    const placeholderUsername = `deleted_${userId}`;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          email: placeholderEmail,
+          username: placeholderUsername,
+          displayName: null,
+          avatar: null,
+          bio: null,
+          password: null,
+          provider: null,
+          providerId: null,
+          isActive: false,
+          deletedAt: new Date(),
+        },
+      });
+      // Xoá refresh tokens — buộc logout mọi thiết bị.
+      await (tx as any).refreshToken.deleteMany({ where: { userId } });
+      // Khoá ví — không cho chi tiêu sau khi xoá; số dư earn còn lại cần
+      // được admin xử lý (rút thay hoặc thu hồi tuỳ chính sách).
+      try {
+        await tx.userWallet.updateMany({
+          where: { userId },
+          data: { isLocked: true },
+        });
+      } catch (err) {
+        this.logger.warn(`Không lock được ví khi xoá user ${userId}: ${err}`);
+      }
+    });
+
+    this.logger.log(`User ${userId} self-deleted (soft delete + anonymise)`);
+  }
 
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({

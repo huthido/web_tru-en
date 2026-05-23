@@ -15,6 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
+import { DeleteAccountDto } from './dto/delete-account.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -42,6 +43,19 @@ export class UsersController {
   @Patch('me')
   async updateMe(@CurrentUser() user: any, @Body() updateProfileDto: UpdateProfileDto) {
     return this.usersService.updateProfile(user.id, updateProfileDto);
+  }
+
+  /**
+   * Self-delete tài khoản (Apple §5.1.1(v) — bắt buộc cho App Store). Soft
+   * delete + anonymise PII; xem `UsersService.deleteMyAccount`.
+   */
+  @Delete('me')
+  async deleteMe(
+    @CurrentUser() user: any,
+    @Body() body: DeleteAccountDto,
+  ) {
+    await this.usersService.deleteMyAccount(user.id, body.password);
+    return { success: true, message: 'Tài khoản đã được xoá.' };
   }
 
   @Post('me/avatar/upload')

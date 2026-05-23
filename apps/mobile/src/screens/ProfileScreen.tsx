@@ -1,8 +1,19 @@
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    Modal,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@/contexts/auth-context';
+import { describeError } from '@/lib/error';
 import type { TabNavigation } from '@/navigation/types';
 import { colors, fontSize, radius, spacing } from '@/theme';
 
@@ -13,10 +24,28 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 export const ProfileScreen: React.FC = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, deleteAccount } = useAuth();
     const tabNav = useNavigation<TabNavigation>();
     const name = user?.displayName || user?.username || 'bạn';
     const initial = name.trim().charAt(0).toUpperCase() || '?';
+
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [password, setPassword] = useState('');
+    const [busy, setBusy] = useState(false);
+
+    const onConfirmDelete = async () => {
+        setBusy(true);
+        try {
+            await deleteAccount(password.trim() || undefined);
+            // user nay là null → RootNavigator tự đẩy về Login.
+        } catch (err) {
+            Alert.alert('Không xoá được', describeError(err));
+        } finally {
+            setBusy(false);
+            setDeleteOpen(false);
+            setPassword('');
+        }
+    };
 
     return (
         <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -53,6 +82,74 @@ export const ProfileScreen: React.FC = () => {
                 <Ionicons name="log-out-outline" size={18} color={colors.danger} />
                 <Text style={styles.logoutText}>Đăng xuất</Text>
             </Pressable>
+
+            <Pressable
+                style={styles.deleteAccountBtn}
+                onPress={() => setDeleteOpen(true)}
+            >
+                <Ionicons name="trash-outline" size={15} color={colors.textMuted} />
+                <Text style={styles.deleteAccountText}>Xoá tài khoản</Text>
+            </Pressable>
+
+            <Modal
+                visible={deleteOpen}
+                transparent
+                animationType="fade"
+                onRequestClose={() => !busy && setDeleteOpen(false)}
+            >
+                <View style={styles.modalBackdrop}>
+                    <View style={styles.modalCard}>
+                        <View style={styles.modalIconWrap}>
+                            <Ionicons name="warning" size={36} color={colors.danger} />
+                        </View>
+                        <Text style={styles.modalTitle}>Xoá tài khoản?</Text>
+                        <Text style={styles.modalBody}>
+                            Hành động này KHÔNG thể hoàn tác. Email và tên hiển thị
+                            sẽ bị xoá, số dư xu chưa rút sẽ bị khoá, và bạn sẽ
+                            không đăng nhập lại được. Truyện / bình luận bạn đã
+                            đăng vẫn còn nhưng hiển thị "Người dùng đã xoá".
+                        </Text>
+                        <TextInput
+                            placeholder="Mật khẩu (bỏ trống nếu đăng nhập Google/FB)"
+                            placeholderTextColor={colors.textMuted}
+                            secureTextEntry
+                            value={password}
+                            onChangeText={setPassword}
+                            style={styles.modalInput}
+                            editable={!busy}
+                        />
+                        <View style={styles.modalActions}>
+                            <Pressable
+                                style={[styles.modalBtn, styles.modalCancelBtn]}
+                                onPress={() => {
+                                    setDeleteOpen(false);
+                                    setPassword('');
+                                }}
+                                disabled={busy}
+                            >
+                                <Text style={styles.modalCancelText}>Huỷ</Text>
+                            </Pressable>
+                            <Pressable
+                                style={[
+                                    styles.modalBtn,
+                                    styles.modalDangerBtn,
+                                    busy && { opacity: 0.7 },
+                                ]}
+                                onPress={onConfirmDelete}
+                                disabled={busy}
+                            >
+                                {busy ? (
+                                    <ActivityIndicator color={colors.white} />
+                                ) : (
+                                    <Text style={styles.modalDangerText}>
+                                        Xác nhận xoá
+                                    </Text>
+                                )}
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </ScrollView>
     );
 };
@@ -104,4 +201,75 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
     },
     logoutText: { color: colors.danger, fontWeight: '600', fontSize: fontSize.md },
+    deleteAccountBtn: {
+        flexDirection: 'row',
+        alignSelf: 'center',
+        alignItems: 'center',
+        gap: spacing.xs,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.sm,
+    },
+    deleteAccountText: {
+        color: colors.textMuted,
+        fontSize: fontSize.xs,
+        textDecorationLine: 'underline',
+    },
+    /* delete modal */
+    modalBackdrop: {
+        flex: 1,
+        backgroundColor: colors.overlay,
+        justifyContent: 'center',
+        padding: spacing.xl,
+    },
+    modalCard: {
+        backgroundColor: colors.surface,
+        borderRadius: radius.lg,
+        padding: spacing.xl,
+        alignItems: 'center',
+        gap: spacing.sm,
+    },
+    modalIconWrap: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: '#FFEBEE',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: spacing.xs,
+    },
+    modalTitle: { fontSize: fontSize.lg, fontWeight: '700', color: colors.text },
+    modalBody: {
+        fontSize: fontSize.sm,
+        color: colors.textMuted,
+        textAlign: 'center',
+        lineHeight: 20,
+    },
+    modalInput: {
+        alignSelf: 'stretch',
+        backgroundColor: colors.bg,
+        borderRadius: radius.md,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        fontSize: fontSize.sm,
+        color: colors.text,
+        marginTop: spacing.sm,
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    modalActions: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+        alignSelf: 'stretch',
+        marginTop: spacing.md,
+    },
+    modalBtn: {
+        flex: 1,
+        paddingVertical: spacing.md,
+        borderRadius: radius.md,
+        alignItems: 'center',
+    },
+    modalCancelBtn: { backgroundColor: colors.bg },
+    modalCancelText: { color: colors.text, fontWeight: '600' },
+    modalDangerBtn: { backgroundColor: colors.danger },
+    modalDangerText: { color: colors.white, fontWeight: '700' },
 });

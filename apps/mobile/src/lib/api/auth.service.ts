@@ -56,6 +56,18 @@ export const AuthApi = {
     },
 
     /**
+     * Self-delete tài khoản (Apple §5.1.1(v)). Sau khi gọi thành công, xoá
+     * token local — caller nên đẩy user về Login screen.
+     * Password chỉ bắt buộc nếu tài khoản có password (local hoặc đã reset).
+     */
+    async deleteAccount(password?: string): Promise<void> {
+        await apiClient.delete('/users/me', {
+            data: password ? { password } : {},
+        });
+        await tokenStorage.clear();
+    },
+
+    /**
      * Request a password-reset email. Backend returns a generic success
      * message regardless of whether the email exists (anti-enumeration).
      */

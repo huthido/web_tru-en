@@ -25,6 +25,11 @@ model User {
   role          UserRole @default(USER)
   isActive      Boolean  @default(true)
   emailVerified Boolean  @default(false)
+  /// Soft-delete timestamp. Khi user tự xoá tài khoản trong app (Apple
+  /// §5.1.1(v)): PII bị nullify, email/username đổi thành placeholder
+  /// unique theo id, isActive = false, deletedAt = now(). NULL = tài khoản
+  /// hoạt động bình thường.
+  deletedAt     DateTime?
   refreshToken  String? // Optional: cho refresh token strategy
   // OAuth fields
   provider      String? // 'local', 'google', 'facebook'
