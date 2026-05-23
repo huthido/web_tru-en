@@ -1,7 +1,9 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@/contexts/auth-context';
+import type { TabNavigation } from '@/navigation/types';
 import { colors, fontSize, radius, spacing } from '@/theme';
 
 const ROLE_LABEL: Record<string, string> = {
@@ -12,6 +14,7 @@ const ROLE_LABEL: Record<string, string> = {
 
 export const ProfileScreen: React.FC = () => {
     const { user, logout } = useAuth();
+    const tabNav = useNavigation<TabNavigation>();
     const name = user?.displayName || user?.username || 'bạn';
     const initial = name.trim().charAt(0).toUpperCase() || '?';
 
@@ -30,16 +33,21 @@ export const ProfileScreen: React.FC = () => {
                 {user?.email ? <Text style={styles.email}>{user.email}</Text> : null}
             </View>
 
-            <View style={styles.card}>
+            <Pressable style={styles.card} onPress={() => tabNav.navigate('Wallet')}>
                 <View style={styles.cardHeader}>
                     <Ionicons name="wallet-outline" size={20} color={colors.primary} />
                     <Text style={styles.cardTitle}>Ví xu</Text>
+                    <View style={{ flex: 1 }} />
+                    <Ionicons
+                        name="chevron-forward"
+                        size={18}
+                        color={colors.textMuted}
+                    />
                 </View>
                 <Text style={styles.placeholder}>
-                    Số dư và nạp xu (Apple IAP / Google Play) sẽ có ở Phase 3. Hiện tại
-                    việc nạp xu vui lòng dùng bản web.
+                    Xem số dư, lịch sử giao dịch và các gói nạp xu.
                 </Text>
-            </View>
+            </Pressable>
 
             <Pressable style={styles.logout} onPress={logout}>
                 <Ionicons name="log-out-outline" size={18} color={colors.danger} />

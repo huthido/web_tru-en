@@ -12,6 +12,7 @@ import { ForgotPasswordScreen } from '@/screens/ForgotPasswordScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { SearchScreen } from '@/screens/SearchScreen';
 import { LibraryScreen } from '@/screens/LibraryScreen';
+import { WalletScreen } from '@/screens/WalletScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { StoryDetailScreen } from '@/screens/StoryDetailScreen';
 import { ReaderScreen } from '@/screens/ReaderScreen';
@@ -25,6 +26,7 @@ const TAB_ICONS: Record<keyof MainTabsParamList, { on: IoniconName; off: Ionicon
     Home: { on: 'home', off: 'home-outline' },
     Search: { on: 'search', off: 'search-outline' },
     Library: { on: 'library', off: 'library-outline' },
+    Wallet: { on: 'wallet', off: 'wallet-outline' },
     Profile: { on: 'person', off: 'person-outline' },
 };
 
@@ -55,6 +57,11 @@ function MainTabs() {
                 name="Library"
                 component={LibraryScreen}
                 options={{ title: 'Thư viện' }}
+            />
+            <Tab.Screen
+                name="Wallet"
+                component={WalletScreen}
+                options={{ title: 'Ví xu' }}
             />
             <Tab.Screen
                 name="Profile"

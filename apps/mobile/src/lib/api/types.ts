@@ -167,6 +167,56 @@ export interface StoryQueryParams {
     country?: string;
 }
 
+export type TransactionType =
+    | 'DEPOSIT'
+    | 'PURCHASE_CHAPTER'
+    | 'PURCHASE_STORY'
+    | 'ADMIN_ADJUST'
+    | 'REFUND'
+    | 'BONUS'
+    | 'DONATE_AUTHOR'
+    | 'WITHDRAWAL'
+    | 'TRANSFER';
+
+export interface UserWallet {
+    id: string;
+    userId: string;
+    /** Xu mua qua VNPay/Apple IAP/Google Play — chỉ tiêu được, không rút. */
+    purchasedBalance: number;
+    /** Xu kiếm được từ bán chương/donate/hoàn — rút được, không chuyển. */
+    earnedBalance: number;
+    /** @deprecated tổng = purchasedBalance + earnedBalance. */
+    balance: number;
+    isLocked?: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CoinTransaction {
+    id: string;
+    walletId: string;
+    /** Dương = cộng (nạp/hoàn/bonus), âm = trừ (mua/donate/rút). */
+    amount: number;
+    type: TransactionType;
+    description: string;
+    referenceId?: string | null;
+    createdAt: string;
+}
+
+export interface CoinPackage {
+    id: string;
+    name: string;
+    coinAmount: number;
+    priceVND: number;
+    description?: string | null;
+    isActive: boolean;
+    /** SKU bên App Store Connect — null nếu gói chỉ bán qua web/VNPay. */
+    appleProductId?: string | null;
+    googleProductId?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 export interface PageMeta {
     page: number;
     limit: number;
