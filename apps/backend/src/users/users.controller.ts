@@ -125,6 +125,29 @@ export class UsersController {
     return this.readingHistoryService.clearHistory(user.id);
   }
 
+  /* ── Apple §1.2 — block user ─────────────────────────────────────────── */
+
+  @Get('me/blocks')
+  async listMyBlocks(@CurrentUser() user: any) {
+    return this.usersService.listMyBlocks(user.id);
+  }
+
+  @Post(':userId/block')
+  async blockUser(
+    @CurrentUser() user: any,
+    @Param('userId') userId: string,
+  ) {
+    return this.usersService.blockUser(user.id, userId);
+  }
+
+  @Delete(':userId/block')
+  async unblockUser(
+    @CurrentUser() user: any,
+    @Param('userId') userId: string,
+  ) {
+    return this.usersService.unblockUser(user.id, userId);
+  }
+
   // Public routes - must be after all 'me' routes to avoid route conflicts
   @Public()
   @Get(':id/public')

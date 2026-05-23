@@ -23,6 +23,7 @@ import { SettingsModule } from './settings/settings.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { WalletModule } from './wallet/wallet.module';
 import { PaymentsModule } from './payments/payments.module';
+import { UgcReportsModule } from './ugc-reports/ugc-reports.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { MiddlewareModule } from './common/middleware/middleware.module';
 import { MaintenanceMiddleware } from './common/middleware/maintenance.middleware';
@@ -91,6 +92,7 @@ import { RedisModule } from './redis/redis.module';
     NotificationsModule,
     WalletModule,
     PaymentsModule,
+    UgcReportsModule,
     MetricsModule,
     MiddlewareModule, // Must be imported to provide MaintenanceMiddleware
   ],

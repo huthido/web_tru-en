@@ -66,6 +66,11 @@ model User {
   payments                Payment[]
   withdrawalRequests      WithdrawalRequest[]      @relation("WithdrawalRequester")
   processedWithdrawals    WithdrawalRequest[]      @relation("WithdrawalProcessor")
+  // Apple §1.2 — UGC report + block.
+  ugcReportsFiled         UgcReport[]              @relation("UgcReportReporter")
+  ugcReportsReviewed      UgcReport[]              @relation("UgcReportResolver")
+  blocks                  UserBlock[]              @relation("UserBlockBlocker")
+  blockedBy               UserBlock[]              @relation("UserBlockBlocked")
 
   @@index([email])
   @@index([username])
@@ -949,4 +954,57 @@ model UserImage {
   @@index([userId, folder])
   @@index([userId, createdAt])
   @@map("user_images")
+}
+
+// Apple §1.2 — cho phép user báo cáo UGC (truyện / chương / bình luận /
+// user). Bảng MỚI dành riêng cho luồng báo cáo từ mobile/web; model
+// ContentReport cũ vẫn giữ nguyên cho luồng admin web hiện hữu.
+enum UgcReportTargetType {
+  STORY
+  CHAPTER
+  COMMENT
+  USER
+}
+
+enum UgcReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+model UgcReport {
+  id           String              @id @default(cuid())
+  reporterId   String
+  targetType   UgcReportTargetType
+  targetId     String              // id của truyện / chương / comment / user
+  reason       String              // SPAM | ABUSE | ILLEGAL | OTHER (mã ngắn)
+  note         String?             @db.Text
+  status       UgcReportStatus     @default(PENDING)
+  createdAt    DateTime            @default(now())
+  resolvedAt   DateTime?
+  resolvedById String?
+  reporter     User                @relation("UgcReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  resolvedBy   User?               @relation("UgcReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([targetType, targetId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("ugc_reports")
+}
+
+// Apple §1.2 — cho phép user chặn user khác. Quan hệ một chiều: nếu A chặn B,
+// thì nội dung B không hiện ra cho A; B vẫn xem được A. Dùng @@unique để
+// tránh duplicate block.
+model UserBlock {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocker   User     @relation("UserBlockBlocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("UserBlockBlocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+  @@map("user_blocks")
 }

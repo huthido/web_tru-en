@@ -80,6 +80,53 @@ export class UsersService {
     this.logger.log(`User ${userId} self-deleted (soft delete + anonymise)`);
   }
 
+  /* ── Apple §1.2 — block user (one-way relationship) ────────────────── */
+
+  async blockUser(blockerId: string, blockedId: string) {
+    if (blockerId === blockedId) {
+      throw new BadRequestException('Không thể tự chặn chính mình');
+    }
+    const target = await this.prisma.user.findUnique({
+      where: { id: blockedId },
+      select: { id: true },
+    });
+    if (!target) throw new NotFoundException('User không tồn tại');
+
+    // upsert để gọi nhiều lần không lỗi (idempotent từ phía mobile).
+    await this.prisma.userBlock.upsert({
+      where: { blockerId_blockedId: { blockerId, blockedId } },
+      create: { blockerId, blockedId },
+      update: {},
+    });
+    return { success: true };
+  }
+
+  async unblockUser(blockerId: string, blockedId: string) {
+    await this.prisma.userBlock.deleteMany({
+      where: { blockerId, blockedId },
+    });
+    return { success: true };
+  }
+
+  async listMyBlocks(userId: string) {
+    return this.prisma.userBlock.findMany({
+      where: { blockerId: userId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        createdAt: true,
+        blocked: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+  }
+
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
