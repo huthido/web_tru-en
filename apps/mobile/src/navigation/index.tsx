@@ -16,6 +16,15 @@ import { WalletScreen } from '@/screens/WalletScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { StoryDetailScreen } from '@/screens/StoryDetailScreen';
 import { ReaderScreen } from '@/screens/ReaderScreen';
+import { MyStoriesScreen } from '@/screens/author/MyStoriesScreen';
+import { CreateStoryScreen } from '@/screens/author/CreateStoryScreen';
+import { EditStoryScreen } from '@/screens/author/EditStoryScreen';
+import { ChapterListScreen } from '@/screens/author/ChapterListScreen';
+import { CreateChapterScreen } from '@/screens/author/CreateChapterScreen';
+import { EditChapterScreen } from '@/screens/author/EditChapterScreen';
+import { StoryAnalyticsScreen } from '@/screens/author/StoryAnalyticsScreen';
+import { EarningsScreen } from '@/screens/author/EarningsScreen';
+import { WithdrawalsScreen } from '@/screens/author/WithdrawalsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabsParamList>();
@@ -124,6 +133,51 @@ export const RootNavigator: React.FC = () => {
                             name="Reader"
                             component={ReaderScreen}
                             options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="MyStories"
+                            component={MyStoriesScreen}
+                            options={{ title: 'Truyện của tôi' }}
+                        />
+                        <Stack.Screen
+                            name="CreateStory"
+                            component={CreateStoryScreen}
+                            options={{ title: 'Đăng truyện' }}
+                        />
+                        <Stack.Screen
+                            name="EditStory"
+                            component={EditStoryScreen}
+                            options={{ title: 'Chỉnh sửa truyện' }}
+                        />
+                        <Stack.Screen
+                            name="ChapterList"
+                            component={ChapterListScreen}
+                            options={{ title: 'Quản lý chương' }}
+                        />
+                        <Stack.Screen
+                            name="CreateChapter"
+                            component={CreateChapterScreen}
+                            options={{ title: 'Thêm chương' }}
+                        />
+                        <Stack.Screen
+                            name="EditChapter"
+                            component={EditChapterScreen}
+                            options={{ title: 'Sửa chương' }}
+                        />
+                        <Stack.Screen
+                            name="StoryAnalytics"
+                            component={StoryAnalyticsScreen}
+                            options={{ title: 'Thống kê truyện' }}
+                        />
+                        <Stack.Screen
+                            name="Earnings"
+                            component={EarningsScreen}
+                            options={{ title: 'Doanh thu' }}
+                        />
+                        <Stack.Screen
+                            name="Withdrawals"
+                            component={WithdrawalsScreen}
+                            options={{ title: 'Rút xu' }}
                         />
                     </>
                 ) : (

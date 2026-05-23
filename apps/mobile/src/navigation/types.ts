@@ -7,6 +7,16 @@ export type RootStackParamList = {
     MainTabs: undefined;
     StoryDetail: { slug: string };
     Reader: { storySlug: string; chapterSlug: string };
+    // Author flows
+    MyStories: undefined;
+    CreateStory: undefined;
+    EditStory: { storyId: string };
+    ChapterList: { storyId: string; storySlug: string; storyTitle?: string };
+    CreateChapter: { storyId: string; storySlug: string };
+    EditChapter: { storyId: string; storySlug: string; chapterId: string };
+    StoryAnalytics: { storyId: string; storyTitle?: string };
+    Earnings: undefined;
+    Withdrawals: undefined;
 };
 
 export type MainTabsParamList = {
