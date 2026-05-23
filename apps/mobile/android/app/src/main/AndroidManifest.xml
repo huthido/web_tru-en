@@ -1,9 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Chỉ giữ permission thực sự dùng. Google Play Console sẽ hỏi reason
+       cho các permission nhạy cảm như SYSTEM_ALERT_WINDOW. -->
   <uses-permission android:name="android.permission.INTERNET"/>
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-  <uses-permission android:name="android.permission.VIBRATE"/>
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+  <!-- READ_EXTERNAL_STORAGE: expo-image-picker chọn bìa truyện (Android < 13). -->
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+  <!-- READ_MEDIA_IMAGES: Android 13+ thay thế READ_EXTERNAL_STORAGE cho photo picker. -->
+  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+  <!-- BILLING: In-app purchase qua Google Play. -->
   <uses-permission android:name="com.android.vending.BILLING"/>
   <queries>
     <intent>
