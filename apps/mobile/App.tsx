@@ -1,13 +1,28 @@
 import 'react-native-gesture-handler';
-import React, { useEffect } from 'react';
-import { Platform } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { Platform, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import mobileAds, { MaxAdContentRating } from 'react-native-google-mobile-ads';
 import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
+import {
+    useFonts as usePlusJakartaSans,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+} from '@expo-google-fonts/plus-jakarta-sans';
+import {
+    DMSans_400Regular,
+    DMSans_500Medium,
+    DMSans_700Bold,
+} from '@expo-google-fonts/dm-sans';
 import { AuthProvider } from '@/contexts/auth-context';
 import { RootNavigator } from '@/navigation';
+
+// Giữ splash screen tới khi font load xong — tránh FOUC khi text render system
+// font rồi flick sang Plus Jakarta sau ~200ms.
+SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -18,16 +33,6 @@ const queryClient = new QueryClient({
     },
 });
 
-/**
- * Init Google Mobile Ads SDK ngay khi app mở. Thứ tự bắt buộc cho iOS:
- *   1. ATT permission (yêu cầu user iOS 14.5+ trước khi track)
- *   2. setRequestConfiguration (rating, COPPA, tag for child treatment)
- *   3. initialize() — kết nối với AdMob server, mediation adapters
- *
- * Nếu user từ chối ATT, requestNonPersonalizedAdsOnly = true ở BannerAd
- * (set per-ad ở component AdmobBanner). Tránh init fail làm crash app —
- * mọi error đều catch + log thay vì throw.
- */
 async function bootstrapAdMob() {
     try {
         if (Platform.OS === 'ios') {
@@ -45,18 +50,39 @@ async function bootstrapAdMob() {
 }
 
 export default function App() {
+    const [fontsLoaded] = usePlusJakartaSans({
+        PlusJakartaSans_600SemiBold,
+        PlusJakartaSans_700Bold,
+        DMSans_400Regular,
+        DMSans_500Medium,
+        DMSans_700Bold,
+    });
+
     useEffect(() => {
         bootstrapAdMob();
     }, []);
 
+    const onLayoutRootView = useCallback(async () => {
+        if (fontsLoaded) {
+            await SplashScreen.hideAsync().catch(() => undefined);
+        }
+    }, [fontsLoaded]);
+
+    if (!fontsLoaded) {
+        // Trả về null — splash screen vẫn hiển thị (preventAutoHideAsync).
+        return null;
+    }
+
     return (
-        <SafeAreaProvider>
-            <QueryClientProvider client={queryClient}>
-                <AuthProvider>
-                    <RootNavigator />
-                    <StatusBar style="auto" />
-                </AuthProvider>
-            </QueryClientProvider>
-        </SafeAreaProvider>
+        <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+            <SafeAreaProvider>
+                <QueryClientProvider client={queryClient}>
+                    <AuthProvider>
+                        <RootNavigator />
+                        <StatusBar style="auto" />
+                    </AuthProvider>
+                </QueryClientProvider>
+            </SafeAreaProvider>
+        </View>
     );
 }

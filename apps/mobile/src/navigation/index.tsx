@@ -3,7 +3,6 @@ import { ActivityIndicator, Image, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme';
 import { useAuth } from '@/contexts/auth-context';
 import type { MainTabsParamList, RootStackParamList } from '@/navigation/types';
@@ -26,19 +25,10 @@ import { StoryAnalyticsScreen } from '@/screens/author/StoryAnalyticsScreen';
 import { EarningsScreen } from '@/screens/author/EarningsScreen';
 import { WithdrawalsScreen } from '@/screens/author/WithdrawalsScreen';
 import { TransactionsScreen } from '@/screens/TransactionsScreen';
+import { MainTabBar } from '@/components/MainTabBar';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabsParamList>();
-
-type IoniconName = keyof typeof Ionicons.glyphMap;
-
-const TAB_ICONS: Record<keyof MainTabsParamList, { on: IoniconName; off: IoniconName }> = {
-    Home: { on: 'home', off: 'home-outline' },
-    Search: { on: 'search', off: 'search-outline' },
-    Library: { on: 'library', off: 'library-outline' },
-    Wallet: { on: 'wallet', off: 'wallet-outline' },
-    Profile: { on: 'person', off: 'person-outline' },
-};
 
 /** Logo + wordmark "Yêu" hiển thị ở giữa header tab. */
 function BrandHeader() {
@@ -54,31 +44,34 @@ function BrandHeader() {
     );
 }
 
+/**
+ * Upload là route placeholder — MainTabBar handle bấm FAB bằng cách navigate
+ * sang `CreateStory` stack thay vì hiển thị màn này. Component render null là
+ * fallback an toàn nếu user navigate trực tiếp.
+ */
+function UploadStub() {
+    return null;
+}
+
 function MainTabs() {
     return (
         <Tab.Navigator
-            screenOptions={({ route }) => ({
-                headerStyle: { backgroundColor: colors.primary },
-                headerTintColor: colors.white,
+            tabBar={(props) => <MainTabBar {...props} />}
+            screenOptions={{
+                headerStyle: { backgroundColor: colors.primaryContainer },
+                headerTintColor: colors.onSurface,
                 headerTitleStyle: { fontWeight: '700' },
                 headerTitleAlign: 'center',
                 headerTitle: () => <BrandHeader />,
-                tabBarActiveTintColor: colors.primary,
-                tabBarInactiveTintColor: colors.textMuted,
-                tabBarIcon: ({ color, size, focused }) => {
-                    const icon = TAB_ICONS[route.name];
-                    return (
-                        <Ionicons
-                            name={focused ? icon.on : icon.off}
-                            size={size}
-                            color={color}
-                        />
-                    );
-                },
-            })}
+            }}
         >
             <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Khám phá' }} />
             <Tab.Screen name="Search" component={SearchScreen} options={{ title: 'Tìm kiếm' }} />
+            <Tab.Screen
+                name="Upload"
+                component={UploadStub}
+                options={{ title: 'Đăng truyện' }}
+            />
             <Tab.Screen
                 name="Library"
                 component={LibraryScreen}

@@ -134,15 +134,18 @@ export function Sidebar() {
           <span className="font-display text-2xl font-extrabold tracking-tight text-primary">YÊU</span>
         </Link>
 
-        {/* Primary navigation */}
-        <nav className="flex-1 space-y-1.5 px-3">
+        {/* Primary navigation — `min-h-0` bắt buộc trong flex parent để overflow
+            con scroll được; không có nó, flex-1 cao bằng nội dung và mục dưới
+            bị crop khi list dài (10+ links với author role). */}
+        <nav className="flex-1 min-h-0 overflow-y-auto space-y-1.5 px-3">
           {visible.map((l) => (
             <NavRow key={l.href} link={l} />
           ))}
         </nav>
 
-        {/* Secondary section + người dùng đăng nhập (đáy sidebar — theo theme) */}
-        <div className="px-3 pt-5 mt-2 border-t border-outline-variant/30 space-y-1.5">
+        {/* Secondary section + người dùng đăng nhập (đáy sidebar — luôn hiển
+            thị vì nằm ngoài <nav> scroll). */}
+        <div className="flex-shrink-0 px-3 pt-5 mt-2 border-t border-outline-variant/30 space-y-1.5">
           {bottomLinks.map((l) => (
             <NavRow key={l.href} link={l} />
           ))}

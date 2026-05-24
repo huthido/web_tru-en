@@ -23,6 +23,9 @@ export type RootStackParamList = {
 export type MainTabsParamList = {
     Home: undefined;
     Search: undefined;
+    // Upload là route trung tâm FAB — bấm sẽ navigate sang CreateStoryScreen stack.
+    // Render screen `UploadStub` để có route entry; tabBar tự handle FAB click.
+    Upload: undefined;
     Library: undefined;
     Wallet: undefined;
     Profile: undefined;
