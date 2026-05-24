@@ -61,19 +61,23 @@ export class ImageNormalizePipe
         throwOnUnreadable: true,
       });
     } catch (err) {
-      const declaredMime = file.mimetype || 'không rõ';
+      const fileMime = file.mimetype || 'không rõ';
       if (err instanceof UnreadableImageError) {
+        // err.declaredMime ưu tiên dùng (real MIME từ sharp detect) — file.mimetype
+        // hay là 'application/octet-stream' khi browser không nhận diện format.
+        const mimeForUser = err.declaredMime || fileMime;
         this.logger.warn(
-          `normalize fail: declaredMime=${declaredMime} size=${file.size}B reason=${err.reason}`,
+          `normalize fail: fileMime=${fileMime} detectedMime=${err.declaredMime} ` +
+            `size=${file.size}B reason=${err.reason}`,
         );
-        throw new BadRequestException(buildVietnameseError(declaredMime, err.reason));
+        throw new BadRequestException(buildVietnameseError(mimeForUser, err.reason));
       }
       const msg = (err as Error)?.message || 'unknown';
       this.logger.error(
-        `normalize unexpected error: declaredMime=${declaredMime} size=${file.size}B err=${msg}`,
+        `normalize unexpected error: fileMime=${fileMime} size=${file.size}B err=${msg}`,
       );
       throw new BadRequestException(
-        `Không xử lý được ảnh (${declaredMime}). Hãy thử lại hoặc đổi định dạng.`,
+        `Không xử lý được ảnh (${fileMime}). Hãy thử lại hoặc đổi định dạng.`,
       );
     }
 
