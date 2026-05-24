@@ -179,6 +179,37 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@tanstack/react-query', 'axios'],
   },
+  /**
+   * Security headers + CSP whitelist cho 3rd-party ad networks.
+   * Google AdSense/AdMob/FAN cần `unsafe-inline` + `unsafe-eval` cho script
+   * inject của họ — không tránh được. Thay vào đó whitelist domain cụ thể
+   * thay vì `*`.
+   */
+  async headers() {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.googletagservices.com https://*.facebook.com https://*.fbcdn.net",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "img-src 'self' data: blob: https: http:", // ads serve images từ nhiều CDN
+      "font-src 'self' data: https://fonts.gstatic.com",
+      "connect-src 'self' https: wss:",
+      "frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://*.facebook.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+    ].join('; ');
+
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'Content-Security-Policy', value: csp },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+        ],
+      },
+    ];
+  },
+
   async rewrites() {
     // 🍎 iOS Safari Fix: Proxy API requests to same domain
     // This makes cookies work as first-party cookies!

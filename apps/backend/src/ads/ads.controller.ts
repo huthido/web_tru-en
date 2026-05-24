@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Res,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -14,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { AdsService } from './ads.service';
 import { AnalyticsService } from './analytics.service';
 import { CreateAdDto } from './dto/create-ad.dto';
@@ -53,15 +54,40 @@ export class AdsController {
   }
 
   /**
-   * Public endpoint to get active ads for display
+   * Public endpoint to get active ads for display.
+   * `platform=web|mobile` để client lọc đúng source (mobile bỏ AdSense/CUSTOM_SCRIPT,
+   * web bỏ AdMob/FAN).
    */
   @Public()
   @Get('active')
   findActiveAds(
     @Query('type') type?: AdType,
     @Query('position') position?: AdPosition,
+    @Query('platform') platform?: 'web' | 'mobile',
   ) {
-    return this.adsService.findActiveAds(type, position);
+    return this.adsService.findActiveAds(type, position, platform);
+  }
+
+  /**
+   * Snapshot cấu hình ads + GDPR cho client init network SDK.
+   * Public — không expose secret, chỉ publisher ID / app ID cần ở client.
+   */
+  @Public()
+  @Get('config')
+  getPublicConfig() {
+    return this.adsService.getPublicConfig();
+  }
+
+  /**
+   * Nội dung ads.txt (Google AdSense verify). Frontend Next.js sẽ rewrite
+   * `/ads.txt` → endpoint này và set Content-Type: text/plain.
+   * Trả JSON wrap để qua ResponseInterceptor mà không bị xử lý kỳ lạ.
+   */
+  @Public()
+  @Get('ads-txt-content')
+  async getAdsTxt() {
+    const content = await this.adsService.getAdsTxt();
+    return { content };
   }
 
   @Get(':id')

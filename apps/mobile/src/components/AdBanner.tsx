@@ -3,7 +3,7 @@ import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { colors, fontSize, radius, spacing } from '@/theme';
 import { resolveImageUrl } from '@/lib/url';
-import { AdsApi, type AdPosition, type AdType } from '@/lib/api/ads.service';
+import { AdsApi, type Ad, type AdPosition, type AdType } from '@/lib/api/ads.service';
 import { useActiveAds } from '@/lib/hooks/ads';
 
 interface Props {
@@ -15,66 +15,101 @@ interface Props {
 }
 
 /**
- * Banner ad slot for mobile.
+ * Banner ad slot — router theo `sourceType`:
+ * - SELF_SERVED → Image của expo-image + manual tracking (logic cũ).
+ * - GOOGLE_ADMOB → `<AdmobBanner />` stub. Khi user đã EAS build với
+ *   `react-native-google-mobile-ads`, uncomment block init + render BannerAd.
+ * - GOOGLE_ADSENSE / CUSTOM_SCRIPT → bỏ qua (đã filter server-side với
+ *   platform=mobile; check thêm phòng race).
+ * - FAN → tương tự AdMob, defer (Facebook Audience Network SDK).
  *
- * - Fetches active ads matching {type, position} from the public endpoint.
- * - Tracks ONE impression per ad-render lifecycle (when image first loads).
- * - Rotates through multiple ads every 30s.
- * - Tapping the banner records a click and opens linkUrl in the system browser.
+ * Mobile backend gọi `/ads/active?platform=mobile` đã loại web-only types.
  */
 export function AdBanner({ position, type = 'BANNER', height = 100 }: Props) {
     const { data: ads = [] } = useActiveAds(type, position);
-    const valid = useMemo(() => ads.filter((a) => !!a.imageUrl && a.isActive), [ads]);
+    const valid = useMemo(
+        () =>
+            ads.filter(
+                (a) =>
+                    a.isActive &&
+                    a.sourceType !== 'GOOGLE_ADSENSE' &&
+                    a.sourceType !== 'CUSTOM_SCRIPT',
+            ),
+        [ads],
+    );
 
     const [index, setIndex] = useState(0);
-    const trackedIdsRef = useRef<Set<string>>(new Set());
 
-    // Rotate every 30s when multiple ads exist.
     useEffect(() => {
         if (valid.length <= 1) return;
         const id = setInterval(() => setIndex((i) => (i + 1) % valid.length), 30_000);
         return () => clearInterval(id);
     }, [valid.length]);
 
-    // Reset index if ads list changes shape.
     useEffect(() => {
         setIndex(0);
     }, [valid.length]);
 
     const current = valid[index];
+    if (!current) return null;
+
+    switch (current.sourceType) {
+        case 'GOOGLE_ADMOB':
+            return <AdmobBannerStub ad={current} height={height} />;
+        case 'FAN':
+            return <FanBannerStub ad={current} height={height} />;
+        case 'SELF_SERVED':
+        default:
+            return (
+                <SelfServedBanner
+                    ad={current}
+                    height={height}
+                    rotationCount={valid.length}
+                    rotationIndex={index}
+                />
+            );
+    }
+}
+
+function SelfServedBanner({
+    ad,
+    height,
+    rotationCount,
+    rotationIndex,
+}: {
+    ad: Ad;
+    height: number;
+    rotationCount: number;
+    rotationIndex: number;
+}) {
+    const trackedIdsRef = useRef<Set<string>>(new Set());
 
     const handleImpression = useCallback(() => {
-        if (!current?.id) return;
-        if (trackedIdsRef.current.has(current.id)) return;
-        trackedIdsRef.current.add(current.id);
-        AdsApi.trackImpression(current.id);
-    }, [current?.id]);
+        if (!ad.id) return;
+        if (trackedIdsRef.current.has(ad.id)) return;
+        trackedIdsRef.current.add(ad.id);
+        AdsApi.trackImpression(ad.id);
+    }, [ad.id]);
 
     const handlePress = useCallback(async () => {
-        if (!current?.id) return;
-        AdsApi.trackClick(current.id);
-        if (current.linkUrl) {
+        if (!ad.id) return;
+        AdsApi.trackClick(ad.id);
+        if (ad.linkUrl) {
             try {
-                await Linking.openURL(current.linkUrl);
+                await Linking.openURL(ad.linkUrl);
             } catch {
                 // Ignore — invalid URL or no handler.
             }
         }
-    }, [current?.id, current?.linkUrl]);
+    }, [ad.id, ad.linkUrl]);
 
-    if (!current) return null;
-
-    const resolved = resolveImageUrl(current.imageUrl);
+    const resolved = resolveImageUrl(ad.imageUrl);
     if (!resolved) return null;
 
     return (
         <View style={styles.wrapper}>
             <Text style={styles.label}>Quảng cáo</Text>
-            <Pressable
-                onPress={handlePress}
-                disabled={!current.linkUrl}
-                style={[styles.box, { height }]}
-            >
+            <Pressable onPress={handlePress} disabled={!ad.linkUrl} style={[styles.box, { height }]}>
                 <Image
                     source={resolved}
                     style={styles.image}
@@ -82,21 +117,81 @@ export function AdBanner({ position, type = 'BANNER', height = 100 }: Props) {
                     transition={180}
                     onLoad={handleImpression}
                 />
-                {current.title ? (
+                {ad.title ? (
                     <View style={styles.titleOverlay}>
                         <Text numberOfLines={1} style={styles.title}>
-                            {current.title}
+                            {ad.title}
                         </Text>
                     </View>
                 ) : null}
-                {valid.length > 1 ? (
+                {rotationCount > 1 ? (
                     <View style={styles.counter}>
                         <Text style={styles.counterText}>
-                            {index + 1}/{valid.length}
+                            {rotationIndex + 1}/{rotationCount}
                         </Text>
                     </View>
                 ) : null}
             </Pressable>
+        </View>
+    );
+}
+
+/**
+ * AdMob banner stub. Để bật thật:
+ *   1. `pnpm --filter mobile add react-native-google-mobile-ads`
+ *   2. Thêm config plugin vào `app.json`:
+ *      "plugins": [
+ *        ["react-native-google-mobile-ads", {
+ *           "androidAppId": "<từ Settings.admobAndroidAppId>",
+ *           "iosAppId": "<từ Settings.admobIosAppId>"
+ *        }]
+ *      ]
+ *   3. `eas build --profile development` rebuild dev client
+ *   4. Init SDK trong App.tsx sau ATT permission (iOS 14.5+):
+ *      import mobileAds, { MaxAdContentRating } from 'react-native-google-mobile-ads';
+ *      await mobileAds().setRequestConfiguration({ maxAdContentRating: MaxAdContentRating.T });
+ *      await mobileAds().initialize();
+ *   5. Uncomment block dưới + import BannerAd + BannerAdSize.
+ *
+ * Cho tới khi đó, stub hiển thị placeholder để admin dễ thấy ad đã được cấu hình.
+ */
+function AdmobBannerStub({ ad, height }: { ad: Ad; height: number }) {
+    const unitId = ad.networkConfig?.adUnitId;
+    if (!unitId) return null;
+    return (
+        <View style={styles.wrapper}>
+            <Text style={styles.label}>Quảng cáo</Text>
+            <View style={[styles.stubBox, { height }]}>
+                <Text style={styles.stubText}>AdMob unit: {unitId}</Text>
+                <Text style={styles.stubHint}>Chưa cài react-native-google-mobile-ads</Text>
+            </View>
+        </View>
+    );
+    // === ENABLE WHEN SDK INSTALLED ===
+    // import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
+    // return (
+    //   <View style={styles.wrapper}>
+    //     <Text style={styles.label}>Quảng cáo</Text>
+    //     <BannerAd
+    //       unitId={unitId}
+    //       size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+    //       requestOptions={{ requestNonPersonalizedAdsOnly: !consented }}
+    //     />
+    //   </View>
+    // );
+}
+
+/** FAN stub — Facebook Audience Network. Cần `react-native-fbads` + Facebook SDK config. */
+function FanBannerStub({ ad, height }: { ad: Ad; height: number }) {
+    const placementId = ad.networkConfig?.placementId;
+    if (!placementId) return null;
+    return (
+        <View style={styles.wrapper}>
+            <Text style={styles.label}>Quảng cáo</Text>
+            <View style={[styles.stubBox, { height }]}>
+                <Text style={styles.stubText}>FAN placement: {placementId}</Text>
+                <Text style={styles.stubHint}>Chưa cài react-native-fbads</Text>
+            </View>
         </View>
     );
 }
@@ -149,5 +244,28 @@ const styles = StyleSheet.create({
         color: colors.white,
         fontSize: 10,
         fontWeight: '600',
+    },
+    stubBox: {
+        width: '100%',
+        borderRadius: radius.md,
+        backgroundColor: colors.primarySoft,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderStyle: 'dashed',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: spacing.md,
+    },
+    stubText: {
+        fontSize: fontSize.xs,
+        color: colors.text,
+        fontWeight: '600',
+        textAlign: 'center',
+    },
+    stubHint: {
+        fontSize: 10,
+        color: colors.textMuted,
+        marginTop: 4,
+        textAlign: 'center',
     },
 });

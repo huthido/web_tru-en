@@ -1,4 +1,15 @@
-import { IsString, IsUrl, IsOptional, IsBoolean, IsEnum, IsDateString } from 'class-validator';
+import {
+    IsString,
+    IsUrl,
+    IsOptional,
+    IsBoolean,
+    IsEnum,
+    IsDateString,
+    ValidateIf,
+    IsObject,
+    IsInt,
+    Min,
+} from 'class-validator';
 
 export enum AdType {
     POPUP = 'POPUP',
@@ -14,6 +25,28 @@ export enum AdPosition {
     INLINE = 'INLINE',
 }
 
+export enum AdSourceType {
+    SELF_SERVED = 'SELF_SERVED',
+    GOOGLE_ADSENSE = 'GOOGLE_ADSENSE',
+    GOOGLE_ADMOB = 'GOOGLE_ADMOB',
+    FAN = 'FAN',
+    CUSTOM_SCRIPT = 'CUSTOM_SCRIPT',
+}
+
+export enum AdPlatform {
+    WEB = 'web',
+    MOBILE = 'mobile',
+    ALL = 'all',
+}
+
+/**
+ * Cấu hình network-specific. Service validate shape theo sourceType:
+ * - GOOGLE_ADSENSE: { adUnitId, format?, responsive? }
+ * - GOOGLE_ADMOB:   { adUnitId, format? }
+ * - FAN:            { placementId }
+ * - CUSTOM_SCRIPT:  { html }
+ * - SELF_SERVED:    không cần
+ */
 export class CreateAdDto {
     @IsOptional()
     @IsString()
@@ -23,11 +56,15 @@ export class CreateAdDto {
     @IsString()
     description?: string;
 
-    @IsString()
+    // imageUrl chỉ bắt buộc khi SELF_SERVED. Validator class-validator chưa hỗ trợ
+    // cross-field tốt — service sẽ throw BadRequest nếu thiếu cho self-served.
+    @IsOptional()
+    @ValidateIf((o) => !!o.imageUrl && o.imageUrl !== '')
     @IsUrl()
-    imageUrl: string;
+    imageUrl?: string;
 
     @IsOptional()
+    @ValidateIf((o) => !!o.linkUrl && o.linkUrl !== '')
     @IsUrl()
     linkUrl?: string;
 
@@ -36,6 +73,18 @@ export class CreateAdDto {
 
     @IsEnum(AdPosition)
     position: AdPosition;
+
+    @IsOptional()
+    @IsEnum(AdSourceType)
+    sourceType?: AdSourceType;
+
+    @IsOptional()
+    @IsObject()
+    networkConfig?: Record<string, any>;
+
+    @IsOptional()
+    @IsEnum(AdPlatform)
+    platform?: AdPlatform;
 
     @IsOptional()
     @IsBoolean()
@@ -50,5 +99,7 @@ export class CreateAdDto {
     endDate?: string;
 
     @IsOptional()
+    @IsInt()
+    @Min(1)
     popupInterval?: number; // Number of chapters to read before showing popup (only for POPUP type)
 }

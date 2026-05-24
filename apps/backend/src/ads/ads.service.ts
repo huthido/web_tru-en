@@ -1,19 +1,68 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AdSourceType, Prisma } from '@prisma/client';
 import { CreateAdDto, AdType, AdPosition } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { AdQueryDto } from './dto/ad-query.dto';
+
+/**
+ * Validate networkConfig theo sourceType. Tạm dùng manual check thay vì class-
+ * validator vì class-validator hỗ trợ cross-field/conditional kém. Throw
+ * BadRequestException với message Việt nếu thiếu.
+ */
+function validateAdSource(dto: { sourceType?: string; imageUrl?: string; networkConfig?: Record<string, any> | null }) {
+    const src = (dto.sourceType ?? AdSourceType.SELF_SERVED) as AdSourceType;
+    const cfg = dto.networkConfig ?? {};
+    switch (src) {
+        case AdSourceType.SELF_SERVED:
+            if (!dto.imageUrl || dto.imageUrl.trim() === '') {
+                throw new BadRequestException('SELF_SERVED yêu cầu imageUrl.');
+            }
+            break;
+        case AdSourceType.GOOGLE_ADSENSE:
+            if (!cfg.adUnitId || typeof cfg.adUnitId !== 'string') {
+                throw new BadRequestException('GOOGLE_ADSENSE yêu cầu networkConfig.adUnitId (data-ad-slot).');
+            }
+            break;
+        case AdSourceType.GOOGLE_ADMOB:
+            if (!cfg.adUnitId || typeof cfg.adUnitId !== 'string') {
+                throw new BadRequestException('GOOGLE_ADMOB yêu cầu networkConfig.adUnitId (ca-app-pub-X/Y).');
+            }
+            break;
+        case AdSourceType.FAN:
+            if (!cfg.placementId || typeof cfg.placementId !== 'string') {
+                throw new BadRequestException('FAN yêu cầu networkConfig.placementId.');
+            }
+            break;
+        case AdSourceType.CUSTOM_SCRIPT:
+            if (!cfg.html || typeof cfg.html !== 'string' || cfg.html.trim() === '') {
+                throw new BadRequestException('CUSTOM_SCRIPT yêu cầu networkConfig.html.');
+            }
+            break;
+    }
+}
 
 @Injectable()
 export class AdsService {
     constructor(private prisma: PrismaService) { }
 
     async create(createAdDto: CreateAdDto, userId: string) {
+        validateAdSource(createAdDto);
         const ad = await this.prisma.ad.create({
             data: {
-                ...createAdDto,
+                title: createAdDto.title,
+                description: createAdDto.description,
+                imageUrl: createAdDto.imageUrl ?? '',
+                linkUrl: createAdDto.linkUrl,
+                type: createAdDto.type,
+                position: createAdDto.position,
+                sourceType: (createAdDto.sourceType ?? 'SELF_SERVED') as AdSourceType,
+                networkConfig: (createAdDto.networkConfig ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+                platform: createAdDto.platform,
+                isActive: createAdDto.isActive,
                 startDate: createAdDto.startDate ? new Date(createAdDto.startDate) : null,
                 endDate: createAdDto.endDate ? new Date(createAdDto.endDate) : null,
+                popupInterval: createAdDto.popupInterval,
                 createdById: userId,
             },
             include: {
@@ -91,13 +140,14 @@ export class AdsService {
     }
 
     /**
-     * Get active ads for display (frontend)
-     * Only returns ads that are:
-     * - isActive = true
-     * - Within startDate and endDate (if set)
-     * - Current date is between startDate and endDate
+     * Get active ads for display (frontend / mobile).
+     * Filter:
+     * - isActive = true + trong startDate/endDate.
+     * - platform?: 'web' | 'mobile' — chỉ trả ads thuộc platform đó (hoặc null/all).
+     *   Mobile gửi 'mobile' để loại AdSense/Custom-HTML; web gửi 'web' để loại AdMob/FAN.
+     * - Tự exclude sourceType không phù hợp platform nếu platform truyền vào.
      */
-    async findActiveAds(type?: AdType, position?: AdPosition) {
+    async findActiveAds(type?: AdType, position?: AdPosition, platform?: 'web' | 'mobile') {
         const now = new Date();
 
         const where: any = {
@@ -142,14 +192,50 @@ export class AdsService {
             where.position = position;
         }
 
+        if (platform) {
+            // Ad.platform: 'web' | 'mobile' | 'all' | null. Cho qua nếu khớp / 'all' / null
+            // (SELF_SERVED thường để null vì image hiển thị được mọi nơi).
+            where.AND = (where.AND || []).concat([
+                { OR: [{ platform: platform }, { platform: 'all' }, { platform: null }] },
+            ]);
+            // Loại sourceType không phù hợp platform:
+            // - web không nhận GOOGLE_ADMOB / FAN
+            // - mobile không nhận GOOGLE_ADSENSE / CUSTOM_SCRIPT (HTML không render được trong RN)
+            const excludeSources =
+                platform === 'web'
+                    ? [AdSourceType.GOOGLE_ADMOB, AdSourceType.FAN]
+                    : [AdSourceType.GOOGLE_ADSENSE, AdSourceType.CUSTOM_SCRIPT];
+            where.sourceType = { notIn: excludeSources };
+        }
+
         const ads = await this.prisma.ad.findMany({
             where,
-            orderBy: {
-                createdAt: 'desc',
-            },
+            orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
         });
 
         return ads;
+    }
+
+    /**
+     * Snapshot cấu hình ads + GDPR cho client. Không expose secret — chỉ
+     * public IDs (publisher ID, app ID) cần để init network SDK ở client.
+     */
+    async getPublicConfig() {
+        const settings = await this.prisma.settings.findFirst();
+        return {
+            adsEnabled: settings?.adsEnabled ?? true,
+            consentRequired: settings?.consentRequired ?? true,
+            googleAdsensePublisherId: settings?.googleAdsensePublisherId ?? null,
+            admobAndroidAppId: settings?.admobAndroidAppId ?? null,
+            admobIosAppId: settings?.admobIosAppId ?? null,
+            fanPlacementId: settings?.fanPlacementId ?? null,
+        };
+    }
+
+    /** Text raw từ Settings.adsTxtContent — serve qua /ads.txt cho Google AdSense verify. */
+    async getAdsTxt(): Promise<string> {
+        const settings = await this.prisma.settings.findFirst();
+        return settings?.adsTxtContent ?? '';
     }
 
     async findOne(id: string) {
@@ -186,6 +272,18 @@ export class AdsService {
             throw new ForbiddenException('Bạn không có quyền chỉnh sửa quảng cáo này');
         }
 
+        // Validate khi đổi sourceType hoặc khi cập nhật networkConfig — dùng giá trị mới
+        // hoặc fall back giá trị cũ trong DB để check đầy đủ shape.
+        const merged = {
+            sourceType: (updateAdDto as any).sourceType ?? ad.sourceType,
+            imageUrl: (updateAdDto as any).imageUrl ?? ad.imageUrl,
+            networkConfig:
+                (updateAdDto as any).networkConfig !== undefined
+                    ? (updateAdDto as any).networkConfig
+                    : (ad.networkConfig as any),
+        };
+        validateAdSource(merged);
+
         const updateData: any = { ...updateAdDto };
         const dto = updateAdDto as any;
         if (dto.startDate !== undefined) {
@@ -193,6 +291,10 @@ export class AdsService {
         }
         if (dto.endDate !== undefined) {
             updateData.endDate = dto.endDate ? new Date(dto.endDate) : null;
+        }
+        if (dto.networkConfig !== undefined) {
+            // Prisma JSON null vs DB null
+            updateData.networkConfig = dto.networkConfig === null ? Prisma.JsonNull : dto.networkConfig;
         }
 
         const updatedAd = await this.prisma.ad.update({
@@ -233,8 +335,9 @@ export class AdsService {
     }
 
     /**
-     * Track ad impression (view)
-     * With fraud prevention: duplicate detection
+     * Track ad impression (view) cho SELF_SERVED ads.
+     * 3rd-party (AdSense/AdMob/FAN/Custom) tự tracking trong SDK của họ — skip
+     * để tránh double-count và nhiễu analytics tự đếm.
      */
     async trackImpression(
         adId: string,
@@ -245,6 +348,13 @@ export class AdsService {
             device?: string;
         },
     ) {
+        // Skip nếu không phải SELF_SERVED — đỡ ghi rác DB.
+        const ad = await this.prisma.ad.findUnique({ where: { id: adId }, select: { sourceType: true } });
+        if (!ad) return { tracked: false, reason: 'not-found' };
+        if (ad.sourceType !== AdSourceType.SELF_SERVED) {
+            return { tracked: false, reason: 'third-party-self-tracked' };
+        }
+
         // Check for duplicate impressions (within 1 minute from same user/IP)
         const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
 
@@ -294,8 +404,7 @@ export class AdsService {
     }
 
     /**
-     * Track ad click
-     * With fraud prevention: rate limiting, duplicate detection
+     * Track ad click cho SELF_SERVED ads. 3rd-party SDK tự đếm.
      */
     async trackClick(
         adId: string,
@@ -306,6 +415,12 @@ export class AdsService {
             device?: string;
         },
     ) {
+        const ad = await this.prisma.ad.findUnique({ where: { id: adId }, select: { sourceType: true } });
+        if (!ad) return { tracked: false, reason: 'not-found' };
+        if (ad.sourceType !== AdSourceType.SELF_SERVED) {
+            return { tracked: false, reason: 'third-party-self-tracked' };
+        }
+
         // Check for excessive clicks (max 3 clicks per 5 minutes from same user/IP)
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 

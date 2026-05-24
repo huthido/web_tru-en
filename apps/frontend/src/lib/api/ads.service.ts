@@ -21,6 +21,29 @@ export enum AdPosition {
     INLINE = 'INLINE',
 }
 
+export enum AdSourceType {
+    SELF_SERVED = 'SELF_SERVED',
+    GOOGLE_ADSENSE = 'GOOGLE_ADSENSE',
+    GOOGLE_ADMOB = 'GOOGLE_ADMOB',
+    FAN = 'FAN',
+    CUSTOM_SCRIPT = 'CUSTOM_SCRIPT',
+}
+
+export type AdPlatform = 'web' | 'mobile' | 'all';
+
+export interface AdNetworkConfig {
+    /** GOOGLE_ADSENSE: data-ad-slot. GOOGLE_ADMOB: ca-app-pub-X/Y. */
+    adUnitId?: string;
+    /** GOOGLE_ADSENSE: 'auto' | 'rectangle' | 'horizontal' | 'vertical'. */
+    format?: string;
+    /** GOOGLE_ADSENSE: data-full-width-responsive. */
+    responsive?: boolean;
+    /** FAN: placement ID. */
+    placementId?: string;
+    /** CUSTOM_SCRIPT: HTML / <script> raw. */
+    html?: string;
+}
+
 export interface Ad {
     id: string;
     title?: string;
@@ -29,6 +52,9 @@ export interface Ad {
     linkUrl?: string;
     type: AdType;
     position: AdPosition;
+    sourceType: AdSourceType;
+    networkConfig?: AdNetworkConfig | null;
+    platform?: AdPlatform | null;
     isActive: boolean;
     startDate?: string;
     endDate?: string;
@@ -47,14 +73,27 @@ export interface Ad {
 export interface CreateAdRequest {
     title?: string;
     description?: string;
-    imageUrl: string;
+    imageUrl?: string;
     linkUrl?: string;
     popupInterval?: number;
     type: AdType;
     position: AdPosition;
+    sourceType?: AdSourceType;
+    networkConfig?: AdNetworkConfig;
+    platform?: AdPlatform;
     isActive?: boolean;
     startDate?: string;
     endDate?: string;
+}
+
+/** Snapshot config từ GET /ads/config — dùng để init network SDK + consent. */
+export interface AdsConfig {
+    adsEnabled: boolean;
+    consentRequired: boolean;
+    googleAdsensePublisherId: string | null;
+    admobAndroidAppId: string | null;
+    admobIosAppId: string | null;
+    fanPlacementId: string | null;
 }
 
 export interface UpdateAdRequest extends Partial<CreateAdRequest> { }
@@ -81,10 +120,11 @@ export const adsService = {
     /**
      * Get active ads for display (public)
      */
-    getActiveAds: async (type?: AdType, position?: AdPosition): Promise<Ad[]> => {
+    getActiveAds: async (type?: AdType, position?: AdPosition, platform: 'web' | 'mobile' = 'web'): Promise<Ad[]> => {
         const params = new URLSearchParams();
         if (type) params.append('type', type);
         if (position) params.append('position', position);
+        params.append('platform', platform);
 
         const response = await apiClient.get<Ad[] | ApiResponse<Ad[]>>(`/ads/active?${params.toString()}`);
         const responseData = response.data as any;
@@ -220,6 +260,14 @@ export const adsService = {
         );
         // apiClient already unwrapped the envelope → response.data is { imageUrl }.
         return { success: true, data: response.data as any } as ApiResponse<{ imageUrl: string }>;
+    },
+
+    /** Snapshot cấu hình ads (public IDs + flags). Client cache 10 phút. */
+    getConfig: async (): Promise<AdsConfig> => {
+        const response = await apiClient.get<AdsConfig | ApiResponse<AdsConfig>>('/ads/config');
+        const data = response.data as any;
+        if (data && typeof data.adsEnabled === 'boolean') return data as AdsConfig;
+        return (data as ApiResponse<AdsConfig>).data as AdsConfig;
     },
 };
 

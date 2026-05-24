@@ -9,6 +9,9 @@ import { ToastProvider } from '@/components/providers/toast-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { MaintenanceCheck } from '@/components/maintenance-check';
 import { getServerSettings } from '@/lib/api/server-settings';
+import { AdsConsentProvider } from '@/lib/ads/consent-context';
+import { ConsentBanner } from '@/components/ads/consent-banner';
+import { AdsenseScript } from '@/components/ads/adsense-script';
 
 // Body / UI font — Inter (full Vietnamese support).
 const fontBody = Inter({
@@ -121,13 +124,11 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="YÊU" />
         <link rel="apple-touch-icon" href="/HUNGYEULOGO.png" />
-        {/* 🔥 Google AdSense Script - Must be in HTML tĩnh để Google bot có thể verify */}
-        {/* Script tag này sẽ được render trực tiếp vào HTML tĩnh, Google bot sẽ thấy được */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1741637952321960"
-          crossOrigin="anonymous"
-        />
+        {/*
+          AdSense script chuyển sang component <AdsenseScript /> trong <body>
+          để dùng next/script + đọc publisher ID động từ Settings + GDPR consent.
+          KHÔNG còn hard-code publisher ID ở đây.
+        */}
       </head>
       <body className={fontBody.className}>
         {/* Áp theme đã lưu TRƯỚC khi <body> paint để tránh nháy sáng (FOUC).
@@ -144,9 +145,13 @@ export default function RootLayout({
             <AuthProvider>
               <ThemeProvider defaultTheme="light">
                 <ToastProvider>
-                  <MaintenanceCheck>
-                    {children}
-                  </MaintenanceCheck>
+                  <AdsConsentProvider>
+                    <MaintenanceCheck>
+                      {children}
+                    </MaintenanceCheck>
+                    <ConsentBanner />
+                    <AdsenseScript />
+                  </AdsConsentProvider>
                 </ToastProvider>
               </ThemeProvider>
             </AuthProvider>

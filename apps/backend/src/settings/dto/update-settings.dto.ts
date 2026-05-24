@@ -114,4 +114,33 @@ export class UpdateSettingsDto {
   @IsInt()
   @Min(0)
   minWithdrawalCoins?: number;
+
+  // --- Cấu hình quảng cáo (3rd-party) ---
+  @IsOptional()
+  @IsBoolean()
+  adsEnabled?: boolean;
+
+  @IsOptional()
+  @IsString()
+  googleAdsensePublisherId?: string;
+
+  @IsOptional()
+  @IsString()
+  admobAndroidAppId?: string;
+
+  @IsOptional()
+  @IsString()
+  admobIosAppId?: string;
+
+  @IsOptional()
+  @IsString()
+  fanPlacementId?: string;
+
+  @IsOptional()
+  @IsString()
+  adsTxtContent?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  consentRequired?: boolean;
 }

@@ -487,10 +487,25 @@ model Ad {
   id             String         @id @default(cuid())
   title          String?
   description    String?        @db.Text
-  imageUrl       String
+  // imageUrl required ở DB-level (default '') để zero-downtime; nhưng ở DTO chỉ
+  // bắt buộc khi sourceType = SELF_SERVED. 3rd-party (AdSense/AdMob/FAN/Custom)
+  // có thể bỏ trống — slot ID nằm trong networkConfig.
+  imageUrl       String         @default("")
   linkUrl        String?
   type           AdType         @default(BANNER)
   position       AdPosition     @default(BOTTOM)
+  // Nguồn ad — quyết định cách render ở client (image vs 3rd-party SDK/script).
+  sourceType     AdSourceType   @default(SELF_SERVED)
+  // Config riêng cho mỗi sourceType:
+  // - GOOGLE_ADSENSE: { adUnitId: string, format?: 'auto'|'rectangle'|'horizontal', responsive?: boolean }
+  // - GOOGLE_ADMOB:   { adUnitId: string, format?: 'banner'|'interstitial'|'native' }
+  // - FAN:            { placementId: string }
+  // - CUSTOM_SCRIPT:  { html: string }
+  // - SELF_SERVED:    null
+  networkConfig  Json?
+  // Platform target (chỉ áp dụng cho 3rd-party): 'web' | 'mobile' | 'all'.
+  // SELF_SERVED hiện thị mọi nơi (kept null).
+  platform       String?
   isActive       Boolean        @default(true)
   startDate      DateTime?
   endDate        DateTime?
@@ -517,7 +532,17 @@ model Ad {
   @@index([priority])
   @@index([campaignId])
   @@index([createdById])
+  @@index([sourceType])
+  @@index([platform])
   @@map("ads")
+}
+
+enum AdSourceType {
+  SELF_SERVED // Image + linkUrl tự host (Cloudinary/Garage)
+  GOOGLE_ADSENSE // Web — render <ins class="adsbygoogle">
+  GOOGLE_ADMOB // Mobile — react-native-google-mobile-ads BannerAd
+  FAN // Facebook Audience Network — mobile
+  CUSTOM_SCRIPT // Admin paste HTML/<script> từ ad network khác (Adsterra, MGID…)
 }
 
 model AdImpression {
@@ -621,6 +646,16 @@ model Settings {
   minWithdrawalCoins       Int      @default(1000)
   // Spec mục 2 — cho phép chuyển xu giữa user ("nếu cho phép"). Mặc định tắt.
   allowCoinTransfer        Boolean  @default(false)
+  // Quảng cáo — global kill switch + cấu hình network ID. Client gọi
+  // GET /ads/config để lấy snapshot dạng JSON.
+  adsEnabled               Boolean  @default(true)
+  googleAdsensePublisherId String?  // ca-pub-XXXXXXXXXXXXXXXX
+  admobAndroidAppId        String?  // ca-app-pub-XXXX~YYYY (App ID, không phải unit ID)
+  admobIosAppId            String?
+  fanPlacementId           String?  // Facebook Audience Network app ID
+  adsTxtContent            String?  @db.Text // Plain text serve qua GET /ads.txt
+  // GDPR consent banner — bật theo region nếu cần. Mặc định bật (an toàn).
+  consentRequired          Boolean  @default(true)
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 
