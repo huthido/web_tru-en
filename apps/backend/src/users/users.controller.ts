@@ -26,6 +26,7 @@ import { ReadingHistoryService } from '../reading-history/reading-history.servic
 import { UserRole } from '@prisma/client';
 import { memoryStorage } from 'multer';
 import { ImageNormalizePipe } from '../common/pipes/image-normalize.pipe';
+import { imageMulterFilter } from '../common/image/multer-filter';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -66,13 +67,7 @@ export class UsersController {
       limits: {
         fileSize: 10 * 1024 * 1024, // 10MB — HEIC iPhone có thể ~4-7MB, để pipe chuẩn hoá lại.
       },
-      fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
-          cb(null, true);
-        } else {
-          cb(new Error('Only image files are allowed'), false);
-        }
-      },
+      fileFilter: imageMulterFilter,
     })
   )
   async uploadAvatar(

@@ -26,6 +26,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UserRole } from '@prisma/client';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ImageNormalizePipe } from '../common/pipes/image-normalize.pipe';
+import { imageMulterFilter } from '../common/image/multer-filter';
 
 @Controller('stories/:storySlug/chapters')
 export class ChaptersController {
@@ -168,13 +169,7 @@ export class ChapterUploadController {
             limits: {
                 fileSize: 10 * 1024 * 1024, // 10MB
             },
-            fileFilter: (req, file, cb) => {
-                if (file.mimetype.startsWith('image/')) {
-                    cb(null, true);
-                } else {
-                    cb(new Error('Only image files are allowed'), false);
-                }
-            },
+            fileFilter: imageMulterFilter,
         })
     )
     async uploadImage(

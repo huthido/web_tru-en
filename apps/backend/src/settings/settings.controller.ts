@@ -19,6 +19,7 @@ import { Public } from '../auth/decorators/public.decorator';
 import { UserRole } from '@prisma/client';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ImageNormalizePipe } from '../common/pipes/image-normalize.pipe';
+import { imageMulterFilter } from '../common/image/multer-filter';
 
 @Controller('settings')
 export class SettingsController {
@@ -49,13 +50,7 @@ export class SettingsController {
       limits: {
         fileSize: 5 * 1024 * 1024, // 5MB
       },
-      fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
-          cb(null, true);
-        } else {
-          cb(new Error('Only image files are allowed'), false);
-        }
-      },
+      fileFilter: imageMulterFilter,
     })
   )
   async uploadLogo(
@@ -91,13 +86,7 @@ export class SettingsController {
       limits: {
         fileSize: 1 * 1024 * 1024, // 1MB
       },
-      fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
-          cb(null, true);
-        } else {
-          cb(new Error('Only image files are allowed'), false);
-        }
-      },
+      fileFilter: imageMulterFilter,
     })
   )
   async uploadFavicon(
