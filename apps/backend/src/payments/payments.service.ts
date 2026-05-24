@@ -64,16 +64,25 @@ export class PaymentsService {
     });
 
     let payUrl: string;
-    if (opts.provider === PaymentProvider.VNPAY) {
-      payUrl = this.vnpay.buildPaymentUrl({
-        txnRef,
-        amountVND: pkg.priceVND,
-        orderInfo: `Nap ${pkg.coinAmount} coin (${pkg.name}) - user ${opts.userId.slice(0, 8)}`,
-        ipAddr: opts.ipAddr,
-        bankCode: opts.bankCode,
-      });
-    } else {
-      throw new BadRequestException(`Provider ${opts.provider} not implemented yet`);
+    try {
+      if (opts.provider === PaymentProvider.VNPAY) {
+        payUrl = this.vnpay.buildPaymentUrl({
+          txnRef,
+          amountVND: pkg.priceVND,
+          orderInfo: `Nap ${pkg.coinAmount} coin (${pkg.name}) - user ${opts.userId.slice(0, 8)}`,
+          ipAddr: opts.ipAddr,
+          bankCode: opts.bankCode,
+        });
+      } else {
+        throw new BadRequestException(`Provider ${opts.provider} chưa được hỗ trợ`);
+      }
+    } catch (err) {
+      // Provider fail (vd VNPay env chưa cấu hình) — xoá Payment PENDING orphan
+      // để không tích rác trong DB. catch lỗi delete để giữ error gốc bubble lên.
+      await this.prisma.payment
+        .delete({ where: { id: payment.id } })
+        .catch(() => undefined);
+      throw err;
     }
 
     return { payment, payUrl };

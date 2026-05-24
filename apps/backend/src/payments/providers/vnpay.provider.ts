@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 
@@ -22,7 +27,7 @@ export interface VnpayVerifyResult {
 }
 
 @Injectable()
-export class VnpayProvider {
+export class VnpayProvider implements OnModuleInit {
   private readonly logger = new Logger(VnpayProvider.name);
   private readonly tmnCode: string;
   private readonly hashSecret: string;
@@ -40,6 +45,19 @@ export class VnpayProvider {
     this.ipnUrl = this.config.get<string>('VNPAY_IPN_URL') || '';
   }
 
+  onModuleInit() {
+    if (!this.isConfigured()) {
+      this.logger.warn(
+        'VNPay chưa cấu hình — thiếu VNPAY_TMN_CODE/VNPAY_HASH_SECRET/VNPAY_RETURN_URL. ' +
+          'Endpoint nạp xu sẽ trả 503 cho đến khi set đủ env vars.',
+      );
+    } else {
+      this.logger.log(
+        `VNPay configured — payUrl=${this.payUrl}, returnUrl=${this.returnUrl}`,
+      );
+    }
+  }
+
   isConfigured(): boolean {
     return !!(this.tmnCode && this.hashSecret && this.returnUrl);
   }
@@ -49,7 +67,9 @@ export class VnpayProvider {
    */
   buildPaymentUrl(input: VnpayCreateUrlInput): string {
     if (!this.isConfigured()) {
-      throw new Error('VNPay is not configured. Set VNPAY_TMN_CODE, VNPAY_HASH_SECRET, VNPAY_RETURN_URL.');
+      throw new ServiceUnavailableException(
+        'Cổng thanh toán VNPay chưa được cấu hình. Vui lòng liên hệ quản trị viên.',
+      );
     }
 
     const now = new Date();
