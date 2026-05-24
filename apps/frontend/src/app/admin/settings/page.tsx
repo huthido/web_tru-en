@@ -35,6 +35,14 @@ export default function AdminSettingsPage() {
         donationPlatformFeePercent: 2,
         chapterSaleFeePercent: 2,
         allowCoinTransfer: false,
+        // --- Quảng cáo ---
+        adsEnabled: true,
+        consentRequired: true,
+        googleAdsensePublisherId: '',
+        admobAndroidAppId: '',
+        admobIosAppId: '',
+        fanPlacementId: '',
+        adsTxtContent: '',
     });
 
     const logoInputRef = useRef<HTMLInputElement>(null);
@@ -62,6 +70,13 @@ export default function AdminSettingsPage() {
                 donationPlatformFeePercent: settings.donationPlatformFeePercent ?? 2,
                 chapterSaleFeePercent: settings.chapterSaleFeePercent ?? 2,
                 allowCoinTransfer: settings.allowCoinTransfer || false,
+                adsEnabled: (settings as any).adsEnabled ?? true,
+                consentRequired: (settings as any).consentRequired ?? true,
+                googleAdsensePublisherId: (settings as any).googleAdsensePublisherId || '',
+                admobAndroidAppId: (settings as any).admobAndroidAppId || '',
+                admobIosAppId: (settings as any).admobIosAppId || '',
+                fanPlacementId: (settings as any).fanPlacementId || '',
+                adsTxtContent: (settings as any).adsTxtContent || '',
             });
         }
     }, [settings]);
@@ -500,6 +515,123 @@ export default function AdminSettingsPage() {
                                 </div>
                                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
                                     Giới hạn 0–50%. Người mua không thấy phí — chỉ thấy giá gross.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* === Cấu hình quảng cáo === */}
+                    <div className="bg-surface-container rounded-lg shadow-sm border border-outline-variant p-6 mt-6">
+                        <h2 className="text-xl font-semibold text-on-surface mb-4">Quảng cáo (Ads)</h2>
+                        <p className="text-sm text-on-surface-variant mb-4">
+                            Khi tắt <code>adsEnabled</code>, mọi ad placement trên web + mobile ẩn đi —
+                            kill switch khẩn cấp. Publisher ID / App ID dùng để init SDK 3rd-party.
+                        </p>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    id="adsEnabled"
+                                    checked={formData.adsEnabled}
+                                    onChange={(e) => setFormData({ ...formData, adsEnabled: e.target.checked })}
+                                    className="w-4 h-4"
+                                />
+                                <label htmlFor="adsEnabled" className="text-sm font-medium text-on-surface">
+                                    Bật hiển thị quảng cáo (global kill switch)
+                                </label>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    id="consentRequired"
+                                    checked={formData.consentRequired}
+                                    onChange={(e) => setFormData({ ...formData, consentRequired: e.target.checked })}
+                                    className="w-4 h-4"
+                                />
+                                <label htmlFor="consentRequired" className="text-sm font-medium text-on-surface">
+                                    Yêu cầu user đồng ý (GDPR consent banner)
+                                </label>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                                        Google AdSense Publisher ID
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.googleAdsensePublisherId}
+                                        onChange={(e) =>
+                                            setFormData({ ...formData, googleAdsensePublisherId: e.target.value })
+                                        }
+                                        placeholder="ca-pub-1234567890123456"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface font-mono text-sm"
+                                    />
+                                    <p className="text-xs text-on-surface-variant mt-1">
+                                        Web — script load vào root layout, đọc ID này.
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                                        Facebook Audience Network App ID
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.fanPlacementId}
+                                        onChange={(e) =>
+                                            setFormData({ ...formData, fanPlacementId: e.target.value })
+                                        }
+                                        placeholder="1234567890123456"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface font-mono text-sm"
+                                    />
+                                    <p className="text-xs text-on-surface-variant mt-1">Mobile — defer.</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                                        AdMob Android App ID
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.admobAndroidAppId}
+                                        onChange={(e) =>
+                                            setFormData({ ...formData, admobAndroidAppId: e.target.value })
+                                        }
+                                        placeholder="ca-app-pub-XXXX~YYYY"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface font-mono text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                                        AdMob iOS App ID
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.admobIosAppId}
+                                        onChange={(e) =>
+                                            setFormData({ ...formData, admobIosAppId: e.target.value })
+                                        }
+                                        placeholder="ca-app-pub-XXXX~YYYY"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface font-mono text-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                                    Nội dung ads.txt
+                                </label>
+                                <textarea
+                                    value={formData.adsTxtContent}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, adsTxtContent: e.target.value })
+                                    }
+                                    rows={4}
+                                    placeholder="google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface font-mono text-xs"
+                                />
+                                <p className="text-xs text-on-surface-variant mt-1">
+                                    Serve qua <code>/ads.txt</code> cho Google AdSense verify. Mỗi dòng 1
+                                    publisher.
                                 </p>
                             </div>
                         </div>

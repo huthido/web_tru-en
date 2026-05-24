@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 import { colors, fontSize, radius, spacing } from '@/theme';
 import { resolveImageUrl } from '@/lib/url';
 import { AdsApi, type Ad, type AdPosition, type AdType } from '@/lib/api/ads.service';
@@ -137,48 +138,35 @@ function SelfServedBanner({
 }
 
 /**
- * AdMob banner stub. Để bật thật:
- *   1. `pnpm --filter mobile add react-native-google-mobile-ads`
- *   2. Thêm config plugin vào `app.json`:
- *      "plugins": [
- *        ["react-native-google-mobile-ads", {
- *           "androidAppId": "<từ Settings.admobAndroidAppId>",
- *           "iosAppId": "<từ Settings.admobIosAppId>"
- *        }]
- *      ]
- *   3. `eas build --profile development` rebuild dev client
- *   4. Init SDK trong App.tsx sau ATT permission (iOS 14.5+):
- *      import mobileAds, { MaxAdContentRating } from 'react-native-google-mobile-ads';
- *      await mobileAds().setRequestConfiguration({ maxAdContentRating: MaxAdContentRating.T });
- *      await mobileAds().initialize();
- *   5. Uncomment block dưới + import BannerAd + BannerAdSize.
+ * AdMob banner render bằng `react-native-google-mobile-ads`. SDK được init
+ * trong App.tsx sau khi ATT permission (iOS 14.5+) đã được hỏi.
  *
- * Cho tới khi đó, stub hiển thị placeholder để admin dễ thấy ad đã được cấu hình.
+ * `__DEV__` (Metro dev mode) tự dùng `TestIds.BANNER` để khỏi vi phạm AdMob
+ * policy khi develop. Prod build dùng `adUnitId` thật từ admin form.
  */
 function AdmobBannerStub({ ad, height }: { ad: Ad; height: number }) {
-    const unitId = ad.networkConfig?.adUnitId;
-    if (!unitId) return null;
+    const realUnitId = ad.networkConfig?.adUnitId;
+    if (!realUnitId) return null;
+
+    const unitId = __DEV__ ? TestIds.BANNER : realUnitId;
+
     return (
         <View style={styles.wrapper}>
             <Text style={styles.label}>Quảng cáo</Text>
-            <View style={[styles.stubBox, { height }]}>
-                <Text style={styles.stubText}>AdMob unit: {unitId}</Text>
-                <Text style={styles.stubHint}>Chưa cài react-native-google-mobile-ads</Text>
+            <View style={[styles.box, { height, justifyContent: 'center', alignItems: 'center' }]}>
+                <BannerAd
+                    unitId={unitId}
+                    size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                    requestOptions={{
+                        // Tôn trọng ATT — nếu user từ chối tracking, gửi ad non-personalized.
+                        // Tạm thời để false (personalized) ở placeholder; khi mobile có consent
+                        // sheet sẽ đọc state đó để tinh chỉnh.
+                        requestNonPersonalizedAdsOnly: false,
+                    }}
+                />
             </View>
         </View>
     );
-    // === ENABLE WHEN SDK INSTALLED ===
-    // import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
-    // return (
-    //   <View style={styles.wrapper}>
-    //     <Text style={styles.label}>Quảng cáo</Text>
-    //     <BannerAd
-    //       unitId={unitId}
-    //       size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-    //       requestOptions={{ requestNonPersonalizedAdsOnly: !consented }}
-    //     />
-    //   </View>
-    // );
 }
 
 /** FAN stub — Facebook Audience Network. Cần `react-native-fbads` + Facebook SDK config. */

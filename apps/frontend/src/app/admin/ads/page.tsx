@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { isUsableImageSrc } from '@/utils/image-utils';
 import { Loading } from '@/components/ui/loading';
 import { useAds, useCreateAd, useUpdateAd, useDeleteAd } from '@/lib/api/hooks/use-ads';
-import { AdType, AdPosition, Ad } from '@/lib/api/ads.service';
+import { AdType, AdPosition, AdSourceType, Ad } from '@/lib/api/ads.service';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { useToast, ToastContainer } from '@/components/ui/toast';
@@ -1113,6 +1113,13 @@ function AdFormModal({
         linkUrl: ad?.linkUrl || '',
         type: ad?.type || AdType.BANNER,
         position: ad?.position || AdPosition.BOTTOM,
+        sourceType: ad?.sourceType || AdSourceType.SELF_SERVED,
+        platform: (ad?.platform as 'web' | 'mobile' | 'all') || 'all',
+        // networkConfig flatten thành 4 input riêng để form đơn giản hơn — submit lại gom JSON.
+        adUnitId: (ad?.networkConfig?.adUnitId as string) || '',
+        format: (ad?.networkConfig?.format as string) || 'auto',
+        placementId: (ad?.networkConfig?.placementId as string) || '',
+        customHtml: (ad?.networkConfig?.html as string) || '',
         isActive: ad?.isActive ?? true,
         startDate: ad?.startDate ? new Date(ad.startDate).toISOString().split('T')[0] : '',
         endDate: ad?.endDate ? new Date(ad.endDate).toISOString().split('T')[0] : '',
@@ -1197,30 +1204,79 @@ function AdFormModal({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // If using upload but haven't uploaded yet
-        if (imageInputType === 'upload' && uploadedFile && !formData.imageUrl.includes('cloudinary')) {
-            await handleUpload();
-            // Wait a bit for upload to complete
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
-
-        if (!formData.imageUrl) {
-            alert('Vui lòng nhập URL ảnh hoặc upload ảnh');
-            return;
+        // Validation theo sourceType — backend cũng có validate, đây là UX guard sớm.
+        if (formData.sourceType === AdSourceType.SELF_SERVED) {
+            if (imageInputType === 'upload' && uploadedFile && !formData.imageUrl.includes('cloudinary')) {
+                await handleUpload();
+                await new Promise((resolve) => setTimeout(resolve, 500));
+            }
+            if (!formData.imageUrl) {
+                alert('Loại SELF_SERVED yêu cầu URL ảnh hoặc upload ảnh.');
+                return;
+            }
+        } else if (
+            formData.sourceType === AdSourceType.GOOGLE_ADSENSE ||
+            formData.sourceType === AdSourceType.GOOGLE_ADMOB
+        ) {
+            if (!formData.adUnitId.trim()) {
+                alert('Vui lòng nhập Ad Unit ID.');
+                return;
+            }
+        } else if (formData.sourceType === AdSourceType.FAN) {
+            if (!formData.placementId.trim()) {
+                alert('Vui lòng nhập FAN Placement ID.');
+                return;
+            }
+        } else if (formData.sourceType === AdSourceType.CUSTOM_SCRIPT) {
+            if (!formData.customHtml.trim()) {
+                alert('Vui lòng nhập HTML/script của quảng cáo.');
+                return;
+            }
         }
 
         setIsSubmitting(true);
 
         try {
+            // Gom networkConfig từ flatten fields về JSON object theo sourceType.
+            let networkConfig: Record<string, unknown> | undefined;
+            switch (formData.sourceType) {
+                case AdSourceType.GOOGLE_ADSENSE:
+                    networkConfig = {
+                        adUnitId: formData.adUnitId.trim(),
+                        format: formData.format || 'auto',
+                        responsive: true,
+                    };
+                    break;
+                case AdSourceType.GOOGLE_ADMOB:
+                    networkConfig = { adUnitId: formData.adUnitId.trim(), format: formData.format || 'banner' };
+                    break;
+                case AdSourceType.FAN:
+                    networkConfig = { placementId: formData.placementId.trim() };
+                    break;
+                case AdSourceType.CUSTOM_SCRIPT:
+                    networkConfig = { html: formData.customHtml };
+                    break;
+                default:
+                    networkConfig = undefined;
+            }
+
             const submitData = {
-                ...formData,
+                title: formData.title,
+                description: formData.description,
+                linkUrl: formData.linkUrl || undefined,
+                type: formData.type,
+                position: formData.position,
+                sourceType: formData.sourceType,
+                networkConfig,
+                platform: formData.platform === 'all' ? undefined : formData.platform,
+                isActive: formData.isActive,
+                // imageUrl chỉ gửi cho SELF_SERVED — 3rd-party không cần ảnh.
+                ...(formData.sourceType === AdSourceType.SELF_SERVED
+                    ? { imageUrl: formData.imageUrl }
+                    : {}),
                 startDate: formData.startDate || undefined,
                 endDate: formData.endDate || undefined,
                 popupInterval: formData.type === AdType.POPUP ? formData.popupInterval : undefined,
-                // Position đã được set tự động trong useEffect:
-                // - BANNER: BOTTOM
-                // - SIDEBAR: SIDEBAR_LEFT
-                // - POPUP: backend sẽ xử lý (giữ giá trị hiện tại, backend có thể bỏ qua)
             };
 
             if (ad) {
@@ -1282,6 +1338,165 @@ function AdFormModal({
                             />
                         </div>
 
+                        {/* Loại nguồn ad — quyết định fields hiện ra phía dưới. */}
+                        <div>
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                                Loại nguồn <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                value={formData.sourceType}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, sourceType: e.target.value as AdSourceType })
+                                }
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface"
+                            >
+                                <option value={AdSourceType.SELF_SERVED}>Self-served (ảnh upload)</option>
+                                <option value={AdSourceType.GOOGLE_ADSENSE}>Google AdSense (Web)</option>
+                                <option value={AdSourceType.GOOGLE_ADMOB}>Google AdMob (Mobile)</option>
+                                <option value={AdSourceType.FAN}>Facebook Audience Network (Mobile)</option>
+                                <option value={AdSourceType.CUSTOM_SCRIPT}>Custom HTML/Script (Adsterra, MGID…)</option>
+                            </select>
+                            <p className="mt-1 text-xs text-on-surface-variant">
+                                3rd-party tự đếm impression/click; backend bỏ qua tracking manual.
+                            </p>
+                        </div>
+
+                        {/* Platform target (chỉ cho 3rd-party — SELF_SERVED hiển thị mọi nơi). */}
+                        {formData.sourceType !== AdSourceType.SELF_SERVED && (
+                            <div>
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                                    Hiển thị trên
+                                </label>
+                                <select
+                                    value={formData.platform}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, platform: e.target.value as 'web' | 'mobile' | 'all' })
+                                    }
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface"
+                                >
+                                    <option value="all">Cả web + mobile</option>
+                                    <option value="web">Chỉ web</option>
+                                    <option value="mobile">Chỉ mobile</option>
+                                </select>
+                            </div>
+                        )}
+
+                        {/* === Conditional fields per sourceType === */}
+                        {formData.sourceType === AdSourceType.GOOGLE_ADSENSE && (
+                            <div className="space-y-3 p-3 rounded-lg bg-surface-container-high border border-outline-variant">
+                                <p className="text-xs text-on-surface-variant">
+                                    Lấy <strong>Ad Unit ID</strong> (data-ad-slot) từ AdSense console &gt;
+                                    Ads &gt; By ad unit. Publisher ID đặt trong Cài đặt &gt; Quảng cáo.
+                                </p>
+                                <div>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                                        Ad Unit ID <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.adUnitId}
+                                        onChange={(e) => setFormData({ ...formData, adUnitId: e.target.value })}
+                                        placeholder="1234567890"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                                        Format
+                                    </label>
+                                    <select
+                                        value={formData.format}
+                                        onChange={(e) => setFormData({ ...formData, format: e.target.value })}
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface"
+                                    >
+                                        <option value="auto">Auto (responsive)</option>
+                                        <option value="rectangle">Rectangle</option>
+                                        <option value="horizontal">Horizontal</option>
+                                        <option value="vertical">Vertical</option>
+                                    </select>
+                                </div>
+                            </div>
+                        )}
+
+                        {formData.sourceType === AdSourceType.GOOGLE_ADMOB && (
+                            <div className="space-y-3 p-3 rounded-lg bg-surface-container-high border border-outline-variant">
+                                <p className="text-xs text-on-surface-variant">
+                                    Lấy <strong>Ad Unit ID</strong> dạng <code>ca-app-pub-XXX/YYY</code> từ AdMob
+                                    console. App ID đặt trong Cài đặt &gt; Quảng cáo.
+                                </p>
+                                <div>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                                        Ad Unit ID <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.adUnitId}
+                                        onChange={(e) => setFormData({ ...formData, adUnitId: e.target.value })}
+                                        placeholder="ca-app-pub-3940256099942544/6300978111"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface font-mono text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                                        Format
+                                    </label>
+                                    <select
+                                        value={formData.format}
+                                        onChange={(e) => setFormData({ ...formData, format: e.target.value })}
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface"
+                                    >
+                                        <option value="banner">Banner</option>
+                                        <option value="interstitial">Interstitial (toàn màn)</option>
+                                        <option value="native">Native</option>
+                                    </select>
+                                </div>
+                            </div>
+                        )}
+
+                        {formData.sourceType === AdSourceType.FAN && (
+                            <div className="space-y-3 p-3 rounded-lg bg-surface-container-high border border-outline-variant">
+                                <p className="text-xs text-on-surface-variant">
+                                    Lấy <strong>Placement ID</strong> từ Facebook Audience Network dashboard.
+                                </p>
+                                <div>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                                        Placement ID <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.placementId}
+                                        onChange={(e) => setFormData({ ...formData, placementId: e.target.value })}
+                                        placeholder="1234567890_0987654321"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface font-mono text-sm"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {formData.sourceType === AdSourceType.CUSTOM_SCRIPT && (
+                            <div className="space-y-3 p-3 rounded-lg bg-surface-container-high border border-outline-variant">
+                                <p className="text-xs text-orange-700 dark:text-orange-300">
+                                    ⚠️ HTML/script sẽ render trong iframe sandbox. Chỉ paste từ ad network
+                                    bạn TIN TƯỞNG (Adsterra, MGID, PropellerAds…). Tránh từ nguồn lạ —
+                                    có thể chứa malware.
+                                </p>
+                                <div>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                                        HTML / Script <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        value={formData.customHtml}
+                                        onChange={(e) => setFormData({ ...formData, customHtml: e.target.value })}
+                                        rows={6}
+                                        placeholder='<script async src="//example.com/ad.js"></script>'
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface font-mono text-xs"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* SELF_SERVED: phần upload ảnh hiện tại — wrap trong condition để 3rd-party ẩn đi. */}
+                        {formData.sourceType === AdSourceType.SELF_SERVED && (
                         <div>
                             <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Ảnh quảng cáo <span className="text-red-500">*</span>
@@ -1390,7 +1605,9 @@ function AdFormModal({
                                 </div>
                             )}
                         </div>
+                        )}
 
+                        {formData.sourceType === AdSourceType.SELF_SERVED && (
                         <div>
                             <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Link quảng cáo (tùy chọn)
@@ -1402,6 +1619,7 @@ function AdFormModal({
                                 className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             />
                         </div>
+                        )}
 
                         <div>
                             <label className="block text-sm font-medium text-on-surface-variant mb-2">

@@ -84,6 +84,26 @@ const config = {
           'App YÊU dùng dữ liệu này để hiển thị quảng cáo phù hợp hơn với sở thích của bạn.',
       },
     ],
+    // Google AdMob — banner / interstitial. App ID lấy từ AdMob console
+    // (ca-app-pub-XXXX~YYYY). Trên dev/local có thể tạm dùng Google test IDs
+    // để build chạy được khi user chưa setup AdMob account.
+    [
+      'react-native-google-mobile-ads',
+      {
+        androidAppId:
+          process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID ||
+          // Google's official "sample" Android app ID for testing — KHÔNG kiếm
+          // được tiền nhưng cho build chạy. Thay bằng app ID thật trước khi ship.
+          'ca-app-pub-3940256099942544~3347511713',
+        iosAppId:
+          process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID ||
+          'ca-app-pub-3940256099942544~1458002511',
+        // App Tracking Transparency dialog message — show trước khi init SDK iOS 14.5+.
+        userTrackingUsageDescription:
+          'App YÊU dùng dữ liệu này để hiển thị quảng cáo phù hợp hơn với sở thích của bạn.',
+        skAdNetworkItems: [],
+      },
+    ],
   ],
 };
 
