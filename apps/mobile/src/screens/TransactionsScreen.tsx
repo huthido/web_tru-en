@@ -163,12 +163,14 @@ export const TransactionsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg },
+    screen: { flex: 1, backgroundColor: colors.background },
     filterBar: {
-        backgroundColor: colors.surface,
+        backgroundColor: colors.surfaceContainerLowest,
         paddingVertical: spacing.sm,
         flexDirection: 'row',
         alignItems: 'center',
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: colors.outlineVariant,
     },
     chipsRow: {
         paddingHorizontal: spacing.lg,
@@ -183,33 +185,38 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         borderRadius: radius.pill,
         borderWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.bg,
+        borderColor: colors.outlineVariant,
+        backgroundColor: colors.surfaceContainerLowest,
         marginRight: spacing.xs,
     },
-    chipText: { fontSize: fontSize.xs, color: colors.text, fontWeight: '600' },
+    chipText: { fontSize: fontSize.xs, color: colors.onSurface, fontFamily: 'DMSans_500Medium' },
     clearText: {
         color: colors.primary,
         fontSize: fontSize.xs,
-        fontWeight: '600',
+        fontFamily: 'DMSans_700Bold',
         paddingHorizontal: spacing.md,
     },
     listContent: {
         padding: spacing.lg,
+        // PaddingBottom 100 chừa MainTabBar floating.
+        paddingBottom: 100,
         gap: 0,
     },
     summary: {
         fontSize: fontSize.xs,
-        color: colors.textMuted,
+        color: colors.onSurfaceVariant,
         marginBottom: spacing.sm,
+        fontFamily: 'DMSans_500Medium',
     },
     txRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: spacing.md,
         padding: spacing.md,
-        backgroundColor: colors.surface,
+        backgroundColor: colors.surfaceContainerLowest,
         borderRadius: radius.md,
+        borderWidth: 1,
+        borderColor: colors.outlineVariant,
         marginBottom: spacing.sm,
     },
     txIcon: {

@@ -6,7 +6,7 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Compass, Library, Clock, Bookmark, Heart, Store, Upload, LayoutDashboard, Wallet, Settings, BookOpen, HelpCircle, MoreHorizontal, X, type LucideIcon } from 'lucide-react';
+import { Home, Compass, Library, Clock, Bookmark, Heart, Store, Upload, LayoutDashboard, Wallet, Settings, BookOpen, HelpCircle, MoreHorizontal, Plus, X, type LucideIcon } from 'lucide-react';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
 function roleLabel(role?: string): string {
@@ -99,13 +99,17 @@ export function Sidebar() {
   ];
 
   const visible = links.filter((l) => !l.authOnly || canCreateStories);
-  // Mobile bottom bar: 4 mục chính + nút "Khác" mở drawer cho phần còn lại.
-  const mobilePrimaryHrefs = ['/', '/stories', '/library', '/history'];
+  // Mobile bottom bar theo Stitch Luminous Petal: 5 items + FAB Đăng truyện ở
+  // giữa = 6 slot. FAB navigate sang `/author/stories/create` (nếu đăng nhập)
+  // hoặc `/login?redirect=...` (nếu chưa).
+  // Slot order: Home · Stories · [FAB Upload] · Library · Khác.
+  const mobilePrimaryHrefs = ['/', '/stories', '/library'];
   const mobilePrimary = links.filter((l) => mobilePrimaryHrefs.includes(l.href));
   const moreLinks = [...links, ...bottomLinks].filter(
-    (l) => !mobilePrimaryHrefs.includes(l.href) && (!l.authOnly || canCreateStories)
+    (l) => !mobilePrimaryHrefs.includes(l.href) && l.href !== '/author/stories/create' && (!l.authOnly || canCreateStories)
   );
   const moreActive = moreLinks.some((l) => l.active);
+  const uploadHref = canCreateStories ? '/author/stories/create' : '/login?redirect=/author/stories/create';
 
   return (
     <>
@@ -182,48 +186,69 @@ export function Sidebar() {
         </div>
       </aside>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container border-t border-outline-variant/40 z-50 safe-area-inset-bottom">
-        <div className="flex items-center justify-around h-16 px-2 py-2">
-          {mobilePrimary.map((l) => {
-            const Icon = l.icon;
+      {/* Mobile Bottom Navigation — Luminous Petal: 5 items + FAB center cho
+          Đăng truyện. Background frosted (bg-surface-container/80 backdrop-blur)
+          để khớp glassmorphism của Stitch design. */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container/80 backdrop-blur-xl border-t border-outline-variant/40 z-50 safe-area-inset-bottom">
+        <div className="flex items-center justify-around h-16 px-2 py-2 relative">
+          {/* Slot 1: Trang chủ */}
+          {mobilePrimary[0] && (() => {
+            const l = mobilePrimary[0]; const Icon = l.icon;
             return (
-              <Link
-                key={l.href}
-                href={l.href}
-                aria-label={l.label}
-                className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${
-                  l.active ? 'bg-primary/15' : 'bg-transparent hover:bg-surface-variant'
-                }`}
-              >
-                <Icon
-                  size={22}
-                  className={l.active ? 'text-primary' : 'text-on-surface-variant'}
-                  fill={l.active && l.fillWhenActive ? 'currentColor' : 'none'}
-                />
-                <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>
-                  {l.label}
-                </span>
+              <Link key={l.href} href={l.href} aria-label={l.label}
+                className={`flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
+                <Icon size={22} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
+                <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{l.label}</span>
               </Link>
             );
-          })}
+          })()}
 
+          {/* Slot 2: Khám phá */}
+          {mobilePrimary[1] && (() => {
+            const l = mobilePrimary[1]; const Icon = l.icon;
+            return (
+              <Link key={l.href} href={l.href} aria-label={l.label}
+                className={`flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
+                <Icon size={22} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
+                <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{l.label}</span>
+              </Link>
+            );
+          })()}
+
+          {/* Slot 3: FAB Upload — nổi giữa, vị trí cao hơn ~14px so với bar */}
+          <Link
+            href={uploadHref}
+            aria-label="Đăng truyện"
+            className="flex items-center justify-center w-13 h-13 -mt-6 bg-primary text-on-primary rounded-full shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+            style={{ width: 52, height: 52 }}
+          >
+            <Plus size={26} strokeWidth={2.5} />
+          </Link>
+
+          {/* Slot 4: Thư viện */}
+          {mobilePrimary[2] && (() => {
+            const l = mobilePrimary[2]; const Icon = l.icon;
+            return (
+              <Link key={l.href} href={l.href} aria-label={l.label}
+                className={`flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
+                <Icon size={22} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
+                <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{l.label}</span>
+              </Link>
+            );
+          })()}
+
+          {/* Slot 5: Khác button (drawer cho mọi mục phụ) */}
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
             aria-label="Mở menu khác"
             aria-expanded={moreOpen}
-            className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg transition-all duration-300 ${
-              moreActive ? 'bg-primary/15' : 'bg-transparent hover:bg-surface-variant'
+            className={`flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-lg transition-all duration-300 ${
+              moreActive ? 'bg-primary/15' : 'hover:bg-surface-variant'
             }`}
           >
-            <MoreHorizontal
-              size={22}
-              className={moreActive ? 'text-primary' : 'text-on-surface-variant'}
-            />
-            <span className={`text-[10px] font-medium ${moreActive ? 'text-primary' : 'text-on-surface-variant'}`}>
-              Khác
-            </span>
+            <MoreHorizontal size={22} className={moreActive ? 'text-primary' : 'text-on-surface-variant'} />
+            <span className={`text-[10px] font-medium ${moreActive ? 'text-primary' : 'text-on-surface-variant'}`}>Khác</span>
           </button>
         </div>
       </nav>

@@ -200,7 +200,7 @@ export const LibraryScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg },
+    screen: { flex: 1, backgroundColor: colors.background },
     tabs: {
         flexDirection: 'row',
         gap: spacing.sm,
@@ -212,14 +212,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: spacing.sm,
         borderRadius: radius.pill,
-        backgroundColor: colors.surface,
+        backgroundColor: colors.surfaceContainerLowest,
         borderWidth: 1,
-        borderColor: colors.border,
+        borderColor: colors.outlineVariant,
     },
     segActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-    segText: { fontSize: fontSize.sm, fontWeight: '600', color: colors.textMuted },
-    segTextActive: { color: colors.white },
-    listContent: { paddingVertical: spacing.sm },
+    segText: { fontSize: fontSize.sm, fontFamily: 'DMSans_500Medium', color: colors.onSurfaceVariant },
+    segTextActive: { color: colors.onPrimary, fontFamily: 'DMSans_700Bold' },
+    // PaddingBottom 100 chừa MainTabBar floating.
+    listContent: { paddingVertical: spacing.sm, paddingBottom: 100 },
     emptyContent: { flexGrow: 1 },
     footer: { marginVertical: spacing.lg },
     clearBtn: {
@@ -230,5 +231,5 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
         paddingVertical: spacing.sm,
     },
-    clearText: { color: colors.danger, fontSize: fontSize.sm, fontWeight: '600' },
+    clearText: { color: colors.error, fontSize: fontSize.sm, fontFamily: 'DMSans_700Bold' },
 });

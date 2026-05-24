@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useQueries, useQuery } from '@tanstack/react-query';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { colors, fontSize, radius, spacing, typography } from '@/theme';
 import { ErrorView } from '@/components/ui';
 import { WalletApi, type EarningsBreakdown, type TodayEarnings } from '@/lib/api/wallet.service';
 import { formatNumber } from '@/lib/format';
@@ -197,48 +197,50 @@ function KV({ k, v, highlight }: { k: string; v: string; highlight?: boolean }) 
 }
 
 const styles = StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg },
+    screen: { flex: 1, backgroundColor: colors.background },
     content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
     balanceCard: {
         backgroundColor: colors.primary,
-        borderRadius: radius.lg,
+        borderRadius: radius.xl,
         padding: spacing.lg,
         gap: spacing.sm,
         alignItems: 'flex-start',
     },
-    balanceLabel: { color: colors.white, opacity: 0.85, fontSize: fontSize.sm },
-    balanceValue: { color: colors.white, fontSize: 30, fontWeight: '800' },
+    balanceLabel: { ...typography.labelMd, color: colors.onPrimary, opacity: 0.85 },
+    balanceValue: { ...typography.headlineLg, color: colors.onPrimary, fontSize: 30 },
     withdrawBtn: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: spacing.xs,
-        backgroundColor: colors.white,
+        backgroundColor: colors.onPrimary,
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.sm,
         borderRadius: radius.pill,
         marginTop: spacing.xs,
     },
-    withdrawText: { color: colors.primary, fontWeight: '700', fontSize: fontSize.sm },
+    withdrawText: { ...typography.labelMd, color: colors.primary, fontFamily: 'DMSans_700Bold' },
     card: {
-        backgroundColor: colors.surface,
+        backgroundColor: colors.surfaceContainerLowest,
         borderRadius: radius.lg,
         padding: spacing.lg,
         gap: spacing.sm,
+        borderWidth: 1,
+        borderColor: colors.outlineVariant,
     },
-    cardTitle: { fontSize: fontSize.md, fontWeight: '700', color: colors.text },
+    cardTitle: { ...typography.headlineSm, fontSize: 16, color: colors.onSurface },
     gridSm: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     cell: {
         flexBasis: '47%',
         flexGrow: 1,
-        backgroundColor: colors.bg,
+        backgroundColor: colors.surfaceContainerLow,
         padding: spacing.md,
         borderRadius: radius.md,
         gap: 2,
     },
-    cellLabel: { fontSize: fontSize.xs, color: colors.textMuted },
-    cellValue: { fontSize: fontSize.lg, fontWeight: '700', color: colors.text },
+    cellLabel: { ...typography.bodySm, fontSize: fontSize.xs, color: colors.onSurfaceVariant },
+    cellValue: { ...typography.headlineSm, fontSize: fontSize.lg, color: colors.onSurface },
     kv: { flexDirection: 'row', justifyContent: 'space-between' },
-    kvK: { fontSize: fontSize.sm, color: colors.textMuted },
-    kvV: { fontSize: fontSize.sm, color: colors.text, fontWeight: '600' },
-    divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.xs },
+    kvK: { ...typography.bodySm, color: colors.onSurfaceVariant },
+    kvV: { ...typography.bodySm, color: colors.onSurface, fontFamily: 'DMSans_500Medium' },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.outlineVariant, marginVertical: spacing.xs },
 });
