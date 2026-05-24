@@ -25,7 +25,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserRole } from '@prisma/client';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { ImageValidationPipe } from '../common/pipes/image-validation.pipe';
+import { ImageNormalizePipe } from '../common/pipes/image-normalize.pipe';
 
 @Controller('stories/:storySlug/chapters')
 export class ChaptersController {
@@ -166,7 +166,7 @@ export class ChapterUploadController {
         FileInterceptor('file', {
             storage: memoryStorage(),
             limits: {
-                fileSize: 5 * 1024 * 1024, // 5MB
+                fileSize: 10 * 1024 * 1024, // 10MB
             },
             fileFilter: (req, file, cb) => {
                 if (file.mimetype.startsWith('image/')) {
@@ -178,7 +178,14 @@ export class ChapterUploadController {
         })
     )
     async uploadImage(
-        @UploadedFile(new ImageValidationPipe({ maxSizeBytes: 2 * 1024 * 1024, maxWidth: 1600 }))
+        @UploadedFile(
+            new ImageNormalizePipe({
+                maxSizeBytes: 10 * 1024 * 1024,
+                maxWidth: 1280,
+                quality: 80,
+                policy: 'force-webp',
+            }),
+        )
         file: Express.Multer.File,
         @CurrentUser() user: any,
     ) {

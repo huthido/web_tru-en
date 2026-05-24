@@ -1,6 +1,10 @@
 /**
  * Client-side image compression utility using Canvas API.
  * Compresses images before upload to reduce bandwidth and storage.
+ *
+ * Backend (ImageNormalizePipe) sẽ re-encode về WebP q80 sau cùng — đây chỉ là
+ * pre-compress để tiết kiệm băng thông. Default quality 0.9 (gần lossless) để
+ * giảm artifact double-compress.
  */
 
 export interface CompressOptions {
@@ -8,25 +12,81 @@ export interface CompressOptions {
     maxWidth?: number;
     /** Max height in pixels (default: 1920) */
     maxHeight?: number;
-    /** JPEG/WebP quality 0-1 (default: 0.8) */
+    /** JPEG/WebP quality 0-1 (default: 0.9 — gần lossless, backend sẽ re-encode q80) */
     quality?: number;
-    /** Output MIME type (default: 'image/jpeg') */
-    outputType?: 'image/jpeg' | 'image/webp' | 'image/png';
-    /** Max file size in bytes — if original is smaller, skip compression */
+    /** Output MIME type. 'auto' = WebP nếu trình duyệt support, fallback JPEG. */
+    outputType?: 'auto' | 'image/jpeg' | 'image/webp' | 'image/png';
+    /** Max file size in bytes — if original is smaller, skip compression. Default 0 (luôn compress). */
     skipIfSmallerThan?: number;
 }
 
 const DEFAULT_OPTIONS: Required<CompressOptions> = {
     maxWidth: 1920,
     maxHeight: 1920,
-    quality: 0.8,
-    outputType: 'image/jpeg',
-    skipIfSmallerThan: 100 * 1024, // 100KB
+    quality: 0.9,
+    outputType: 'auto',
+    skipIfSmallerThan: 0,
 };
+
+let cachedWebpSupport: boolean | null = null;
+
+function supportsWebpEncode(): boolean {
+    if (cachedWebpSupport !== null) return cachedWebpSupport;
+    if (typeof document === 'undefined') return (cachedWebpSupport = false);
+    try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        cachedWebpSupport = canvas.toDataURL('image/webp').startsWith('data:image/webp');
+    } catch {
+        cachedWebpSupport = false;
+    }
+    return cachedWebpSupport;
+}
+
+function resolveOutputType(option: CompressOptions['outputType']): 'image/jpeg' | 'image/webp' | 'image/png' {
+    if (option === 'auto' || option === undefined) {
+        return supportsWebpEncode() ? 'image/webp' : 'image/jpeg';
+    }
+    return option;
+}
+
+async function drawToBlob(
+    bitmap: ImageBitmap,
+    width: number,
+    height: number,
+    outputType: 'image/jpeg' | 'image/webp' | 'image/png',
+    quality: number,
+): Promise<Blob | null> {
+    // Prefer OffscreenCanvas khi có (modern Chrome/Firefox); fallback HTMLCanvas
+    // cho Safari < 16.4 và webview cũ.
+    if (typeof OffscreenCanvas !== 'undefined') {
+        try {
+            const canvas = new OffscreenCanvas(width, height);
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return null;
+            ctx.drawImage(bitmap, 0, 0, width, height);
+            return await canvas.convertToBlob({ type: outputType, quality });
+        } catch (err) {
+            console.warn('[compress] OffscreenCanvas failed, falling back to HTMLCanvas:', err);
+        }
+    }
+
+    if (typeof document === 'undefined') return null;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    return await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob((b) => resolve(b), outputType, quality),
+    );
+}
 
 /**
  * Compress an image file using Canvas API.
- * Returns the compressed file (or original if already small enough).
+ * Returns the compressed file (or original if smaller / unsupported).
  */
 export async function compressImage(
     file: File,
@@ -34,19 +94,21 @@ export async function compressImage(
 ): Promise<File> {
     const opts = { ...DEFAULT_OPTIONS, ...options };
 
-    // Skip non-image files
     if (!file.type.startsWith('image/')) {
         return file;
     }
 
-    // Skip GIFs (animation would be lost)
+    // GIF: animation sẽ bị mất nếu vẽ qua canvas — backend sẽ passthrough.
     if (file.type === 'image/gif') {
         return file;
     }
 
-    // Skip if file is already small
-    if (file.size <= opts.skipIfSmallerThan) {
-        console.log(`[compress] Skipped: ${file.name} (${formatSize(file.size)} < ${formatSize(opts.skipIfSmallerThan)})`);
+    // SVG: vector, không vẽ canvas — backend passthrough.
+    if (file.type === 'image/svg+xml') {
+        return file;
+    }
+
+    if (opts.skipIfSmallerThan > 0 && file.size <= opts.skipIfSmallerThan) {
         return file;
     }
 
@@ -59,39 +121,31 @@ export async function compressImage(
             opts.maxHeight
         );
 
-        const canvas = new OffscreenCanvas(width, height);
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-            console.warn('[compress] Canvas context unavailable, returning original');
+        const outputType = resolveOutputType(opts.outputType);
+        const blob = await drawToBlob(bitmap, width, height, outputType, opts.quality);
+        bitmap.close();
+
+        if (!blob) {
+            console.warn('[compress] Canvas blob generation failed, returning original');
             return file;
         }
 
-        ctx.drawImage(bitmap, 0, 0, width, height);
-        bitmap.close();
-
-        const blob = await canvas.convertToBlob({
-            type: opts.outputType,
-            quality: opts.quality,
-        });
-
-        // Generate new filename with correct extension
-        const ext = opts.outputType === 'image/webp' ? '.webp'
-            : opts.outputType === 'image/png' ? '.png'
+        const ext = outputType === 'image/webp' ? '.webp'
+            : outputType === 'image/png' ? '.png'
                 : '.jpg';
         const baseName = file.name.replace(/\.[^.]+$/, '');
         const newName = baseName + ext;
 
-        const compressed = new File([blob], newName, { type: opts.outputType });
+        const compressed = new File([blob], newName, { type: outputType });
 
-        // Only use compressed if it's actually smaller
         if (compressed.size >= file.size) {
-            console.log(`[compress] Compressed is larger (${formatSize(compressed.size)} >= ${formatSize(file.size)}), using original`);
+            console.log(`[compress] Compressed >= original (${formatSize(compressed.size)} vs ${formatSize(file.size)}), using original`);
             return file;
         }
 
         const ratio = ((1 - compressed.size / file.size) * 100).toFixed(0);
         console.log(
-            `[compress] ${file.name}: ${formatSize(file.size)} → ${formatSize(compressed.size)} (-${ratio}%)`
+            `[compress] ${file.name}: ${formatSize(file.size)} → ${formatSize(compressed.size)} (-${ratio}%) [${outputType}]`
         );
 
         return compressed;

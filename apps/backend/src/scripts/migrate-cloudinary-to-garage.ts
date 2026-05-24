@@ -14,10 +14,10 @@
  */
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
-import sharp from 'sharp';
 import { AppModule } from '../app.module';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { normalizeBuffer } from '../common/image/normalize-buffer';
 
 const CLOUDINARY_HOST = 'res.cloudinary.com';
 const CLOUDINARY_URL_REGEX = /https?:\/\/res\.cloudinary\.com\/[^\s"'<>)\\]+/g;
@@ -25,19 +25,9 @@ const CLOUDINARY_URL_REGEX = /https?:\/\/res\.cloudinary\.com\/[^\s"'<>)\\]+/g;
 const isCloudinaryUrl = (url?: string | null): url is string =>
   !!url && url.includes(CLOUDINARY_HOST);
 
-function extFromContentType(contentType: string): string {
-  const map: Record<string, string> = {
-    'image/jpeg': '.jpg',
-    'image/jpg': '.jpg',
-    'image/png': '.png',
-    'image/webp': '.webp',
-    'image/gif': '.gif',
-    'image/avif': '.avif',
-    'image/svg+xml': '.svg',
-  };
-  return map[contentType.split(';')[0].trim().toLowerCase()] || '.jpg';
-}
-
+// Migration giữ format gốc (preserve-format) — không ép WebP cho dữ liệu cũ để
+// tránh thay đổi extension hàng loạt trong DB (URL đã được index nhiều nơi).
+// Endpoint upload runtime mới (ImageNormalizePipe) dùng force-webp cho ảnh tương lai.
 const MAX_WIDTH_BY_FOLDER: Record<string, number> = {
   avatars: 512,
   'story-covers': 1080,
@@ -47,97 +37,6 @@ const MAX_WIDTH_BY_FOLDER: Record<string, number> = {
   pages: 1280,
 };
 const DEFAULT_MAX_WIDTH = 1280;
-const JPEG_QUALITY = 80;
-const WEBP_QUALITY = 80;
-
-interface NormalizedBuffer {
-  buffer: Buffer;
-  contentType: string;
-  ext: string;
-  resized: boolean;
-  originalBytes: number;
-  outputBytes: number;
-}
-
-async function normalizeBuffer(
-  buffer: Buffer,
-  contentType: string,
-  folder: string,
-): Promise<NormalizedBuffer> {
-  const type = contentType.split(';')[0].trim().toLowerCase();
-  const originalBytes = buffer.length;
-
-  // Bỏ qua GIF (mất animation) và SVG (vector, không pixel).
-  if (type === 'image/gif' || type === 'image/svg+xml') {
-    return {
-      buffer,
-      contentType,
-      ext: extFromContentType(contentType),
-      resized: false,
-      originalBytes,
-      outputBytes: originalBytes,
-    };
-  }
-
-  const maxWidth = MAX_WIDTH_BY_FOLDER[folder] ?? DEFAULT_MAX_WIDTH;
-
-  try {
-    const img = sharp(buffer, { failOn: 'none' });
-    const meta = await img.metadata();
-    const needsResize = !!meta.width && meta.width > maxWidth;
-
-    let pipeline = needsResize ? img.resize({ width: maxWidth, withoutEnlargement: true }) : img;
-
-    let outBuffer: Buffer;
-    let outType = type;
-    let outExt = extFromContentType(type);
-
-    if (type === 'image/png' && meta.hasAlpha) {
-      // Giữ PNG để bảo toàn alpha; sharp tự nén lại.
-      outBuffer = await pipeline.png({ compressionLevel: 9, palette: true }).toBuffer();
-    } else if (type === 'image/webp') {
-      outBuffer = await pipeline.webp({ quality: WEBP_QUALITY }).toBuffer();
-    } else if (type === 'image/avif') {
-      outBuffer = await pipeline.avif({ quality: JPEG_QUALITY }).toBuffer();
-    } else {
-      // JPEG / PNG-không-alpha / mọi raster khác → JPEG.
-      outBuffer = await pipeline.jpeg({ quality: JPEG_QUALITY, mozjpeg: true }).toBuffer();
-      outType = 'image/jpeg';
-      outExt = '.jpg';
-    }
-
-    // Nếu output không nhỏ hơn original, giữ original (tiết kiệm CPU server CDN sau này).
-    if (outBuffer.length >= originalBytes && !needsResize) {
-      return {
-        buffer,
-        contentType,
-        ext: extFromContentType(contentType),
-        resized: false,
-        originalBytes,
-        outputBytes: originalBytes,
-      };
-    }
-
-    return {
-      buffer: outBuffer,
-      contentType: outType,
-      ext: outExt,
-      resized: needsResize,
-      originalBytes,
-      outputBytes: outBuffer.length,
-    };
-  } catch {
-    // sharp không đọc được → upload nguyên buffer gốc.
-    return {
-      buffer,
-      contentType,
-      ext: extFromContentType(contentType),
-      resized: false,
-      originalBytes,
-      outputBytes: originalBytes,
-    };
-  }
-}
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes}B`;
@@ -173,7 +72,13 @@ async function bootstrap() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const buffer = Buffer.from(await res.arrayBuffer());
       const contentType = res.headers.get('content-type') || 'image/jpeg';
-      const normalized = await normalizeBuffer(buffer, contentType, folder);
+      const maxWidth = MAX_WIDTH_BY_FOLDER[folder] ?? DEFAULT_MAX_WIDTH;
+      const normalized = await normalizeBuffer(buffer, contentType, {
+        maxWidth,
+        quality: 80,
+        policy: 'preserve-format',
+        throwOnUnreadable: false,
+      });
       const garageUrl = await cloudinary.migrateBufferToGarage(
         normalized.buffer,
         folder,

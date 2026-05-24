@@ -60,7 +60,10 @@ ENV NODE_ENV=production \
     PORT=3009
 WORKDIR /app
 
-RUN apk add --no-cache openssl libc6-compat tini \
+# vips + vips-heif: sharp dùng libvips runtime để decode/encode ảnh. vips-heif
+# bổ sung HEIC/HEIF decoder cho ảnh chụp từ iPhone — bắt buộc phía server vì
+# trình duyệt desktop không tự convert. Build cộng ~30MB image size.
+RUN apk add --no-cache openssl libc6-compat tini vips vips-heif \
     && addgroup -S nodejs -g 1001 \
     && adduser -S nestjs -u 1001 -G nodejs
 

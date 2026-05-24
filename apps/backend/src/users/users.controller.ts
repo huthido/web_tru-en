@@ -25,7 +25,7 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ReadingHistoryService } from '../reading-history/reading-history.service';
 import { UserRole } from '@prisma/client';
 import { memoryStorage } from 'multer';
-import { ImageValidationPipe } from '../common/pipes/image-validation.pipe';
+import { ImageNormalizePipe } from '../common/pipes/image-normalize.pipe';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -64,7 +64,7 @@ export class UsersController {
     FileInterceptor('file', {
       storage: memoryStorage(),
       limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB
+        fileSize: 10 * 1024 * 1024, // 10MB — HEIC iPhone có thể ~4-7MB, để pipe chuẩn hoá lại.
       },
       fileFilter: (req, file, cb) => {
         if (file.mimetype.startsWith('image/')) {
@@ -77,7 +77,14 @@ export class UsersController {
   )
   async uploadAvatar(
     @CurrentUser() user: any,
-    @UploadedFile(new ImageValidationPipe({ maxSizeBytes: 1 * 1024 * 1024, maxWidth: 800 }))
+    @UploadedFile(
+      new ImageNormalizePipe({
+        maxSizeBytes: 10 * 1024 * 1024,
+        maxWidth: 512,
+        quality: 85,
+        policy: 'force-webp',
+      }),
+    )
     file: Express.Multer.File
   ) {
     const imageUrl = await this.cloudinaryService.uploadImage(file, 'avatars');

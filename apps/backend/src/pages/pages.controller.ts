@@ -21,6 +21,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { UserRole } from '@prisma/client';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { ImageNormalizePipe } from '../common/pipes/image-normalize.pipe';
 
 @Controller('pages')
 export class PagesController {
@@ -80,11 +81,17 @@ export class PagesController {
       },
     })
   )
-  async uploadImage(@UploadedFile() file: Express.Multer.File | undefined) {
-    if (!file) {
-      throw new Error('No file uploaded');
-    }
-
+  async uploadImage(
+    @UploadedFile(
+      new ImageNormalizePipe({
+        maxSizeBytes: 10 * 1024 * 1024,
+        maxWidth: 1280,
+        quality: 80,
+        policy: 'force-webp',
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
     const imageUrl = await this.cloudinaryService.uploadImage(file, 'pages');
 
     return {

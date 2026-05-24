@@ -22,7 +22,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { ImageValidationPipe } from '../common/pipes/image-validation.pipe';
+import { ImageNormalizePipe } from '../common/pipes/image-normalize.pipe';
 
 @Controller('stories')
 export class StoriesController {
@@ -116,7 +116,14 @@ export class StoriesController {
         })
     )
     async uploadCover(
-        @UploadedFile(new ImageValidationPipe({ maxSizeBytes: 2 * 1024 * 1024, maxWidth: 2000 }))
+        @UploadedFile(
+            new ImageNormalizePipe({
+                maxSizeBytes: 10 * 1024 * 1024,
+                maxWidth: 1080,
+                quality: 82,
+                policy: 'force-webp',
+            }),
+        )
         file: Express.Multer.File,
     ) {
         const imageUrl = await this.cloudinaryService.uploadImage(file, 'story-covers');

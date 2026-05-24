@@ -103,11 +103,11 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
             }
 
             try {
-                // Compress image before upload
+                // Compress image before upload (backend re-encodes thành WebP q80)
                 const file = await compressImage(originalFile, {
                     maxWidth: 1600,
                     maxHeight: 1600,
-                    quality: 0.8,
+                    quality: 0.9,
                 });
 
                 const formData = new FormData();
@@ -122,20 +122,28 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                 });
 
                 if (!response.ok) {
-                    throw new Error('Upload failed');
+                    let serverMessage = '';
+                    try {
+                        const errBody = await response.json();
+                        serverMessage = errBody?.message || errBody?.error?.message || errBody?.data?.message || '';
+                    } catch {
+                        // ignore parse error
+                    }
+                    throw new Error(serverMessage || `Upload thất bại (HTTP ${response.status})`);
                 }
 
                 const data = await response.json();
                 const imageUrl = data.data?.url || data.url;
 
                 if (!imageUrl) {
-                    throw new Error('No image URL returned');
+                    throw new Error('Máy chủ không trả về địa chỉ ảnh.');
                 }
 
                 insertImageToEditor(imageUrl);
             } catch (error: any) {
                 console.error('Error uploading image:', error);
-                alert('Có lỗi xảy ra khi upload ảnh. Vui lòng thử lại.');
+                const msg = error?.message || 'Có lỗi xảy ra khi upload ảnh. Vui lòng thử lại.';
+                alert(msg);
             }
         };
     }, [uploadEndpoint, uploadFolder, insertImageToEditor]);

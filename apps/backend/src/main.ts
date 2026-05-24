@@ -5,6 +5,7 @@ import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
 import * as path from 'path';
 import helmet from 'helmet';
+import sharp from 'sharp';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { ResponseInterceptor } from './auth/interceptors/response.interceptor';
@@ -13,6 +14,11 @@ import { AppLoggerService } from './common/logger/logger.service';
 
 // Validate environment variables before starting
 validateEnvironmentVariables();
+
+// Giới hạn sharp để tránh memory spike khi nhiều client upload ảnh siêu lớn
+// (ví dụ 12000×8000): mỗi request decode tuần tự, không cache buffer.
+sharp.cache(false);
+sharp.concurrency(1);
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

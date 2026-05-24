@@ -27,7 +27,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { Public } from '../auth/decorators/public.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { ImageValidationPipe } from '../common/pipes/image-validation.pipe';
+import { ImageNormalizePipe } from '../common/pipes/image-normalize.pipe';
 
 @Controller('ads')
 export class AdsController {
@@ -203,7 +203,14 @@ export class AdsController {
     })
   )
   async uploadImage(
-    @UploadedFile(new ImageValidationPipe({ maxSizeBytes: 2 * 1024 * 1024, maxWidth: 2000 }))
+    @UploadedFile(
+      new ImageNormalizePipe({
+        maxSizeBytes: 10 * 1024 * 1024,
+        maxWidth: 1600,
+        quality: 82,
+        policy: 'force-webp',
+      }),
+    )
     file: Express.Multer.File,
   ) {
     const imageUrl = await this.cloudinaryService.uploadImage(file, 'ads');

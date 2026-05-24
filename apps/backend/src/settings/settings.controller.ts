@@ -18,6 +18,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { UserRole } from '@prisma/client';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { ImageNormalizePipe } from '../common/pipes/image-normalize.pipe';
 
 @Controller('settings')
 export class SettingsController {
@@ -57,11 +58,17 @@ export class SettingsController {
       },
     })
   )
-  async uploadLogo(@UploadedFile() file: Express.Multer.File | undefined) {
-    if (!file) {
-      throw new Error('No file uploaded');
-    }
-
+  async uploadLogo(
+    @UploadedFile(
+      new ImageNormalizePipe({
+        maxSizeBytes: 5 * 1024 * 1024,
+        maxWidth: 1024,
+        quality: 90,
+        policy: 'force-webp',
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
     const imageUrl = await this.cloudinaryService.uploadImage(file, 'settings');
 
     // Update settings with new logo
@@ -93,11 +100,17 @@ export class SettingsController {
       },
     })
   )
-  async uploadFavicon(@UploadedFile() file: Express.Multer.File | undefined) {
-    if (!file) {
-      throw new Error('No file uploaded');
-    }
-
+  async uploadFavicon(
+    @UploadedFile(
+      new ImageNormalizePipe({
+        maxSizeBytes: 1 * 1024 * 1024,
+        maxWidth: 256,
+        quality: 90,
+        policy: 'force-webp',
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
     const imageUrl = await this.cloudinaryService.uploadImage(file, 'settings');
 
     // Update settings with new favicon
