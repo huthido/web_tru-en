@@ -267,3 +267,14 @@ export const COMPRESS_TARGET = {
 
 /** Limit input gốc client cho user chọn — backend safety net 10MB ở pipe. */
 export const MAX_INPUT_BYTES = 50 * 1024 * 1024;
+
+/**
+ * Một số trình duyệt (Chrome desktop) không gán MIME cho file `.heic/.heif`
+ * → `file.type === ''`. Kiểm tra qua extension làm fallback. Dùng thay
+ * `file.type.startsWith('image/')` ở mọi nơi validate input upload.
+ */
+const IMAGE_EXT_RE = /\.(heic|heif|jpe?g|png|webp|avif|gif|bmp|tiff?|svg)$/i;
+export function isImageFile(file: File): boolean {
+    if (file.type && file.type.startsWith('image/')) return true;
+    return IMAGE_EXT_RE.test(file.name || '');
+}

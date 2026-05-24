@@ -12,7 +12,7 @@ import { UserRole } from '@shared/types';
 import { Loading } from '@/components/ui/loading';
 import { storiesService } from '@/lib/api/stories.service';
 import { useToastContext } from '@/components/providers/toast-provider';
-import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES } from '@/lib/utils/compress-image';
+import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES, isImageFile } from '@/lib/utils/compress-image';
 
 export default function EditStoryPage() {
     const params = useParams();
@@ -62,8 +62,8 @@ export default function EditStoryPage() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
+        // Validate file type — accept cả .heic/.heif không có MIME (Chrome desktop).
+        if (!isImageFile(file)) {
             setErrors({ coverImage: 'Chỉ chấp nhận file ảnh' });
             return;
         }
@@ -226,11 +226,11 @@ export default function EditStoryPage() {
                                     </label>
                                     <div className="space-y-4">
                                         {formData.coverImage && (
-                                            <div className="relative w-full h-64 rounded-lg overflow-hidden border border-outline-variant">
+                                            <div className="relative w-full h-80 rounded-lg overflow-hidden border border-outline-variant bg-surface-variant">
                                                 <img
                                                     src={formData.coverImage}
                                                     alt="Cover"
-                                                    className="w-full h-full object-cover"
+                                                    className="w-full h-full object-contain"
                                                 />
                                             </div>
                                         )}

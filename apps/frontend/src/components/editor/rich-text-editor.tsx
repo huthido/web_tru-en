@@ -2,7 +2,7 @@
 
 import { useMemo, useCallback, useRef, useState, useEffect, createElement } from 'react';
 import dynamic from 'next/dynamic';
-import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES } from '@/lib/utils/compress-image';
+import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES, isImageFile } from '@/lib/utils/compress-image';
 import 'react-quill/dist/quill.snow.css';
 
 // Dynamically import ReactQuill to avoid SSR issues
@@ -92,7 +92,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
             const originalFile = input.files?.[0];
             if (!originalFile) return;
 
-            if (!originalFile.type.startsWith('image/')) {
+            if (!isImageFile(originalFile)) {
                 alert('Vui lòng chọn file ảnh');
                 return;
             }
@@ -630,10 +630,12 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                 .dark .quill .ql-picker-label {
                     color: #9ca3af;
                 }
-                /* Image resize selection */
+                /* Image resize selection — limit ảnh lớn không vượt khung editor */
                 .ql-editor img {
                     cursor: pointer;
                     transition: outline 0.15s;
+                    max-width: 100%;
+                    height: auto;
                 }
                 .ql-editor img.ql-selected {
                     outline: 3px solid #3b82f6;

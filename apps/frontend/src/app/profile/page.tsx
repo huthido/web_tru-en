@@ -7,7 +7,7 @@ import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
 import { useAuth } from '@/contexts/auth-context';
 import { usersService } from '@/lib/api/users.service';
-import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES } from '@/lib/utils/compress-image';
+import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES, isImageFile } from '@/lib/utils/compress-image';
 import { authService } from '@/lib/api/auth.service';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -214,8 +214,8 @@ function ProfileContent() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
+    // Validate file type — accept cả .heic/.heif không có MIME (Chrome desktop).
+    if (!isImageFile(file)) {
       setErrors({ avatar: 'Vui lòng chọn file ảnh' });
       return;
     }

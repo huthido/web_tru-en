@@ -9,7 +9,7 @@ import { useCreateStory } from '@/lib/api/hooks/use-stories';
 import { useCategories } from '@/lib/api/hooks/use-categories';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { storiesService } from '@/lib/api/stories.service';
-import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES } from '@/lib/utils/compress-image';
+import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES, isImageFile } from '@/lib/utils/compress-image';
 
 export default function CreateStoryPage() {
     const router = useRouter();
@@ -35,8 +35,8 @@ export default function CreateStoryPage() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
+        // Validate file type — accept cả .heic/.heif không có MIME (Chrome desktop).
+        if (!isImageFile(file)) {
             setErrors({ coverImage: 'Chỉ chấp nhận file ảnh' });
             return;
         }
@@ -184,11 +184,11 @@ export default function CreateStoryPage() {
                                             <p className="text-sm text-red-500">{errors.coverImage}</p>
                                         )}
                                         {formData.coverImage && (
-                                            <div className="relative w-32 h-48 rounded-lg overflow-hidden border-2 border-outline-variant">
+                                            <div className="relative w-48 h-64 rounded-lg overflow-hidden border-2 border-outline-variant bg-surface-variant">
                                                 <img
                                                     src={formData.coverImage}
                                                     alt="Preview"
-                                                    className="w-full h-full object-cover"
+                                                    className="w-full h-full object-contain"
                                                     onError={(e) => {
                                                         (e.target as HTMLImageElement).style.display = 'none';
                                                     }}
