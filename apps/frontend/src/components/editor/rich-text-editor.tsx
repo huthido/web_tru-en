@@ -2,7 +2,7 @@
 
 import { useMemo, useCallback, useRef, useState, useEffect, createElement } from 'react';
 import dynamic from 'next/dynamic';
-import { compressImage } from '@/lib/utils/compress-image';
+import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES } from '@/lib/utils/compress-image';
 import 'react-quill/dist/quill.snow.css';
 
 // Dynamically import ReactQuill to avoid SSR issues
@@ -85,7 +85,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
     const imageHandler = useCallback(async () => {
         const input = document.createElement('input');
         input.setAttribute('type', 'file');
-        input.setAttribute('accept', 'image/*');
+        input.setAttribute('accept', 'image/*,.heic,.heif');
         input.click();
 
         input.onchange = async () => {
@@ -97,18 +97,18 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                 return;
             }
 
-            if (originalFile.size > 10 * 1024 * 1024) {
-                alert('Kích thước ảnh gốc không được vượt quá 10MB');
+            if (originalFile.size > MAX_INPUT_BYTES) {
+                alert('Kích thước ảnh gốc không được vượt quá 50MB');
                 return;
             }
 
             try {
-                // Compress image before upload (backend re-encodes thành WebP q80)
-                const file = await compressImage(originalFile, {
-                    maxWidth: 1600,
-                    maxHeight: 1600,
-                    quality: 0.9,
-                });
+                // Nén lặp đến khi ≤ 2MB; backend re-encode WebP q80 sau cùng.
+                const file = await compressImageToTarget(
+                    originalFile,
+                    { maxWidth: 1600, maxHeight: 1600, quality: 0.9 },
+                    COMPRESS_TARGET.chapterImage,
+                );
 
                 const formData = new FormData();
                 formData.append('file', file);

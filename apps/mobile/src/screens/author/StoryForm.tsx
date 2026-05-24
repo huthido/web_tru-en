@@ -21,8 +21,8 @@ import { describeError } from '@/lib/error';
 import { resolveImageUrl } from '@/lib/url';
 import {
     COVER_NORMALIZE,
-    MAX_UPLOAD_BYTES,
-    normalizeImage,
+    NORMALIZE_TARGET,
+    normalizeImageToTarget,
 } from '@/lib/image/normalize';
 
 const ACCESS_OPTIONS: Array<{ value: StoryAccessType; label: string; desc: string }> = [
@@ -98,14 +98,11 @@ export function StoryForm({ initialValues, submitLabel, onSubmit }: StoryFormPro
             if (result.canceled || !result.assets[0]) return;
             const asset = result.assets[0];
             setUploading(true);
-            const normalized = await normalizeImage(asset.uri, COVER_NORMALIZE);
-            if (normalized.sizeBytes && normalized.sizeBytes > MAX_UPLOAD_BYTES) {
-                Alert.alert(
-                    'Ảnh quá lớn',
-                    'Sau khi nén ảnh vẫn vượt 2MB. Vui lòng chọn ảnh khác.',
-                );
-                return;
-            }
+            const normalized = await normalizeImageToTarget(
+                asset.uri,
+                COVER_NORMALIZE,
+                NORMALIZE_TARGET.cover,
+            );
             const { coverImage: url } = await StoriesApi.uploadCover({
                 uri: normalized.uri,
                 name: asset.fileName ?? 'cover.jpg',

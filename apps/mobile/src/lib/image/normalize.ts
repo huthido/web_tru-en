@@ -27,9 +27,17 @@ export const CHAPTER_INLINE_NORMALIZE: Required<Pick<NormalizeOptions, 'maxWidth
     compress: 0.8,
 };
 
-// 5MB — đủ chỗ cho ảnh HEIC iPhone sau khi mobile resize+JPEG. Backend giới
-// hạn cứng 10MB; client check trước để fail-fast không tốn upload.
-export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+// Limit input gốc cho user pick — cho phép HEIC iPhone gốc 30-50MB; client
+// nén lặp lại (normalizeImageToTarget) để output upload ≤ 2MB. Backend giữ
+// 10MB safety net.
+export const MAX_INPUT_BYTES = 50 * 1024 * 1024;
+/** @deprecated dùng MAX_INPUT_BYTES + normalizeImageToTarget thay thế. */
+export const MAX_UPLOAD_BYTES = MAX_INPUT_BYTES;
+
+export const NORMALIZE_TARGET = {
+    cover: 2 * 1024 * 1024,
+    chapterImage: 2 * 1024 * 1024,
+} as const;
 
 export async function normalizeImage(
     uri: string,
@@ -63,4 +71,40 @@ export async function normalizeImage(
         height: result.height,
         sizeBytes,
     };
+}
+
+/**
+ * Nén lặp expo-image-manipulator để output ≤ targetBytes. Mỗi vòng giảm
+ * compress 0.15; vòng cuối co maxWidth thêm 30%. Best-effort: nếu hết
+ * attempt vẫn vượt target, trả lần tốt nhất + log.
+ */
+export async function normalizeImageToTarget(
+    uri: string,
+    baseOpts: NormalizeOptions,
+    targetBytes: number,
+    maxAttempts: number = 4,
+): Promise<NormalizedImage> {
+    const baseCompress = baseOpts.compress ?? 0.8;
+    const baseMaxWidth = baseOpts.maxWidth ?? 1080;
+
+    let best: NormalizedImage | null = null;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const compress = Math.max(0.4, baseCompress - attempt * 0.15);
+        const dimensionShrink = attempt >= maxAttempts - 1 ? 0.7 : 1;
+        const trial = await normalizeImage(uri, {
+            ...baseOpts,
+            compress,
+            maxWidth: Math.round(baseMaxWidth * dimensionShrink),
+        });
+        if (!best || (trial.sizeBytes ?? Infinity) < (best.sizeBytes ?? Infinity)) {
+            best = trial;
+        }
+        if (trial.sizeBytes !== undefined && trial.sizeBytes <= targetBytes) {
+            return trial;
+        }
+    }
+    console.warn(
+        `[normalize-to-target] không đạt target sau ${maxAttempts} lần — best=${best?.sizeBytes ?? '?'}B target=${targetBytes}B`,
+    );
+    return best!;
 }

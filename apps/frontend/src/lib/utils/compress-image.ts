@@ -94,7 +94,26 @@ export async function compressImage(
 ): Promise<File> {
     const opts = { ...DEFAULT_OPTIONS, ...options };
 
-    if (!file.type.startsWith('image/')) {
+    const name = (file.name || '').toLowerCase();
+    const isHeic =
+        file.type === 'image/heic' ||
+        file.type === 'image/heif' ||
+        name.endsWith('.heic') ||
+        name.endsWith('.heif');
+
+    // HEIC/HEIF: chỉ Safari iOS 16+ decode native qua createImageBitmap. Trình
+    // duyệt khác throw → upload raw cho backend (libheif đã cài trong Docker).
+    // Detect sớm để khỏi tốn attempt loop ở compressImageToTarget.
+    if (isHeic) {
+        try {
+            await createImageBitmap(file);
+        } catch {
+            console.log('[compress] HEIC detected, browser cannot decode — uploading raw for backend');
+            return file;
+        }
+    }
+
+    if (!file.type.startsWith('image/') && !isHeic) {
         return file;
     }
 
@@ -177,3 +196,74 @@ function formatSize(bytes: number): string {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }
+
+/**
+ * Nén lặp đi lặp lại cho đến khi đạt `targetBytes` hoặc hết `maxAttempts`.
+ * Mỗi vòng giảm quality, vòng cuối còn giảm maxWidth, cho phép user pick ảnh
+ * gốc lớn (tới 50MB) mà output upload vẫn ≤ target. Nếu vòng cuối vẫn vượt
+ * target, trả best-effort + log warning để caller quyết hành xử.
+ */
+export async function compressImageToTarget(
+    file: File,
+    baseOptions: CompressOptions,
+    targetBytes: number,
+    maxAttempts: number = 4,
+): Promise<File> {
+    // GIF/SVG không qua canvas; nếu file đã ≤ target → return luôn.
+    if (file.type === 'image/gif' || file.type === 'image/svg+xml') return file;
+    if (file.size <= targetBytes) {
+        const compressed = await compressImage(file, baseOptions);
+        if (compressed.size <= targetBytes) return compressed;
+    }
+
+    const baseQuality = baseOptions.quality ?? 0.9;
+    const baseMaxWidth = baseOptions.maxWidth ?? 1920;
+    const baseMaxHeight = baseOptions.maxHeight ?? 1920;
+
+    let best: File = file;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        // Vòng 0 dùng baseOptions; mỗi vòng sau giảm quality 0.15. Vòng cuối còn
+        // co maxWidth/maxHeight thêm 30% để ép kích thước xuống.
+        const quality = Math.max(0.4, baseQuality - attempt * 0.15);
+        const dimensionShrink = attempt >= maxAttempts - 1 ? 0.7 : 1;
+        const trial = await compressImage(file, {
+            ...baseOptions,
+            quality,
+            maxWidth: Math.round(baseMaxWidth * dimensionShrink),
+            maxHeight: Math.round(baseMaxHeight * dimensionShrink),
+            skipIfSmallerThan: 0,
+        });
+        if (trial.size < best.size) best = trial;
+        if (trial.size <= targetBytes) {
+            console.log(
+                `[compress-to-target] reached ${formatSize(trial.size)} ≤ ${formatSize(targetBytes)} ` +
+                `(attempt ${attempt + 1}, q=${quality.toFixed(2)})`,
+            );
+            return trial;
+        }
+        // Early-break: compressImage trả về file gốc tức là canvas decode fail
+        // (vd HEIC trên Chrome). Loop tiếp cũng vô ích — upload raw cho backend.
+        if (trial === file) {
+            console.log('[compress-to-target] client decode fail — upload raw for backend');
+            return file;
+        }
+    }
+
+    console.warn(
+        `[compress-to-target] không đạt target sau ${maxAttempts} lần — best=${formatSize(best.size)} ` +
+        `target=${formatSize(targetBytes)}. Trả best-effort.`,
+    );
+    return best;
+}
+
+/** Quy ước target size cho từng loại ảnh — dùng chung mọi form upload. */
+export const COMPRESS_TARGET = {
+    avatar: 500 * 1024,           // 500KB
+    cover: 2 * 1024 * 1024,       // 2MB
+    chapterImage: 2 * 1024 * 1024,
+    adsImage: 3 * 1024 * 1024,    // ads cần kích thước lớn hơn cho banner
+    logo: 1 * 1024 * 1024,
+} as const;
+
+/** Limit input gốc client cho user chọn — backend safety net 10MB ở pipe. */
+export const MAX_INPUT_BYTES = 50 * 1024 * 1024;

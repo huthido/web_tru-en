@@ -10,7 +10,7 @@ import { AdType, AdPosition, Ad } from '@/lib/api/ads.service';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { useToast, ToastContainer } from '@/components/ui/toast';
-import { compressImage } from '@/lib/utils/compress-image';
+import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES } from '@/lib/utils/compress-image';
 import * as XLSX from 'xlsx';
 
 export default function AdminAdsPage() {
@@ -1166,14 +1166,18 @@ function AdFormModal({
 
     const handleUpload = async () => {
         if (!uploadedFile) return;
+        if (uploadedFile.size > MAX_INPUT_BYTES) {
+            alert('Kích thước file không được vượt quá 50MB');
+            return;
+        }
 
         setIsUploading(true);
         try {
-            const compressed = await compressImage(uploadedFile, {
-                maxWidth: 1600,
-                maxHeight: 1200,
-                quality: 0.85,
-            });
+            const compressed = await compressImageToTarget(
+                uploadedFile,
+                { maxWidth: 1600, maxHeight: 1200, quality: 0.85 },
+                COMPRESS_TARGET.adsImage,
+            );
             const { adsService } = await import('@/lib/api/ads.service');
             const response = await adsService.uploadImage(compressed);
             if (response.data?.imageUrl) {
@@ -1338,7 +1342,7 @@ function AdFormModal({
                                         <label className="flex-1 cursor-pointer">
                                             <input
                                                 type="file"
-                                                accept="image/*"
+                                                accept="image/*,.heic,.heif"
                                                 onChange={handleFileChange}
                                                 className="hidden"
                                             />

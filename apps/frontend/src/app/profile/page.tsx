@@ -7,7 +7,7 @@ import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
 import { useAuth } from '@/contexts/auth-context';
 import { usersService } from '@/lib/api/users.service';
-import { compressImage } from '@/lib/utils/compress-image';
+import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES } from '@/lib/utils/compress-image';
 import { authService } from '@/lib/api/auth.service';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -220,9 +220,9 @@ function ProfileContent() {
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors({ avatar: 'Kích thước ảnh không được vượt quá 5MB' });
+    // Cho phép input tới 50MB — client sẽ nén xuống <= 500KB trước upload.
+    if (file.size > MAX_INPUT_BYTES) {
+      setErrors({ avatar: 'Kích thước ảnh không được vượt quá 50MB' });
       return;
     }
 
@@ -230,11 +230,11 @@ function ProfileContent() {
     setSuccessMessage('Đang xử lý ảnh...');
 
     try {
-      const compressed = await compressImage(file, {
-        maxWidth: 512,
-        maxHeight: 512,
-        quality: 0.85,
-      });
+      const compressed = await compressImageToTarget(
+        file,
+        { maxWidth: 512, maxHeight: 512, quality: 0.85 },
+        COMPRESS_TARGET.avatar,
+      );
       setSuccessMessage('Đang tải ảnh lên...');
       const response = await usersService.uploadAvatar(compressed);
       const avatarUrl = response?.data?.avatar || (response as any)?.avatar;
@@ -468,7 +468,7 @@ function ProfileContent() {
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="image/*"
+                      accept="image/*,.heic,.heif"
                       onChange={handleUploadAvatar}
                       className="hidden"
                     />

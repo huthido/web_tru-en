@@ -187,7 +187,7 @@ export default function AdminSettingsPage() {
                                     <input
                                         ref={logoInputRef}
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/*,.heic,.heif"
                                         onChange={handleLogoUpload}
                                         className="hidden"
                                     />
@@ -220,7 +220,7 @@ export default function AdminSettingsPage() {
                                     <input
                                         ref={faviconInputRef}
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/*,.heic,.heif"
                                         onChange={handleFaviconUpload}
                                         className="hidden"
                                     />

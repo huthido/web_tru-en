@@ -12,7 +12,7 @@ import { UserRole } from '@shared/types';
 import { Loading } from '@/components/ui/loading';
 import { storiesService } from '@/lib/api/stories.service';
 import { useToastContext } from '@/components/providers/toast-provider';
-import { compressImage } from '@/lib/utils/compress-image';
+import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES } from '@/lib/utils/compress-image';
 
 export default function EditStoryPage() {
     const params = useParams();
@@ -68,9 +68,9 @@ export default function EditStoryPage() {
             return;
         }
 
-        // Validate file size (10MB)
-        if (file.size > 10 * 1024 * 1024) {
-            setErrors({ coverImage: 'Kích thước file không được vượt quá 10MB' });
+        // Cho phép input tới 50MB — client sẽ nén xuống <= 2MB trước upload.
+        if (file.size > MAX_INPUT_BYTES) {
+            setErrors({ coverImage: 'Kích thước file không được vượt quá 50MB' });
             return;
         }
 
@@ -78,12 +78,11 @@ export default function EditStoryPage() {
         setErrors({});
 
         try {
-            // Compress image before upload
-            const compressedFile = await compressImage(file, {
-                maxWidth: 1200,
-                maxHeight: 1200,
-                quality: 0.85,
-            });
+            const compressedFile = await compressImageToTarget(
+                file,
+                { maxWidth: 1200, maxHeight: 1200, quality: 0.85 },
+                COMPRESS_TARGET.cover,
+            );
 
             const formData = new FormData();
             formData.append('file', compressedFile);
@@ -238,7 +237,7 @@ export default function EditStoryPage() {
                                         <input
                                             ref={fileInputRef}
                                             type="file"
-                                            accept="image/*"
+                                            accept="image/*,.heic,.heif"
                                             onChange={handleFileUpload}
                                             className="hidden"
                                         />
