@@ -1,7 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fontSize, radius, spacing } from '../theme';
+import { colors, fontSize, radius, spacing, typography } from '../theme';
 
 /** Full-area centered loading spinner. */
 export function Loading({ label }: { label?: string }) {
@@ -113,9 +113,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
         marginBottom: spacing.sm,
     },
-    sectionTitle: { fontSize: fontSize.lg, fontWeight: '700', color: colors.text },
+    // Editorial section title — Plus Jakarta SemiBold 22px theo Stitch.
+    sectionTitle: { ...typography.headlineSm, color: colors.onSurface },
     seeAll: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-    seeAllText: { color: colors.primary, fontSize: fontSize.sm, fontWeight: '600' },
+    seeAllText: { ...typography.labelMd, color: colors.primary },
     progressTrack: {
         height: 4,
         borderRadius: radius.pill,

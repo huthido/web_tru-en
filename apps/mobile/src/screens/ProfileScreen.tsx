@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@/contexts/auth-context';
 import { describeError } from '@/lib/error';
 import type { RootNavigation, TabNavigation } from '@/navigation/types';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { colors, fontSize, radius, spacing, typography } from '@/theme';
 
 const ROLE_LABEL: Record<string, string> = {
     USER: 'Độc giả',
@@ -221,53 +221,57 @@ export const ProfileScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg },
-    content: { padding: spacing.lg, gap: spacing.md },
+    screen: { flex: 1, backgroundColor: colors.background },
+    // PaddingBottom 100 để không bị MainTabBar floating che.
+    content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
     profileCard: {
-        backgroundColor: colors.surface,
-        borderRadius: radius.lg,
+        backgroundColor: colors.surfaceContainerLowest,
+        borderRadius: radius.xl,
         padding: spacing.xl,
         alignItems: 'center',
         gap: spacing.sm,
+        borderWidth: 1,
+        borderColor: colors.outlineVariant,
     },
     avatar: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: colors.primary,
+        backgroundColor: colors.tertiaryContainer,
         alignItems: 'center',
         justifyContent: 'center',
+        borderWidth: 2,
+        borderColor: colors.primaryContainer,
     },
-    avatarText: { color: colors.white, fontSize: 34, fontWeight: '700' },
-    name: { fontSize: fontSize.xl, fontWeight: '700', color: colors.text },
+    avatarText: { color: colors.tertiary, fontSize: 34, fontFamily: 'PlusJakartaSans_700Bold' },
+    name: { ...typography.headlineSm, color: colors.onSurface },
     roleBadge: {
-        backgroundColor: colors.primarySoft,
+        backgroundColor: colors.primaryContainer,
         paddingHorizontal: spacing.md,
-        paddingVertical: 3,
+        paddingVertical: 4,
         borderRadius: radius.pill,
     },
-    roleText: { color: colors.primaryDark, fontSize: fontSize.xs, fontWeight: '600' },
-    email: { color: colors.textMuted, fontSize: fontSize.sm },
+    roleText: { ...typography.labelSm, color: colors.onPrimaryContainer, fontSize: 11, letterSpacing: 0.6 },
+    email: { ...typography.bodySm, color: colors.onSurfaceVariant },
     card: {
-        backgroundColor: colors.surface,
+        backgroundColor: colors.surfaceContainerLowest,
         borderRadius: radius.lg,
         padding: spacing.lg,
         gap: spacing.sm,
+        borderWidth: 1,
+        borderColor: colors.outlineVariant,
     },
     cardHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    cardTitle: { fontSize: fontSize.lg, fontWeight: '700', color: colors.text },
-    placeholder: { fontSize: fontSize.sm, color: colors.textMuted, lineHeight: 20 },
+    cardTitle: { ...typography.headlineSm, fontSize: 18, color: colors.onSurface },
+    placeholder: { ...typography.bodySm, color: colors.onSurfaceVariant },
     sectionLabel: { paddingHorizontal: spacing.xs, paddingTop: spacing.sm },
-    sectionLabelText: {
-        color: colors.textMuted,
-        fontSize: 11,
-        fontWeight: '700',
-        letterSpacing: 1,
-    },
+    sectionLabelText: { ...typography.labelSm, color: colors.onSurfaceVariant },
     legalGroup: {
-        backgroundColor: colors.surface,
+        backgroundColor: colors.surfaceContainerLowest,
         borderRadius: radius.lg,
         overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: colors.outlineVariant,
     },
     legalRow: {
         flexDirection: 'row',
@@ -277,10 +281,10 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
     },
     legalRowDivider: {
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: colors.outlineVariant,
     },
-    legalText: { fontSize: fontSize.md, color: colors.text },
+    legalText: { ...typography.bodyMd, color: colors.onSurface },
     logout: {
         flexDirection: 'row',
         alignSelf: 'center',
@@ -290,7 +294,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.xl,
         paddingVertical: spacing.md,
     },
-    logoutText: { color: colors.danger, fontWeight: '600', fontSize: fontSize.md },
+    logoutText: { ...typography.labelMd, color: colors.error, fontFamily: 'DMSans_700Bold' },
     deleteAccountBtn: {
         flexDirection: 'row',
         alignSelf: 'center',
@@ -300,9 +304,10 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.sm,
     },
     deleteAccountText: {
-        color: colors.textMuted,
+        color: colors.onSurfaceVariant,
         fontSize: fontSize.xs,
         textDecorationLine: 'underline',
+        fontFamily: 'DMSans_400Regular',
     },
     /* delete modal */
     modalBackdrop: {
@@ -312,8 +317,8 @@ const styles = StyleSheet.create({
         padding: spacing.xl,
     },
     modalCard: {
-        backgroundColor: colors.surface,
-        borderRadius: radius.lg,
+        backgroundColor: colors.surfaceContainerLowest,
+        borderRadius: radius.xl,
         padding: spacing.xl,
         alignItems: 'center',
         gap: spacing.sm,

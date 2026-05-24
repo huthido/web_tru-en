@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
-import { colors, fontSize, spacing } from '@/theme';
+import { colors, fontSize, spacing, typography } from '@/theme';
 import type { RootNavigation } from '@/navigation/types';
 import type { Story } from '@/lib/api/types';
 import { useHomeStories } from '@/lib/hooks/stories';
@@ -140,18 +140,19 @@ export const HomeScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg },
-    content: { paddingTop: spacing.lg, paddingBottom: spacing.xl },
+    screen: { flex: 1, backgroundColor: colors.background },
+    // Bottom padding lớn để không bị MainTabBar (~70px absolute) che — tab bar
+    // floating phía dưới, content cuối ScrollView cần buffer.
+    content: { paddingTop: spacing.lg, paddingBottom: 100 },
     section: { marginBottom: spacing.lg },
     crList: { paddingHorizontal: spacing.lg, gap: spacing.md },
     crCard: { width: 108 },
     crTitle: {
         marginTop: spacing.sm,
-        fontSize: fontSize.sm,
-        fontWeight: '600',
-        color: colors.text,
-        lineHeight: 18,
+        ...typography.bodySm,
+        fontFamily: 'DMSans_500Medium',
+        color: colors.onSurface,
     },
-    crChapter: { marginTop: 2, fontSize: fontSize.xs, color: colors.textMuted },
+    crChapter: { marginTop: 2, ...typography.bodySm, fontSize: fontSize.xs, color: colors.onSurfaceVariant },
     crProgress: { marginTop: spacing.xs },
 });

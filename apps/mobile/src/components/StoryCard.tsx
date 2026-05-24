@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fontSize, spacing } from '../theme';
+import { colors, fontSize, spacing, typography } from '../theme';
 import { formatRating } from '../lib/format';
 import { StoryCover } from './StoryCover';
 
@@ -47,16 +47,16 @@ export function StoryCard({ data, width = 118, onPress }: Props) {
 const styles = StyleSheet.create({
     title: {
         marginTop: spacing.sm,
-        fontSize: fontSize.sm,
-        fontWeight: '600',
-        color: colors.text,
-        lineHeight: 18,
+        ...typography.bodySm,
+        fontFamily: 'DMSans_500Medium',
+        color: colors.onSurface,
     },
     author: {
         marginTop: 2,
+        ...typography.bodySm,
         fontSize: fontSize.xs,
-        color: colors.textMuted,
+        color: colors.onSurfaceVariant,
     },
     ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3 },
-    rating: { fontSize: fontSize.xs, color: colors.textMuted },
+    rating: { ...typography.bodySm, fontSize: fontSize.xs, color: colors.onSurfaceVariant },
 });
