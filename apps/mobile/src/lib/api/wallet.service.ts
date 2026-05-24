@@ -1,5 +1,20 @@
 import { apiClient, unwrap } from './client';
-import type { CoinPackage, CoinTransaction, UserWallet } from './types';
+import type { CoinPackage, CoinTransaction, TransactionType, UserWallet } from './types';
+
+export interface TransactionHistoryParams {
+    page?: number;
+    limit?: number;
+    types?: TransactionType[];
+    startDate?: string; // ISO 8601
+    endDate?: string;
+}
+
+export interface TransactionHistoryResult {
+    items: CoinTransaction[];
+    total: number;
+    page: number;
+    limit: number;
+}
 
 export interface EarningsBreakdown {
     /** Tiền đã trừ phí nền tảng — tác giả nhận thực. */
@@ -48,10 +63,19 @@ export const WalletApi = {
         return unwrap<UserWallet>(res);
     },
 
-    /** 20 giao dịch gần nhất. */
-    async getHistory(): Promise<CoinTransaction[]> {
-        const res = await apiClient.get('/wallet/history');
-        return unwrap<CoinTransaction[]>(res) ?? [];
+    /** Lịch sử giao dịch — pagination + filter type/date. */
+    async getHistory(params: TransactionHistoryParams = {}): Promise<TransactionHistoryResult> {
+        const qs = new URLSearchParams();
+        if (params.page) qs.set('page', String(params.page));
+        if (params.limit) qs.set('limit', String(params.limit));
+        if (params.types && params.types.length > 0) qs.set('type', params.types.join(','));
+        if (params.startDate) qs.set('startDate', params.startDate);
+        if (params.endDate) qs.set('endDate', params.endDate);
+        const url = qs.toString() ? `/wallet/history?${qs.toString()}` : '/wallet/history';
+        const res = await apiClient.get(url);
+        return (
+            unwrap<TransactionHistoryResult>(res) ?? { items: [], total: 0, page: 1, limit: 20 }
+        );
     },
 
     /** Các gói xu đang bán (public — không cần auth). */

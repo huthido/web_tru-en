@@ -336,14 +336,43 @@ export class WalletService implements OnModuleInit {
         return wallet;
     }
 
-    // Get transaction history
-    async getTransactionHistory(userId: string, limit = 20) {
+    // Get transaction history với pagination + filter type + date range.
+    // Trả về { items, total, page, limit } để client dễ render pagination.
+    async getTransactionHistory(
+        userId: string,
+        opts: {
+            page?: number;
+            limit?: number;
+            types?: TransactionType[];
+            startDate?: Date;
+            endDate?: Date;
+        } = {},
+    ) {
         const wallet = await this.getBalance(userId);
-        return this.prisma.coinTransaction.findMany({
-            where: { walletId: wallet.id },
-            orderBy: { createdAt: 'desc' },
-            take: limit,
-        });
+        const page = Math.max(1, opts.page ?? 1);
+        const limit = Math.min(100, Math.max(1, opts.limit ?? 20));
+
+        const where: any = { walletId: wallet.id };
+        if (opts.types && opts.types.length > 0) {
+            where.type = { in: opts.types };
+        }
+        if (opts.startDate || opts.endDate) {
+            where.createdAt = {};
+            if (opts.startDate) where.createdAt.gte = opts.startDate;
+            if (opts.endDate) where.createdAt.lte = opts.endDate;
+        }
+
+        const [items, total] = await this.prisma.$transaction([
+            this.prisma.coinTransaction.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            this.prisma.coinTransaction.count({ where }),
+        ]);
+
+        return { items, total, page, limit };
     }
 
     // Deposit coins (Transactional)

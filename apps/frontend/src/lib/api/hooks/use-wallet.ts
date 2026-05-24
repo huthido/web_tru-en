@@ -1,5 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { WalletService, DonateAuthorPayload, RequestWithdrawalPayload, WithdrawalStatus } from '../wallet.service';
+import {
+    WalletService,
+    DonateAuthorPayload,
+    RequestWithdrawalPayload,
+    WithdrawalStatus,
+    TransactionHistoryParams,
+} from '../wallet.service';
 
 export function useWalletBalance(enabled: boolean = true) {
     return useQuery({
@@ -7,6 +13,23 @@ export function useWalletBalance(enabled: boolean = true) {
         queryFn: () => WalletService.getBalance(),
         enabled,
         staleTime: 30 * 1000, // 30 seconds
+    });
+}
+
+/** Lịch sử giao dịch của user — hỗ trợ pagination + filter. */
+export function useTransactionHistory(params: TransactionHistoryParams = {}) {
+    return useQuery({
+        queryKey: [
+            'wallet',
+            'history',
+            params.page ?? 1,
+            params.limit ?? 20,
+            params.types?.join(',') ?? '',
+            params.startDate ?? '',
+            params.endDate ?? '',
+        ],
+        queryFn: () => WalletService.getHistory(params),
+        staleTime: 30 * 1000,
     });
 }
 

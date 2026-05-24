@@ -11,8 +11,10 @@ import {
     View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { colors, fontSize, radius, spacing } from '@/theme';
+import type { RootNavigation } from '@/navigation/types';
 import { formatNumber, timeAgo } from '@/lib/format';
 import { describeError } from '@/lib/error';
 import type { CoinPackage, CoinTransaction, TransactionType } from '@/lib/api/types';
@@ -132,6 +134,7 @@ function PackageCard({
 
 export const WalletScreen: React.FC = () => {
     const qc = useQueryClient();
+    const nav = useNavigation<RootNavigation>();
     const balance = useWalletBalance();
     const history = useWalletHistory();
     const packages = useCoinPackages();
@@ -243,7 +246,7 @@ export const WalletScreen: React.FC = () => {
 
     const w = balance.data;
     const total = w.purchasedBalance + w.earnedBalance;
-    const transactions = history.data ?? [];
+    const transactions = history.data?.items ?? [];
     const pkgList = (packages.data ?? []).filter((p) => p.isActive);
 
     return (
@@ -335,7 +338,12 @@ export const WalletScreen: React.FC = () => {
 
             {/* Transactions */}
             <View style={styles.section}>
-                <SectionHeader title="Giao dịch gần đây" />
+                <View style={styles.sectionHeaderRow}>
+                    <SectionHeader title="Giao dịch gần đây" />
+                    <Pressable onPress={() => nav.navigate('Transactions')} hitSlop={8}>
+                        <Text style={styles.viewAllText}>Xem tất cả →</Text>
+                    </Pressable>
+                </View>
                 {history.isLoading ? (
                     <View style={styles.smallLoader}>
                         <Loading />
@@ -399,6 +407,13 @@ const styles = StyleSheet.create({
     bucketHint: { fontSize: 10, color: colors.textMuted, textAlign: 'center' },
     /* sections */
     section: { marginBottom: spacing.lg },
+    sectionHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingRight: spacing.lg,
+    },
+    viewAllText: { color: colors.primary, fontSize: fontSize.xs, fontWeight: '600' },
     smallLoader: { height: 160 },
     emptyInline: { height: 140 },
     /* packages */

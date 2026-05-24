@@ -161,6 +161,43 @@ export interface MyStorySales {
     }[];
 }
 
+/** Loại giao dịch — khớp Prisma TransactionType. */
+export type TransactionType =
+    | 'DEPOSIT'
+    | 'PURCHASE_CHAPTER'
+    | 'PURCHASE_STORY'
+    | 'ADMIN_ADJUST'
+    | 'REFUND'
+    | 'BONUS'
+    | 'DONATE_AUTHOR'
+    | 'WITHDRAWAL'
+    | 'TRANSFER';
+
+export interface CoinTransaction {
+    id: string;
+    walletId: string;
+    amount: number;
+    type: TransactionType;
+    description: string | null;
+    referenceId: string | null;
+    createdAt: string;
+}
+
+export interface TransactionHistoryParams {
+    page?: number;
+    limit?: number;
+    types?: TransactionType[];
+    startDate?: string; // ISO 8601
+    endDate?: string;
+}
+
+export interface TransactionHistoryResult {
+    items: CoinTransaction[];
+    total: number;
+    page: number;
+    limit: number;
+}
+
 // Author-only: today's net revenue across donations + chapter + story sales.
 export interface MyTodayEarnings {
     date: string;
@@ -181,9 +218,16 @@ export const WalletService = {
         return response.data.data || response.data as any;
     },
 
-    getHistory: async () => {
-        const response = await apiClient.get('/wallet/history');
-        return response.data.data || response.data;
+    getHistory: async (params: TransactionHistoryParams = {}): Promise<TransactionHistoryResult> => {
+        const qs = new URLSearchParams();
+        if (params.page) qs.set('page', String(params.page));
+        if (params.limit) qs.set('limit', String(params.limit));
+        if (params.types && params.types.length > 0) qs.set('type', params.types.join(','));
+        if (params.startDate) qs.set('startDate', params.startDate);
+        if (params.endDate) qs.set('endDate', params.endDate);
+        const url = qs.toString() ? `/wallet/history?${qs.toString()}` : '/wallet/history';
+        const response = await apiClient.get<TransactionHistoryResult>(url);
+        return (response.data.data || response.data) as TransactionHistoryResult;
     },
 
     donateToAuthor: async (data: DonateAuthorPayload) => {

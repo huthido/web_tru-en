@@ -17,6 +17,7 @@ export type RootStackParamList = {
     StoryAnalytics: { storyId: string; storyTitle?: string };
     Earnings: undefined;
     Withdrawals: undefined;
+    Transactions: undefined;
 };
 
 export type MainTabsParamList = {

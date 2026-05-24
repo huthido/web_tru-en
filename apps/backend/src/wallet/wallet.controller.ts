@@ -1,8 +1,20 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Get,
+    Param,
+    Post,
+    Query,
+    Request,
+    UseGuards,
+} from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
-import { User } from '@prisma/client';
+import { TransactionType, User } from '@prisma/client';
+
+const ALL_TRANSACTION_TYPES = new Set<TransactionType>(Object.values(TransactionType));
 
 @Controller('wallet')
 export class WalletController {
@@ -15,11 +27,53 @@ export class WalletController {
         return this.walletService.getBalance(user.id);
     }
 
+    /**
+     * Lịch sử giao dịch của user đang đăng nhập, với pagination + filter.
+     *   GET /api/wallet/history?page=1&limit=20&type=DEPOSIT,WITHDRAWAL&startDate=...&endDate=...
+     * - `type`: CSV TransactionType, vd `DEPOSIT,PURCHASE_CHAPTER`.
+     * - `startDate`/`endDate`: ISO 8601 (vd `2026-01-01T00:00:00Z`).
+     */
     @Get('history')
     @UseGuards(JwtAuthGuard)
-    async getHistory(@Request() req: any) {
+    async getHistory(
+        @Request() req: any,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+        @Query('type') type?: string,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+    ) {
         const user = req.user as User;
-        return this.walletService.getTransactionHistory(user.id);
+
+        let types: TransactionType[] | undefined;
+        if (type) {
+            const parsed = type
+                .split(',')
+                .map((t) => t.trim().toUpperCase())
+                .filter(Boolean) as TransactionType[];
+            const invalid = parsed.filter((t) => !ALL_TRANSACTION_TYPES.has(t));
+            if (invalid.length > 0) {
+                throw new BadRequestException(`Loại giao dịch không hợp lệ: ${invalid.join(', ')}`);
+            }
+            types = parsed;
+        }
+
+        const parseDate = (s: string | undefined, name: string) => {
+            if (!s) return undefined;
+            const d = new Date(s);
+            if (Number.isNaN(d.getTime())) {
+                throw new BadRequestException(`${name} không phải ngày hợp lệ (ISO 8601).`);
+            }
+            return d;
+        };
+
+        return this.walletService.getTransactionHistory(user.id, {
+            page: page ? parseInt(page, 10) : undefined,
+            limit: limit ? parseInt(limit, 10) : undefined,
+            types,
+            startDate: parseDate(startDate, 'startDate'),
+            endDate: parseDate(endDate, 'endDate'),
+        });
     }
 
     // Mock deposit for testing

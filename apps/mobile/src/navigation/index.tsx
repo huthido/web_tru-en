@@ -25,6 +25,7 @@ import { EditChapterScreen } from '@/screens/author/EditChapterScreen';
 import { StoryAnalyticsScreen } from '@/screens/author/StoryAnalyticsScreen';
 import { EarningsScreen } from '@/screens/author/EarningsScreen';
 import { WithdrawalsScreen } from '@/screens/author/WithdrawalsScreen';
+import { TransactionsScreen } from '@/screens/TransactionsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabsParamList>();
@@ -178,6 +179,11 @@ export const RootNavigator: React.FC = () => {
                             name="Withdrawals"
                             component={WithdrawalsScreen}
                             options={{ title: 'Rút xu' }}
+                        />
+                        <Stack.Screen
+                            name="Transactions"
+                            component={TransactionsScreen}
+                            options={{ title: 'Lịch sử giao dịch' }}
                         />
                     </>
                 ) : (
