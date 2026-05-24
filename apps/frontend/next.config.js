@@ -184,15 +184,24 @@ const nextConfig = {
    * Google AdSense/AdMob/FAN cần `unsafe-inline` + `unsafe-eval` cho script
    * inject của họ — không tránh được. Thay vào đó whitelist domain cụ thể
    * thay vì `*`.
+   *
+   * Dev mode (NODE_ENV !== 'production') loose hơn: cho phép connect HTTP
+   * + WS để frontend fetch local backend (http://localhost:3009) + HMR
+   * websocket. Prod giữ chặt chỉ HTTPS.
    */
   async headers() {
+    const isDev = process.env.NODE_ENV !== 'production';
+    const connectSrc = isDev
+      ? "connect-src 'self' http: https: ws: wss:"
+      : "connect-src 'self' https: wss:";
+
     const csp = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.googletagservices.com https://*.facebook.com https://*.fbcdn.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https: http:", // ads serve images từ nhiều CDN
       "font-src 'self' data: https://fonts.gstatic.com",
-      "connect-src 'self' https: wss:",
+      connectSrc,
       "frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://*.facebook.com",
       "object-src 'none'",
       "base-uri 'self'",
