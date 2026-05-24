@@ -84,25 +84,27 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full h-[60px] flex items-center justify-between px-3 md:px-6 bg-surface/95 backdrop-blur-sm border-b border-outline-variant/40 transition-colors duration-300">
-      {/* Mobile Logo */}
-      <Link href="/" className="md:hidden mr-3 shrink-0 flex items-center">
+    <header className="sticky top-0 z-50 w-full h-[60px] flex items-center justify-between px-3 md:px-6 bg-primary-container/80 md:bg-surface/95 backdrop-blur-xl border-b border-outline-variant/40 transition-colors duration-300">
+      {/* Mobile Logo + Brand "YÊU" — frosted glass header với Plus Jakarta wordmark
+          để khớp glassmorphism của Stitch Luminous Petal trên mobile. */}
+      <Link href="/" className="md:hidden mr-3 shrink-0 flex items-center gap-2">
         {settings?.siteLogo ? (
           <OptimizedImage
             src={settings.siteLogo}
             alt={settings.siteName || 'Logo'}
-            width={32}
-            height={32}
+            width={28}
+            height={28}
             objectFit="contain"
             placeholder="empty"
-            className="w-8 h-8"
+            className="w-7 h-7"
           />
         ) : (
-          <svg width="32" height="32" viewBox="0 0 60 60" fill="none" className="text-primary w-8 h-8">
+          <svg width="28" height="28" viewBox="0 0 60 60" fill="none" className="text-primary w-7 h-7">
             <path d="M50 5L50 55L30 45.3594L10 55L10 5L50 5Z" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M30 5V45.3594" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
+        <span className="font-display text-xl font-extrabold tracking-tight text-on-surface">YÊU</span>
       </Link>
 
       {/* Search Bar */}

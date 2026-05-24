@@ -37,45 +37,47 @@
 }
 
 :root {
-  /* Base — "Vivid Reader" LIGHT */
-  --background: #fff8f7;
-  --foreground: #271a1a;
+  /* Base — "Luminous Petal" LIGHT (synced với docs/stitch_mobile/luminous_petal/DESIGN.md) */
+  --background: #f9f9f9;
+  --foreground: #1a1c1c;
 
-  /* Legacy semantic colors - HSL for opacity support */
-  --primary: 330 81% 60%;
+  /* Legacy semantic colors — HSL for opacity. Primary đổi sang warm gray-brown
+     theo Luminous Petal (Hue ~300° rất nhạt). */
+  --primary: 320 4% 38%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 217 91% 60%;
+  --secondary: 0 1% 37%;
   --secondary-foreground: 0 0% 100%;
-  --destructive: 0 84% 60%;
+  --destructive: 0 76% 41%;
   --destructive-foreground: 0 0% 100%;
-  --success: 142 71% 45%;
+  --success: 142 71% 35%;
   --success-foreground: 0 0% 100%;
-  --muted: 220 14% 96%;
-  --muted-foreground: 215 16% 47%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 320 4% 28%;
 
-  /* === Vivid Reader theme tokens (Material Design 3) — LIGHT ===
-     Stored as space-separated RGB channels for Tailwind <alpha-value>. */
-  --md-background: 255 248 247;
-  --md-surface: 255 248 247;
-  --md-on-surface: 39 26 26;
-  --md-on-surface-variant: 92 63 64;
+  /* === Luminous Petal M3 tokens — LIGHT ===
+     Stored as space-separated RGB channels for Tailwind <alpha-value>.
+     Warm gray + soft pink-white palette cho cảm giác premium/minimal. */
+  --md-background: 249 249 249;          /* #f9f9f9 */
+  --md-surface: 249 249 249;             /* #f9f9f9 */
+  --md-on-surface: 26 28 28;             /* #1a1c1c */
+  --md-on-surface-variant: 75 69 73;     /* #4b4549 */
   --md-surface-container-lowest: 255 255 255;
-  --md-surface-container-low: 255 240 240;
-  --md-surface-container: 250 234 234;
-  --md-surface-container-high: 245 223 223;
-  --md-surface-container-highest: 239 217 218;
-  --md-surface-variant: 243 221 221;
-  --md-primary: 190 0 55;
+  --md-surface-container-low: 243 243 243;
+  --md-surface-container: 238 238 238;
+  --md-surface-container-high: 232 232 232;
+  --md-surface-container-highest: 226 226 226;
+  --md-surface-variant: 226 226 226;
+  --md-primary: 99 93 96;                /* #635d60 warm gray */
   --md-on-primary: 255 255 255;
-  --md-primary-container: 255 218 218;
-  --md-on-primary-container: 64 0 12;
-  --md-tertiary: 0 103 79;
+  --md-primary-container: 252 242 246;   /* #fcf2f6 soft pink-white */
+  --md-on-primary-container: 116 110 113; /* #746e71 */
+  --md-tertiary: 106 90 97;              /* #6a5a61 */
   --md-on-tertiary: 255 255 255;
-  --md-tertiary-container: 144 245 217;
-  --md-on-tertiary-container: 0 32 25;
-  --md-outline: 133 115 114;
-  --md-outline-variant: 216 194 193;
-  --md-glow: 190 0 55;
+  --md-tertiary-container: 255 241 245;  /* #fff1f5 */
+  --md-on-tertiary-container: 123 107 114;
+  --md-outline: 124 117 121;             /* #7c7579 */
+  --md-outline-variant: 205 196 200;     /* #cdc4c8 */
+  --md-glow: 99 93 96;
 }
 
 .dark {
