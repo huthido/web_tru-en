@@ -98,8 +98,9 @@ export class VnpayProvider implements OnModuleInit {
     if (input.bankCode) params.vnp_BankCode = input.bankCode;
 
     const signed = this.sortAndSign(params);
+    // signed values đã URL-encoded; không encode lại tránh double-encode.
     const query = Object.entries(signed)
-      .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+      .map(([k, v]) => `${k}=${v}`)
       .join('&');
 
     return `${this.payUrl}?${query}`;
@@ -107,6 +108,10 @@ export class VnpayProvider implements OnModuleInit {
 
   /**
    * Verify return/IPN params against the secure hash.
+   *
+   * VNPay sign trên chuỗi values đã URL-encoded (`encodeURIComponent` +
+   * thay `%20` bằng `+`). Express query parser tự decode nên params nhận
+   * được là raw — phải re-encode trước khi tính hash để khớp.
    */
   verifyCallback(params: Record<string, string>): VnpayVerifyResult {
     const rawHash = params['vnp_SecureHash'];
@@ -120,7 +125,7 @@ export class VnpayProvider implements OnModuleInit {
 
     const sorted = this.sortParams(checkParams);
     const signData = Object.entries(sorted)
-      .map(([k, v]) => `${k}=${v}`)
+      .map(([k, v]) => `${k}=${this.encodeValue(v)}`)
       .join('&');
     const computed = crypto
       .createHmac('sha512', this.hashSecret)
@@ -155,15 +160,28 @@ export class VnpayProvider implements OnModuleInit {
       }, {});
   }
 
+  /**
+   * Encode value đúng kiểu VNPay yêu cầu trong chữ ký: `encodeURIComponent`
+   * rồi thay `%20` bằng `+` (theo Node.js sample chính thức của VNPay).
+   * Sign trên raw → "Sai chữ ký" vì VNPay re-encode rồi sign trước khi so sánh.
+   */
+  private encodeValue(v: string): string {
+    return encodeURIComponent(v).replace(/%20/g, '+');
+  }
+
   private sortAndSign(params: Record<string, string>): Record<string, string> {
     const sorted = this.sortParams(params);
-    const signData = Object.entries(sorted)
+    const encoded: Record<string, string> = {};
+    for (const k of Object.keys(sorted)) {
+      encoded[k] = this.encodeValue(sorted[k]);
+    }
+    const signData = Object.entries(encoded)
       .map(([k, v]) => `${k}=${v}`)
       .join('&');
     const hash = crypto
       .createHmac('sha512', this.hashSecret)
       .update(signData, 'utf-8')
       .digest('hex');
-    return { ...sorted, vnp_SecureHash: hash };
+    return { ...encoded, vnp_SecureHash: hash };
   }
 }
