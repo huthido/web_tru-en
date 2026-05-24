@@ -3,7 +3,7 @@
  * policy. Dùng chung cho ImageNormalizePipe (upload runtime) và migrate
  * Cloudinary → Garage script. GIF/SVG luôn passthrough để giữ animation/vector.
  */
-import sharp from 'sharp';
+import sharp = require('sharp');
 import { extFromContentType, mimeFromSharpFormat } from './extensions';
 
 export type NormalizePolicy = 'force-webp' | 'preserve-format' | 'force-jpeg';

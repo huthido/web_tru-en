@@ -5,7 +5,7 @@ import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
 import * as path from 'path';
 import helmet from 'helmet';
-import sharp from 'sharp';
+import sharp = require('sharp');
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { ResponseInterceptor } from './auth/interceptors/response.interceptor';
