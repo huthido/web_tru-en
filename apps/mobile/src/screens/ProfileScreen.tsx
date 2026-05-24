@@ -86,13 +86,35 @@ export const ProfileScreen: React.FC = () => {
                     <Ionicons
                         name="chevron-forward"
                         size={18}
-                        color={colors.textMuted}
+                        color={colors.onSurfaceVariant}
                     />
                 </View>
                 <Text style={styles.placeholder}>
                     Xem số dư, lịch sử giao dịch và các gói nạp xu.
                 </Text>
             </Pressable>
+
+            {/* Notifications + Settings — gom thành 1 group hai-hàng để gọn. */}
+            <View style={styles.legalGroup}>
+                <Pressable
+                    style={[styles.legalRow, styles.legalRowDivider]}
+                    onPress={() => rootNav.navigate('Notifications')}
+                >
+                    <Ionicons name="notifications-outline" size={20} color={colors.onSurfaceVariant} />
+                    <Text style={styles.legalText}>Thông báo</Text>
+                    <View style={{ flex: 1 }} />
+                    <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceVariant} />
+                </Pressable>
+                <Pressable
+                    style={styles.legalRow}
+                    onPress={() => rootNav.navigate('Settings')}
+                >
+                    <Ionicons name="settings-outline" size={20} color={colors.onSurfaceVariant} />
+                    <Text style={styles.legalText}>Cài đặt</Text>
+                    <View style={{ flex: 1 }} />
+                    <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceVariant} />
+                </Pressable>
+            </View>
 
             <View style={styles.sectionLabel}>
                 <Text style={styles.sectionLabelText}>KHU VỰC TÁC GIẢ</Text>

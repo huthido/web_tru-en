@@ -18,6 +18,8 @@ export type RootStackParamList = {
     Earnings: undefined;
     Withdrawals: undefined;
     Transactions: undefined;
+    Notifications: undefined;
+    Settings: undefined;
 };
 
 export type MainTabsParamList = {

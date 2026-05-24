@@ -25,6 +25,8 @@ import { StoryAnalyticsScreen } from '@/screens/author/StoryAnalyticsScreen';
 import { EarningsScreen } from '@/screens/author/EarningsScreen';
 import { WithdrawalsScreen } from '@/screens/author/WithdrawalsScreen';
 import { TransactionsScreen } from '@/screens/TransactionsScreen';
+import { NotificationsScreen } from '@/screens/NotificationsScreen';
+import { SettingsScreen } from '@/screens/SettingsScreen';
 import { MainTabBar } from '@/components/MainTabBar';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -60,9 +62,13 @@ function MainTabs() {
             screenOptions={{
                 headerStyle: { backgroundColor: colors.primaryContainer },
                 headerTintColor: colors.onSurface,
-                headerTitleStyle: { fontWeight: '700' },
+                headerTitleStyle: {
+                    fontFamily: 'PlusJakartaSans_700Bold',
+                    fontSize: 18,
+                },
                 headerTitleAlign: 'center',
                 headerTitle: () => <BrandHeader />,
+                headerShadowVisible: false,
             }}
         >
             <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Khám phá' }} />
@@ -106,9 +112,15 @@ export const RootNavigator: React.FC = () => {
         <NavigationContainer>
             <Stack.Navigator
                 screenOptions={{
-                    headerStyle: { backgroundColor: colors.primary },
-                    headerTintColor: colors.white,
-                    headerTitleStyle: { fontWeight: '700' },
+                    // Header Luminous Petal: soft pink background + dark text +
+                    // hairline border (no heavy shadow elevation).
+                    headerStyle: { backgroundColor: colors.primaryContainer },
+                    headerTintColor: colors.onSurface,
+                    headerTitleStyle: {
+                        fontFamily: 'PlusJakartaSans_700Bold',
+                        fontSize: 18,
+                    },
+                    headerShadowVisible: false,
                 }}
             >
                 {isAuthenticated ? (
@@ -178,6 +190,16 @@ export const RootNavigator: React.FC = () => {
                             component={TransactionsScreen}
                             options={{ title: 'Lịch sử giao dịch' }}
                         />
+                        <Stack.Screen
+                            name="Notifications"
+                            component={NotificationsScreen}
+                            options={{ title: 'Thông báo' }}
+                        />
+                        <Stack.Screen
+                            name="Settings"
+                            component={SettingsScreen}
+                            options={{ title: 'Cài đặt' }}
+                        />
                     </>
                 ) : (
                     <>
@@ -203,7 +225,7 @@ const styles = {
         flex: 1,
         justifyContent: 'center' as const,
         alignItems: 'center' as const,
-        backgroundColor: colors.bg,
+        backgroundColor: colors.background,
     },
     brandRow: {
         flexDirection: 'row' as const,
@@ -216,9 +238,12 @@ const styles = {
         borderRadius: 6,
     },
     brandText: {
-        color: colors.white,
-        fontSize: 20,
-        fontWeight: '800' as const,
-        letterSpacing: 0.5,
+        // Header brand "Yêu" — Plus Jakarta editorial trên primary-container
+        // (soft pink) cho cảm giác premium. Đặt color onSurface vì background
+        // sáng nay (#fcf2f6).
+        color: colors.onSurface,
+        fontSize: 22,
+        fontFamily: 'PlusJakartaSans_700Bold',
+        letterSpacing: -0.3,
     },
 };
