@@ -277,9 +277,9 @@ export function BookSection({
       tabIndex={0}
       aria-label={`Section: ${title}`}
     >
-      {/* Section Header */}
-      <div className="flex items-center gap-3 mb-4 px-4 md:px-4 flex-wrap">
-        <h2 className="text-lg md:text-2xl font-display font-extrabold uppercase tracking-tight text-on-surface transition-colors duration-300 flex-shrink-0">
+      {/* Section Header — editorial Plus Jakarta on mobile theo Stitch */}
+      <div className="flex items-center justify-between gap-3 mb-4 px-4 md:px-4 flex-wrap">
+        <h2 className="text-lg md:text-2xl font-display font-extrabold tracking-tight text-on-surface transition-colors duration-300 flex-shrink-0 md:uppercase">
           {title}
         </h2>
         {seeMoreLink && (
@@ -287,14 +287,45 @@ export function BookSection({
             href={seeMoreLink}
             className="text-xs md:text-sm font-semibold text-primary hover:underline transition-colors duration-300 flex-shrink-0 whitespace-nowrap"
           >
-            (Xem thêm)
+            Xem tất cả →
           </Link>
         )}
       </div>
 
-      {/* Scroll Position Indicator */}
+      {/* === MOBILE: 2-col grid theo Stitch mockup === */}
+      <div className="md:hidden px-4">
+        {isLoading && books.length === 0 ? (
+          <div className="grid grid-cols-2 gap-3">
+            {[...Array(4)].map((_, i) => (
+              <BookCardSkeleton key={`m-skel-${i}`} />
+            ))}
+          </div>
+        ) : books.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3">
+            {books.slice(0, 4).map((book) => (
+              <BookCard
+                key={`m-${book.id}`}
+                id={book.id}
+                title={book.title}
+                viewCount={book.viewCount}
+                rating={book.rating}
+                ratingCount={book.ratingCount}
+                coverImage={book.coverImage}
+                slug={book.slug}
+                storyId={book.storyId}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="py-6 text-center text-sm text-on-surface-variant">Chưa có sách nào</div>
+        )}
+      </div>
+
+      {/* === DESKTOP: horizontal scroll (giữ original UX) === */}
+
+      {/* Scroll Position Indicator — desktop only */}
       {books.length > 0 && (
-        <div className="px-4 md:px-6 lg:px-8 mb-2">
+        <div className="hidden md:block px-4 md:px-6 lg:px-8 mb-2">
           <div className="h-1 bg-surface-variant rounded-full overflow-hidden">
             <div
               className="h-full bg-primary transition-all duration-300 ease-out"
@@ -305,9 +336,9 @@ export function BookSection({
         </div>
       )}
 
-      {/* Navigation Buttons */}
+      {/* Navigation Buttons — desktop only */}
       {books.length > 0 && (
-        <>
+        <div className="hidden md:block">
           {/* Previous Button */}
           <button
             onClick={scrollToPrev}
@@ -333,12 +364,12 @@ export function BookSection({
           >
             <ChevronRight className="w-6 h-6 text-on-surface" />
           </button>
-        </>
+        </div>
       )}
 
-      {/* Loading State */}
+      {/* Loading State — desktop horizontal */}
       {isLoading && books.length === 0 ? (
-        <div className="ml-[16px] md:ml-0 md:px-6 lg:px-8 overflow-x-auto scrollbar-hide">
+        <div className="hidden md:block ml-[16px] md:ml-0 md:px-6 lg:px-8 overflow-x-auto scrollbar-hide">
           <div className="flex gap-3 md:gap-4 pb-4 min-w-max pr-4 md:pr-6 lg:pr-8">
             {[...Array(skeletonCount)].map((_, index) => (
               <BookCardSkeleton key={`skeleton-${index}`} />
@@ -348,7 +379,7 @@ export function BookSection({
       ) : books.length > 0 ? (
         <div
           ref={scrollContainerRef}
-          className="relative ml-[16px] md:ml-4 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory touch-pan-x cursor-grab focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg"
+          className="hidden md:block relative ml-[16px] md:ml-4 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory touch-pan-x cursor-grab focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg"
           onMouseDown={handleMouseDown}
           onMouseLeave={handleMouseLeave}
           onMouseUp={handleMouseUp}
@@ -437,7 +468,7 @@ export function BookSection({
           </div>
         </div>
       ) : (
-        <div className="px-6 md:px-6 ml-0">
+        <div className="hidden md:block px-6 md:px-6 ml-0">
           <div className="py-8 text-center text-on-surface-variant">
             Chưa có sách nào
           </div>
