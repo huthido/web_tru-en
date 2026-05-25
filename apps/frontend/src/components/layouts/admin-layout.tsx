@@ -233,11 +233,19 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                                     </svg>
                                 )}
                             </button>
+                            {/* Về trang chủ — mobile chỉ icon house (tiết kiệm
+                                width header), desktop hiện text. */}
                             <Link
                                 href="/"
-                                className="hidden sm:block text-sm text-on-surface-variant hover:text-on-surface dark:hover:text-white"
+                                aria-label="Về trang chủ"
+                                title="Về trang chủ"
+                                className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"
                             >
-                                Về trang chủ
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="sm:w-[18px] sm:h-[18px]">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                    <polyline points="9 22 9 12 15 12 15 22" />
+                                </svg>
+                                <span className="hidden sm:inline">Về trang chủ</span>
                             </Link>
                             {user && (
                                 <div className="flex items-center gap-2">
