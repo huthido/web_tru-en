@@ -96,11 +96,12 @@ export function NotificationBell() {
                 )}
             </button>
 
-            {/* Dropdown — mobile: `position: fixed inset-x-2 top-[64px]` (8px
-                padding 2 bên) → dropdown bám viewport. Mọi inner container có
-                `w-full` để stretch đều. Desktop: `absolute right-0 w-96`. */}
+            {/* Dropdown — mobile: explicit left-2 right-2 + force w-auto để
+                tránh Tailwind shorthand quirk. Wrapper outer overflow-hidden +
+                inner list dùng `[&::-webkit-scrollbar]:w-1` để scrollbar mỏng
+                1px (globals.css default 14px sẽ tạo gap visible bên phải). */}
             {isOpen && (
-                <div className="fixed inset-x-2 top-[64px] md:absolute md:inset-x-auto md:right-0 md:top-auto md:mt-2 md:w-96 bg-surface-container rounded-lg shadow-xl border border-outline-variant z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+                <div className="fixed left-2 right-2 top-[64px] md:absolute md:left-auto md:right-0 md:top-auto md:mt-2 md:w-96 bg-surface-container rounded-lg shadow-xl border border-outline-variant z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
                     {/* Header — stretch full với justify-between */}
                     <div className="w-full px-4 py-3 border-b border-outline-variant flex items-center justify-between">
                         <h3 className="text-base md:text-lg font-semibold text-on-surface">
@@ -113,8 +114,10 @@ export function NotificationBell() {
                         )}
                     </div>
 
-                    {/* Notifications List */}
-                    <div className="max-h-96 overflow-y-auto">
+                    {/* Notifications List — scrollbar mỏng để không chiếm width
+                        right (default globals.css ::-webkit-scrollbar 14px tạo
+                        gap visible). 4px webkit scrollbar overlay style. */}
+                    <div className="max-h-96 overflow-y-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-outline-variant [&::-webkit-scrollbar-thumb]:rounded-full">
                         {notifications.length === 0 ? (
                             <div className="px-4 py-8 text-center">
                                 <svg
