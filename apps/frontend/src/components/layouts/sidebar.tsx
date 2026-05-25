@@ -107,12 +107,13 @@ export function Sidebar() {
               objectFit="contain"
               placeholder="empty"
               priority
-              className="w-9 h-9 flex-shrink-0"
+              // Logo đen-light / trắng-dark theo theme.
+              className="w-9 h-9 flex-shrink-0 dark:invert dark:brightness-200"
             />
           ) : (
-            <BookOpen size={30} className="text-primary flex-shrink-0" />
+            <BookOpen size={30} className="text-black dark:text-white flex-shrink-0" />
           )}
-          <span className="font-display text-2xl font-extrabold tracking-tight text-primary">YÊU</span>
+          <span className="font-display text-2xl font-extrabold tracking-tight text-black dark:text-white">YÊU</span>
         </Link>
 
         {/* Primary navigation — `min-h-0` bắt buộc trong flex parent để overflow

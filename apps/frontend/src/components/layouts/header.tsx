@@ -97,10 +97,12 @@ export function Header() {
             height={32}
             objectFit="contain"
             placeholder="empty"
-            className="w-8 h-8"
+            // Light: giữ nguyên ảnh. Dark: invert + brightness để logo
+            // đen-trên-trong-suốt biến thành trắng-trên-trong-suốt.
+            className="w-8 h-8 dark:invert dark:brightness-200"
           />
         ) : (
-          <svg width="32" height="32" viewBox="0 0 60 60" fill="none" className="text-primary w-8 h-8">
+          <svg width="32" height="32" viewBox="0 0 60 60" fill="none" className="text-black dark:text-white w-8 h-8">
             <path d="M50 5L50 55L30 45.3594L10 55L10 5L50 5Z" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M30 5V45.3594" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
