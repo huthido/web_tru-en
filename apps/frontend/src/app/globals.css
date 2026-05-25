@@ -129,6 +129,15 @@
   transition-duration: 300ms;
 }
 
+html,
+body {
+  /* Clamp horizontal overflow toàn site — element nào lệch viewport (vd 100vw
+     không trừ scrollbar, table rộng, absolute positioned ra ngoài) sẽ bị crop
+     thay vì gây horizontal scroll cả body. Mobile thấy "dư bên phải = width
+     bell" thường do scrollbar 14px reserved + element nào đó 100vw. */
+  overflow-x: hidden;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
