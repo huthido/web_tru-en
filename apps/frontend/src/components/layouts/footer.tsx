@@ -15,8 +15,9 @@ export function Footer() {
     return (
         <footer className="w-full bg-surface-container border-t border-outline-variant/40 transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
-                {/* Main Footer Content */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
+                {/* Main Footer Content — mobile 2 cột để nội dung dày đặc hơn,
+                    không phải scroll dài stack 1 cột; desktop lg: 4 cột. */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 mb-12">
                     {/* Logo & About */}
                     <div className="flex flex-col gap-5">
                         <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
