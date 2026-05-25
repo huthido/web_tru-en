@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "predev": "node scripts/check-prod-env.js .env apps/backend/.env --warn",
-    "dev": "concurrently -n backend,frontend -c blue,green \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+    "dev": "concurrently --kill-others --success=first -n backend,frontend -c blue,green \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
     "dev:backend": "pnpm --filter backend dev",
     "dev:frontend": "pnpm --filter frontend dev",
     "docker:local": "docker compose -f docker-compose.yaml -f docker-compose.local.yml up -d --build",

@@ -102,11 +102,15 @@ export function Sidebar() {
   // Mobile bottom bar theo Stitch Luminous Petal: 5 items + FAB Đăng truyện ở
   // giữa = 6 slot. FAB navigate sang `/author/stories/create` (nếu đăng nhập)
   // hoặc `/login?redirect=...` (nếu chưa).
-  // Slot order: Home · Stories · [FAB Upload] · Library · Khác.
-  const mobilePrimaryHrefs = ['/', '/stories', '/library'];
+  // Slot order: Home · Khám phá · [FAB Upload] · Thư viện · Tài khoản · Khác.
+  // Profile vào primary để user truy cập tài khoản nhanh, không bị "chôn"
+  // trong drawer Khác như trước.
+  const mobilePrimaryHrefs = ['/', '/stories', '/library', '/profile'];
   const mobilePrimary = links.filter((l) => mobilePrimaryHrefs.includes(l.href));
+  // Profile link: lấy từ bottomLinks (vì không nằm trong primary `links`).
+  const profileLink = bottomLinks.find((l) => l.href === '/profile');
   const moreLinks = [...links, ...bottomLinks].filter(
-    (l) => !mobilePrimaryHrefs.includes(l.href) && l.href !== '/author/stories/create' && (!l.authOnly || canCreateStories)
+    (l) => !mobilePrimaryHrefs.includes(l.href) && l.href !== '/author/stories/create' && l.href !== '/profile' && (!l.authOnly || canCreateStories)
   );
   const moreActive = moreLinks.some((l) => l.active);
   const uploadHref = canCreateStories ? '/author/stories/create' : '/login?redirect=/author/stories/create';
@@ -186,18 +190,19 @@ export function Sidebar() {
         </div>
       </aside>
 
-      {/* Mobile Bottom Navigation — Luminous Petal: 5 items + FAB center cho
-          Đăng truyện. Background frosted (bg-surface-container/80 backdrop-blur)
-          để khớp glassmorphism của Stitch design. */}
+      {/* Mobile Bottom Navigation — Luminous Petal 6 slots:
+          Home · Khám phá · [FAB Upload] · Thư viện · Tài khoản · Khác.
+          Background frosted (bg-surface-container/80 backdrop-blur) khớp
+          glassmorphism của Stitch design. */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container/80 backdrop-blur-xl border-t border-outline-variant/40 z-50 safe-area-inset-bottom">
-        <div className="flex items-center justify-around h-16 px-2 py-2 relative">
+        <div className="flex items-stretch justify-around h-16 px-1 py-1 relative">
           {/* Slot 1: Trang chủ */}
           {mobilePrimary[0] && (() => {
             const l = mobilePrimary[0]; const Icon = l.icon;
             return (
               <Link key={l.href} href={l.href} aria-label={l.label}
-                className={`flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
-                <Icon size={22} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
+                <Icon size={20} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
                 <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{l.label}</span>
               </Link>
             );
@@ -208,46 +213,60 @@ export function Sidebar() {
             const l = mobilePrimary[1]; const Icon = l.icon;
             return (
               <Link key={l.href} href={l.href} aria-label={l.label}
-                className={`flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
-                <Icon size={22} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
+                <Icon size={20} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
                 <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{l.label}</span>
               </Link>
             );
           })()}
 
-          {/* Slot 3: FAB Upload — nổi giữa, vị trí cao hơn ~14px so với bar */}
-          <Link
-            href={uploadHref}
-            aria-label="Đăng truyện"
-            className="flex items-center justify-center w-13 h-13 -mt-6 bg-primary text-on-primary rounded-full shadow-lg shadow-primary/30 active:scale-95 transition-transform"
-            style={{ width: 52, height: 52 }}
-          >
-            <Plus size={26} strokeWidth={2.5} />
-          </Link>
+          {/* Slot 3: FAB Upload — nổi giữa */}
+          <div className="flex-1 flex items-center justify-center">
+            <Link
+              href={uploadHref}
+              aria-label="Đăng truyện"
+              className="flex items-center justify-center -mt-6 bg-primary text-on-primary rounded-full shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+              style={{ width: 52, height: 52 }}
+            >
+              <Plus size={26} strokeWidth={2.5} />
+            </Link>
+          </div>
 
           {/* Slot 4: Thư viện */}
           {mobilePrimary[2] && (() => {
             const l = mobilePrimary[2]; const Icon = l.icon;
             return (
               <Link key={l.href} href={l.href} aria-label={l.label}
-                className={`flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
-                <Icon size={22} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
+                <Icon size={20} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
                 <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{l.label}</span>
               </Link>
             );
           })()}
 
-          {/* Slot 5: Khác button (drawer cho mọi mục phụ) */}
+          {/* Slot 5: Tài khoản (Profile) — Stitch design có Tài khoản ở bottom */}
+          {profileLink && (() => {
+            const Icon = profileLink.icon;
+            return (
+              <Link href={profileLink.href} aria-label={profileLink.label}
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${profileLink.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
+                <Icon size={20} className={profileLink.active ? 'text-primary' : 'text-on-surface-variant'} />
+                <span className={`text-[10px] font-medium ${profileLink.active ? 'text-primary' : 'text-on-surface-variant'}`}>Tài khoản</span>
+              </Link>
+            );
+          })()}
+
+          {/* Slot 6: Khác button (drawer cho mọi mục phụ) */}
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
             aria-label="Mở menu khác"
             aria-expanded={moreOpen}
-            className={`flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-lg transition-all duration-300 ${
+            className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${
               moreActive ? 'bg-primary/15' : 'hover:bg-surface-variant'
             }`}
           >
-            <MoreHorizontal size={22} className={moreActive ? 'text-primary' : 'text-on-surface-variant'} />
+            <MoreHorizontal size={20} className={moreActive ? 'text-primary' : 'text-on-surface-variant'} />
             <span className={`text-[10px] font-medium ${moreActive ? 'text-primary' : 'text-on-surface-variant'}`}>Khác</span>
           </button>
         </div>

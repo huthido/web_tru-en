@@ -34,10 +34,13 @@ export const BookCard = memo(function BookCard({ id, title, viewCount, rating, r
   const href = slug ? `/truyen/${slug}` : `/truyen/${id}`;
 
   return (
-    <div className="group flex-shrink-0 w-[150px]">
+    // Mobile: full-width fill grid cell (parent grid-cols-2). Desktop: fixed 150px
+    // cho horizontal scroll. `w-full md:w-[150px]` đảm bảo card stretch theo cell
+    // ở mobile (không lệch trái) và giữ design desktop original.
+    <div className="group w-full md:flex-shrink-0 md:w-[150px]">
       <div className="flex flex-col gap-3">
-        {/* Book Cover */}
-        <div className="comic-hover-glow relative w-[150px] h-[200px] rounded-xl overflow-hidden bg-surface-variant shadow-lg">
+        {/* Book Cover — mobile aspect-[3/4] để scale theo width, desktop fixed 200px */}
+        <div className="comic-hover-glow relative w-full aspect-[3/4] md:w-[150px] md:h-[200px] md:aspect-auto rounded-xl overflow-hidden bg-surface-variant shadow-lg border border-outline-variant">
           <Link href={href} className="absolute inset-0 z-10" aria-label={title}>
             {coverImage ? (
               <OptimizedImage
@@ -45,7 +48,7 @@ export const BookCard = memo(function BookCard({ id, title, viewCount, rating, r
                 alt={title}
                 fill
                 className="transition-transform duration-500 group-hover:scale-110"
-                sizes="150px"
+                sizes="(max-width: 768px) 50vw, 150px"
                 objectFit="cover"
                 quality={85}
                 placeholder="blur"
@@ -74,8 +77,8 @@ export const BookCard = memo(function BookCard({ id, title, viewCount, rating, r
           </Link>
         </div>
 
-        {/* Book Info */}
-        <Link href={href} className="flex flex-col gap-1.5 w-[150px]">
+        {/* Book Info — match cover width (full mobile, 150px desktop) */}
+        <Link href={href} className="flex flex-col gap-1.5 w-full md:w-[150px]">
           <h3 className="text-sm font-bold text-on-surface line-clamp-1 group-hover:text-primary transition-colors duration-300 leading-tight">
             {title}
           </h3>
