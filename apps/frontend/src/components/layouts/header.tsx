@@ -249,11 +249,12 @@ export function Header() {
         {/* Notification Bell */}
         {isAuthenticated && user && <NotificationBell />}
 
-        {/* User Info or Login Button */}
+        {/* User Info or Login Button — ẩn avatar dropdown ở mobile (Tài khoản
+            đã có slot trong bottom nav). Desktop vẫn hiện cho quick action. */}
         {!isLoading && (
           <>
             {isAuthenticated && user ? (
-              <div className="relative" ref={dropdownRef}>
+              <div className="relative hidden md:block" ref={dropdownRef}>
                 <button
                   type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}

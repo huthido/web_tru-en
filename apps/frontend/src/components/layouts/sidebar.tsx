@@ -1,12 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Compass, Library, Clock, Bookmark, Heart, Store, Upload, LayoutDashboard, Wallet, Settings, BookOpen, HelpCircle, MoreHorizontal, Plus, X, type LucideIcon } from 'lucide-react';
+import { Home, Compass, Library, Clock, Bookmark, Heart, Store, Upload, LayoutDashboard, Wallet, Settings, BookOpen, HelpCircle, Plus, type LucideIcon } from 'lucide-react';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
 function roleLabel(role?: string): string {
@@ -53,29 +52,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { data: settings } = useSettings();
-  const [moreOpen, setMoreOpen] = useState(false);
-
   const canCreateStories = !!user;
-
-  // Đóng drawer khi điều hướng sang trang khác.
-  useEffect(() => {
-    setMoreOpen(false);
-  }, [pathname]);
-
-  // Khóa scroll body + đóng bằng phím ESC khi drawer mở.
-  useEffect(() => {
-    if (!moreOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMoreOpen(false);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [moreOpen]);
 
   // Danh mục bám theo mockup theme Stitch (Home · Discover · Library ·
   // History · Bookmarks · Shop · Upload · Monetization).
@@ -109,10 +86,6 @@ export function Sidebar() {
   const mobilePrimary = links.filter((l) => mobilePrimaryHrefs.includes(l.href));
   // Profile link: lấy từ bottomLinks (vì không nằm trong primary `links`).
   const profileLink = bottomLinks.find((l) => l.href === '/profile');
-  const moreLinks = [...links, ...bottomLinks].filter(
-    (l) => !mobilePrimaryHrefs.includes(l.href) && l.href !== '/author/stories/create' && l.href !== '/profile' && (!l.authOnly || canCreateStories)
-  );
-  const moreActive = moreLinks.some((l) => l.active);
   const uploadHref = canCreateStories ? '/author/stories/create' : '/login?redirect=/author/stories/create';
 
   return (
@@ -190,10 +163,11 @@ export function Sidebar() {
         </div>
       </aside>
 
-      {/* Mobile Bottom Navigation — Luminous Petal 6 slots:
-          Home · Khám phá · [FAB Upload] · Thư viện · Tài khoản · Khác.
-          Background frosted (bg-surface-container/80 backdrop-blur) khớp
-          glassmorphism của Stitch design. */}
+      {/* Mobile Bottom Navigation — Luminous Petal 5 slots:
+          Home · Khám phá · [FAB Upload] · Thư viện · Tài khoản.
+          "Khác" drawer bỏ — tất cả mục phụ (Lịch sử, Theo dõi, Yêu thích,
+          Cửa hàng, Kênh tác giả, Kiếm tiền, Cài đặt, Trợ giúp) chuyển vào
+          ProfileScreen via <MobileExtraMenu> component. */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container/80 backdrop-blur-xl border-t border-outline-variant/40 z-50 safe-area-inset-bottom">
         <div className="flex items-stretch justify-around h-16 px-1 py-1 relative">
           {/* Slot 1: Trang chủ */}
@@ -244,7 +218,7 @@ export function Sidebar() {
             );
           })()}
 
-          {/* Slot 5: Tài khoản (Profile) — Stitch design có Tài khoản ở bottom */}
+          {/* Slot 5: Tài khoản (Profile) */}
           {profileLink && (() => {
             const Icon = profileLink.icon;
             return (
@@ -255,74 +229,11 @@ export function Sidebar() {
               </Link>
             );
           })()}
-
-          {/* Slot 6: Khác button (drawer cho mọi mục phụ) */}
-          <button
-            type="button"
-            onClick={() => setMoreOpen(true)}
-            aria-label="Mở menu khác"
-            aria-expanded={moreOpen}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${
-              moreActive ? 'bg-primary/15' : 'hover:bg-surface-variant'
-            }`}
-          >
-            <MoreHorizontal size={20} className={moreActive ? 'text-primary' : 'text-on-surface-variant'} />
-            <span className={`text-[10px] font-medium ${moreActive ? 'text-primary' : 'text-on-surface-variant'}`}>Khác</span>
-          </button>
         </div>
       </nav>
 
-      {/* Mobile "Khác" drawer — bottom sheet hiển thị các mục còn lại */}
-      {moreOpen && (
-        <div
-          className="md:hidden fixed inset-0 z-[60]"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menu khác"
-        >
-          <div
-            className="absolute inset-0 bg-black/50 animate-in fade-in duration-200"
-            onClick={() => setMoreOpen(false)}
-          />
-          <div className="absolute bottom-0 left-0 right-0 bg-surface-container rounded-t-2xl shadow-2xl border-t border-outline-variant/40 safe-area-inset-bottom animate-in slide-in-from-bottom duration-300">
-            <div className="flex items-center justify-between px-4 pt-4 pb-2">
-              <span className="text-sm font-semibold text-on-surface">Menu</span>
-              <button
-                type="button"
-                onClick={() => setMoreOpen(false)}
-                aria-label="Đóng menu"
-                className="p-2 rounded-full hover:bg-surface-variant transition-colors"
-              >
-                <X size={20} className="text-on-surface-variant" />
-              </button>
-            </div>
-            <div className="grid grid-cols-4 gap-2 px-3 pb-6 pt-1">
-              {moreLinks.map((l) => {
-                const Icon = l.icon;
-                return (
-                  <Link
-                    key={l.href}
-                    href={l.href}
-                    aria-label={l.label}
-                    className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl transition-all duration-200 active:scale-95 ${
-                      l.active ? 'bg-primary/15' : 'bg-transparent hover:bg-surface-variant'
-                    }`}
-                  >
-                    <Icon
-                      size={24}
-                      className={l.active ? 'text-primary' : 'text-on-surface-variant'}
-                      fill={l.active && l.fillWhenActive ? 'currentColor' : 'none'}
-                    />
-                    <span className={`text-[11px] font-medium text-center leading-tight ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>
-                      {l.label}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Mobile "Khác" drawer — đã xoá. Tất cả mục phụ giờ nằm trong
+          ProfileScreen via <MobileExtraMenu> component (grid 4-col). */}
     </>
   );
 }
