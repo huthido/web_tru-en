@@ -9,34 +9,37 @@ import { AdType, AdPosition, Ad } from '@/lib/api/ads.service';
 interface AdSidebarProps {
     position?: AdPosition.SIDEBAR_LEFT | AdPosition.SIDEBAR_RIGHT;
     className?: string;
+    /** Slot mode — caller (AdSlot) truyền ads + maxAds, skip fetch nội bộ. */
+    ads?: Ad[];
+    maxAds?: number;
 }
+
+const DEFAULT_MAX_ADS = 2;
 
 /**
  * Sidebar Ad Component (Facebook-style)
- * Displays both LEFT and RIGHT sidebar ads on the right side, stacked vertically
+ * 2 chế độ:
+ * - Legacy: tự fetch ads SIDEBAR_LEFT, hardcode max 2.
+ * - Slot mode: caller truyền `ads` + `maxAds`.
  */
-export function AdSidebar({ position, className = '' }: AdSidebarProps) {
-    const { data: sidebarLeftAds = [] } = useActiveAds(AdType.SIDEBAR, AdPosition.SIDEBAR_LEFT);
+export function AdSidebar({ position = AdPosition.SIDEBAR_LEFT, className = '', ads, maxAds }: AdSidebarProps) {
+    const legacy = useActiveAds(AdType.SIDEBAR, position);
+    const sourceAds: Ad[] = ads ?? legacy.data ?? [];
     const trackAdView = useTrackAdView();
     const trackAdClick = useTrackAdClick();
     const trackedAdIdsRef = useRef<Set<string>>(new Set());
+    const effectiveMax = maxAds ?? DEFAULT_MAX_ADS;
 
-    // Logic hiển thị sidebar ads:
-    // - Chỉ lấy ads từ SIDEBAR_LEFT (không lấy SIDEBAR_RIGHT nữa)
-    // - Filter: chỉ lấy ads có imageUrl và isActive = true
-    // - Limit: tối đa 3 ads để sidebar vừa phải, không quá dài
     const allSidebarAds: Ad[] = useMemo(() => {
-        return (sidebarLeftAds as Ad[])
+        return sourceAds
             .filter((ad: Ad) => ad.imageUrl && ad.isActive)
-            .slice(0, 2); // Giới hạn tối đa 2 ads
-    }, [sidebarLeftAds]);
+            .slice(0, effectiveMax);
+    }, [sourceAds, effectiveMax]);
 
-    // Track ad IDs string for dependency
     const adIdsString = useMemo(() => {
         return allSidebarAds.map(ad => ad.id).filter(Boolean).sort().join(',');
     }, [allSidebarAds]);
 
-    // Track views for all ads when ads change (only once per ad)
     useEffect(() => {
         allSidebarAds.forEach((ad) => {
             if (ad.id && !trackedAdIdsRef.current.has(ad.id)) {
@@ -44,7 +47,6 @@ export function AdSidebar({ position, className = '' }: AdSidebarProps) {
                 trackedAdIdsRef.current.add(ad.id);
             }
         });
-        // Cleanup: remove old ad IDs that are no longer in the list
         const currentAdIds = new Set(allSidebarAds.map(ad => ad.id).filter(Boolean));
         trackedAdIdsRef.current.forEach((trackedId) => {
             if (!currentAdIds.has(trackedId)) {
@@ -52,9 +54,8 @@ export function AdSidebar({ position, className = '' }: AdSidebarProps) {
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [adIdsString]); // Only depend on adIdsString, not trackAdView
+    }, [adIdsString]);
 
-    // Handle ad click
     const handleAdClick = (adId: string) => {
         trackAdClick.mutate(adId);
     };
@@ -66,12 +67,10 @@ export function AdSidebar({ position, className = '' }: AdSidebarProps) {
     return (
         <aside className={`hidden lg:block w-56 flex-shrink-0 self-start sticky top-[80px] ${className}`} style={{ position: 'sticky', top: '80px', alignSelf: 'flex-start' }}>
             <div className="space-y-3">
-                {/* Sponsored Label */}
                 <div className="text-xs text-on-surface-variant font-medium mb-2">
                     Được tài trợ
                 </div>
 
-                {/* Stacked Ads (Facebook-style) */}
                 {allSidebarAds.map((ad: Ad, index: number) => (
                     <AdSidebarCard
                         key={ad.id || index}
@@ -84,119 +83,93 @@ export function AdSidebar({ position, className = '' }: AdSidebarProps) {
     );
 }
 
-/**
- * Individual Sidebar Ad Card (Facebook-style)
- */
 function AdSidebarCard({ ad, onClick }: { ad: Ad; onClick: () => void }) {
     const [imageError, setImageError] = useState(false);
 
-    // Extract domain from linkUrl for display
     const getDomain = (url?: string) => {
         if (!url) return '';
         try {
-            const domain = new URL(url).hostname.replace('www.', '');
-            return domain;
+            return new URL(url).hostname.replace('www.', '');
         } catch {
             return url;
         }
     };
+
+    const openInNewTab = ad.displayConfig?.openInNewTab ?? true;
 
     return (
         <div className="bg-surface-container rounded-lg overflow-hidden border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
             {ad.linkUrl ? (
                 <a
                     href={ad.linkUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    target={openInNewTab ? '_blank' : undefined}
+                    rel={openInNewTab ? 'noopener noreferrer sponsored' : 'sponsored'}
                     onClick={onClick}
                     className="block"
                 >
-                    <div className="p-2.5">
-                        {/* Image */}
-                        <div className="relative w-full h-32 mb-2 bg-surface-container-high rounded overflow-hidden">
-                            {ad.imageUrl && !imageError ? (
-                                <OptimizedImage
-                                    src={ad.imageUrl}
-                                    alt={ad.title || 'Quảng cáo'}
-                                    fill
-                                    objectFit="cover"
-                                    sizes={ImageSizes.sidebar}
-                                    quality={85}
-                                    placeholder="blur"
-                                    unoptimized={shouldUnoptimizeImage(ad.imageUrl)}
-                                    onError={() => {
-                                        console.error('Failed to load sidebar ad:', ad.imageUrl);
-                                        setImageError(true);
-                                    }}
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-on-surface-variant text-xs">
-                                    No Image
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Content */}
-                        <div className="space-y-1">
-                            {ad.title && (
-                                <h3 className="text-sm font-semibold text-on-surface line-clamp-2 leading-tight">
-                                    {ad.title}
-                                </h3>
-                            )}
-                            {ad.description && (
-                                <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
-                                    {ad.description}
-                                </p>
-                            )}
-                            {ad.linkUrl && (
-                                <div className="text-xs text-on-surface-variant mt-1">
-                                    {getDomain(ad.linkUrl)}
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    <CardContent ad={ad} imageError={imageError} setImageError={setImageError} getDomain={getDomain} />
                 </a>
             ) : (
-                <div className="p-2.5">
-                    {/* Image */}
-                    <div className="relative w-full h-32 mb-2 bg-surface-container-high rounded overflow-hidden">
-                        {ad.imageUrl && !imageError ? (
-                            <OptimizedImage
-                                src={ad.imageUrl}
-                                alt={ad.title || 'Quảng cáo'}
-                                fill
-                                objectFit="cover"
-                                sizes={ImageSizes.sidebar}
-                                quality={85}
-                                placeholder="blur"
-                                unoptimized={shouldUnoptimizeImage(ad.imageUrl)}
-                                onError={() => {
-                                    console.error('Failed to load sidebar ad:', ad.imageUrl);
-                                    setImageError(true);
-                                }}
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-on-surface-variant text-xs">
-                                No Image
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="space-y-1">
-                        {ad.title && (
-                            <h3 className="text-sm font-semibold text-on-surface line-clamp-2 leading-tight">
-                                {ad.title}
-                            </h3>
-                        )}
-                        {ad.description && (
-                            <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
-                                {ad.description}
-                            </p>
-                        )}
-                    </div>
+                <div>
+                    <CardContent ad={ad} imageError={imageError} setImageError={setImageError} getDomain={getDomain} />
                 </div>
             )}
+        </div>
+    );
+}
+
+function CardContent({
+    ad,
+    imageError,
+    setImageError,
+    getDomain,
+}: {
+    ad: Ad;
+    imageError: boolean;
+    setImageError: (v: boolean) => void;
+    getDomain: (url?: string) => string;
+}) {
+    return (
+        <div className="p-2.5">
+            <div className="relative w-full h-32 mb-2 bg-surface-container-high rounded overflow-hidden">
+                {ad.imageUrl && !imageError ? (
+                    <OptimizedImage
+                        src={ad.imageUrl}
+                        alt={ad.title || 'Quảng cáo'}
+                        fill
+                        objectFit="cover"
+                        sizes={ImageSizes.sidebar}
+                        quality={85}
+                        placeholder="blur"
+                        unoptimized={shouldUnoptimizeImage(ad.imageUrl)}
+                        onError={() => {
+                            console.error('Failed to load sidebar ad:', ad.imageUrl);
+                            setImageError(true);
+                        }}
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-on-surface-variant text-xs">
+                        No Image
+                    </div>
+                )}
+            </div>
+            <div className="space-y-1">
+                {ad.title && (
+                    <h3 className="text-sm font-semibold text-on-surface line-clamp-2 leading-tight">
+                        {ad.title}
+                    </h3>
+                )}
+                {ad.description && (
+                    <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
+                        {ad.description}
+                    </p>
+                )}
+                {ad.linkUrl && (
+                    <div className="text-xs text-on-surface-variant mt-1">
+                        {getDomain(ad.linkUrl)}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

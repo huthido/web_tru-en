@@ -8,6 +8,7 @@ import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
+import { AdSlot } from '@/components/ads/ad-slot';
 import { Loading } from '@/components/ui/loading';
 import { useReadingHistory, useClearHistory } from '@/lib/api/hooks/use-reading-history';
 import { useToast } from '@/components/ui/toast';
@@ -67,6 +68,7 @@ function HistoryContent() {
         <Header />
         <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
+            <AdSlot slotKey="library.top" />
             {/* Page Header */}
             <div className="mb-6 md:mb-8">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">

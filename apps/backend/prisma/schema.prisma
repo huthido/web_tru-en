@@ -530,6 +530,12 @@ model Ad {
   priority       Int            @default(0) // Higher priority = shown first
   campaignId     String?
   targetAudience Json? // Targeting rules: {categories: [], roles: [], devices: [], minChaptersRead: 0}
+  // Cấu hình hiển thị runtime, override hardcode mặc định component:
+  // { heights: {base, sm, md}, rotateInterval, maxStack, openInNewTab, customCss, format }
+  displayConfig  Json?
+  // Quy tắc chèn INLINE banner: { afterParagraph: 5, repeatEvery: 5, maxOccurrences: null }
+  // Chỉ áp dụng khi ad bind vào slot có position=INLINE.
+  inlineRule     Json?
   createdById    String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -537,6 +543,7 @@ model Ad {
   createdBy      User?          @relation("AdCreator", fields: [createdById], references: [id], onDelete: SetNull)
   adImpressions  AdImpression[]
   adClicks       AdClick[]
+  slotBindings   AdSlotBinding[]
 
   @@index([type])
   @@index([position])
@@ -549,6 +556,53 @@ model Ad {
   @@index([sourceType])
   @@index([platform])
   @@map("ads")
+}
+
+/// Slot registry — mỗi slot là một vị trí cụ thể trên 1 page route mà admin
+/// có thể bật/tắt và bind ads vào. Khác với Ad.position (category chung),
+/// slot có key duy nhất gắn cụ thể với pageKey + position.
+model AdSlot {
+  id        String          @id @default(cuid())
+  /// Key duy nhất tham chiếu từ frontend, vd 'home.top', 'reading.inline'.
+  key       String          @unique
+  /// Route page chứa slot này: 'home' | 'stories.list' | 'stories.detail' |
+  /// 'reading' | 'search' | 'profile' | 'library'.
+  pageKey   String
+  position  AdPosition
+  /// Friendly label cho admin UI, vd 'Banner đầu trang chủ'.
+  label     String
+  /// Số ads tối đa hiển thị đồng thời trong slot (sidebar stack, banner rotate).
+  maxAds    Int             @default(1)
+  enabled   Boolean         @default(true)
+  /// Filter type bắt buộc của ad bind vào slot. Null = chấp nhận mọi type.
+  adType    AdType?
+  /// Filter platform: 'web' | 'mobile' | 'all'. Null = all.
+  platform  String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  bindings  AdSlotBinding[]
+
+  @@index([pageKey, enabled])
+  @@index([key])
+  @@map("ad_slots")
+}
+
+/// Bảng nối many-to-many giữa Ad và AdSlot — 1 ad có thể bind nhiều slot,
+/// 1 slot có thể chứa nhiều ad (theo maxAds + priority).
+model AdSlotBinding {
+  id       String  @id @default(cuid())
+  adId     String
+  slotId   String
+  /// Priority binding (cao hơn show trước trong slot này). Tách khỏi
+  /// Ad.priority vì cùng 1 ad có thể có priority khác nhau ở từng slot.
+  priority Int     @default(0)
+  ad       Ad      @relation(fields: [adId], references: [id], onDelete: Cascade)
+  slot     AdSlot  @relation(fields: [slotId], references: [id], onDelete: Cascade)
+
+  @@unique([adId, slotId])
+  @@index([slotId])
+  @@index([adId])
+  @@map("ad_slot_bindings")
 }
 
 enum AdSourceType {

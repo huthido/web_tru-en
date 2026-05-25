@@ -14,8 +14,8 @@ import { useStory } from '@/lib/api/hooks/use-stories';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useActiveAds, useTrackAdView, useTrackAdClick } from '@/lib/api/hooks/use-ads';
 import { AdType, AdPosition } from '@/lib/api/ads.service';
-import { AdBanner } from '@/components/ads/ad-banner';
-import { AdSidebar } from '@/components/ads/ad-sidebar';
+import { AdSlot } from '@/components/ads/ad-slot';
+import { InlineAdsRenderer } from '@/components/ads/inline-ads-renderer';
 import {
     markChapterCompleted,
     shouldShowPopup,
@@ -63,9 +63,10 @@ export default function ChapterReadingPage() {
 
     // Fetch active ads
     const { data: popupAds = [] } = useActiveAds(AdType.POPUP);
-    const { data: topAds = [] } = useActiveAds(AdType.BANNER, AdPosition.TOP);
+    // top/bottom/inline ads giờ đọc qua AdSlot → useSlotAds, không cần fetch
+    // trực tiếp ở đây nữa. Giữ lại bottomAds vì còn dùng cho rotate-by-chapter
+    // (xem `bottomAd` useMemo dưới).
     const { data: bottomAds = [] } = useActiveAds(AdType.BANNER, AdPosition.BOTTOM);
-    const { data: inlineAds = [] } = useActiveAds(AdType.BANNER, AdPosition.INLINE);
     const trackAdView = useTrackAdView();
     const trackAdClick = useTrackAdClick();
 
@@ -108,109 +109,8 @@ export default function ChapterReadingPage() {
         return bottomAdsList[adIndex] || bottomAdsList[0] || null;
     }, [bottomAdsList]);
 
-    // Detect if content is HTML (from rich text editor) vs plain text
-    const isHtmlContent = useMemo(() => {
-        if (!chapterData?.content) return false;
-        return /<(?:p|img|br|h[1-6]|ul|ol|li|strong|em|blockquote)\b/i.test(chapterData.content);
-    }, [chapterData?.content]);
-
-    // Process content with inline ads
-    const contentWithAds = useMemo(() => {
-        if (!chapterData?.content) return [];
-
-        if (isHtmlContent) {
-            // HTML content from rich text editor
-            const content = chapterData.content;
-            const pCount = (content.match(/<\/p>/gi) || []).length;
-
-            if (pCount <= 5 || !Array.isArray(inlineAds) || inlineAds.length === 0) {
-                return [
-                    <div
-                        key="html-content"
-                        className="chapter-html-content"
-                        dangerouslySetInnerHTML={{ __html: content }}
-                    />
-                ];
-            }
-
-            // Split content by </p> tags and insert ads every 5 paragraphs
-            const parts = content.split('</p>');
-            const result: React.ReactNode[] = [];
-            let paragraphCount = 0;
-            let currentHtml = '';
-
-            parts.forEach((part: string, index: number) => {
-                if (index < parts.length - 1) {
-                    currentHtml += part + '</p>';
-                    paragraphCount++;
-
-                    if (paragraphCount % 5 === 0 && paragraphCount < pCount) {
-                        result.push(
-                            <div
-                                key={`html-${index}`}
-                                className="chapter-html-content"
-                                dangerouslySetInnerHTML={{ __html: currentHtml }}
-                            />
-                        );
-                        result.push(
-                            <div key={`ad-${index}`} className="my-8">
-                                <AdBanner position={AdPosition.INLINE} />
-                            </div>
-                        );
-                        currentHtml = '';
-                    }
-                } else {
-                    currentHtml += part;
-                }
-            });
-
-            if (currentHtml.trim()) {
-                result.push(
-                    <div
-                        key="html-last"
-                        className="chapter-html-content"
-                        dangerouslySetInnerHTML={{ __html: currentHtml }}
-                    />
-                );
-            }
-
-            return result;
-        }
-
-        // Plain text content - original logic
-        const allLines = chapterData.content.split('\n');
-        const paragraphs = allLines.filter((p: string) => p.trim().length > 0);
-        let paragraphCount = 0;
-        const result: React.ReactNode[] = [];
-
-        allLines.forEach((paragraph: string, index: number) => {
-            const isParagraph = paragraph.trim().length > 0;
-            if (isParagraph) paragraphCount++;
-
-            result.push(
-                <React.Fragment key={index}>
-                    {isParagraph ? (
-                        <p className="mb-4 text-justify">
-                            {paragraph}
-                        </p>
-                    ) : (
-                        <br key={`br-${index}`} />
-                    )}
-                    {/* Insert inline ad every 5 paragraphs */}
-                    {isParagraph &&
-                        paragraphCount > 0 &&
-                        paragraphCount % 5 === 0 &&
-                        paragraphCount < paragraphs.length && (
-                            <div key={`ad-${index}`} className="my-8">
-                                <AdBanner position={AdPosition.INLINE} />
-                            </div>
-                        )}
-                </React.Fragment>
-            );
-        });
-
-        return result;
-    }, [chapterData?.content, isHtmlContent]);
+    // Inline ads logic đã chuyển sang <InlineAdsRenderer> component đa năng
+    // (đọc slot 'reading.inline' và rule per ad từ DB).
 
     // Extract chapters array from response
     // useChapters hook already handles the response format, so chaptersResponse should be an array
@@ -718,8 +618,8 @@ export default function ChapterReadingPage() {
             <div className="md:ml-60 pb-16 md:pb-0">
                 <Header />
 
-                {/* Top Banner Ad */}
-                <AdBanner position={AdPosition.TOP} />
+                {/* Top Banner Ad — slot 'reading.top' */}
+                <AdSlot slotKey="reading.top" />
 
                 <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)]">
                     {/* Story Header - Centered */}
@@ -875,22 +775,26 @@ export default function ChapterReadingPage() {
                                                     preview={chapterData.content}
                                                 />
                                             ) : (
-                                                contentWithAds
+                                                <InlineAdsRenderer
+                                                    content={chapterData.content}
+                                                    slotKey="reading.inline"
+                                                    defaultRule={{ afterParagraph: 5, repeatEvery: 5 }}
+                                                />
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Sidebar Ads - Sticky positioned on the right */}
-                                <AdSidebar />
+                                {/* Sidebar Ads — slot 'reading.sidebar' */}
+                                <AdSlot slotKey="reading.sidebar" />
                             </div>
                         </div>
                     </div>
 
-                    {/* Bottom Banner Ad */}
+                    {/* Bottom Banner Ad — slot 'reading.bottom' */}
                     <div className="w-full px-4 md:px-6 mt-8 mb-8">
                         <div className="max-w-4xl mx-auto">
-                            <AdBanner position={AdPosition.BOTTOM} />
+                            <AdSlot slotKey="reading.bottom" />
                         </div>
                     </div>
 

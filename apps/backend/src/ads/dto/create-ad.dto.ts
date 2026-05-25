@@ -8,6 +8,8 @@ import {
     ValidateIf,
     IsObject,
     IsInt,
+    IsArray,
+    ArrayUnique,
     Min,
 } from 'class-validator';
 
@@ -102,4 +104,31 @@ export class CreateAdDto {
     @IsInt()
     @Min(1)
     popupInterval?: number; // Number of chapters to read before showing popup (only for POPUP type)
+
+    /**
+     * Cấu hình hiển thị runtime override hardcode component:
+     * { heights?: {base?, sm?, md?}, rotateInterval?, maxStack?,
+     *   openInNewTab?, customCss?, format? }
+     * Service validate shape — không enforce union type ở DTO vì class-validator
+     * không phù hợp cho nested optional JSON.
+     */
+    @IsOptional()
+    @IsObject()
+    displayConfig?: Record<string, any>;
+
+    /**
+     * Quy tắc chèn INLINE banner:
+     * { afterParagraph?: number, repeatEvery?: number, maxOccurrences?: number | null }
+     * Chỉ có ý nghĩa khi ad bind vào slot position=INLINE.
+     */
+    @IsOptional()
+    @IsObject()
+    inlineRule?: Record<string, any>;
+
+    /** IDs của AdSlot mà ad này được bind vào (replace toàn bộ binding cũ khi update). */
+    @IsOptional()
+    @IsArray()
+    @ArrayUnique()
+    @IsString({ each: true })
+    slotIds?: string[];
 }

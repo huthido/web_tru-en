@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
+import { AdSlot } from '@/components/ads/ad-slot';
 import { BookCard } from '@/components/books/book-card';
 import { BookCardSkeleton } from '@/components/ui/loading';
 import { useLikedStories } from '@/lib/api/hooks/use-stories';
@@ -88,6 +89,7 @@ export default function FavoritesPage() {
         <Header />
         <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
+            <AdSlot slotKey="library.top" />
             {/* Page Header */}
             <div className="mb-6 md:mb-8">
               <div className="flex items-center gap-3 mb-2">

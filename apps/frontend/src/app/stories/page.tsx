@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
+import { AdSlot } from '@/components/ads/ad-slot';
 import { BookCard } from '@/components/books/book-card';
 import { Loading } from '@/components/ui/loading';
 import { useStories } from '@/lib/api/hooks/use-stories';
@@ -126,6 +127,7 @@ function StoriesContent() {
 
                 <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)]">
                     <div className="max-w-7xl mx-auto px-4 md:px-6">
+                        <AdSlot slotKey="stories.list.top" />
                         {/* Page Header */}
                         <div className="mb-6">
                             <h1 className="text-3xl md:text-4xl font-bold text-on-surface mb-2">
@@ -368,6 +370,9 @@ function StoriesContent() {
                                 )}
                             </>
                         )}
+                        <div className="mt-8">
+                            <AdSlot slotKey="stories.list.bottom" />
+                        </div>
                     </div>
                 </main>
 

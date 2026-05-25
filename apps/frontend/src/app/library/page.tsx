@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
+import { AdSlot } from '@/components/ads/ad-slot';
 import { Loading } from '@/components/ui/loading';
 import { useMyFollows } from '@/lib/api/hooks/use-follows';
 import { useLikedStories } from '@/lib/api/hooks/use-stories';
@@ -35,6 +36,7 @@ function LibraryContent() {
         <Header />
         <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
+            <AdSlot slotKey="library.top" />
             {/* Page Header */}
             <div className="mb-6 md:mb-8">
               <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-2">

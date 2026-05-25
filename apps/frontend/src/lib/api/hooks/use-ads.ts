@@ -1,5 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adsService, Ad, AdType, AdPosition, CreateAdRequest, UpdateAdRequest } from '../ads.service';
+import {
+  adsService,
+  adSlotsService,
+  Ad,
+  AdType,
+  AdPosition,
+  CreateAdRequest,
+  UpdateAdRequest,
+  CreateAdSlotRequest,
+} from '../ads.service';
 
 /**
  * Get active ads for display (public)
@@ -125,6 +134,67 @@ export const useTrackAdView = () => {
 export const useTrackAdClick = () => {
   return useMutation({
     mutationFn: (id: string) => adsService.trackClick(id),
+  });
+};
+
+// ============================================================================
+// AdSlot hooks — slot config + lookup ads của slot.
+// ============================================================================
+
+/** Admin: list tất cả slot có sẵn. */
+export const useAdSlots = () => {
+  return useQuery({
+    queryKey: ['ad-slots', 'all'],
+    queryFn: () => adSlotsService.list(),
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+/**
+ * Public: lookup ds ads của 1 slot. Cache 5 phút — không cần phải fresh
+ * realtime vì ad creative ít đổi. Slot disabled → trả mảng ads rỗng.
+ */
+export const useSlotAds = (slotKey: string, platform: 'web' | 'mobile' = 'web') => {
+  return useQuery({
+    queryKey: ['ad-slot', 'active', slotKey, platform],
+    queryFn: () => adSlotsService.getActiveAdsByKey(slotKey, platform),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!slotKey,
+  });
+};
+
+/** Admin: tạo slot mới. */
+export const useCreateAdSlot = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateAdSlotRequest) => adSlotsService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ad-slots'] });
+    },
+  });
+};
+
+/** Admin: cập nhật slot. */
+export const useUpdateAdSlot = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateAdSlotRequest> }) =>
+      adSlotsService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ad-slots'] });
+      queryClient.invalidateQueries({ queryKey: ['ad-slot'] });
+    },
+  });
+};
+
+/** Admin: xoá slot. */
+export const useDeleteAdSlot = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => adSlotsService.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ad-slots'] });
+    },
   });
 };
 

@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
+import { AdSlot } from '@/components/ads/ad-slot';
 import { useAuth } from '@/contexts/auth-context';
 import { usersService } from '@/lib/api/users.service';
 import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES, isImageFile } from '@/lib/utils/compress-image';
@@ -297,6 +298,7 @@ function ProfileContent() {
         {/* Page Content */}
         <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)]">
           <div className="max-w-6xl mx-auto px-4 md:px-8">
+            <AdSlot slotKey="profile.top" />
             {/* Mobile menu grid — chỉ hiện ở mobile; gom tất cả mục phụ
                 (trước đây nằm trong drawer "Khác") vào 1 chỗ. */}
             <MobileExtraMenu />

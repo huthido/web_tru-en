@@ -484,6 +484,65 @@ Chương này có khoảng 200 từ để test tính năng đếm từ và thờ
   }
   console.log(`✅ Created/updated ${coinPackages.length} coin packages`);
 
+  // ======================================================================
+  // SEED DEFAULT AD SLOTS — registry các vị trí ads có thể có trên site.
+  // Admin có thể đổi label/maxAds/enabled qua /admin/ad-slots; KHÔNG nên đổi
+  // `key` vì frontend tham chiếu trực tiếp. Upsert idempotent — chạy lại an toàn.
+  // ======================================================================
+  console.log('\n🎯 Seeding default ad slots...');
+  const defaultSlots: Array<{
+    key: string;
+    pageKey: string;
+    position: 'TOP' | 'BOTTOM' | 'INLINE' | 'SIDEBAR_LEFT' | 'SIDEBAR_RIGHT';
+    label: string;
+    maxAds?: number;
+    adType?: 'BANNER' | 'SIDEBAR' | 'POPUP';
+  }> = [
+    // Trang chủ
+    { key: 'home.top', pageKey: 'home', position: 'TOP', label: 'Banner đầu trang chủ', adType: 'BANNER' },
+    { key: 'home.bottom', pageKey: 'home', position: 'BOTTOM', label: 'Banner cuối trang chủ', adType: 'BANNER' },
+    // Danh sách truyện
+    { key: 'stories.list.top', pageKey: 'stories.list', position: 'TOP', label: 'Banner đầu danh sách truyện', adType: 'BANNER' },
+    { key: 'stories.list.bottom', pageKey: 'stories.list', position: 'BOTTOM', label: 'Banner cuối danh sách truyện', adType: 'BANNER' },
+    // Chi tiết truyện
+    { key: 'stories.detail.top', pageKey: 'stories.detail', position: 'TOP', label: 'Banner đầu trang chi tiết truyện', adType: 'BANNER' },
+    { key: 'stories.detail.sidebar', pageKey: 'stories.detail', position: 'SIDEBAR_RIGHT', label: 'Sidebar chi tiết truyện', adType: 'SIDEBAR', maxAds: 2 },
+    { key: 'stories.detail.bottom', pageKey: 'stories.detail', position: 'BOTTOM', label: 'Banner cuối trang chi tiết truyện', adType: 'BANNER' },
+    // Trang đọc chương
+    { key: 'reading.top', pageKey: 'reading', position: 'TOP', label: 'Banner đầu trang đọc', adType: 'BANNER' },
+    { key: 'reading.inline', pageKey: 'reading', position: 'INLINE', label: 'Banner chèn giữa đoạn văn', adType: 'BANNER' },
+    { key: 'reading.sidebar', pageKey: 'reading', position: 'SIDEBAR_LEFT', label: 'Sidebar trang đọc', adType: 'SIDEBAR', maxAds: 2 },
+    { key: 'reading.bottom', pageKey: 'reading', position: 'BOTTOM', label: 'Banner cuối trang đọc', adType: 'BANNER' },
+    { key: 'reading.popup', pageKey: 'reading', position: 'BOTTOM', label: 'Popup sau N chương đọc', adType: 'POPUP' },
+    // Khác
+    { key: 'search.top', pageKey: 'search', position: 'TOP', label: 'Banner đầu trang tìm kiếm', adType: 'BANNER' },
+    { key: 'profile.top', pageKey: 'profile', position: 'TOP', label: 'Banner đầu trang profile', adType: 'BANNER' },
+    { key: 'library.top', pageKey: 'library', position: 'TOP', label: 'Banner đầu trang thư viện/lịch sử/yêu thích', adType: 'BANNER' },
+  ];
+
+  for (const slot of defaultSlots) {
+    await prisma.adSlot.upsert({
+      where: { key: slot.key },
+      update: {
+        pageKey: slot.pageKey,
+        position: slot.position,
+        label: slot.label,
+        maxAds: slot.maxAds ?? 1,
+        adType: slot.adType,
+      },
+      create: {
+        key: slot.key,
+        pageKey: slot.pageKey,
+        position: slot.position,
+        label: slot.label,
+        maxAds: slot.maxAds ?? 1,
+        enabled: true,
+        adType: slot.adType,
+      },
+    });
+  }
+  console.log(`✅ Seeded ${defaultSlots.length} ad slots`);
+
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('\n✨ Seed completed successfully!');
 }

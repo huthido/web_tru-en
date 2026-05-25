@@ -5,8 +5,28 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { isUsableImageSrc } from '@/utils/image-utils';
 import { Loading } from '@/components/ui/loading';
-import { useAds, useCreateAd, useUpdateAd, useDeleteAd } from '@/lib/api/hooks/use-ads';
-import { AdType, AdPosition, AdSourceType, Ad } from '@/lib/api/ads.service';
+import { useAds, useCreateAd, useUpdateAd, useDeleteAd, useAdSlots } from '@/lib/api/hooks/use-ads';
+import { AdType, AdPosition, AdSourceType, Ad, AdSlot } from '@/lib/api/ads.service';
+
+/**
+ * Position hợp lệ cho từng AdType. Trước đây form lock cứng (BANNER chỉ BOTTOM,
+ * SIDEBAR chỉ SIDEBAR_LEFT, POPUP "auto"); giờ mở khoá để admin chọn đầy đủ.
+ * POPUP vẫn không có position thực sự (modal center) nhưng giữ BOTTOM làm
+ * placeholder để DTO validate qua.
+ */
+const POSITIONS_FOR_TYPE: Record<AdType, AdPosition[]> = {
+    [AdType.BANNER]: [AdPosition.TOP, AdPosition.BOTTOM, AdPosition.INLINE],
+    [AdType.SIDEBAR]: [AdPosition.SIDEBAR_LEFT, AdPosition.SIDEBAR_RIGHT],
+    [AdType.POPUP]: [AdPosition.BOTTOM],
+};
+
+const POSITION_LABELS: Record<AdPosition, string> = {
+    [AdPosition.TOP]: 'TOP — Đầu trang',
+    [AdPosition.BOTTOM]: 'BOTTOM — Cuối trang',
+    [AdPosition.INLINE]: 'INLINE — Chèn giữa nội dung',
+    [AdPosition.SIDEBAR_LEFT]: 'SIDEBAR_LEFT — Cột trái',
+    [AdPosition.SIDEBAR_RIGHT]: 'SIDEBAR_RIGHT — Cột phải',
+};
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { useToast, ToastContainer } from '@/components/ui/toast';
@@ -340,9 +360,11 @@ export default function AdminAdsPage() {
                                 className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                             >
                                 <option value="">Tất cả</option>
+                                <option value={AdPosition.TOP}>Top</option>
                                 <option value={AdPosition.BOTTOM}>Bottom</option>
-                                <option value={AdPosition.SIDEBAR_LEFT}>Sidebar Left</option>
                                 <option value={AdPosition.INLINE}>Inline</option>
+                                <option value={AdPosition.SIDEBAR_LEFT}>Sidebar Left</option>
+                                <option value={AdPosition.SIDEBAR_RIGHT}>Sidebar Right</option>
                             </select>
                         </div>
                         <div>
@@ -1124,25 +1146,48 @@ function AdFormModal({
         startDate: ad?.startDate ? new Date(ad.startDate).toISOString().split('T')[0] : '',
         endDate: ad?.endDate ? new Date(ad.endDate).toISOString().split('T')[0] : '',
         popupInterval: ad?.popupInterval || 3,
+        // displayConfig flatten — submit gom lại JSON object.
+        heightBase: (ad?.displayConfig?.heights?.base as string) || '',
+        heightSm: (ad?.displayConfig?.heights?.sm as string) || '',
+        heightMd: (ad?.displayConfig?.heights?.md as string) || '',
+        rotateInterval: (ad?.displayConfig?.rotateInterval as number) ?? 30000,
+        maxStack: (ad?.displayConfig?.maxStack as number) ?? 1,
+        openInNewTab: ad?.displayConfig?.openInNewTab ?? true,
+        customCss: (ad?.displayConfig?.customCss as string) || '',
+        // inlineRule flatten.
+        inlineAfterParagraph: (ad?.inlineRule?.afterParagraph as number) ?? 5,
+        inlineRepeatEvery: (ad?.inlineRule?.repeatEvery as number) ?? 5,
+        inlineMaxOccurrences: (ad?.inlineRule?.maxOccurrences as number | null) ?? null,
     });
+
+    // Slot binding multi-select.
+    const { data: allSlots = [] } = useAdSlots();
+    const [selectedSlotIds, setSelectedSlotIds] = useState<Set<string>>(
+        new Set(ad?.slotBindings?.map((b) => b.slotId) ?? []),
+    );
+    const toggleSlot = (slotId: string) => {
+        setSelectedSlotIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(slotId)) next.delete(slotId);
+            else next.add(slotId);
+            return next;
+        });
+    };
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(ad?.imageUrl || null);
 
-    // Auto-set position based on type
+    // Đổi `type` có thể làm `position` hiện tại không hợp lệ — auto chuyển sang
+    // position default phù hợp. VD type=SIDEBAR cần SIDEBAR_LEFT/RIGHT; nếu
+    // đang là TOP thì reset. Admin vẫn được tự do chọn lại sau đó.
     useEffect(() => {
-        if (formData.type === AdType.POPUP) {
-            // POPUP - backend sẽ xử lý position (giữ giá trị hiện tại, backend có thể bỏ qua)
-            // Không cần set position, nhưng vẫn giữ trong formData để không lỗi validation
-        } else if (formData.type === AdType.BANNER) {
-            // BANNER chỉ có BOTTOM
-            setFormData(prev => ({ ...prev, position: AdPosition.BOTTOM }));
-        } else if (formData.type === AdType.SIDEBAR) {
-            // SIDEBAR chỉ có SIDEBAR_LEFT
-            setFormData(prev => ({ ...prev, position: AdPosition.SIDEBAR_LEFT }));
-        }
+        setFormData((prev) => {
+            const validPositions = POSITIONS_FOR_TYPE[prev.type];
+            if (validPositions.includes(prev.position)) return prev;
+            return { ...prev, position: validPositions[0] };
+        });
     }, [formData.type]);
 
     // Update preview when imageUrl changes
@@ -1260,6 +1305,30 @@ function AdFormModal({
                     networkConfig = undefined;
             }
 
+            // Gom displayConfig — bỏ field rỗng để DB lưu null thay vì string ''
+            const heights: Record<string, string> = {};
+            if (formData.heightBase.trim()) heights.base = formData.heightBase.trim();
+            if (formData.heightSm.trim()) heights.sm = formData.heightSm.trim();
+            if (formData.heightMd.trim()) heights.md = formData.heightMd.trim();
+            const displayConfig: Record<string, any> = {};
+            if (Object.keys(heights).length > 0) displayConfig.heights = heights;
+            if (formData.rotateInterval && formData.rotateInterval !== 30000) {
+                displayConfig.rotateInterval = formData.rotateInterval;
+            }
+            if (formData.maxStack && formData.maxStack !== 1) displayConfig.maxStack = formData.maxStack;
+            if (formData.openInNewTab === false) displayConfig.openInNewTab = false;
+            if (formData.customCss.trim()) displayConfig.customCss = formData.customCss.trim();
+
+            // Gom inlineRule (chỉ gửi khi position=INLINE).
+            let inlineRule: Record<string, any> | undefined;
+            if (formData.position === AdPosition.INLINE) {
+                inlineRule = {
+                    afterParagraph: formData.inlineAfterParagraph,
+                    repeatEvery: formData.inlineRepeatEvery,
+                    maxOccurrences: formData.inlineMaxOccurrences,
+                };
+            }
+
             const submitData = {
                 title: formData.title,
                 description: formData.description,
@@ -1268,6 +1337,8 @@ function AdFormModal({
                 position: formData.position,
                 sourceType: formData.sourceType,
                 networkConfig,
+                displayConfig: Object.keys(displayConfig).length > 0 ? displayConfig : undefined,
+                inlineRule,
                 platform: formData.platform === 'all' ? undefined : formData.platform,
                 isActive: formData.isActive,
                 // imageUrl chỉ gửi cho SELF_SERVED — 3rd-party không cần ảnh.
@@ -1277,6 +1348,7 @@ function AdFormModal({
                 startDate: formData.startDate || undefined,
                 endDate: formData.endDate || undefined,
                 popupInterval: formData.type === AdType.POPUP ? formData.popupInterval : undefined,
+                slotIds: Array.from(selectedSlotIds),
             };
 
             if (ad) {
@@ -1637,34 +1709,38 @@ function AdFormModal({
                             </select>
                         </div>
 
-                        {/* Position field - chỉ hiển thị cho SIDEBAR type */}
-                        {formData.type === AdType.SIDEBAR && (
-                            <div>
-                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
-                                    Vị trí <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    required
-                                    value={formData.position}
-                                    onChange={(e) => setFormData({ ...formData, position: e.target.value as AdPosition })}
-                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
-                                >
-                                    <option value={AdPosition.SIDEBAR_LEFT}>Sidebar Left</option>
-                                </select>
-                            </div>
-                        )}
-
-                        {/* Hiển thị thông tin position cho POPUP và BANNER (read-only) */}
-                        {(formData.type === AdType.POPUP || formData.type === AdType.BANNER) && (
-                            <div>
-                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
-                                    Vị trí
-                                </label>
+                        {/* Position field — mở khoá theo POSITIONS_FOR_TYPE.
+                            POPUP chỉ có 1 option ảo (BOTTOM placeholder) vì position
+                            không có nghĩa thực sự với modal center. */}
+                        <div>
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                                Vị trí (position) {formData.type !== AdType.POPUP && <span className="text-red-500">*</span>}
+                            </label>
+                            {formData.type === AdType.POPUP ? (
                                 <div className="w-full px-3 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-on-surface-variant">
-                                    {formData.type === AdType.POPUP ? 'Giữa màn hình (tự động)' : 'Bottom (tự động)'}
+                                    Giữa màn hình (modal — không dùng position)
                                 </div>
-                            </div>
-                        )}
+                            ) : (
+                                <>
+                                    <select
+                                        required
+                                        value={formData.position}
+                                        onChange={(e) => setFormData({ ...formData, position: e.target.value as AdPosition })}
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
+                                    >
+                                        {POSITIONS_FOR_TYPE[formData.type].map((p) => (
+                                            <option key={p} value={p}>
+                                                {POSITION_LABELS[p]}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p className="mt-1 text-xs text-on-surface-variant">
+                                        Vị trí là &quot;category&quot; chung. Để hiện ad trên trang cụ thể,
+                                        nhớ gắn ad vào ít nhất 1 <strong>slot</strong> bên dưới.
+                                    </p>
+                                </>
+                            )}
+                        </div>
 
                         {/* Popup Interval - Only show for POPUP type */}
                         {formData.type === AdType.POPUP && (
@@ -1725,6 +1801,228 @@ function AdFormModal({
                                 Đang hoạt động
                             </label>
                         </div>
+
+                        {/* ========== HIỂN THỊ — displayConfig ========== */}
+                        <details className="rounded-lg border border-outline-variant bg-surface-container-low overflow-hidden">
+                            <summary className="px-4 py-3 cursor-pointer text-sm font-semibold text-on-surface hover:bg-surface-container">
+                                Hiển thị (override layout mặc định)
+                            </summary>
+                            <div className="p-4 space-y-3 border-t border-outline-variant">
+                                <p className="text-xs text-on-surface-variant">
+                                    Tuỳ chỉnh height responsive, thời gian rotate, số ad stack, v.v.
+                                    Bỏ trống = dùng mặc định component.
+                                </p>
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <label className="block text-xs text-on-surface-variant mb-1">
+                                            Height (mobile)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.heightBase}
+                                            onChange={(e) => setFormData({ ...formData, heightBase: e.target.value })}
+                                            placeholder="h-24"
+                                            className="w-full px-2 py-1.5 text-sm border border-outline-variant rounded bg-surface-container text-on-surface placeholder:text-on-surface-variant font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-on-surface-variant mb-1">
+                                            Height (sm ≥640px)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.heightSm}
+                                            onChange={(e) => setFormData({ ...formData, heightSm: e.target.value })}
+                                            placeholder="h-32"
+                                            className="w-full px-2 py-1.5 text-sm border border-outline-variant rounded bg-surface-container text-on-surface placeholder:text-on-surface-variant font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-on-surface-variant mb-1">
+                                            Height (md ≥768px)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.heightMd}
+                                            onChange={(e) => setFormData({ ...formData, heightMd: e.target.value })}
+                                            placeholder="h-40"
+                                            className="w-full px-2 py-1.5 text-sm border border-outline-variant rounded bg-surface-container text-on-surface placeholder:text-on-surface-variant font-mono"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs text-on-surface-variant mb-1">
+                                            Rotate interval (ms)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="1000"
+                                            step="1000"
+                                            value={formData.rotateInterval}
+                                            onChange={(e) => setFormData({ ...formData, rotateInterval: parseInt(e.target.value) || 30000 })}
+                                            className="w-full px-2 py-1.5 text-sm border border-outline-variant rounded bg-surface-container text-on-surface"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-on-surface-variant mb-1">
+                                            Max stack (sidebar)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={formData.maxStack}
+                                            onChange={(e) => setFormData({ ...formData, maxStack: parseInt(e.target.value) || 1 })}
+                                            className="w-full px-2 py-1.5 text-sm border border-outline-variant rounded bg-surface-container text-on-surface"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="openInNewTab"
+                                        checked={formData.openInNewTab}
+                                        onChange={(e) => setFormData({ ...formData, openInNewTab: e.target.checked })}
+                                        className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                    />
+                                    <label htmlFor="openInNewTab" className="text-xs text-on-surface-variant">
+                                        Mở link trong tab mới (SELF_SERVED)
+                                    </label>
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-on-surface-variant mb-1">
+                                        Custom CSS (raw, áp vào container ad)
+                                    </label>
+                                    <textarea
+                                        value={formData.customCss}
+                                        onChange={(e) => setFormData({ ...formData, customCss: e.target.value })}
+                                        rows={2}
+                                        placeholder=".my-ad { border-radius: 16px; }"
+                                        className="w-full px-2 py-1.5 text-sm border border-outline-variant rounded bg-surface-container text-on-surface placeholder:text-on-surface-variant font-mono"
+                                    />
+                                </div>
+                            </div>
+                        </details>
+
+                        {/* ========== QUY TẮC INLINE (chỉ khi position=INLINE) ========== */}
+                        {formData.position === AdPosition.INLINE && (
+                            <details className="rounded-lg border border-outline-variant bg-surface-container-low overflow-hidden" open>
+                                <summary className="px-4 py-3 cursor-pointer text-sm font-semibold text-on-surface hover:bg-surface-container">
+                                    Quy tắc chèn INLINE
+                                </summary>
+                                <div className="p-4 space-y-3 border-t border-outline-variant">
+                                    <p className="text-xs text-on-surface-variant">
+                                        Mặc định chèn sau mỗi 5 đoạn văn. Tuỳ chỉnh dưới đây.
+                                    </p>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div>
+                                            <label className="block text-xs text-on-surface-variant mb-1">
+                                                Sau đoạn thứ N
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                value={formData.inlineAfterParagraph}
+                                                onChange={(e) => setFormData({ ...formData, inlineAfterParagraph: parseInt(e.target.value) || 5 })}
+                                                className="w-full px-2 py-1.5 text-sm border border-outline-variant rounded bg-surface-container text-on-surface"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-on-surface-variant mb-1">
+                                                Lặp mỗi M đoạn
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                value={formData.inlineRepeatEvery}
+                                                onChange={(e) => setFormData({ ...formData, inlineRepeatEvery: parseInt(e.target.value) || 5 })}
+                                                className="w-full px-2 py-1.5 text-sm border border-outline-variant rounded bg-surface-container text-on-surface"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-on-surface-variant mb-1">
+                                                Tối đa K lần (∅ = ∞)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                value={formData.inlineMaxOccurrences ?? ''}
+                                                onChange={(e) => setFormData({
+                                                    ...formData,
+                                                    inlineMaxOccurrences: e.target.value ? parseInt(e.target.value) : null,
+                                                })}
+                                                placeholder="∞"
+                                                className="w-full px-2 py-1.5 text-sm border border-outline-variant rounded bg-surface-container text-on-surface placeholder:text-on-surface-variant"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        )}
+
+                        {/* ========== SLOT BINDING ========== */}
+                        <details className="rounded-lg border border-outline-variant bg-surface-container-low overflow-hidden" open>
+                            <summary className="px-4 py-3 cursor-pointer text-sm font-semibold text-on-surface hover:bg-surface-container">
+                                Gắn vào slot {selectedSlotIds.size > 0 && (
+                                    <span className="ml-2 px-2 py-0.5 text-xs bg-primary-container text-on-primary-container rounded-full">
+                                        {selectedSlotIds.size}
+                                    </span>
+                                )}
+                            </summary>
+                            <div className="p-4 border-t border-outline-variant">
+                                <p className="text-xs text-on-surface-variant mb-3">
+                                    Chọn các slot mà ad này sẽ hiển thị. Slot có icon ⚠ nghĩa là đang bị tắt.
+                                </p>
+                                {allSlots.length === 0 ? (
+                                    <p className="text-sm text-on-surface-variant italic">Chưa có slot nào — tạo ở trang /admin/ad-slots.</p>
+                                ) : (
+                                    <div className="space-y-3 max-h-72 overflow-y-auto">
+                                        {Array.from(
+                                            allSlots.reduce<Map<string, AdSlot[]>>((map, slot) => {
+                                                const list = map.get(slot.pageKey) ?? [];
+                                                list.push(slot);
+                                                map.set(slot.pageKey, list);
+                                                return map;
+                                            }, new Map()),
+                                        ).map(([pageKey, slots]) => (
+                                            <div key={pageKey}>
+                                                <div className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-1">
+                                                    {pageKey}
+                                                </div>
+                                                <div className="space-y-1">
+                                                    {slots.map((slot: AdSlot) => {
+                                                        const isCompatType = !slot.adType || slot.adType === formData.type;
+                                                        return (
+                                                            <label
+                                                                key={slot.id}
+                                                                className={`flex items-start gap-2 p-2 rounded hover:bg-surface-container cursor-pointer ${!isCompatType ? 'opacity-50' : ''}`}
+                                                                title={!isCompatType ? `Slot này chỉ nhận type=${slot.adType}` : ''}
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selectedSlotIds.has(slot.id)}
+                                                                    onChange={() => toggleSlot(slot.id)}
+                                                                    className="mt-0.5 w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                                                />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="text-sm text-on-surface flex items-center gap-2">
+                                                                        {!slot.enabled && <span title="Slot đang tắt">⚠</span>}
+                                                                        <span className="font-medium">{slot.label}</span>
+                                                                    </div>
+                                                                    <div className="text-xs text-on-surface-variant font-mono">
+                                                                        {slot.key} · {slot.position} · max {slot.maxAds}
+                                                                    </div>
+                                                                </div>
+                                                            </label>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </details>
 
                         <div className="flex gap-3 pt-4">
                             <button

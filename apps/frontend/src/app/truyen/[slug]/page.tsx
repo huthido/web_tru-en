@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Header } from '@/components/layouts/header';
 import { Footer } from '@/components/layouts/footer';
+import { AdSlot } from '@/components/ads/ad-slot';
 import { Loading } from '@/components/ui/loading';
 import { useStory, useSimilarStories } from '@/lib/api/hooks/use-stories';
 import { useStories } from '@/lib/api/hooks/use-stories';
@@ -298,6 +299,7 @@ export default function BookDetailPage() {
         <Header />
 
         <main className="pt-8 pb-12 px-4 md:px-6 max-w-7xl mx-auto">
+          <AdSlot slotKey="stories.detail.top" />
           {/* Back Button */}
           <button
             onClick={handleBack}
@@ -783,6 +785,9 @@ export default function BookDetailPage() {
                 />
               )}
             </div>
+          </div>
+          <div className="mt-8">
+            <AdSlot slotKey="stories.detail.bottom" />
           </div>
         </main>
 

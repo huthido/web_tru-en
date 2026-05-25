@@ -42,12 +42,68 @@ function validateAdSource(dto: { sourceType?: string; imageUrl?: string; network
     }
 }
 
+/**
+ * Validate shape của Ad.displayConfig (optional) — chỉ kiểm tra type, không
+ * enforce default. Sai shape → throw để admin biết key viết sai.
+ */
+function validateDisplayConfig(cfg?: Record<string, any> | null) {
+    if (!cfg) return;
+    if (cfg.heights !== undefined) {
+        if (typeof cfg.heights !== 'object' || cfg.heights === null) {
+            throw new BadRequestException('displayConfig.heights phải là object {base?,sm?,md?}.');
+        }
+    }
+    if (cfg.rotateInterval !== undefined) {
+        const n = Number(cfg.rotateInterval);
+        if (!Number.isFinite(n) || n < 1000) {
+            throw new BadRequestException('displayConfig.rotateInterval phải là số ≥1000 (ms).');
+        }
+    }
+    if (cfg.maxStack !== undefined) {
+        const n = Number(cfg.maxStack);
+        if (!Number.isInteger(n) || n < 1) {
+            throw new BadRequestException('displayConfig.maxStack phải là integer ≥1.');
+        }
+    }
+    if (cfg.openInNewTab !== undefined && typeof cfg.openInNewTab !== 'boolean') {
+        throw new BadRequestException('displayConfig.openInNewTab phải là boolean.');
+    }
+    if (cfg.customCss !== undefined && typeof cfg.customCss !== 'string') {
+        throw new BadRequestException('displayConfig.customCss phải là string.');
+    }
+}
+
+/** Validate shape của Ad.inlineRule (optional). */
+function validateInlineRule(rule?: Record<string, any> | null) {
+    if (!rule) return;
+    const intFields = ['afterParagraph', 'repeatEvery'] as const;
+    for (const f of intFields) {
+        if (rule[f] !== undefined) {
+            const n = Number(rule[f]);
+            if (!Number.isInteger(n) || n < 1) {
+                throw new BadRequestException(`inlineRule.${f} phải là integer ≥1.`);
+            }
+        }
+    }
+    if (rule.maxOccurrences !== undefined && rule.maxOccurrences !== null) {
+        const n = Number(rule.maxOccurrences);
+        if (!Number.isInteger(n) || n < 1) {
+            throw new BadRequestException('inlineRule.maxOccurrences phải là integer ≥1 hoặc null.');
+        }
+    }
+}
+
 @Injectable()
 export class AdsService {
     constructor(private prisma: PrismaService) { }
 
     async create(createAdDto: CreateAdDto, userId: string) {
         validateAdSource(createAdDto);
+        validateDisplayConfig(createAdDto.displayConfig);
+        validateInlineRule(createAdDto.inlineRule);
+
+        const slotIds = createAdDto.slotIds ?? [];
+
         const ad = await this.prisma.ad.create({
             data: {
                 title: createAdDto.title,
@@ -58,12 +114,19 @@ export class AdsService {
                 position: createAdDto.position,
                 sourceType: (createAdDto.sourceType ?? 'SELF_SERVED') as AdSourceType,
                 networkConfig: (createAdDto.networkConfig ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+                displayConfig: (createAdDto.displayConfig ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+                inlineRule: (createAdDto.inlineRule ?? Prisma.JsonNull) as Prisma.InputJsonValue,
                 platform: createAdDto.platform,
                 isActive: createAdDto.isActive,
                 startDate: createAdDto.startDate ? new Date(createAdDto.startDate) : null,
                 endDate: createAdDto.endDate ? new Date(createAdDto.endDate) : null,
                 popupInterval: createAdDto.popupInterval,
                 createdById: userId,
+                ...(slotIds.length > 0 && {
+                    slotBindings: {
+                        create: slotIds.map((slotId) => ({ slotId })),
+                    },
+                }),
             },
             include: {
                 createdBy: {
@@ -73,6 +136,7 @@ export class AdsService {
                         displayName: true,
                     },
                 },
+                slotBindings: { include: { slot: true } },
             },
         });
 
@@ -249,6 +313,7 @@ export class AdsService {
                         displayName: true,
                     },
                 },
+                slotBindings: { include: { slot: true } },
             },
         });
 
@@ -283,9 +348,14 @@ export class AdsService {
                     : (ad.networkConfig as any),
         };
         validateAdSource(merged);
+        validateDisplayConfig((updateAdDto as any).displayConfig);
+        validateInlineRule((updateAdDto as any).inlineRule);
 
-        const updateData: any = { ...updateAdDto };
         const dto = updateAdDto as any;
+        // slotIds nằm trong relation, không thể truyền vào data trực tiếp — tách ra.
+        const { slotIds, ...rest } = dto;
+        const updateData: any = { ...rest };
+
         if (dto.startDate !== undefined) {
             updateData.startDate = dto.startDate ? new Date(dto.startDate) : null;
         }
@@ -293,22 +363,41 @@ export class AdsService {
             updateData.endDate = dto.endDate ? new Date(dto.endDate) : null;
         }
         if (dto.networkConfig !== undefined) {
-            // Prisma JSON null vs DB null
             updateData.networkConfig = dto.networkConfig === null ? Prisma.JsonNull : dto.networkConfig;
         }
+        if (dto.displayConfig !== undefined) {
+            updateData.displayConfig = dto.displayConfig === null ? Prisma.JsonNull : dto.displayConfig;
+        }
+        if (dto.inlineRule !== undefined) {
+            updateData.inlineRule = dto.inlineRule === null ? Prisma.JsonNull : dto.inlineRule;
+        }
 
-        const updatedAd = await this.prisma.ad.update({
-            where: { id },
-            data: updateData,
-            include: {
-                createdBy: {
-                    select: {
-                        id: true,
-                        username: true,
-                        displayName: true,
+        // Replace bindings nếu slotIds được truyền (gửi mảng rỗng = xoá hết).
+        // Wrap trong transaction để đồng bộ với update Ad.
+        const updatedAd = await this.prisma.$transaction(async (tx) => {
+            if (Array.isArray(slotIds)) {
+                await tx.adSlotBinding.deleteMany({ where: { adId: id } });
+                if (slotIds.length > 0) {
+                    await tx.adSlotBinding.createMany({
+                        data: slotIds.map((slotId: string) => ({ adId: id, slotId })),
+                        skipDuplicates: true,
+                    });
+                }
+            }
+            return tx.ad.update({
+                where: { id },
+                data: updateData,
+                include: {
+                    createdBy: {
+                        select: {
+                            id: true,
+                            username: true,
+                            displayName: true,
+                        },
                     },
+                    slotBindings: { include: { slot: true } },
                 },
-            },
+            });
         });
 
         return updatedAd;

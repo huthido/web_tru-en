@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
+import { AdSlot } from '@/components/ads/ad-slot';
 import { BookSectionSkeleton } from '@/components/ui/loading';
 import {
   useNewestStories,
@@ -64,6 +65,9 @@ export default function Home() {
 
         {/* Page Content */}
         <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)]">
+          <div className="px-4 md:px-6">
+            <AdSlot slotKey="home.top" />
+          </div>
           {isLoading ? (
             <>
               {/* Loading Skeletons */}
@@ -166,6 +170,9 @@ export default function Home() {
               <Suspense fallback={<BookSectionSkeleton />}>
                 <BookSection title="TRUYỆN ĐƯỢC YÊU THÍCH" books={mostLikedTransformed} seeMoreLink="/stories?sortBy=popular" showLikeButton={false} />
               </Suspense>
+              <div className="px-4 md:px-6 mt-8">
+                <AdSlot slotKey="home.bottom" />
+              </div>
             </>
           )}
         </main>

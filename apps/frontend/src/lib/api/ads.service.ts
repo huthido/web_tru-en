@@ -44,6 +44,42 @@ export interface AdNetworkConfig {
     html?: string;
 }
 
+/**
+ * Cấu hình hiển thị runtime — override hardcode mặc định component:
+ * heights → tailwind class per breakpoint, rotateInterval ms, maxStack số ad
+ * stack đồng thời (sidebar), openInNewTab cho SELF_SERVED, customCss raw.
+ */
+export interface AdDisplayConfig {
+    heights?: { base?: string; sm?: string; md?: string };
+    rotateInterval?: number;
+    maxStack?: number;
+    openInNewTab?: boolean;
+    customCss?: string;
+    format?: string;
+}
+
+/** Quy tắc chèn INLINE banner — đếm theo đoạn văn `</p>`. */
+export interface AdInlineRule {
+    afterParagraph?: number; // chèn ad đầu tiên sau đoạn thứ N
+    repeatEvery?: number; // sau đó lặp mỗi M đoạn
+    maxOccurrences?: number | null; // tối đa K lần, null = không giới hạn
+}
+
+export interface AdSlotSummary {
+    id: string;
+    key: string;
+    label: string;
+    pageKey: string;
+    position: AdPosition;
+}
+
+export interface AdSlotBinding {
+    id: string;
+    slotId: string;
+    priority: number;
+    slot?: AdSlotSummary;
+}
+
 export interface Ad {
     id: string;
     title?: string;
@@ -54,6 +90,8 @@ export interface Ad {
     position: AdPosition;
     sourceType: AdSourceType;
     networkConfig?: AdNetworkConfig | null;
+    displayConfig?: AdDisplayConfig | null;
+    inlineRule?: AdInlineRule | null;
     platform?: AdPlatform | null;
     isActive: boolean;
     startDate?: string;
@@ -68,6 +106,7 @@ export interface Ad {
         username: string;
         displayName?: string;
     };
+    slotBindings?: AdSlotBinding[];
 }
 
 export interface CreateAdRequest {
@@ -80,10 +119,40 @@ export interface CreateAdRequest {
     position: AdPosition;
     sourceType?: AdSourceType;
     networkConfig?: AdNetworkConfig;
+    displayConfig?: AdDisplayConfig;
+    inlineRule?: AdInlineRule;
     platform?: AdPlatform;
     isActive?: boolean;
     startDate?: string;
     endDate?: string;
+    /** Gắn ad vào các slot này (replace bindings cũ khi update). */
+    slotIds?: string[];
+}
+
+export interface AdSlot {
+    id: string;
+    key: string;
+    pageKey: string;
+    position: AdPosition;
+    label: string;
+    maxAds: number;
+    enabled: boolean;
+    adType?: AdType | null;
+    platform?: AdPlatform | null;
+    createdAt: string;
+    updatedAt: string;
+    _count?: { bindings: number };
+}
+
+export interface CreateAdSlotRequest {
+    key: string;
+    pageKey: string;
+    position: AdPosition;
+    label: string;
+    maxAds?: number;
+    enabled?: boolean;
+    adType?: AdType;
+    platform?: AdPlatform;
 }
 
 /** Snapshot config từ GET /ads/config — dùng để init network SDK + consent. */
@@ -268,6 +337,61 @@ export const adsService = {
         const data = response.data as any;
         if (data && typeof data.adsEnabled === 'boolean') return data as AdsConfig;
         return (data as ApiResponse<AdsConfig>).data as AdsConfig;
+    },
+};
+
+// ============================================================================
+// AdSlot service — quản lý registry các vị trí ads + lookup ads của slot.
+// ============================================================================
+
+export const adSlotsService = {
+    /** Admin: list tất cả slot có sẵn. */
+    list: async (): Promise<AdSlot[]> => {
+        const response = await apiClient.get<AdSlot[] | ApiResponse<AdSlot[]>>('/ad-slots');
+        const data = response.data as any;
+        if (Array.isArray(data)) return data;
+        return (data as ApiResponse<AdSlot[]>).data ?? [];
+    },
+
+    /** Public: lookup 1 slot theo key (để biết enabled/position/maxAds). */
+    getByKey: async (key: string): Promise<AdSlot> => {
+        const response = await apiClient.get<AdSlot | ApiResponse<AdSlot>>(`/ad-slots/by-key/${key}`);
+        const data = response.data as any;
+        if (data && data.key) return data as AdSlot;
+        return (data as ApiResponse<AdSlot>).data as AdSlot;
+    },
+
+    /**
+     * Public: lookup ds ads active của 1 slot. Backend đã filter theo enabled,
+     * isActive, date range, platform, adType — trả thẳng cho render.
+     */
+    getActiveAdsByKey: async (
+        key: string,
+        platform: 'web' | 'mobile' = 'web',
+    ): Promise<{ slot: AdSlot | null; ads: Ad[] }> => {
+        const response = await apiClient.get<
+            { slot: AdSlot; ads: Ad[] } | ApiResponse<{ slot: AdSlot; ads: Ad[] }>
+        >(`/ad-slots/by-key/${key}/active?platform=${platform}`);
+        const data = response.data as any;
+        if (data && Array.isArray(data?.ads)) return data;
+        return (data as ApiResponse<{ slot: AdSlot; ads: Ad[] }>).data ?? { slot: null, ads: [] };
+    },
+
+    create: async (data: CreateAdSlotRequest): Promise<AdSlot> => {
+        const response = await apiClient.post<AdSlot>('/ad-slots', data);
+        const d = response.data as any;
+        return d?.data ?? d;
+    },
+
+    update: async (id: string, data: Partial<CreateAdSlotRequest>): Promise<AdSlot> => {
+        const response = await apiClient.patch<AdSlot>(`/ad-slots/${id}`, data);
+        const d = response.data as any;
+        return d?.data ?? d;
+    },
+
+    remove: async (id: string): Promise<ApiResponse> => {
+        const response = await apiClient.delete(`/ad-slots/${id}`);
+        return response.data;
     },
 };
 
