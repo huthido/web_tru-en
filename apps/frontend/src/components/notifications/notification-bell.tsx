@@ -96,9 +96,11 @@ export function NotificationBell() {
                 )}
             </button>
 
-            {/* Dropdown — mobile: viewport-friendly (calc 100vw - margin), desktop: 384px fixed */}
+            {/* Dropdown — mobile: `position: fixed` với inset-x-3 (12px padding 2
+                bên) để dropdown bám viewport, không phụ thuộc anchor bell ở
+                góc phải. Desktop: `absolute right-0` 384px ngay dưới bell. */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-sm md:w-96 md:max-w-none bg-surface-container rounded-lg shadow-xl border border-outline-variant z-50 animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-x-3 top-[64px] md:absolute md:inset-x-auto md:right-0 md:top-auto md:mt-2 md:w-96 bg-surface-container rounded-lg shadow-xl border border-outline-variant z-50 animate-in fade-in zoom-in-95 duration-200">
                     {/* Header */}
                     <div className="px-4 py-3 border-b border-outline-variant">
                         <div className="flex items-center justify-between">

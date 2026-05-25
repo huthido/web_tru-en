@@ -49,7 +49,7 @@ export function MobileExtraMenu() {
     return (
         <section className="md:hidden mt-6">
             <h2 className="text-xs font-bold tracking-wider text-on-surface-variant uppercase mb-3 px-1">
-                Tất cả menu
+                Các hạng mục
             </h2>
             <div className="grid grid-cols-4 gap-2 bg-surface-container rounded-2xl p-3 border border-outline-variant">
                 {visible.map((item) => {
