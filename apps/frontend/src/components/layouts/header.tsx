@@ -84,7 +84,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full h-[60px] flex items-center justify-between px-3 md:px-6 bg-primary-container/80 md:bg-surface/95 backdrop-blur-xl border-b border-outline-variant/40 transition-colors duration-300">
+    <header className="sticky top-0 z-50 w-full h-[60px] flex items-center justify-between px-3 md:px-6 bg-primary-container/80 dark:bg-surface/95 md:bg-surface/95 backdrop-blur-xl border-b border-outline-variant/40 transition-colors duration-300">
       {/* Mobile Logo only — bỏ brand wordmark "YÊU" để giải phóng ~50px chỗ
           cho theme/coin/bell items bên phải khỏi bị overflow crop. Brand
           identity vẫn truyền tải qua logo icon + soft pink background. */}

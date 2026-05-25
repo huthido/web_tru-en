@@ -123,7 +123,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="YÊU" />
-        <link rel="apple-touch-icon" href="/HUNGYEULOGO.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         {/*
           AdSense script chuyển sang component <AdsenseScript /> trong <body>
           để dùng next/script + đọc publisher ID động từ Settings + GDPR consent.
