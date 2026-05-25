@@ -96,23 +96,21 @@ export function NotificationBell() {
                 )}
             </button>
 
-            {/* Dropdown — mobile: `position: fixed` với inset-x-3 (12px padding 2
-                bên) để dropdown bám viewport, không phụ thuộc anchor bell ở
-                góc phải. Desktop: `absolute right-0` 384px ngay dưới bell. */}
+            {/* Dropdown — mobile: `position: fixed inset-x-2 top-[64px]` (8px
+                padding 2 bên) → dropdown bám viewport. Mọi inner container có
+                `w-full` để stretch đều. Desktop: `absolute right-0 w-96`. */}
             {isOpen && (
-                <div className="fixed inset-x-3 top-[64px] md:absolute md:inset-x-auto md:right-0 md:top-auto md:mt-2 md:w-96 bg-surface-container rounded-lg shadow-xl border border-outline-variant z-50 animate-in fade-in zoom-in-95 duration-200">
-                    {/* Header */}
-                    <div className="px-4 py-3 border-b border-outline-variant">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-on-surface">
-                                Thông báo
-                            </h3>
-                            {unreadCount > 0 && (
-                                <span className="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full">
-                                    {unreadCount} mới
-                                </span>
-                            )}
-                        </div>
+                <div className="fixed inset-x-2 top-[64px] md:absolute md:inset-x-auto md:right-0 md:top-auto md:mt-2 md:w-96 bg-surface-container rounded-lg shadow-xl border border-outline-variant z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+                    {/* Header — stretch full với justify-between */}
+                    <div className="w-full px-4 py-3 border-b border-outline-variant flex items-center justify-between">
+                        <h3 className="text-base md:text-lg font-semibold text-on-surface">
+                            Thông báo
+                        </h3>
+                        {unreadCount > 0 && (
+                            <span className="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full flex-shrink-0">
+                                {unreadCount} mới
+                            </span>
+                        )}
                     </div>
 
                     {/* Notifications List */}
@@ -146,19 +144,17 @@ export function NotificationBell() {
                                                 handleMarkAsRead(notification.recipientId);
                                             }
                                         }}
-                                        className="px-4 py-3 hover:bg-surface-container-high/50 cursor-pointer transition-colors"
+                                        className="w-full px-4 py-3 hover:bg-surface-container-high/50 cursor-pointer transition-colors"
                                     >
-                                        <div className="flex items-start gap-3">
+                                        <div className="flex items-start gap-3 w-full">
                                             <span className="text-2xl flex-shrink-0">
                                                 {getTypeIcon(notification.type)}
                                             </span>
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <h4 className={`text-sm font-semibold line-clamp-1 ${getPriorityColor(notification.priority)}`}>
-                                                        {notification.title}
-                                                    </h4>
-                                                </div>
-                                                <p className="text-sm text-on-surface-variant line-clamp-2">
+                                                <h4 className={`text-sm font-semibold line-clamp-1 mb-1 ${getPriorityColor(notification.priority)}`}>
+                                                    {notification.title}
+                                                </h4>
+                                                <p className="text-sm text-on-surface-variant line-clamp-2 break-words">
                                                     {notification.content}
                                                 </p>
                                                 <p className="text-xs text-on-surface-variant mt-1">
@@ -171,7 +167,7 @@ export function NotificationBell() {
                                                 </p>
                                             </div>
                                             {!notification.isRead && (
-                                                <span className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-1"></span>
+                                                <span className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2"></span>
                                             )}
                                         </div>
                                     </div>
@@ -182,11 +178,11 @@ export function NotificationBell() {
 
                     {/* Footer */}
                     {notifications.length > 0 && (
-                        <div className="px-4 py-3 border-t border-outline-variant">
+                        <div className="w-full px-4 py-3 border-t border-outline-variant">
                             <Link
                                 href="/notifications"
                                 onClick={() => setIsOpen(false)}
-                                className="block text-center text-sm font-medium text-primary hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                                className="block w-full text-center text-sm font-medium text-primary hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                             >
                                 Xem tất cả thông báo
                             </Link>
