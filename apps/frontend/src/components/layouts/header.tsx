@@ -85,26 +85,26 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full h-[60px] flex items-center justify-between px-3 md:px-6 bg-primary-container/80 md:bg-surface/95 backdrop-blur-xl border-b border-outline-variant/40 transition-colors duration-300">
-      {/* Mobile Logo + Brand "YÊU" — frosted glass header với Plus Jakarta wordmark
-          để khớp glassmorphism của Stitch Luminous Petal trên mobile. */}
-      <Link href="/" className="md:hidden mr-3 shrink-0 flex items-center gap-2">
+      {/* Mobile Logo only — bỏ brand wordmark "YÊU" để giải phóng ~50px chỗ
+          cho theme/coin/bell items bên phải khỏi bị overflow crop. Brand
+          identity vẫn truyền tải qua logo icon + soft pink background. */}
+      <Link href="/" className="md:hidden mr-2 shrink-0 flex items-center">
         {settings?.siteLogo ? (
           <OptimizedImage
             src={settings.siteLogo}
             alt={settings.siteName || 'Logo'}
-            width={28}
-            height={28}
+            width={32}
+            height={32}
             objectFit="contain"
             placeholder="empty"
-            className="w-7 h-7"
+            className="w-8 h-8"
           />
         ) : (
-          <svg width="28" height="28" viewBox="0 0 60 60" fill="none" className="text-primary w-7 h-7">
+          <svg width="32" height="32" viewBox="0 0 60 60" fill="none" className="text-primary w-8 h-8">
             <path d="M50 5L50 55L30 45.3594L10 55L10 5L50 5Z" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M30 5V45.3594" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
-        <span className="font-display text-xl font-extrabold tracking-tight text-on-surface">YÊU</span>
       </Link>
 
       {/* Search Bar */}
@@ -191,12 +191,12 @@ export function Header() {
       </div>
 
       {/* Right Side: Theme Toggle, User Info, Notification */}
-      <div className="flex items-center gap-1.5 md:gap-4">
-        {/* Theme Toggle Button */}
+      <div className="flex items-center gap-1 md:gap-4 flex-shrink-0">
+        {/* Theme Toggle Button — mobile: icon-only no border; desktop: pill border */}
         <button
           type="button"
           onClick={toggleTheme}
-          className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-surface-container border-primary/60 shadow-sm hover:shadow-md"
+          className="flex items-center gap-1 md:gap-2 p-1.5 md:px-3 md:py-1.5 rounded-full md:border-2 transition-all duration-300 hover:scale-105 active:scale-95 hover:bg-surface-container md:bg-surface-container md:border-primary/60 md:shadow-sm md:hover:shadow-md"
           aria-label="Chuyển đổi giao diện"
         >
           {theme === 'light' ? (
@@ -232,14 +232,14 @@ export function Header() {
           )}
         </button>
 
-        {/* Badge số dư xu — bấm vào để tới Cửa hàng */}
+        {/* Badge số dư xu — bấm vào để tới Cửa hàng. Mobile: compact, no border. */}
         {isAuthenticated && user && (
           <Link
             href="/shop"
             aria-label="Cửa hàng — nạp xu"
-            className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-surface-container border-primary/60 shadow-sm hover:shadow-md"
+            className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 rounded-full md:border-2 transition-all duration-300 hover:scale-105 active:scale-95 hover:bg-surface-container md:bg-surface-container md:border-primary/60 md:shadow-sm md:hover:shadow-md"
           >
-            <Coins size={16} className="md:w-[18px] md:h-[18px] text-amber-500" />
+            <Coins size={16} className="md:w-[18px] md:h-[18px] text-amber-500 flex-shrink-0" />
             <span className="text-xs font-semibold text-on-surface">
               {coinBalance.toLocaleString('vi-VN')}
             </span>
