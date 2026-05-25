@@ -37,8 +37,10 @@
 }
 
 :root {
-  /* Base — "Luminous Petal" LIGHT (synced với docs/stitch_mobile/luminous_petal/DESIGN.md) */
-  --background: #f9f9f9;
+  /* Base — "Luminous Petal" LIGHT (synced với Stitch mockup HTML mangahub_*).
+     Mockup override DESIGN.md: background + surface = #fcf2f6 (soft pink-white)
+     cho cảm giác warm/feminine; container tiers giữ neutral gray. */
+  --background: #fcf2f6;
   --foreground: #1a1c1c;
 
   /* Legacy semantic colors — HSL for opacity. Primary đổi sang warm gray-brown
@@ -55,28 +57,29 @@
   --muted-foreground: 320 4% 28%;
 
   /* === Luminous Petal M3 tokens — LIGHT ===
-     Stored as space-separated RGB channels for Tailwind <alpha-value>.
-     Warm gray + soft pink-white palette cho cảm giác premium/minimal. */
-  --md-background: 249 249 249;          /* #f9f9f9 */
-  --md-surface: 249 249 249;             /* #f9f9f9 */
-  --md-on-surface: 26 28 28;             /* #1a1c1c */
-  --md-on-surface-variant: 75 69 73;     /* #4b4549 */
+     Background/surface soft pink-white (#fcf2f6) theo mockup.
+     Container tiers neutral gray (#ffffff → #e2e2e2) tạo depth qua tonal
+     layers thay vì shadow. */
+  --md-background: 252 242 246;          /* #fcf2f6 soft pink-white */
+  --md-surface: 252 242 246;             /* #fcf2f6 */
+  --md-on-surface: 26 28 28;             /* #1a1c1c near-black */
+  --md-on-surface-variant: 75 69 73;     /* #4b4549 charcoal */
   --md-surface-container-lowest: 255 255 255;
   --md-surface-container-low: 243 243 243;
   --md-surface-container: 238 238 238;
   --md-surface-container-high: 232 232 232;
   --md-surface-container-highest: 226 226 226;
   --md-surface-variant: 226 226 226;
-  --md-primary: 99 93 96;                /* #635d60 warm gray */
+  --md-primary: 99 93 96;                /* #635d60 warm gray-brown */
   --md-on-primary: 255 255 255;
   --md-primary-container: 252 242 246;   /* #fcf2f6 soft pink-white */
   --md-on-primary-container: 116 110 113; /* #746e71 */
   --md-tertiary: 106 90 97;              /* #6a5a61 */
   --md-on-tertiary: 255 255 255;
-  --md-tertiary-container: 255 241 245;  /* #fff1f5 */
+  --md-tertiary-container: 255 241 245;  /* #fff1f5 lighter pink */
   --md-on-tertiary-container: 123 107 114;
   --md-outline: 124 117 121;             /* #7c7579 */
-  --md-outline-variant: 205 196 200;     /* #cdc4c8 */
+  --md-outline-variant: 205 196 200;     /* #cdc4c8 soft pink-gray border */
   --md-glow: 99 93 96;
 }
 
