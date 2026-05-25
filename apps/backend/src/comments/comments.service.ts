@@ -1,13 +1,19 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentResponseDto } from './dto/comment-response.dto';
-import { UserRole } from '@prisma/client';
+import { UserRole, NotificationType } from '@prisma/client';
 
 @Injectable()
 export class CommentsService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(CommentsService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   /**
    * Transform Prisma comment to response DTO
@@ -172,7 +178,53 @@ export class CommentsService {
       },
     });
 
+    // Notify parent comment author khi có reply (best-effort).
+    if (createCommentDto.parentId) {
+      this.notifyParentOnReply(createCommentDto.parentId, userId, comment.user).catch((e) =>
+        this.logger.warn(`Notify reply failed: ${e?.message ?? e}`),
+      );
+    }
+
     return this.transformComment(comment);
+  }
+
+  /**
+   * Gọi sau khi tạo reply thành công. Không tự notify chính mình
+   * (trường hợp user trả lời chính comment của họ).
+   *
+   * actionUrl ưu tiên trỏ chapter (nếu comment nằm trên chapter) để user
+   * nhảy thẳng tới đúng đoạn; nếu là comment trên story, dùng hash anchor
+   * scroll tới comment trên trang chi tiết truyện.
+   */
+  private async notifyParentOnReply(
+    parentId: string,
+    replierId: string,
+    replier: { username: string; displayName: string | null },
+  ) {
+    const parent = await this.prisma.comment.findUnique({
+      where: { id: parentId },
+      select: {
+        userId: true,
+        story: { select: { slug: true } },
+        chapter: { select: { slug: true, story: { select: { slug: true } } } },
+      },
+    });
+    if (!parent || parent.userId === replierId) return;
+
+    let actionUrl: string | undefined;
+    if (parent.chapter?.slug && parent.chapter?.story?.slug) {
+      actionUrl = `/story/${parent.chapter.story.slug}/chapter/${parent.chapter.slug}#comment-${parentId}`;
+    } else if (parent.story?.slug) {
+      actionUrl = `/story/${parent.story.slug}#comment-${parentId}`;
+    }
+
+    const replierName = replier.displayName || replier.username;
+    await this.notificationsService.notifyUser(parent.userId, {
+      title: 'Có người trả lời bình luận của bạn 💬',
+      content: `${replierName} đã trả lời bình luận của bạn.`,
+      type: NotificationType.COMMENT_REPLY,
+      actionUrl,
+    });
   }
 
   /**

@@ -7,9 +7,10 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateApprovalRequestDto } from './dto/create-approval-request.dto';
 import { ReviewApprovalDto } from './dto/review-approval.dto';
-import { ApprovalType, ApprovalStatus, UserRole, StoryStatus } from '@prisma/client';
+import { ApprovalType, ApprovalStatus, UserRole, StoryStatus, NotificationType } from '@prisma/client';
 import { getPaginationParams, createPaginatedResult } from '../common/utils/pagination.util';
 
 @Injectable()
@@ -19,6 +20,7 @@ export class ApprovalsService {
     constructor(
         private prisma: PrismaService,
         private emailService: EmailService,
+        private notificationsService: NotificationsService,
     ) { }
 
     async createRequest(
@@ -308,7 +310,11 @@ export class ApprovalsService {
             },
             include: {
                 story: true,
-                chapter: true,
+                chapter: {
+                    include: {
+                        story: { select: { slug: true, title: true } },
+                    },
+                },
                 user: {
                     select: {
                         id: true,
@@ -342,12 +348,22 @@ export class ApprovalsService {
                     },
                 });
             } else if (request.type === ApprovalType.CHAPTER_PUBLISH && request.chapterId) {
-                await this.prisma.chapter.update({
+                const publishedChapter = await this.prisma.chapter.update({
                     where: { id: request.chapterId },
                     data: {
                         isPublished: true,
                     },
+                    select: {
+                        id: true,
+                        title: true,
+                        slug: true,
+                        story: {
+                            select: { id: true, title: true, slug: true },
+                        },
+                    },
                 });
+                // Fanout tới follower của truyện (best-effort).
+                void this.notificationsService.fanoutChapterPublished(publishedChapter);
             }
         }
 
@@ -377,7 +393,76 @@ export class ApprovalsService {
             this.logger.error('Failed to send approval notification email:', error);
         }
 
+        // In-app + push notification (best-effort, không vỡ flow nếu fail).
+        this.sendApprovalInAppNotification(updatedRequest, reviewDto).catch((e) =>
+            this.logger.warn(`Notify approval failed: ${e?.message ?? e}`),
+        );
+
         return updatedRequest;
+    }
+
+    /**
+     * Bell + push cho author khi yêu cầu được duyệt/từ chối.
+     *
+     * - APPROVED story → click vào `/story/<slug>` (trang công khai).
+     * - REJECTED story → click vào `/author/stories/<slug>` (trang sửa).
+     * - APPROVED/REJECTED chapter → trỏ thẳng chapter reader hoặc edit page.
+     *
+     * Tách helper để giữ `review()` đọc dễ; gọi best-effort ngoài transaction.
+     */
+    private async sendApprovalInAppNotification(
+        updatedRequest: any,
+        reviewDto: ReviewApprovalDto,
+    ) {
+        const authorId = updatedRequest.userId;
+        if (!authorId) return;
+
+        const isApproved = reviewDto.status === ApprovalStatus.APPROVED;
+        const isStory = updatedRequest.type === ApprovalType.STORY_PUBLISH;
+        const story = updatedRequest.story;
+        const chapter = updatedRequest.chapter;
+
+        let title: string;
+        let content: string;
+        let actionUrl: string | undefined;
+        let type: NotificationType;
+
+        if (isStory && story) {
+            if (isApproved) {
+                title = 'Truyện đã được duyệt ✅';
+                content = `"${story.title}" của bạn đã được duyệt và xuất bản.`;
+                actionUrl = `/story/${story.slug}`;
+                type = NotificationType.STORY_APPROVED;
+            } else {
+                title = 'Truyện bị từ chối';
+                content = `"${story.title}" bị từ chối${reviewDto.adminNote ? `: ${reviewDto.adminNote}` : '.'}`;
+                actionUrl = `/author/stories/${story.slug}`;
+                type = NotificationType.STORY_REJECTED;
+            }
+        } else if (chapter) {
+            const storySlug = chapter.story?.slug;
+            const storyTitle = chapter.story?.title ?? 'Truyện';
+            if (isApproved) {
+                title = 'Chương đã được duyệt ✅';
+                content = `Chương "${chapter.title}" của "${storyTitle}" đã được duyệt.`;
+                actionUrl = storySlug ? `/story/${storySlug}/chapter/${chapter.slug}` : undefined;
+                type = NotificationType.STORY_APPROVED;
+            } else {
+                title = 'Chương bị từ chối';
+                content = `Chương "${chapter.title}" bị từ chối${reviewDto.adminNote ? `: ${reviewDto.adminNote}` : '.'}`;
+                actionUrl = storySlug ? `/author/stories/${storySlug}` : undefined;
+                type = NotificationType.STORY_REJECTED;
+            }
+        } else {
+            return;
+        }
+
+        await this.notificationsService.notifyUser(authorId, {
+            title,
+            content,
+            type,
+            actionUrl,
+        });
     }
 }
 

@@ -5,6 +5,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { ApprovalsModule } from '../approvals/approvals.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
     CloudinaryModule,
     forwardRef(() => ApprovalsModule),
     WalletModule,
+    NotificationsModule,
   ],
   controllers: [ChaptersController, AdminChaptersController, ChapterUploadController],
   providers: [ChaptersService],

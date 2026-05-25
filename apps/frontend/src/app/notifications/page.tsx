@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
@@ -48,6 +49,16 @@ export default function NotificationsPage() {
             ANNOUNCEMENT: '📢',
             WARNING: '⚠️',
             INFO: 'ℹ️',
+            STORY_APPROVED: '✅',
+            STORY_REJECTED: '❌',
+            STORY_NEW_CHAPTER: '📖',
+            DONATION_RECEIVED: '💝',
+            CHAPTER_PURCHASED: '🛒',
+            STORY_PURCHASED: '👑',
+            WITHDRAWAL_PROCESSED: '💸',
+            COIN_TRANSFER_RECEIVED: '💰',
+            COIN_DEPOSITED: '⬆️',
+            COMMENT_REPLY: '💬',
         };
         return icons[type] || '📬';
     };
@@ -60,6 +71,16 @@ export default function NotificationsPage() {
             ANNOUNCEMENT: 'Thông báo',
             WARNING: 'Cảnh báo',
             INFO: 'Thông tin',
+            STORY_APPROVED: 'Truyện được duyệt',
+            STORY_REJECTED: 'Truyện bị từ chối',
+            STORY_NEW_CHAPTER: 'Chương mới',
+            DONATION_RECEIVED: 'Nhận ủng hộ',
+            CHAPTER_PURCHASED: 'Bán chương',
+            STORY_PURCHASED: 'Bán truyện',
+            WITHDRAWAL_PROCESSED: 'Rút xu',
+            COIN_TRANSFER_RECEIVED: 'Nhận xu',
+            COIN_DEPOSITED: 'Nạp xu',
+            COMMENT_REPLY: 'Trả lời bình luận',
         };
         return labels[type] || type;
     };
@@ -155,59 +176,79 @@ export default function NotificationsPage() {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    {notifications.map((notification: any) => (
-                                        <div
-                                            key={notification.id}
-                                            className={`bg-surface-container rounded-lg p-6 shadow-sm border transition-all ${
-                                                notification.isRead
-                                                    ? 'border-outline-variant'
-                                                    : 'border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10'
-                                            }`}
-                                        >
-                                            <div className="flex items-start gap-4">
-                                                <span className="text-3xl flex-shrink-0">
-                                                    {getTypeIcon(notification.type)}
-                                                </span>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-3 mb-2">
-                                                        <h3 className="text-lg font-semibold text-on-surface">
-                                                            {notification.title}
-                                                        </h3>
-                                                        {getPriorityBadge(notification.priority)}
-                                                        <span className="px-2 py-1 rounded text-xs font-medium bg-surface-container-high text-on-surface-variant">
-                                                            {getTypeLabel(notification.type)}
-                                                        </span>
-                                                        {!notification.isRead && (
-                                                            <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-on-surface-variant mb-3 whitespace-pre-wrap">
-                                                        {notification.content}
-                                                    </p>
-                                                    <div className="flex items-center justify-between">
-                                                        <p className="text-sm text-on-surface-variant">
-                                                            {new Date(notification.createdAt).toLocaleDateString('vi-VN', {
-                                                                year: 'numeric',
-                                                                month: 'long',
-                                                                day: 'numeric',
-                                                                hour: '2-digit',
-                                                                minute: '2-digit',
-                                                            })}
+                                    {notifications.map((notification: any) => {
+                                        const RowWrapper: any = notification.actionUrl ? Link : 'div';
+                                        const wrapperProps: any = notification.actionUrl
+                                            ? {
+                                                  href: notification.actionUrl,
+                                                  onClick: () => {
+                                                      if (!notification.isRead) {
+                                                          handleMarkAsRead(notification.recipientId);
+                                                      }
+                                                  },
+                                              }
+                                            : {};
+                                        return (
+                                            <RowWrapper
+                                                key={notification.id}
+                                                {...wrapperProps}
+                                                className={`block bg-surface-container rounded-lg p-6 shadow-sm border transition-all ${
+                                                    notification.actionUrl ? 'hover:shadow-md cursor-pointer' : ''
+                                                } ${
+                                                    notification.isRead
+                                                        ? 'border-outline-variant'
+                                                        : 'border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10'
+                                                }`}
+                                            >
+                                                <div className="flex items-start gap-4">
+                                                    <span className="text-3xl flex-shrink-0">
+                                                        {getTypeIcon(notification.type)}
+                                                    </span>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                                            <h3 className="text-lg font-semibold text-on-surface">
+                                                                {notification.title}
+                                                            </h3>
+                                                            {getPriorityBadge(notification.priority)}
+                                                            <span className="px-2 py-1 rounded text-xs font-medium bg-surface-container-high text-on-surface-variant">
+                                                                {getTypeLabel(notification.type)}
+                                                            </span>
+                                                            {!notification.isRead && (
+                                                                <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-on-surface-variant mb-3 whitespace-pre-wrap">
+                                                            {notification.content}
                                                         </p>
-                                                        {!notification.isRead && (
-                                                            <button
-                                                                onClick={() => handleMarkAsRead(notification.recipientId)}
-                                                                disabled={markAsReadMutation.isPending}
-                                                                className="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors disabled:opacity-50"
-                                                            >
-                                                                Đánh dấu đã đọc
-                                                            </button>
-                                                        )}
+                                                        <div className="flex items-center justify-between">
+                                                            <p className="text-sm text-on-surface-variant">
+                                                                {new Date(notification.createdAt).toLocaleDateString('vi-VN', {
+                                                                    year: 'numeric',
+                                                                    month: 'long',
+                                                                    day: 'numeric',
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit',
+                                                                })}
+                                                            </p>
+                                                            {!notification.isRead && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        handleMarkAsRead(notification.recipientId);
+                                                                    }}
+                                                                    disabled={markAsReadMutation.isPending}
+                                                                    className="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors disabled:opacity-50"
+                                                                >
+                                                                    Đánh dấu đã đọc
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                            </RowWrapper>
+                                        );
+                                    })}
                                 </div>
                             )}
 

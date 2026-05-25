@@ -11,6 +11,7 @@ import { generateSlug, generateUniqueSlug } from '../common/utils/slug.util';
 import { chapterWithStoryInclude } from '../prisma/prisma.helpers';
 import { UserRole, ApprovalType, ApprovalStatus } from '@prisma/client';
 import { ApprovalsService } from '../approvals/approvals.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { getPaginationParams, createPaginatedResult } from '../common/utils/pagination.util';
 
 import { WalletService } from '../wallet/wallet.service';
@@ -20,7 +21,8 @@ export class ChaptersService {
     constructor(
         private prisma: PrismaService,
         private approvalsService: ApprovalsService,
-        private walletService: WalletService
+        private walletService: WalletService,
+        private notificationsService: NotificationsService,
     ) { }
 
     /**
@@ -384,10 +386,13 @@ export class ChaptersService {
             select: {
                 id: true,
                 title: true,
+                slug: true,
                 isPublished: true,
                 story: {
                     select: {
                         id: true,
+                        title: true,
+                        slug: true,
                         authorId: true,
                         isPublished: true,
                     },
@@ -412,28 +417,38 @@ export class ChaptersService {
             throw new BadRequestException('Chương này đã được xuất bản');
         }
 
-        // Nếu story đã được publish → Cho phép tự publish chapter
-        if (chapter.story.isPublished) {
-            return this.prisma.chapter.update({
+        const doPublish = async () => {
+            const updated = await this.prisma.chapter.update({
                 where: { id },
                 data: {
                     isPublished: true,
                 },
                 include: chapterWithStoryInclude,
             });
+            // Fanout tới mọi follower (best-effort, fire-and-forget).
+            void this.notificationsService.fanoutChapterPublished({
+                id: chapter.id,
+                title: chapter.title,
+                slug: chapter.slug,
+                story: {
+                    id: chapter.story.id,
+                    title: chapter.story.title,
+                    slug: chapter.story.slug,
+                },
+            });
+            return updated;
+        };
+
+        // Nếu story đã được publish → Cho phép tự publish chapter
+        if (chapter.story.isPublished) {
+            return doPublish();
         }
 
         // Nếu story chưa publish → Chỉ admin mới có thể publish chapter
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         if (user && user.role === UserRole.ADMIN) {
             // Admin có thể publish chapter ngay cả khi story chưa publish
-            return this.prisma.chapter.update({
-                where: { id },
-                data: {
-                    isPublished: true,
-                },
-                include: chapterWithStoryInclude,
-            });
+            return doPublish();
         }
 
         // Non-admin users cannot publish chapters if story is not published

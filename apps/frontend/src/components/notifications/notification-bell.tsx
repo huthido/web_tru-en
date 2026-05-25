@@ -7,11 +7,12 @@ import { useAuth } from '@/lib/api/hooks/use-auth';
 
 export function NotificationBell() {
     const { user } = useAuth();
-    useNotificationStream(!!user);
+    const { isStreamActive } = useNotificationStream(!!user);
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const { data: unreadData } = useUnreadCount();
+    // Khi SSE alive, tắt polling 30s; SSE realtime + invalidate đủ giữ badge tươi.
+    const { data: unreadData } = useUnreadCount({ sseActive: isStreamActive });
     const { data: notificationsData } = useMyNotifications({ limit: 5, isRead: false });
     const markAsReadMutation = useMarkAsRead();
 
@@ -45,12 +46,24 @@ export function NotificationBell() {
 
     const getTypeIcon = (type: string) => {
         const icons: Record<string, string> = {
+            // Admin broadcast
             SYSTEM_UPDATE: '🔄',
             MAINTENANCE: '🔧',
             NEW_FEATURE: '✨',
             ANNOUNCEMENT: '📢',
             WARNING: '⚠️',
             INFO: 'ℹ️',
+            // Auto user events
+            STORY_APPROVED: '✅',
+            STORY_REJECTED: '❌',
+            STORY_NEW_CHAPTER: '📖',
+            DONATION_RECEIVED: '💝',
+            CHAPTER_PURCHASED: '🛒',
+            STORY_PURCHASED: '👑',
+            WITHDRAWAL_PROCESSED: '💸',
+            COIN_TRANSFER_RECEIVED: '💰',
+            COIN_DEPOSITED: '⬆️',
+            COMMENT_REPLY: '💬',
         };
         return icons[type] || '📬';
     };
@@ -140,14 +153,16 @@ export function NotificationBell() {
                         ) : (
                             <div className="divide-y divide-outline-variant">
                                 {notifications.map((notification: any) => (
-                                    <div
+                                    <Link
                                         key={notification.id}
+                                        href={notification.actionUrl || '/notifications'}
                                         onClick={() => {
                                             if (!notification.isRead) {
                                                 handleMarkAsRead(notification.recipientId);
                                             }
+                                            setIsOpen(false);
                                         }}
-                                        className="w-full px-4 py-3 hover:bg-surface-container-high/50 cursor-pointer transition-colors"
+                                        className="block w-full px-4 py-3 hover:bg-surface-container-high/50 cursor-pointer transition-colors"
                                     >
                                         <div className="flex items-start gap-3 w-full">
                                             <span className="text-2xl flex-shrink-0">
@@ -173,7 +188,7 @@ export function NotificationBell() {
                                                 <span className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2"></span>
                                             )}
                                         </div>
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
                         )}

@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, TransactionType, WithdrawalStatus } from '@prisma/client';
+import { Prisma, TransactionType, WithdrawalStatus, NotificationType } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
 import { RedisService } from '../redis/redis.service';
 
@@ -177,10 +177,28 @@ export class WalletService implements OnModuleInit {
         return this.creditPurchased(tx, userId, amount);
     }
 
-    /** Fire-and-forget author notification; never breaks the caller. */
-    private notifyAuthor(authorId: string, title: string, content: string) {
+    /**
+     * Fire-and-forget user notification; never breaks the caller.
+     *
+     * Tên giữ là `notifyAuthor` vì các call site cũ — thực tế nó dùng cho
+     * MỌI user (donor, buyer, withdrawal requester...), không chỉ author.
+     * `extras.type` mặc định `INFO`; truyền enum cụ thể (`DONATION_RECEIVED`
+     * v.v.) để bell hiển thị đúng icon. `extras.actionUrl` cho deep-link
+     * khi user click.
+     */
+    private notifyAuthor(
+        authorId: string,
+        title: string,
+        content: string,
+        extras?: { type?: NotificationType; actionUrl?: string },
+    ) {
         this.notifications
-            .notifyUser(authorId, { title, content })
+            .notifyUser(authorId, {
+                title,
+                content,
+                type: extras?.type,
+                actionUrl: extras?.actionUrl,
+            })
             .catch((e) => this.logger.warn(`notifyAuthor failed: ${e?.message}`));
     }
 
@@ -379,22 +397,32 @@ export class WalletService implements OnModuleInit {
     async deposit(userId: string, amount: number, description: string = 'Deposit') {
         if (amount <= 0) throw new BadRequestException('Amount must be positive');
 
-        return this.prisma.$transaction(async (tx) => {
+        const wallet = await this.prisma.$transaction(async (tx) => {
             // Deposit credits the purchased bucket — it represents real-money
             // top-up (VNPay/IAP/Play), which must not be withdrawable.
-            const wallet = await this.creditPurchased(tx, userId, amount);
+            const w = await this.creditPurchased(tx, userId, amount);
 
             await tx.coinTransaction.create({
                 data: {
-                    walletId: wallet.id,
+                    walletId: w.id,
                     amount,
                     type: TransactionType.DEPOSIT,
                     description,
                 },
             });
 
-            return wallet;
+            return w;
         });
+
+        // Bell + push: user thấy ngay khi VNPay IPN / IAP redeem hoàn tất.
+        this.notifyAuthor(
+            userId,
+            'Nạp xu thành công 💰',
+            `Tài khoản của bạn vừa được cộng ${amount.toLocaleString('vi-VN')} xu.`,
+            { type: NotificationType.COIN_DEPOSITED, actionUrl: '/wallet/history' },
+        );
+
+        return wallet;
     }
 
     // Donate coins to an author (Transactional).
@@ -485,6 +513,7 @@ export class WalletService implements OnModuleInit {
             authorId,
             'Bạn nhận được ủng hộ 🎉',
             `Có người vừa ủng hộ bạn ${amount} xu.`,
+            { type: NotificationType.DONATION_RECEIVED, actionUrl: '/wallet/earnings' },
         );
         return donationResult;
     }
@@ -594,6 +623,7 @@ export class WalletService implements OnModuleInit {
                 authorId,
                 'Có người mua chương 📖',
                 `Chương "${chapter.title}" vừa được mua (${chapter.price} xu).`,
+                { type: NotificationType.CHAPTER_PURCHASED, actionUrl: '/wallet/earnings' },
             );
         }
         return chapterResult;
@@ -686,6 +716,7 @@ export class WalletService implements OnModuleInit {
                 authorId,
                 'Có người mua truyện VIP 👑',
                 `Truyện "${story.title}" vừa được mua (${story.price} xu).`,
+                { type: NotificationType.STORY_PURCHASED, actionUrl: '/wallet/earnings' },
             );
         }
         return storyResult;
@@ -1086,6 +1117,7 @@ export class WalletService implements OnModuleInit {
             action === 'APPROVE'
                 ? `Yêu cầu rút ${processed.amount} xu của bạn đã được chuyển khoản.`
                 : `Yêu cầu rút ${processed.amount} xu bị từ chối, xu đã được hoàn lại.${processed.note ? ` Lý do: ${processed.note}` : ''}`,
+            { type: NotificationType.WITHDRAWAL_PROCESSED, actionUrl: '/wallet/withdrawals' },
         );
         return processed;
     }
@@ -1174,6 +1206,15 @@ export class WalletService implements OnModuleInit {
             recipient.id,
             'Bạn nhận được xu 💰',
             `Bạn vừa nhận ${amount} xu từ chuyển khoản.`,
+            { type: NotificationType.COIN_TRANSFER_RECEIVED, actionUrl: '/wallet/history' },
+        );
+        // Notify sender — đã tự confirm trên UI nhưng vẫn ghi lại bell để có
+        // history tổng quát mọi sự kiện ví.
+        this.notifyAuthor(
+            senderId,
+            'Chuyển xu thành công',
+            `Bạn đã chuyển ${amount} xu cho ${recipient.displayName || recipient.username}.`,
+            { type: NotificationType.INFO, actionUrl: '/wallet/history' },
         );
         return transferResult;
     }
@@ -1310,6 +1351,7 @@ export class WalletService implements OnModuleInit {
             user.id,
             'Ví của bạn vừa được điều chỉnh bởi admin',
             `Admin ${adminLabel} đã ${delta > 0 ? 'cộng' : 'trừ'} ${Math.abs(delta).toLocaleString('vi-VN')} ${bucketLabel}. Lý do: ${trimmed}`,
+            { type: NotificationType.INFO, actionUrl: '/wallet/history' },
         );
 
         return {

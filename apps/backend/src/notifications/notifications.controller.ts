@@ -13,8 +13,10 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { NotificationsService } from './notifications.service';
+import { PushService } from './push.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { RegisterPushTokenDto } from './dto/register-push-token.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -24,7 +26,10 @@ import { UserRole } from '@prisma/client';
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class NotificationsController {
-    constructor(private readonly notificationsService: NotificationsService) {}
+    constructor(
+        private readonly notificationsService: NotificationsService,
+        private readonly pushService: PushService,
+    ) {}
 
     // Admin endpoints
     @Post()
@@ -108,5 +113,23 @@ export class NotificationsController {
     @Post('mark-all-read')
     markAllAsRead(@CurrentUser() user: any) {
         return this.notificationsService.markAllAsRead(user.id);
+    }
+
+    // --- Mobile push tokens ---
+
+    @Post('push-tokens')
+    registerPushToken(
+        @CurrentUser() user: any,
+        @Body() dto: RegisterPushTokenDto,
+    ) {
+        return this.pushService.registerToken(user.id, dto.token, dto.platform, dto.deviceId);
+    }
+
+    @Delete('push-tokens/:token')
+    deletePushToken(
+        @CurrentUser() user: any,
+        @Param('token') token: string,
+    ) {
+        return this.pushService.removeToken(user.id, token);
     }
 }

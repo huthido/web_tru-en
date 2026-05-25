@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { notificationsService, CreateNotificationRequest, UpdateNotificationRequest } from '../notifications.service';
 
 /**
@@ -7,12 +7,18 @@ import { notificationsService, CreateNotificationRequest, UpdateNotificationRequ
  * personal notification), refetch the bell's unread count + list so it
  * updates live without 30s polling. Cookie auth flows through the Next
  * /api proxy automatically (same-origin EventSource).
+ *
+ * Trả về `isStreamActive` — Bell có thể truyền cờ này vào `useUnreadCount`
+ * để tắt polling 30s khi SSE đang chạy (giảm ~50% query bell trên user
+ * online liên tục).
  */
 export const useNotificationStream = (enabled: boolean) => {
     const queryClient = useQueryClient();
+    const [isStreamActive, setIsStreamActive] = useState(false);
     useEffect(() => {
         if (!enabled || typeof window === 'undefined') return;
         const es = new EventSource('/api/notifications/stream');
+        es.onopen = () => setIsStreamActive(true);
         es.onmessage = (ev) => {
             try {
                 const payload = JSON.parse(ev.data);
@@ -24,11 +30,16 @@ export const useNotificationStream = (enabled: boolean) => {
             }
         };
         es.onerror = () => {
+            setIsStreamActive(false);
             // EventSource auto-reconnects; close on hard failure to avoid a busy loop.
             if (es.readyState === EventSource.CLOSED) es.close();
         };
-        return () => es.close();
+        return () => {
+            setIsStreamActive(false);
+            es.close();
+        };
     }, [enabled, queryClient]);
+    return { isStreamActive };
 };
 
 export const useNotifications = (params?: {
@@ -98,11 +109,16 @@ export const useMyNotifications = (params?: {
     });
 };
 
-export const useUnreadCount = () => {
+/**
+ * Bell badge count. Khi SSE đã alive, tắt polling 30s (SSE invalidate cache
+ * ngay khi có notification mới); chỉ giữ fallback polling cho user mà SSE
+ * không mở được (proxy/firewall block EventSource).
+ */
+export const useUnreadCount = (opts?: { sseActive?: boolean }) => {
     return useQuery({
         queryKey: ['notifications', 'unread-count'],
         queryFn: () => notificationsService.getUnreadCount(),
-        refetchInterval: 30000, // Refetch every 30 seconds
+        refetchInterval: opts?.sseActive ? false : 30000,
     });
 };
 

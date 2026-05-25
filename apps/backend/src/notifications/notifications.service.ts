@@ -3,6 +3,7 @@ import { Subject, Observable, merge, interval } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
+import { PushService } from './push.service';
 import { RedisService } from '../redis/redis.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
@@ -28,6 +29,7 @@ export class NotificationsService implements OnModuleInit {
         private prisma: PrismaService,
         private emailService: EmailService,
         private redis: RedisService,
+        private pushService: PushService,
     ) {}
 
     async onModuleInit() {
@@ -64,9 +66,66 @@ export class NotificationsService implements OnModuleInit {
      * recipient's bell updates live. Best-effort — callers should not let a
      * failure here break their own transaction.
      */
+    /**
+     * Broadcast "chương mới" tới mọi follower của 1 truyện. Best-effort,
+     * batched cursor 500 followers/round để không OOM với truyện 100k follow.
+     * Gọi fire-and-forget (`void this.fanoutChapterPublished(...)`); không
+     * await trong response path.
+     *
+     * `chapter`: cần `id, title, slug`, story: `{ id, title, slug }`.
+     */
+    async fanoutChapterPublished(chapter: {
+        id: string;
+        title: string;
+        slug: string;
+        story: { id: string; title: string; slug: string };
+    }) {
+        const BATCH = 500;
+        let cursor: { id: string } | undefined;
+        let totalNotified = 0;
+        try {
+            while (true) {
+                const followers = await this.prisma.follow.findMany({
+                    where: { storyId: chapter.story.id },
+                    select: { id: true, userId: true },
+                    orderBy: { id: 'asc' },
+                    take: BATCH,
+                    ...(cursor ? { cursor, skip: 1 } : {}),
+                });
+                if (followers.length === 0) break;
+                await Promise.allSettled(
+                    followers.map((f) =>
+                        this.notifyUser(f.userId, {
+                            title: `Chương mới: ${chapter.title}`,
+                            content: `"${chapter.story.title}" vừa cập nhật chương mới.`,
+                            type: NotificationType.STORY_NEW_CHAPTER,
+                            actionUrl: `/story/${chapter.story.slug}/chapter/${chapter.slug}`,
+                        }),
+                    ),
+                );
+                totalNotified += followers.length;
+                if (followers.length < BATCH) break;
+                cursor = { id: followers[followers.length - 1].id };
+            }
+            if (totalNotified > 0) {
+                this.logger.log(
+                    `Fanout chương "${chapter.title}" tới ${totalNotified} follower.`,
+                );
+            }
+        } catch (e: any) {
+            this.logger.warn(`fanoutChapterPublished failed: ${e?.message ?? e}`);
+        }
+    }
+
     async notifyUser(
         userId: string,
-        data: { title: string; content: string; type?: NotificationType; priority?: NotificationPriority },
+        data: {
+            title: string;
+            content: string;
+            type?: NotificationType;
+            priority?: NotificationPriority;
+            actionUrl?: string;
+        },
     ) {
         const notification = await this.prisma.notification.create({
             data: {
@@ -74,6 +133,7 @@ export class NotificationsService implements OnModuleInit {
                 content: data.content,
                 type: data.type || NotificationType.INFO,
                 priority: data.priority || NotificationPriority.NORMAL,
+                actionUrl: data.actionUrl || null,
                 targetRole: null,
                 sendEmail: false,
                 // createdById omitted — system/auto notification, no creator.
@@ -83,6 +143,14 @@ export class NotificationsService implements OnModuleInit {
             data: { notificationId: notification.id, userId },
         });
         await this.emitSse(userId);
+        // Mobile push best-effort, không await để không kéo dài transaction caller.
+        this.pushService
+            .sendToUser(userId, {
+                title: data.title,
+                body: data.content,
+                data: { actionUrl: data.actionUrl, type: notification.type },
+            })
+            .catch((e: any) => this.logger.warn(`Push notify failed: ${e?.message ?? e}`));
         return notification;
     }
 

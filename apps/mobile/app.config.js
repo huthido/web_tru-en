@@ -87,6 +87,16 @@ const config = {
     // Google AdMob — banner / interstitial. App ID lấy từ AdMob console
     // (ca-app-pub-XXXX~YYYY). Trên dev/local có thể tạm dùng Google test IDs
     // để build chạy được khi user chưa setup AdMob account.
+    // Push notification — Expo proxy về FCM (Android) / APNs (iOS).
+    // EAS credentials cần: APNs .p8 (iOS) + Firebase Service Account JSON
+    // (Android). Setup riêng ở `eas credentials`.
+    [
+      'expo-notifications',
+      {
+        icon: './assets/icon.png',
+        color: '#635D60',
+      },
+    ],
     [
       'react-native-google-mobile-ads',
       {

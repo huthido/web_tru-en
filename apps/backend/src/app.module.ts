@@ -1,5 +1,6 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
@@ -53,6 +54,9 @@ import { RedisModule } from './redis/redis.module';
         limit: 100, // 100 requests per minute
       },
     ]),
+
+    // Cron scheduler (notification retention, push token cleanup).
+    ScheduleModule.forRoot(),
 
     // Database
     PrismaModule,

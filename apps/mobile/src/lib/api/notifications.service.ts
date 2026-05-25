@@ -64,4 +64,14 @@ export const NotificationsApi = {
     async markAllAsRead(): Promise<void> {
         await apiClient.post('/notifications/mark-all-read');
     },
+
+    async registerPushToken(token: string, platform: 'ios' | 'android' | 'web', deviceId?: string) {
+        const body: any = { token, platform };
+        if (deviceId) body.deviceId = deviceId;
+        await apiClient.post('/notifications/push-tokens', body);
+    },
+
+    async deletePushToken(token: string): Promise<void> {
+        await apiClient.delete(`/notifications/push-tokens/${encodeURIComponent(token)}`);
+    },
 };

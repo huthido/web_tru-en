@@ -15,16 +15,16 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  username      String   @unique
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
   password      String? // Nullable cho OAuth users
   avatar        String?
   displayName   String?
-  bio           String?  @db.Text
-  role          UserRole @default(USER)
-  isActive      Boolean  @default(true)
-  emailVerified Boolean  @default(false)
+  bio           String?   @db.Text
+  role          UserRole  @default(USER)
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
   /// Soft-delete timestamp. Khi user tự xoá tài khoản trong app (Apple
   /// §5.1.1(v)): PII bị nullify, email/username đổi thành placeholder
   /// unique theo id, isActive = false, deletedAt = now(). NULL = tài khoản
@@ -34,8 +34,8 @@ model User {
   // OAuth fields
   provider      String? // 'local', 'google', 'facebook'
   providerId    String? // OAuth provider user ID
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Relations
   uploadedChapters        Chapter[]                @relation("ChapterUploader")
@@ -57,6 +57,7 @@ model User {
   passwordResetTokens     PasswordResetToken[]
   refreshTokens           RefreshToken[]
   createdNotifications    Notification[]           @relation("NotificationCreator")
+  pushTokens              UserPushToken[]
   wallet                  UserWallet?
   chapterPurchases        ChapterPurchase[]
   storyPurchases          StoryPurchase[]
@@ -135,25 +136,25 @@ model Story {
 }
 
 model Chapter {
-  id               String            @id @default(cuid())
-  storyId          String
-  title            String
-  slug             String
-  content          String
-  images           String[]
-  order            Int
-  isPublished      Boolean           @default(false)
-  viewCount        Int               @default(0)
-  wordCount        Int               @default(0)
-  readingTime      Int               @default(0)
-  uploaderId       String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  story            Story             @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  uploader         User?             @relation("ChapterUploader", fields: [uploaderId], references: [id])
-  comments         Comment[]
-  readingHistory   ReadingHistory[]
-  viewLogs         ViewLog[]
+  id             String           @id @default(cuid())
+  storyId        String
+  title          String
+  slug           String
+  content        String
+  images         String[]
+  order          Int
+  isPublished    Boolean          @default(false)
+  viewCount      Int              @default(0)
+  wordCount      Int              @default(0)
+  readingTime    Int              @default(0)
+  uploaderId     String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  story          Story            @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  uploader       User?            @relation("ChapterUploader", fields: [uploaderId], references: [id])
+  comments       Comment[]
+  readingHistory ReadingHistory[]
+  viewLogs       ViewLog[]
 
   approvalRequests ApprovalRequest[] @relation("ChapterApprovals")
   price            Int               @default(0) // Coin price to unlock
@@ -446,12 +447,25 @@ enum ApprovalStatus {
 }
 
 enum NotificationType {
+  // System broadcast (admin-created)
   SYSTEM_UPDATE // Cập nhật hệ thống
   MAINTENANCE // Bảo trì
   NEW_FEATURE // Tính năng mới
   ANNOUNCEMENT // Thông báo chung
   WARNING // Cảnh báo
   INFO // Thông tin
+
+  // Auto-generated user events
+  STORY_APPROVED // Truyện được duyệt
+  STORY_REJECTED // Truyện bị từ chối
+  STORY_NEW_CHAPTER // Truyện theo dõi có chương mới
+  DONATION_RECEIVED // Nhận ủng hộ
+  CHAPTER_PURCHASED // Có người mua chương
+  STORY_PURCHASED // Có người mua truyện VIP
+  WITHDRAWAL_PROCESSED // Yêu cầu rút xu được xử lý
+  COIN_TRANSFER_RECEIVED // Nhận chuyển khoản xu
+  COIN_DEPOSITED // Nạp xu thành công
+  COMMENT_REPLY // Có người trả lời bình luận
 }
 
 enum NotificationPriority {
@@ -615,49 +629,49 @@ model Page {
 }
 
 model Settings {
-  id                       String   @id @default(cuid())
-  siteName                 String   @default("Web Truyện HungYeu")
-  siteDescription          String?  @db.Text
-  siteLogo                 String?
-  siteFavicon              String?
-  siteEmail                String?
-  sitePhone                String?
-  siteAddress              String?  @db.Text
-  siteFacebook             String?
-  siteTwitter              String?
-  siteX                    String?  // X (formerly Twitter)
-  siteYoutube              String?
-  siteInstagram            String?
-  siteTikTok               String?
-  siteLinkedIn             String?
-  siteThreads              String?
-  maintenanceMode          Boolean  @default(false)
-  maintenanceMessage       String?  @db.Text
-  allowRegistration        Boolean  @default(true)
-  requireEmailVerification Boolean  @default(false)
+  id                         String   @id @default(cuid())
+  siteName                   String   @default("Web Truyện HungYeu")
+  siteDescription            String?  @db.Text
+  siteLogo                   String?
+  siteFavicon                String?
+  siteEmail                  String?
+  sitePhone                  String?
+  siteAddress                String?  @db.Text
+  siteFacebook               String?
+  siteTwitter                String?
+  siteX                      String? // X (formerly Twitter)
+  siteYoutube                String?
+  siteInstagram              String?
+  siteTikTok                 String?
+  siteLinkedIn               String?
+  siteThreads                String?
+  maintenanceMode            Boolean  @default(false)
+  maintenanceMessage         String?  @db.Text
+  allowRegistration          Boolean  @default(true)
+  requireEmailVerification   Boolean  @default(false)
   // Donation rev-share: % the platform keeps when a user donates coins to an
   // author. 0 = author keeps 100%. Capped at 50 in the DTO validator.
-  donationPlatformFeePercent Int    @default(2)
+  donationPlatformFeePercent Int      @default(2)
   // Spec mục 17 — chapter / VIP story sale rev-share. Tracked separately from
   // donations so support can tune them independently (e.g. lower fee on sales
   // to encourage authors to set paid content). Backfilled = donation fee.
-  chapterSaleFeePercent    Int      @default(2)
+  chapterSaleFeePercent      Int      @default(2)
   // Spec mục 17 — số xu tối thiểu tác giả được phép yêu cầu rút.
-  minWithdrawalCoins       Int      @default(1000)
+  minWithdrawalCoins         Int      @default(1000)
   // Spec mục 2 — cho phép chuyển xu giữa user ("nếu cho phép"). Mặc định tắt.
-  allowCoinTransfer        Boolean  @default(false)
+  allowCoinTransfer          Boolean  @default(false)
   // Quảng cáo — global kill switch + cấu hình network ID. Client gọi
   // GET /ads/config để lấy snapshot dạng JSON.
-  adsEnabled               Boolean  @default(true)
-  googleAdsensePublisherId String?  // ca-pub-XXXXXXXXXXXXXXXX
-  admobAndroidAppId        String?  // ca-app-pub-XXXX~YYYY (App ID, không phải unit ID)
-  admobIosAppId            String?
-  fanPlacementId           String?  // Facebook Audience Network app ID
-  adsTxtContent            String?  @db.Text // Plain text serve qua GET /ads.txt
+  adsEnabled                 Boolean  @default(true)
+  googleAdsensePublisherId   String? // ca-pub-XXXXXXXXXXXXXXXX
+  admobAndroidAppId          String? // ca-app-pub-XXXX~YYYY (App ID, không phải unit ID)
+  admobIosAppId              String?
+  fanPlacementId             String? // Facebook Audience Network app ID
+  adsTxtContent              String?  @db.Text // Plain text serve qua GET /ads.txt
   // GDPR consent banner — bật theo region nếu cần. Mặc định bật (an toàn).
-  consentRequired          Boolean  @default(true)
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  consentRequired            Boolean  @default(true)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
 
   @@map("settings")
 }
@@ -740,6 +754,9 @@ model Notification {
   content     String               @db.Text
   type        NotificationType
   priority    NotificationPriority @default(NORMAL)
+  /// Deep-link URL khi user click vào notification (vd: /story/abc,
+  /// /wallet/history). Null = generic broadcast, click chỉ mở list.
+  actionUrl   String?              @db.VarChar(500)
   targetRole  UserRole? // null = all users, or specific role
   sendEmail   Boolean              @default(false) // Send via email
   isActive    Boolean              @default(true)
@@ -773,38 +790,55 @@ model NotificationRecipient {
   @@map("notification_recipients")
 }
 
-model UserWallet {
+/// Expo push token per device. Một user có thể có nhiều thiết bị (mobile,
+/// tablet); mỗi thiết bị 1 row. Logout xoá token tương ứng; cron 90 ngày
+/// inactive dọn token cũ.
+model UserPushToken {
   id        String   @id @default(cuid())
-  userId    String   @unique
+  userId    String
+  token     String   @unique // ExponentPushToken[xxx] hoặc raw FCM token
+  platform  String // 'ios' | 'android' | 'web'
+  deviceId  String? // optional — để xoá khi user logout 1 thiết bị
+  createdAt DateTime @default(now())
+  lastUsed  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_push_tokens")
+}
+
+model UserWallet {
+  id               String            @id @default(cuid())
+  userId           String            @unique
   /// Bought via VNPay/Apple IAP/Google Play. Spendable on content/transfer.
   /// NOT withdrawable (Apple §3.1.1 / Google Play Billing §4.3).
-  purchasedBalance Int @default(0)
+  purchasedBalance Int               @default(0)
   /// Received from chapter/story sales, donations, withdrawal-reject refunds.
   /// Withdrawable as VND. NOT transferable (anti-laundering).
-  earnedBalance    Int @default(0)
+  earnedBalance    Int               @default(0)
   /// @deprecated denormalized total = purchasedBalance + earnedBalance.
   /// Kept during transition; will be dropped in a follow-up migration.
-  balance   Int      @default(0)
+  balance          Int               @default(0)
   // Admin fraud control (spec mục 2). Locked = không thể chi tiêu/chuyển/rút.
-  isLocked  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions CoinTransaction[]
+  isLocked         Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions     CoinTransaction[]
 
   @@index([earnedBalance])
   @@map("user_wallets")
 }
 
 model CoinTransaction {
-  id          String   @id @default(cuid())
+  id          String          @id @default(cuid())
   walletId    String
-  amount      Int      // Positive for deposit, negative for spend
+  amount      Int // Positive for deposit, negative for spend
   type        TransactionType
   description String
-  referenceId String?  // ID of the order or chapter
-  createdAt   DateTime @default(now())
-  wallet      UserWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  referenceId String? // ID of the order or chapter
+  createdAt   DateTime        @default(now())
+  wallet      UserWallet      @relation(fields: [walletId], references: [id], onDelete: Cascade)
 
   @@index([walletId])
   @@index([type])
@@ -813,22 +847,22 @@ model CoinTransaction {
 }
 
 model CoinPackage {
-  id          String    @id @default(cuid())
-  name        String
-  coinAmount  Int
-  priceVND    Int
-  description String?
-  isActive    Boolean   @default(true)
+  id              String    @id @default(cuid())
+  name            String
+  coinAmount      Int
+  priceVND        Int
+  description     String?
+  isActive        Boolean   @default(true)
   // Store-specific product IDs so the mobile app can map a server package
   // to its IAP SKU on Apple App Store Connect / Google Play Console. Nullable
   // because not every package needs to be sold on mobile (web-only top-ups
   // via VNPay stay unset). When a package is sold via Apple/Google, pricing
   // is dictated by the store's price tier — not priceVND.
-  appleProductId  String? @unique
-  googleProductId String? @unique
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  payments    Payment[]
+  appleProductId  String?   @unique
+  googleProductId String?   @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  payments        Payment[]
 
   @@map("coin_packages")
 }
@@ -841,8 +875,8 @@ model ChapterPurchase {
   platformFee Int      @default(0) // Coins kept by the platform (donationPlatformFeePercent of pricePaid, rounded up)
   netAmount   Int      @default(0) // Coins actually credited to the author (pricePaid - platformFee)
   createdAt   DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter     Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
   @@unique([userId, chapterId])
   @@index([userId])
@@ -919,7 +953,7 @@ enum PaymentProvider {
   MOMO
   ZALOPAY
   MANUAL
-  APPLE_IAP   // Apple In-App Purchase — credits purchasedBalance only
+  APPLE_IAP // Apple In-App Purchase — credits purchasedBalance only
   GOOGLE_PLAY // Google Play Billing — credits purchasedBalance only
 }
 
@@ -957,17 +991,17 @@ model Payment {
 }
 
 model AuthorDonation {
-  id           String   @id @default(cuid())
-  userId       String
-  authorId     String
-  storyId      String?
-  amount       Int // Gross amount paid by sender (= platformFee + netAmount)
-  platformFee  Int      @default(0) // Coins kept by the platform (2% of amount, rounded up)
-  netAmount    Int      @default(0) // Coins actually credited to the author (amount - platformFee)
-  message      String?  @db.Text
-  createdAt    DateTime @default(now())
-  user         User     @relation("DonationSender", fields: [userId], references: [id], onDelete: Cascade)
-  author       User     @relation("DonationReceiver", fields: [authorId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  userId      String
+  authorId    String
+  storyId     String?
+  amount      Int // Gross amount paid by sender (= platformFee + netAmount)
+  platformFee Int      @default(0) // Coins kept by the platform (2% of amount, rounded up)
+  netAmount   Int      @default(0) // Coins actually credited to the author (amount - platformFee)
+  message     String?  @db.Text
+  createdAt   DateTime @default(now())
+  user        User     @relation("DonationSender", fields: [userId], references: [id], onDelete: Cascade)
+  author      User     @relation("DonationReceiver", fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([authorId])
@@ -980,9 +1014,9 @@ model UserImage {
   id        String   @id @default(cuid())
   userId    String
   url       String
-  folder    String   // 'chapter-images', 'story-covers', etc.
+  folder    String // 'chapter-images', 'story-covers', etc.
   filename  String
-  size      Int      // file size in bytes
+  size      Int // file size in bytes
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -1011,8 +1045,8 @@ model UgcReport {
   id           String              @id @default(cuid())
   reporterId   String
   targetType   UgcReportTargetType
-  targetId     String              // id của truyện / chương / comment / user
-  reason       String              // SPAM | ABUSE | ILLEGAL | OTHER (mã ngắn)
+  targetId     String // id của truyện / chương / comment / user
+  reason       String // SPAM | ABUSE | ILLEGAL | OTHER (mã ngắn)
   note         String?             @db.Text
   status       UgcReportStatus     @default(PENDING)
   createdAt    DateTime            @default(now())
