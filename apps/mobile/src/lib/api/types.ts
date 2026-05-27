@@ -46,6 +46,8 @@ export interface Story {
     followCount: number;
     rating: number;
     ratingCount: number;
+    /** Tác giả opt-in nhận xu từ ads (Phase B2.1). */
+    adRevenueEnabled?: boolean;
     country?: string | null;
     tags: string[];
     createdAt: string;

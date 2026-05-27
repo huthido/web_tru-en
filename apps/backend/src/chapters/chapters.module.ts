@@ -6,6 +6,7 @@ import { ApprovalsModule } from '../approvals/approvals.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { MonetizationModule } from '../monetization/monetization.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     forwardRef(() => ApprovalsModule),
     WalletModule,
     NotificationsModule,
+    MonetizationModule,
   ],
   controllers: [ChaptersController, AdminChaptersController, ChapterUploadController],
   providers: [ChaptersService],

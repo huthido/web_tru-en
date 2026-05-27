@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, TransactionType, WithdrawalStatus, NotificationType } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
 import { RedisService } from '../redis/redis.service';
+import { MonetizationService } from '../monetization/monetization.service';
 
 type WalletTx = Prisma.TransactionClient;
 
@@ -37,6 +38,7 @@ export class WalletService implements OnModuleInit {
         private config: ConfigService,
         private notifications: NotificationsService,
         private redis: RedisService,
+        private monetization: MonetizationService,
     ) { }
 
     async onModuleInit() {
@@ -451,6 +453,9 @@ export class WalletService implements OnModuleInit {
         const author = await this.prisma.user.findUnique({ where: { id: authorId } });
         if (!author) throw new BadRequestException('Không tìm thấy tác giả');
 
+        // Donate mở tự do cho mọi tác giả — eligibility chỉ gate "tạo paid
+        // content" + ad revenue (xem MonetizationService docstring).
+
         const donationResult = await this.prisma.$transaction(async (tx) => {
             // 1. Debit donor (soft: purchased first, fall back to earned). Lock + funds checked.
             const updatedSenderWallet = await this.debitForContent(tx, userId, amount);
@@ -551,6 +556,10 @@ export class WalletService implements OnModuleInit {
                 `Giá chương quá thấp; tối thiểu phải là ${minPrice} coin`,
             );
         }
+
+        // Mua chương mở tự do — nếu tác giả đã tạo được chapter trả phí
+        // thì có nghĩa đã có eligibility hoặc chapter được tạo trước khi
+        // policy đổi; ở luồng mua không gate lại để khỏi block người mua.
 
         const chapterResult = await this.prisma.$transaction(async (tx) => {
             // 1. Idempotency — bail out (no charge) if already purchased.
@@ -654,6 +663,9 @@ export class WalletService implements OnModuleInit {
                 `Giá truyện quá thấp; tối thiểu phải là ${minPrice} coin`,
             );
         }
+
+        // Mua truyện VIP mở tự do — gate eligibility chỉ áp dụng khi tác giả
+        // setup `accessType=VIP` ở stories.service.create/update.
 
         const storyResult = await this.prisma.$transaction(async (tx) => {
             const existing = await tx.storyPurchase.findUnique({

@@ -15,6 +15,7 @@ import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { UserRole } from '@shared/types';
 import { Story } from '@/lib/api/stories.service';
 import { useToastContext } from '@/components/providers/toast-provider';
+import { MonetizationProgressBanner } from '@/components/author/monetization-progress-banner';
 import { BookOpen, Eye, Star, Edit, Trash2, Send, LayoutGrid, List, BarChart3 } from 'lucide-react';
 
 export default function AuthorDashboardPage() {
@@ -110,6 +111,8 @@ export default function AuthorDashboardPage() {
                 <Header />
                 <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                     <div className="max-w-7xl mx-auto">
+                        {/* Banner tiến độ mở khoá Trung tâm Kiếm tiền — tự ẩn khi đủ điều kiện */}
+                        <MonetizationProgressBanner />
                         {/* Header */}
                         <div className="bg-surface-container rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-outline-variant">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between">

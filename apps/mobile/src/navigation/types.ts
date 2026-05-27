@@ -16,10 +16,12 @@ export type RootStackParamList = {
     EditChapter: { storyId: string; storySlug: string; chapterId: string };
     StoryAnalytics: { storyId: string; storyTitle?: string };
     Earnings: undefined;
+    Eligibility: undefined;
     Withdrawals: undefined;
     Transactions: undefined;
     Notifications: undefined;
     Settings: undefined;
+    UserProfile: { username: string };
 };
 
 export type MainTabsParamList = {

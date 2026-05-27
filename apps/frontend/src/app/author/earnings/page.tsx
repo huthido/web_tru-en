@@ -7,11 +7,12 @@ import { Footer } from '@/components/layouts/footer';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useWalletBalance } from '@/lib/api/hooks/use-wallet';
+import { useMyMonetizationEligibility } from '@/lib/api/hooks/use-monetization';
 import { TodayEarningsCard } from '@/components/author/today-earnings-card';
 import { DonationEarningsCard } from '@/components/author/donation-earnings-card';
 import { ChapterSalesEarningsCard } from '@/components/author/chapter-sales-card';
 import { StorySalesEarningsCard } from '@/components/author/story-sales-card';
-import { Wallet, ArrowUpRight, LayoutDashboard } from 'lucide-react';
+import { Wallet, ArrowUpRight, LayoutDashboard, Sparkles, ArrowRight } from 'lucide-react';
 
 /**
  * Trung tâm Kiếm tiền — gom toàn bộ thu nhập của tác giả vào một nơi
@@ -21,6 +22,10 @@ import { Wallet, ArrowUpRight, LayoutDashboard } from 'lucide-react';
 export default function AuthorEarningsPage() {
   const { isAuthenticated } = useAuth();
   const { data: wallet, isLoading: walletLoading } = useWalletBalance(isAuthenticated);
+  // Mọi tác giả đều xem được Trung tâm Kiếm tiền. Eligibility chỉ ảnh hưởng
+  // tính năng nâng cao (ads / paid content / verified) — không gate trang này.
+  const { data: eligibility } = useMyMonetizationEligibility(isAuthenticated);
+  const showUpgradeBanner = eligibility && !eligibility.eligible;
 
   if (!isAuthenticated) {
     return <ProtectedRoute><div /></ProtectedRoute>;
@@ -47,6 +52,32 @@ export default function AuthorEarningsPage() {
                   Quản lý thu nhập và rút xu từ sáng tác của bạn.
                 </p>
               </div>
+
+              {/* Banner mời mở khoá tính năng nâng cao (ads, paid chapter, VIP, verified) */}
+              {showUpgradeBanner && (
+                <div className="mb-6 rounded-xl border border-primary/30 bg-primary/5 p-4 md:p-5 flex flex-col md:flex-row md:items-center gap-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-on-surface">
+                        Mở khoá thêm tính năng nâng cao
+                      </h3>
+                      <p className="text-sm text-on-surface-variant mt-1">
+                        Nhận xu từ quảng cáo, bán chương trả phí, truyện VIP, và gắn tick xanh ✓.
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/author/eligibility"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors flex-shrink-0"
+                  >
+                    Xem điều kiện
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              )}
 
               {/* Ví số dư + nút rút xu */}
               <div className="bg-surface-container rounded-xl p-6 md:p-8 mb-6 shadow-sm border border-outline-variant">

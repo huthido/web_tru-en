@@ -41,6 +41,8 @@ export const EditStoryScreen: React.FC = () => {
         <StoryForm
             initialValues={initial}
             submitLabel="Lưu thay đổi"
+            storyId={q.data.id}
+            initialAdRevenueEnabled={!!q.data.adRevenueEnabled}
             onSubmit={async (data) => {
                 await StoriesApi.update(storyId, data);
                 qc.invalidateQueries({ queryKey: ['author', 'my-stories'] });

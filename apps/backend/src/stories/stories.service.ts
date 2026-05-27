@@ -18,6 +18,7 @@ import { storyInclude, storyWithChaptersInclude, safeStorySelect } from '../pris
 import { StoryStatus, UserRole } from '@prisma/client';
 import { SearchIndexerService } from '../search/search-indexer.service';
 import { WalletService } from '../wallet/wallet.service';
+import { MonetizationService } from '../monetization/monetization.service';
 
 @Injectable()
 export class StoriesService {
@@ -25,7 +26,28 @@ export class StoriesService {
     private prisma: PrismaService,
     private searchIndexer: SearchIndexerService,
     private walletService: WalletService,
+    private monetization: MonetizationService,
   ) { }
+
+  /**
+   * Gate "tạo paid content" — chỉ tác giả đủ 4 điều kiện monetization mới
+   * được đặt accessType=VIP/FREEMIUM hoặc story.price>0. Donate/mua truyện
+   * đã tạo trước đó không bị ảnh hưởng (đã mở tự do trong wallet.service).
+   *
+   * Gọi từ create() + update() khi DTO có set accessType ngoài FREE hoặc
+   * price > 0. Bỏ qua khi accessType=FREE (giá luôn = 0).
+   */
+  private async assertCanSetPaidStory(
+    authorId: string,
+    accessType?: string,
+    price?: number,
+  ) {
+    const isPaidAccess =
+      accessType && accessType !== 'FREE' && accessType !== undefined;
+    const hasPrice = (price ?? 0) > 0;
+    if (!isPaidAccess && !hasPrice) return;
+    await this.monetization.assertEligibleForAdvancedFeatures(authorId);
+  }
 
   /**
    * Buy a VIP whole-story (accessType=VIP). Mirrors ChaptersService.buyChapter:
@@ -126,6 +148,39 @@ export class StoriesService {
         `Giá truyện quá thấp (phí nền tảng ${feePercent}% sẽ ăn hết). Tối thiểu ${minPrice} coin.`,
       );
     }
+  }
+
+  /**
+   * Bật / tắt nhận xu từ quảng cáo trên truyện. Yêu cầu:
+   *   - Tác giả là chủ truyện.
+   *   - Đủ điều kiện monetization (10k view + 100 follower + tài khoản /
+   *     nội dung không vi phạm).
+   *
+   * Tắt thì không yêu cầu eligibility (cho phép tự ý turn-off bất cứ lúc nào).
+   * Phase B2.2 (cron credit revenue) sẽ đọc field này khi tính chia xu.
+   */
+  async setAdRevenueEnabled(
+    storyId: string,
+    authorId: string,
+    enabled: boolean,
+  ) {
+    const story = await this.prisma.story.findUnique({
+      where: { id: storyId },
+      select: { id: true, authorId: true },
+    });
+    if (!story) throw new NotFoundException('Truyện không tồn tại');
+    if (story.authorId !== authorId) {
+      throw new ForbiddenException('Bạn không có quyền chỉnh sửa truyện này');
+    }
+    if (enabled) {
+      await this.monetization.assertEligibleForAdvancedFeatures(authorId);
+    }
+    const updated = await this.prisma.story.update({
+      where: { id: storyId },
+      data: { adRevenueEnabled: enabled },
+      select: { id: true, adRevenueEnabled: true },
+    });
+    return updated;
   }
 
   // Rate limiting check for all users
@@ -444,6 +499,11 @@ export class StoriesService {
     }
 
     await this.validateStoryAccess(createStoryDto.accessType, createStoryDto.price);
+    await this.assertCanSetPaidStory(
+      userId,
+      createStoryDto.accessType,
+      createStoryDto.price,
+    );
 
     // Create story
     let story;
@@ -591,6 +651,14 @@ export class StoriesService {
       const effectiveType = updateStoryDto.accessType ?? story.accessType;
       const effectivePrice = updateStoryDto.price ?? story.price;
       await this.validateStoryAccess(effectiveType, effectivePrice);
+      // Gate paid setup theo eligibility — chỉ check khi DTO ĐANG ĐỔI sang
+      // paid (không khoá nếu user chỉ edit metadata khác mà truyện đã paid).
+      const switchingToPaid =
+        (updateStoryDto.accessType !== undefined && updateStoryDto.accessType !== 'FREE') ||
+        (updateStoryDto.price !== undefined && (updateStoryDto.price ?? 0) > 0);
+      if (switchingToPaid) {
+        await this.assertCanSetPaidStory(userId, effectiveType, effectivePrice);
+      }
       if (updateStoryDto.accessType !== undefined) updateData.accessType = updateStoryDto.accessType;
       if (updateStoryDto.price !== undefined) updateData.price = updateStoryDto.price;
     }

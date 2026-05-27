@@ -178,6 +178,17 @@ export class StoriesController {
         return this.storiesService.update(id, user.id, user.role, updateStoryDto);
     }
 
+    /** Bật / tắt nhận xu quảng cáo (Phase B2.1 — chỉ tác giả đủ eligibility). */
+    @Patch(':id/ad-revenue')
+    @UseGuards(JwtAuthGuard)
+    setAdRevenue(
+        @Param('id') id: string,
+        @CurrentUser() user: any,
+        @Body() body: { enabled: boolean },
+    ) {
+        return this.storiesService.setAdRevenueEnabled(id, user.id, !!body.enabled);
+    }
+
     @Delete(':id')
     @UseGuards(JwtAuthGuard)
     remove(@Param('id') id: string, @CurrentUser() user: any) {

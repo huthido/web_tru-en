@@ -13,11 +13,15 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
 import { colors, fontSize, radius, spacing } from '@/theme';
 import { CategoriesApi } from '@/lib/api/categories.service';
 import { StoriesApi, type CreateStoryInput } from '@/lib/api/stories.service';
+import { MonetizationService } from '@/lib/api/monetization.service';
 import type { StoryAccessType } from '@/lib/api/types';
 import { describeError } from '@/lib/error';
+import type { RootNavigation } from '@/navigation/types';
+import { AdRevenueToggle } from '@/components/AdRevenueToggle';
 import { resolveImageUrl } from '@/lib/url';
 import {
     COVER_NORMALIZE,
@@ -54,9 +58,19 @@ export interface StoryFormProps {
     initialValues?: Partial<StoryFormValues>;
     submitLabel: string;
     onSubmit: (data: CreateStoryInput) => Promise<void>;
+    /** Khi có (edit mode) — render thêm toggle "Nhận xu quảng cáo" cho truyện này. */
+    storyId?: string;
+    initialAdRevenueEnabled?: boolean;
 }
 
-export function StoryForm({ initialValues, submitLabel, onSubmit }: StoryFormProps) {
+export function StoryForm({
+    initialValues,
+    submitLabel,
+    onSubmit,
+    storyId,
+    initialAdRevenueEnabled,
+}: StoryFormProps) {
+    const nav = useNavigation<RootNavigation>();
     const [title, setTitle] = useState(initialValues?.title ?? '');
     const [description, setDescription] = useState(initialValues?.description ?? '');
     const [coverImage, setCoverImage] = useState(initialValues?.coverImage ?? '');
@@ -72,6 +86,14 @@ export function StoryForm({ initialValues, submitLabel, onSubmit }: StoryFormPro
         queryFn: () => CategoriesApi.list(),
         staleTime: 30 * 60_000,
     });
+
+    // Khoá option FREEMIUM/VIP khi tác giả chưa đủ điều kiện kiếm tiền.
+    const eligibilityQ = useQuery({
+        queryKey: ['monetization', 'eligibility', 'me'],
+        queryFn: () => MonetizationService.getMyEligibility(),
+        staleTime: 5 * 60 * 1000,
+    });
+    const monetizationLocked = !!eligibilityQ.data && !eligibilityQ.data.eligible;
 
     const toggleCategory = (id: string) => {
         setCategoryIds((prev) =>
@@ -250,10 +272,12 @@ export function StoryForm({ initialValues, submitLabel, onSubmit }: StoryFormPro
             <View style={styles.optionStack}>
                 {ACCESS_OPTIONS.map((o) => {
                     const selected = accessType === o.value;
+                    const disabled = monetizationLocked && o.value !== 'FREE';
                     return (
                         <Pressable
                             key={o.value}
-                            style={[styles.optionRow, selected && styles.optionRowActive]}
+                            style={[styles.optionRow, selected && styles.optionRowActive, disabled && { opacity: 0.5 }]}
+                            disabled={disabled}
                             onPress={() => setAccessType(o.value)}
                         >
                             <Ionicons
@@ -270,6 +294,25 @@ export function StoryForm({ initialValues, submitLabel, onSubmit }: StoryFormPro
                 })}
             </View>
 
+            {monetizationLocked && (
+                <Pressable
+                    onPress={() => nav.navigate('Eligibility')}
+                    style={{
+                        marginTop: -spacing.sm,
+                        marginBottom: spacing.sm,
+                        padding: spacing.sm,
+                        borderRadius: radius.md,
+                        backgroundColor: colors.surfaceContainer,
+                        borderWidth: 1,
+                        borderColor: colors.outlineVariant,
+                    }}
+                >
+                    <Text style={{ fontSize: fontSize.xs, color: colors.onSurfaceVariant }}>
+                        Bạn cần mở khoá Trung tâm Kiếm tiền để bán truyện VIP / chương trả phí. Bấm để xem điều kiện.
+                    </Text>
+                </Pressable>
+            )}
+
             {accessType === 'VIP' ? (
                 <>
                     <Text style={styles.label}>Giá truyện (xu) *</Text>
@@ -279,9 +322,15 @@ export function StoryForm({ initialValues, submitLabel, onSubmit }: StoryFormPro
                         placeholder="0"
                         placeholderTextColor={colors.textMuted}
                         keyboardType="numeric"
-                        style={styles.input}
+                        editable={!monetizationLocked}
+                        style={[styles.input, monetizationLocked && { opacity: 0.5 }]}
                     />
                 </>
+            ) : null}
+
+            {/* Toggle nhận xu quảng cáo — chỉ hiện ở edit mode (storyId tồn tại). */}
+            {storyId ? (
+                <AdRevenueToggle storyId={storyId} initialEnabled={!!initialAdRevenueEnabled} />
             ) : null}
 
             <Pressable

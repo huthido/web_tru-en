@@ -23,10 +23,12 @@ import { CreateChapterScreen } from '@/screens/author/CreateChapterScreen';
 import { EditChapterScreen } from '@/screens/author/EditChapterScreen';
 import { StoryAnalyticsScreen } from '@/screens/author/StoryAnalyticsScreen';
 import { EarningsScreen } from '@/screens/author/EarningsScreen';
+import { EligibilityScreen } from '@/screens/author/EligibilityScreen';
 import { WithdrawalsScreen } from '@/screens/author/WithdrawalsScreen';
 import { TransactionsScreen } from '@/screens/TransactionsScreen';
 import { NotificationsScreen } from '@/screens/NotificationsScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
+import { UserProfileScreen } from '@/screens/UserProfileScreen';
 import { MainTabBar } from '@/components/MainTabBar';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -179,6 +181,16 @@ export const RootNavigator: React.FC = () => {
                             name="Earnings"
                             component={EarningsScreen}
                             options={{ title: 'Doanh thu' }}
+                        />
+                        <Stack.Screen
+                            name="Eligibility"
+                            component={EligibilityScreen}
+                            options={{ title: 'Mở khoá Kiếm tiền' }}
+                        />
+                        <Stack.Screen
+                            name="UserProfile"
+                            component={UserProfileScreen}
+                            options={{ title: 'Trang cá nhân' }}
                         />
                         <Stack.Screen
                             name="Withdrawals"

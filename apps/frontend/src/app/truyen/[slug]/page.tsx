@@ -16,6 +16,8 @@ import { useChapters } from '@/lib/api/hooks/use-chapters';
 import { Story } from '@/lib/api/stories.service';
 import { FollowButton } from '@/components/stories/follow-button';
 import { LikeButton } from '@/components/stories/like-button';
+import { QuickFollowAuthorButton } from '@/components/users/quick-follow-author-button';
+import { VerifiedBadge } from '@/components/users/verified-badge';
 import { CommentSection } from '@/components/comments/comment-section';
 import { StarRating } from '@/components/stories/star-rating';
 import { DonateAuthorModal } from '@/components/stories/donate-author-modal';
@@ -378,9 +380,24 @@ export default function BookDetailPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8 xl:gap-12 mb-4 md:mb-6 pb-4 md:pb-6 border-b border-outline-variant">
                 <div>
                   <p className="text-sm text-on-surface-variant mb-1">Tác giả</p>
-                  <p className="text-base font-medium text-on-surface">
-                    {story.authorName || story.author?.displayName || story.author?.username || 'N/A'}
-                  </p>
+                  {story.author?.username ? (
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <Link
+                        href={`/u/${story.author.username}`}
+                        className="text-base font-medium text-on-surface hover:text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        {story.author.displayName || story.author.username}
+                        {(story.author as any)?.isVerified && <VerifiedBadge size={14} />}
+                      </Link>
+                      {story.author.id && (
+                        <QuickFollowAuthorButton authorId={story.author.id} compact />
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-base font-medium text-on-surface">
+                      {story.authorName || 'N/A'}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <p className="text-sm text-on-surface-variant mb-1">Thể loại</p>

@@ -66,6 +66,9 @@ export function Sidebar() {
     { href: '/shop', label: 'Cửa hàng', icon: Store, active: pathname === '/shop' },
     { href: '/author/stories/create', label: 'Đăng truyện', icon: Upload, active: pathname === '/author/stories/create', authOnly: true },
     { href: '/author/dashboard', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
+    // Trung tâm Kiếm tiền — hiển thị cho mọi tác giả đăng nhập (donate +
+    // bán chương đã tạo trước đó vẫn nhận xu tự do). Eligibility unlock
+    // tính năng nâng cao (ads, paid content, verified) ở /author/eligibility.
     { href: '/author/earnings', label: 'Kiếm tiền', icon: Wallet, active: pathname === '/author/earnings', authOnly: true },
   ];
 

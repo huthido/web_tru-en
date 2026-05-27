@@ -10,6 +10,7 @@ import { useCategories } from '@/lib/api/hooks/use-categories';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { storiesService } from '@/lib/api/stories.service';
 import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES, isImageFile } from '@/lib/utils/compress-image';
+import { MonetizationLockedNotice, useMonetizationLocked } from '@/components/author/monetization-locked-notice';
 
 export default function CreateStoryPage() {
     const router = useRouter();
@@ -17,6 +18,7 @@ export default function CreateStoryPage() {
     const categories = Array.isArray(categoriesResponse) ? categoriesResponse : [];
     const createMutation = useCreateStory();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const monetizationLocked = useMonetizationLocked();
 
     const [formData, setFormData] = useState({
         title: '',
@@ -264,17 +266,27 @@ export default function CreateStoryPage() {
                                     </label>
                                     <select
                                         value={formData.accessType}
-                                        onChange={(e) => setFormData({ ...formData, accessType: e.target.value as 'FREE' | 'FREEMIUM' | 'VIP' })}
+                                        onChange={(e) => {
+                                            const next = e.target.value as 'FREE' | 'FREEMIUM' | 'VIP';
+                                            // Khi tác giả chưa mở Trung tâm Kiếm tiền, ép về FREE (chỉ FREE
+                                            // mới không tạo earning event nào).
+                                            if (monetizationLocked && next !== 'FREE') {
+                                                setFormData({ ...formData, accessType: 'FREE', price: 0 });
+                                                return;
+                                            }
+                                            setFormData({ ...formData, accessType: next });
+                                        }}
                                         className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                     >
                                         <option value="FREE">Miễn phí — ai cũng đọc được</option>
-                                        <option value="FREEMIUM">Freemium — đặt giá coin từng chương ở trang chương</option>
-                                        <option value="VIP">VIP — mua một lần để mở khóa cả truyện</option>
+                                        <option value="FREEMIUM" disabled={monetizationLocked}>Freemium — đặt giá coin từng chương ở trang chương</option>
+                                        <option value="VIP" disabled={monetizationLocked}>VIP — mua một lần để mở khóa cả truyện</option>
                                     </select>
                                     <p className="mt-2 text-xs text-on-surface-variant">
                                         FREEMIUM: vào từng chương để đặt giá; nhãn trả phí được ẩn với độc giả.
                                         VIP: đặt giá cả truyện bên dưới.
                                     </p>
+                                    <MonetizationLockedNotice feature="vip-story" />
                                 </div>
 
                                 {formData.accessType === 'VIP' && (
@@ -287,8 +299,9 @@ export default function CreateStoryPage() {
                                             min={0}
                                             step={1}
                                             value={formData.price}
+                                            disabled={monetizationLocked}
                                             onChange={(e) => setFormData({ ...formData, price: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
-                                            className="w-full md:w-48 px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            className="w-full md:w-48 px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed"
                                             placeholder="0"
                                         />
                                         <p className="mt-2 text-xs text-on-surface-variant">

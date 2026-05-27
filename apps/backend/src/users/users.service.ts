@@ -8,12 +8,16 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
+import { MonetizationService } from '../monetization/monetization.service';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private monetization: MonetizationService,
+  ) { }
 
   /**
    * Self-delete tài khoản (Apple §5.1.1(v)). Soft delete + anonymise PII:
@@ -353,9 +357,20 @@ export class UsersService {
     };
   }
 
-  async getPublicProfile(userId: string) {
+  async getPublicProfile(userId: string, callerId?: string | null) {
+    return this._publicProfile({ id: userId }, callerId);
+  }
+
+  async getPublicProfileByUsername(username: string, callerId?: string | null) {
+    return this._publicProfile({ username }, callerId);
+  }
+
+  private async _publicProfile(
+    where: { id: string } | { username: string },
+    callerId?: string | null,
+  ) {
     const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+      where,
       select: {
         id: true,
         username: true,
@@ -365,10 +380,7 @@ export class UsersService {
         createdAt: true,
         _count: {
           select: {
-            authoredStories: true,
-            follows: true,
-            favorites: true,
-            readingHistory: true,
+            authoredStories: { where: { isPublished: true } },
           },
         },
       },
@@ -378,7 +390,135 @@ export class UsersService {
       throw new NotFoundException('User không tồn tại');
     }
 
-    return user;
+    const [viewsAgg, authorFollowerCount, isFollowing, isVerified] =
+      await Promise.all([
+        this.prisma.story.aggregate({
+          where: { authorId: user.id, isPublished: true },
+          _sum: { viewCount: true },
+        }),
+        this.prisma.authorFollow.count({ where: { authorId: user.id } }),
+        callerId && callerId !== user.id
+          ? this.prisma.authorFollow
+              .findUnique({
+                where: {
+                  userId_authorId: { userId: callerId, authorId: user.id },
+                },
+                select: { id: true },
+              })
+              .then((r) => !!r)
+          : Promise.resolve(false),
+        this.monetization.isEligible(user.id).catch(() => false),
+      ]);
+
+    return {
+      id: user.id,
+      username: user.username,
+      displayName: user.displayName,
+      avatar: user.avatar,
+      bio: user.bio,
+      createdAt: user.createdAt,
+      publishedStoriesCount: user._count.authoredStories,
+      totalViews: viewsAgg._sum.viewCount ?? 0,
+      authorFollowerCount,
+      isFollowing,
+      // Verified ✓ = đủ điều kiện mở khoá tính năng nâng cao (xem
+      // MonetizationService). Compute live, không denormalize.
+      isVerified,
+    };
+  }
+
+  async listPublishedStoriesByAuthor(
+    authorId: string,
+    page = 1,
+    limit = 12,
+  ) {
+    const safeLimit = Math.min(50, Math.max(1, limit));
+    const safePage = Math.max(1, page);
+    const skip = (safePage - 1) * safeLimit;
+
+    const [stories, total] = await Promise.all([
+      this.prisma.story.findMany({
+        where: { authorId, isPublished: true },
+        orderBy: [{ lastChapterAt: 'desc' }, { updatedAt: 'desc' }],
+        skip,
+        take: safeLimit,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          coverImage: true,
+          description: true,
+          status: true,
+          accessType: true,
+          viewCount: true,
+          followCount: true,
+          rating: true,
+          ratingCount: true,
+          updatedAt: true,
+          lastChapterAt: true,
+        },
+      }),
+      this.prisma.story.count({ where: { authorId, isPublished: true } }),
+    ]);
+
+    return {
+      data: stories,
+      meta: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+        hasNext: safePage * safeLimit < total,
+        hasPrev: safePage > 1,
+      },
+    };
+  }
+
+  /* ── Author follow (theo dõi tác giả) ──────────────────────────────── */
+
+  async toggleAuthorFollow(followerId: string, authorId: string) {
+    if (followerId === authorId) {
+      throw new BadRequestException('Không thể tự theo dõi chính mình');
+    }
+    const author = await this.prisma.user.findUnique({
+      where: { id: authorId },
+      select: { id: true, isActive: true, deletedAt: true },
+    });
+    if (!author || !author.isActive || author.deletedAt) {
+      throw new NotFoundException('Tác giả không tồn tại');
+    }
+
+    const existing = await this.prisma.authorFollow.findUnique({
+      where: { userId_authorId: { userId: followerId, authorId } },
+      select: { id: true },
+    });
+
+    if (existing) {
+      await this.prisma.authorFollow.delete({ where: { id: existing.id } });
+      const count = await this.prisma.authorFollow.count({ where: { authorId } });
+      return { following: false, followerCount: count };
+    }
+
+    await this.prisma.authorFollow.create({
+      data: { userId: followerId, authorId },
+    });
+    const count = await this.prisma.authorFollow.count({ where: { authorId } });
+    return { following: true, followerCount: count };
+  }
+
+  async countAuthorFollowers(authorId: string) {
+    return {
+      count: await this.prisma.authorFollow.count({ where: { authorId } }),
+    };
+  }
+
+  async isFollowingAuthor(followerId: string, authorId: string) {
+    if (followerId === authorId) return { following: false };
+    const r = await this.prisma.authorFollow.findUnique({
+      where: { userId_authorId: { userId: followerId, authorId } },
+      select: { id: true },
+    });
+    return { following: !!r };
   }
 }
 

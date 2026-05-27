@@ -115,6 +115,12 @@ export const StoriesApi = {
         await apiClient.delete(`/stories/${id}`);
     },
 
+    /** Bật / tắt nhận xu quảng cáo (Phase B2.1). */
+    async setAdRevenue(id: string, enabled: boolean): Promise<{ id: string; adRevenueEnabled: boolean }> {
+        const res = await apiClient.patch(`/stories/${id}/ad-revenue`, { enabled });
+        return unwrap(res);
+    },
+
     async publish(id: string): Promise<Story> {
         const res = await apiClient.post(`/stories/${id}/publish`);
         return unwrap<Story>(res);

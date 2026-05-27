@@ -87,7 +87,12 @@ function makeService() {
         publish: jest.fn(async () => undefined),
         subscribe: jest.fn(async () => undefined),
     } as any;
-    return new WalletService(prisma, config, notifications, redis);
+    const monetization = {
+        assertEligibleForEarning: jest.fn(async () => undefined),
+        isEligible: jest.fn(async () => true),
+        getEligibility: jest.fn(async () => ({ eligible: true })),
+    } as any;
+    return new WalletService(prisma, config, notifications, redis, monetization);
 }
 
 describe('WalletService — pure helpers', () => {

@@ -5,9 +5,10 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { SearchModule } from '../search/search.module';
 import { WalletModule } from '../wallet/wallet.module';
+import { MonetizationModule } from '../monetization/monetization.module';
 
 @Module({
-  imports: [PrismaModule, CloudinaryModule, forwardRef(() => SearchModule), WalletModule],
+  imports: [PrismaModule, CloudinaryModule, forwardRef(() => SearchModule), WalletModule, MonetizationModule],
   controllers: [StoriesController],
   providers: [StoriesService],
   exports: [StoriesService],

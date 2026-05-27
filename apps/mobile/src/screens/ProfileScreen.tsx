@@ -65,7 +65,12 @@ export const ProfileScreen: React.FC = () => {
 
     return (
         <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-            <View style={styles.profileCard}>
+            <Pressable
+                style={styles.profileCard}
+                onPress={() => {
+                    if (user?.username) rootNav.navigate('UserProfile', { username: user.username });
+                }}
+            >
                 <View style={styles.avatar}>
                     <Text style={styles.avatarText}>{initial}</Text>
                 </View>
@@ -76,7 +81,15 @@ export const ProfileScreen: React.FC = () => {
                     </Text>
                 </View>
                 {user?.email ? <Text style={styles.email}>{user.email}</Text> : null}
-            </View>
+                {user?.username ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                        <Ionicons name="person-circle-outline" size={14} color={colors.primary} />
+                        <Text style={{ color: colors.primary, fontSize: fontSize.xs, fontFamily: 'DMSans_500Medium' }}>
+                            Xem trang cá nhân
+                        </Text>
+                    </View>
+                ) : null}
+            </Pressable>
 
             <Pressable style={styles.card} onPress={() => tabNav.navigate('Wallet')}>
                 <View style={styles.cardHeader}>

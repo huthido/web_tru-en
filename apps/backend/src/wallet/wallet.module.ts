@@ -8,9 +8,15 @@ import { AdminWithdrawalController } from './admin-withdrawal.controller';
 import { AdminWalletController } from './admin-wallet.controller';
 import { SettingsModule } from '../settings/settings.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { MonetizationModule } from '../monetization/monetization.module';
 
 @Module({
-    imports: [PrismaModule, forwardRef(() => SettingsModule), NotificationsModule],
+    imports: [
+        PrismaModule,
+        forwardRef(() => SettingsModule),
+        NotificationsModule,
+        MonetizationModule,
+    ],
     controllers: [WalletController, AdminCoinPackageController, AdminWithdrawalController, AdminWalletController],
     providers: [WalletService, CoinPackageService],
     exports: [WalletService, CoinPackageService],

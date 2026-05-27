@@ -148,11 +148,61 @@ export class UsersController {
     return this.usersService.unblockUser(user.id, userId);
   }
 
+  /* ── Theo dõi tác giả (author follow) ────────────────────────────────── */
+
+  @Post(':userId/follow-author')
+  async followAuthor(
+    @CurrentUser() user: any,
+    @Param('userId') authorId: string,
+  ) {
+    return this.usersService.toggleAuthorFollow(user.id, authorId);
+  }
+
+  @Get(':userId/author-followers/count')
+  @Public()
+  async authorFollowerCount(@Param('userId') authorId: string) {
+    return this.usersService.countAuthorFollowers(authorId);
+  }
+
+  @Get(':userId/author-followers/me')
+  async isFollowingAuthor(
+    @CurrentUser() user: any,
+    @Param('userId') authorId: string,
+  ) {
+    return this.usersService.isFollowingAuthor(user.id, authorId);
+  }
+
   // Public routes - must be after all 'me' routes to avoid route conflicts
   @Public()
+  @Get('by-username/:username')
+  async getPublicProfileByUsername(
+    @Param('username') username: string,
+    @CurrentUser() caller: any,
+  ) {
+    return this.usersService.getPublicProfileByUsername(username, caller?.id);
+  }
+
+  @Public()
+  @Get(':id/stories')
+  async getUserStories(
+    @Param('id') id: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.usersService.listPublishedStoriesByAuthor(
+      id,
+      page ? parseInt(page, 10) : undefined,
+      limit ? parseInt(limit, 10) : undefined,
+    );
+  }
+
+  @Public()
   @Get(':id/public')
-  async getPublicProfile(@Param('id') id: string) {
-    return this.usersService.getPublicProfile(id);
+  async getPublicProfile(
+    @Param('id') id: string,
+    @CurrentUser() caller: any,
+  ) {
+    return this.usersService.getPublicProfile(id, caller?.id);
   }
 
   @Public()

@@ -72,6 +72,10 @@ model User {
   ugcReportsReviewed      UgcReport[]              @relation("UgcReportResolver")
   blocks                  UserBlock[]              @relation("UserBlockBlocker")
   blockedBy               UserBlock[]              @relation("UserBlockBlocked")
+  // Theo dõi tác giả (khác với Follow theo truyện). Phục vụ điều kiện
+  // bật kiếm tiền (≥100 followers) + nút "Theo dõi tác giả" ở profile MXH.
+  authorFollowsFollowing  AuthorFollow[]           @relation("AuthorFollowFollower")
+  authorFollowers         AuthorFollow[]           @relation("AuthorFollowTarget")
 
   @@index([email])
   @@index([username])
@@ -99,6 +103,10 @@ model Story {
   rating           Float             @default(0)
   ratingCount      Int               @default(0)
   isRecommended    Boolean           @default(false)
+  /// Tác giả opt-in nhận xu từ quảng cáo hiển thị trong truyện này.
+  /// Mặc định off — phải đủ điều kiện monetization mới bật được (xem
+  /// MonetizationService.assertEligibleForAdvancedFeatures).
+  adRevenueEnabled Boolean           @default(false)
   country          String?
   tags             String[]
   createdAt        DateTime          @default(now())
@@ -210,6 +218,27 @@ model Follow {
   @@index([storyId])
   @@index([createdAt])
   @@map("follows")
+}
+
+/// Theo dõi tác giả (user-to-user). Khác với Follow ở trên — Follow theo
+/// dõi *truyện*. AuthorFollow theo dõi *user (tác giả)*. Phục vụ:
+///   1. Điều kiện bật kiếm tiền (≥100 followers).
+///   2. Nút "Theo dõi tác giả" trên trang cá nhân /u/[username].
+/// onDelete: Cascade — nếu user (follower hoặc author) bị xoá, follow biến mất.
+model AuthorFollow {
+  id        String   @id @default(cuid())
+  userId    String // người follow
+  authorId  String // tác giả được follow
+  createdAt DateTime @default(now())
+
+  user   User @relation("AuthorFollowFollower", fields: [userId], references: [id], onDelete: Cascade)
+  author User @relation("AuthorFollowTarget", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, authorId])
+  @@index([authorId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("author_follows")
 }
 
 model Category {

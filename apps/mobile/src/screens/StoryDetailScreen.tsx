@@ -28,6 +28,7 @@ import { UserBlocksApi } from '@/lib/api/user-blocks.service';
 import { EmptyView, ErrorView, Loading, Stars } from '@/components/ui';
 import { StoryCover } from '@/components/StoryCover';
 import { AdBanner } from '@/components/AdBanner';
+import { QuickFollowAuthorButton } from '@/components/QuickFollowAuthorButton';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'StoryDetail'>;
 
@@ -146,6 +147,8 @@ export const StoryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     const s = story.data;
     const author =
         s.authorName || s.author?.displayName || s.author?.username || 'Đang cập nhật';
+    const authorUsername = s.author?.username;
+    const authorId = s.author?.id ?? (s as any)?.authorId;
     const description = htmlToPlainText(s.description, 4000) || 'Chưa có giới thiệu.';
     const categories = s.storyCategories?.map((sc) => sc.category) ?? [];
     const isFollowing = followStatus.data ?? false;
@@ -160,7 +163,21 @@ export const StoryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             <View style={styles.hero}>
                 <StoryCover uri={s.coverImage} width={132} />
                 <Text style={styles.title}>{s.title}</Text>
-                <Text style={styles.author}>{author}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs }}>
+                    {authorUsername ? (
+                        <Pressable
+                            onPress={() => navigation.navigate('UserProfile', { username: authorUsername })}
+                            hitSlop={6}
+                        >
+                            <Text style={[styles.author, { color: colors.primary, textDecorationLine: 'underline' }]}>
+                                {author}
+                            </Text>
+                        </Pressable>
+                    ) : (
+                        <Text style={styles.author}>{author}</Text>
+                    )}
+                    {authorId ? <QuickFollowAuthorButton authorId={authorId} compact /> : null}
+                </View>
                 <View style={styles.badgeRow}>
                     <View style={styles.badge}>
                         <Text style={styles.badgeText}>{storyStatusLabel(s.status)}</Text>

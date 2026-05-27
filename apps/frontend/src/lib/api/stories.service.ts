@@ -23,6 +23,8 @@ export interface Story {
     rating: number;
     ratingCount: number;
     isRecommended?: boolean;
+    /** Tác giả opt-in nhận xu từ ads (Phase B2.1). Mặc định false. */
+    adRevenueEnabled?: boolean;
     country?: string;
     tags: string[];
     createdAt: string;
@@ -178,6 +180,16 @@ export const storiesService = {
     delete: async (id: string): Promise<ApiResponse> => {
         const response = await apiClient.delete(`/stories/${id}`);
         return response.data;
+    },
+
+    /** Bật / tắt nhận xu quảng cáo trên truyện (Phase B2.1). */
+    setAdRevenue: async (id: string, enabled: boolean): Promise<{ id: string; adRevenueEnabled: boolean }> => {
+        const response = await apiClient.patch<{ id: string; adRevenueEnabled: boolean }>(
+            `/stories/${id}/ad-revenue`,
+            { enabled },
+        );
+        const data = response.data as any;
+        return (data?.data ?? data) as { id: string; adRevenueEnabled: boolean };
     },
 
     publish: async (id: string): Promise<ApiResponse<Story>> => {

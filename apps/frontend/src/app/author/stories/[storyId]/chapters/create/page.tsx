@@ -11,6 +11,7 @@ import { useStory } from '@/lib/api/hooks/use-stories';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Loading } from '@/components/ui/loading';
 import { RichTextEditor } from '@/components/editor/rich-text-editor';
+import { MonetizationLockedNotice, useMonetizationLocked } from '@/components/author/monetization-locked-notice';
 
 export default function CreateChapterPage() {
     const params = useParams();
@@ -20,6 +21,7 @@ export default function CreateChapterPage() {
     const { data: story, isLoading: storyLoading } = useStory(storyIdOrSlug);
     const storySlug = story?.slug || storyIdOrSlug;
     const createMutation = useCreateChapter(storySlug);
+    const monetizationLocked = useMonetizationLocked();
 
     const [formData, setFormData] = useState({
         title: '',
@@ -173,13 +175,15 @@ export default function CreateChapterPage() {
                                         min={0}
                                         step={1}
                                         value={formData.price}
+                                        disabled={monetizationLocked}
                                         onChange={(e) => setFormData({ ...formData, price: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
-                                        className="w-full md:w-48 px-4 py-3 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        className="w-full md:w-48 px-4 py-3 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed"
                                         placeholder="0"
                                     />
                                     <p className="mt-2 text-xs text-on-surface-variant">
                                         Để <span className="font-medium">0</span> nếu chương miễn phí. Khi {'>'} 0, độc giả phải trả số coin này để mở khóa; bạn nhận phần coin sau khi trừ phí nền tảng.
                                     </p>
+                                    <MonetizationLockedNotice feature="paid-chapter" />
                                 </div>
 
                                 {/* Error Message */}

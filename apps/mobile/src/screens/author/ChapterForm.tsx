@@ -12,9 +12,13 @@ import {
     View,
 } from 'react-native';
 import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
 import { colors, fontSize, radius, spacing } from '@/theme';
 import type { CreateChapterInput } from '@/lib/api/chapters.service';
+import { MonetizationService } from '@/lib/api/monetization.service';
 import { describeError } from '@/lib/error';
+import type { RootNavigation } from '@/navigation/types';
 
 export interface ChapterFormValues {
     title: string;
@@ -54,6 +58,7 @@ export function ChapterForm({
     hidePublishToggle = false,
     onSubmit,
 }: ChapterFormProps) {
+    const nav = useNavigation<RootNavigation>();
     const richRef = useRef<RichEditor>(null);
 
     const [title, setTitle] = useState(initialValues?.title ?? '');
@@ -63,6 +68,13 @@ export function ChapterForm({
         initialValues?.publishImmediately ?? false,
     );
     const [submitting, setSubmitting] = useState(false);
+
+    const eligibilityQ = useQuery({
+        queryKey: ['monetization', 'eligibility', 'me'],
+        queryFn: () => MonetizationService.getMyEligibility(),
+        staleTime: 5 * 60 * 1000,
+    });
+    const monetizationLocked = !!eligibilityQ.data && !eligibilityQ.data.eligible;
 
     const onPressSubmit = async () => {
         const t = title.trim();
@@ -144,12 +156,30 @@ export function ChapterForm({
                     placeholder="0"
                     placeholderTextColor={colors.textMuted}
                     keyboardType="numeric"
-                    style={styles.input}
+                    editable={!monetizationLocked}
+                    style={[styles.input, monetizationLocked && { opacity: 0.5 }]}
                 />
                 <Text style={styles.hint}>
                     Đặt giá để biến chương này thành chương trả phí (chỉ dùng cho truyện
                     FREEMIUM). Truyện FREE/VIP không lấy giá từ chương.
                 </Text>
+                {monetizationLocked && (
+                    <Pressable
+                        onPress={() => nav.navigate('Eligibility')}
+                        style={{
+                            marginTop: spacing.xs,
+                            padding: spacing.sm,
+                            borderRadius: radius.md,
+                            backgroundColor: colors.surfaceContainer,
+                            borderWidth: 1,
+                            borderColor: colors.outlineVariant,
+                        }}
+                    >
+                        <Text style={{ fontSize: fontSize.xs, color: colors.onSurfaceVariant }}>
+                            Bạn cần mở khoá Trung tâm Kiếm tiền để đặt giá chương trả phí. Bấm để xem điều kiện.
+                        </Text>
+                    </Pressable>
+                )}
 
                 {!hidePublishToggle ? (
                     <Pressable

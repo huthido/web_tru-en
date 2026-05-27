@@ -14,12 +14,22 @@ import { useQueries, useQuery } from '@tanstack/react-query';
 import { colors, fontSize, radius, spacing, typography } from '@/theme';
 import { ErrorView } from '@/components/ui';
 import { WalletApi, type EarningsBreakdown, type TodayEarnings } from '@/lib/api/wallet.service';
+import { MonetizationService } from '@/lib/api/monetization.service';
 import { formatNumber } from '@/lib/format';
 import { describeError } from '@/lib/error';
 import type { RootNavigation } from '@/navigation/types';
 
 export const EarningsScreen: React.FC = () => {
     const nav = useNavigation<RootNavigation>();
+
+    // Donate / bán content đã tạo mở tự do cho mọi tác giả. Eligibility chỉ
+    // dùng để hiện banner mời mở khoá tính năng nâng cao.
+    const eligibilityQ = useQuery({
+        queryKey: ['monetization', 'eligibility', 'me'],
+        queryFn: () => MonetizationService.getMyEligibility(),
+        staleTime: 5 * 60 * 1000,
+    });
+    const showUpgradeBanner = !!eligibilityQ.data && !eligibilityQ.data.eligible;
 
     const balanceQ = useQuery({
         queryKey: ['wallet', 'balance'],
@@ -85,6 +95,20 @@ export const EarningsScreen: React.FC = () => {
                 />
             }
         >
+            {/* Banner mời mở khoá tính năng nâng cao */}
+            {showUpgradeBanner && (
+                <Pressable style={styles.upgradeBanner} onPress={() => nav.navigate('Eligibility')}>
+                    <Ionicons name="sparkles" size={20} color={colors.primary} />
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.upgradeTitle}>Mở khoá thêm tính năng nâng cao</Text>
+                        <Text style={styles.upgradeSubtitle}>
+                            Nhận xu quảng cáo, bán chương trả phí, truyện VIP, gắn tick xanh ✓.
+                        </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceVariant} />
+                </Pressable>
+            )}
+
             {/* Balance card */}
             <View style={styles.balanceCard}>
                 <Text style={styles.balanceLabel}>Xu kiếm được (có thể rút)</Text>
@@ -219,6 +243,18 @@ const styles = StyleSheet.create({
         marginTop: spacing.xs,
     },
     withdrawText: { ...typography.labelMd, color: colors.primary, fontFamily: 'DMSans_700Bold' },
+    upgradeBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        padding: spacing.md,
+        borderRadius: radius.lg,
+        backgroundColor: colors.primaryContainer,
+        borderWidth: 1,
+        borderColor: colors.primary,
+    },
+    upgradeTitle: { ...typography.labelMd, color: colors.onSurface, fontFamily: 'DMSans_700Bold' },
+    upgradeSubtitle: { ...typography.bodySm, color: colors.onSurfaceVariant, fontSize: fontSize.xs, marginTop: 2 },
     card: {
         backgroundColor: colors.surfaceContainerLowest,
         borderRadius: radius.lg,
