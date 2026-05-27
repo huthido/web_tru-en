@@ -78,7 +78,7 @@ interface UpstreamResult {
   status: number;
   contentType?: string;
   location?: string;
-  body?: Buffer;
+  body?: Uint8Array;
 }
 
 /**
@@ -209,7 +209,7 @@ export async function GET(req: NextRequest) {
       const contentType = result.contentType ?? 'image/jpeg';
       if (!contentType.startsWith('image/')) return new NextResponse('Not an image', { status: 415 });
 
-      return new NextResponse(result.body, {
+      return new NextResponse((result.body ?? null) as unknown as BodyInit, {
         status: 200,
         headers: {
           'Content-Type': contentType,
