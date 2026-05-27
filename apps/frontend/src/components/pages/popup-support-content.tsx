@@ -1,5 +1,6 @@
 'use client';
 
+import DOMPurify from 'isomorphic-dompurify';
 import { usePage } from '@/lib/api/hooks/use-pages';
 import { Loading } from '@/components/ui/loading';
 import { OptimizedImage } from '@/components/ui/optimized-image';
@@ -35,7 +36,7 @@ export function PopupSupportContent({ onClose }: PopupSupportContentProps) {
             {/* Content from CMS */}
             <div
                 className="space-y-4 text-base text-on-surface-variant leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: page.content }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page.content) }}
             />
 
             {/* QR Code Section - Keep this as it's specific to support */}

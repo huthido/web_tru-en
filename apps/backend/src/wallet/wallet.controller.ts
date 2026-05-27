@@ -76,14 +76,6 @@ export class WalletController {
         });
     }
 
-    // Mock deposit for testing
-    @Post('deposit')
-    @UseGuards(JwtAuthGuard)
-    async deposit(@Request() req: any, @Body() body: { amount: number }) {
-        const user = req.user as User;
-        return this.walletService.deposit(user.id, body.amount, 'User Manual Deposit');
-    }
-
     // Donate coins to an author
     @Post('donate')
     @UseGuards(JwtAuthGuard)

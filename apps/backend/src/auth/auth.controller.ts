@@ -247,6 +247,8 @@ export class AuthController {
     return this.authService.verifyEmail(token);
   }
 
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
   async resendVerification(@Body() body: { email: string }) {
@@ -254,26 +256,10 @@ export class AuthController {
     if (!email) {
       throw new BadRequestException('Email là bắt buộc');
     }
-
-    // Find user by email
-    const user = await this.authService['prisma'].user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      throw new BadRequestException('Email không tồn tại');
-    }
-
-    if (user.emailVerified) {
-      throw new BadRequestException('Email đã được xác thực');
-    }
-
-    await this.authService['sendEmailVerification'](user.id, user.email, user.displayName || user.username);
-
-    return {
-      success: true,
-      message: 'Email xác thực đã được gửi lại',
-    };
+    // Always return generic success to prevent email enumeration.
+    // The service sends the email only if the account exists and is unverified.
+    await this.authService.resendVerificationSafe(email);
+    return { success: true, message: 'Nếu email tồn tại và chưa xác thực, email xác thực đã được gửi.' };
   }
 
   @Public()
@@ -359,6 +345,15 @@ export class AuthController {
     try {
       const result = req.user as any;
 
+      // 🔒 Security: local account conflict — do NOT auto-link
+      if (result?.conflict === 'local_account_exists') {
+        const email = encodeURIComponent(result.email || '');
+        if (isMobile) {
+          return res.redirect(this.mobileAppRedirect({ error: 'oauth_conflict', email: result.email || '' }));
+        }
+        return res.redirect(`${frontendUrl}/dang-nhap?error=oauth_conflict&email=${email}`);
+      }
+
       // Check if needs verification
       if (result.needsVerification) {
         if (isMobile) {
@@ -428,6 +423,15 @@ export class AuthController {
 
     try {
       const result = req.user as any;
+
+      // 🔒 Security: local account conflict — do NOT auto-link
+      if (result?.conflict === 'local_account_exists') {
+        const email = encodeURIComponent(result.email || '');
+        if (isMobile) {
+          return res.redirect(this.mobileAppRedirect({ error: 'oauth_conflict', email: result.email || '' }));
+        }
+        return res.redirect(`${frontendUrl}/dang-nhap?error=oauth_conflict&email=${email}`);
+      }
 
       if (result.needsVerification) {
         if (isMobile) {

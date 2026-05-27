@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 import { useSlotAds } from '@/lib/api/hooks/use-ads';
 import { AdBanner } from './ad-banner';
 import { AdPosition, type Ad, type AdInlineRule } from '@/lib/api/ads.service';
@@ -80,13 +81,21 @@ export function InlineAdsRenderer({
     return <>{nodes}</>;
 }
 
+function sanitize(html: string): string {
+    return DOMPurify.sanitize(html, {
+        USE_PROFILES: { html: true },
+        FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form'],
+        FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'],
+    });
+}
+
 function renderContentOnly(content: string, isHtml: boolean): React.ReactNode[] {
     if (isHtml) {
         return [
             <div
                 key="html-content"
                 className="chapter-html-content"
-                dangerouslySetInnerHTML={{ __html: content }}
+                dangerouslySetInnerHTML={{ __html: sanitize(content) }}
             />,
         ];
     }
@@ -151,7 +160,7 @@ function renderContentWithInlineAds(
                         <div
                             key={`html-${index}`}
                             className="chapter-html-content"
-                            dangerouslySetInnerHTML={{ __html: currentHtml }}
+                            dangerouslySetInnerHTML={{ __html: sanitize(currentHtml) }}
                         />,
                     );
                     insertAd(`ad-${index}`);
@@ -166,7 +175,7 @@ function renderContentWithInlineAds(
                 <div
                     key="html-last"
                     className="chapter-html-content"
-                    dangerouslySetInnerHTML={{ __html: currentHtml }}
+                    dangerouslySetInnerHTML={{ __html: sanitize(currentHtml) }}
                 />,
             );
         }

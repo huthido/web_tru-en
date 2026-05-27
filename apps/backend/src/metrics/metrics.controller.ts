@@ -1,4 +1,4 @@
-import { Controller, Get, Header } from '@nestjs/common';
+import { Controller, Get, Header, Headers, UnauthorizedException } from '@nestjs/common';
 import { register, collectDefaultMetrics } from 'prom-client';
 import { Public } from '../auth/decorators/public.decorator';
 
@@ -14,15 +14,18 @@ collectDefaultMetrics({ prefix: 'web_truyen_' });
  * Exposes process-level metrics (CPU, memory, event loop lag, GC) plus any
  * counters/histograms registered elsewhere via `prom-client`'s global
  * registry. Public — Prometheus scrapers don't have auth in most setups.
- * In production, restrict via Traefik IP allowlist or a basic-auth label
- * if the backend is internet-exposed.
+ * When METRICS_TOKEN env var is set, requires Authorization: Bearer <token>.
  */
 @Controller('metrics')
 export class MetricsController {
     @Public()
     @Get()
     @Header('Content-Type', register.contentType)
-    async metrics(): Promise<string> {
+    async metrics(@Headers('authorization') auth: string): Promise<string> {
+        const token = process.env.METRICS_TOKEN;
+        if (token && auth !== `Bearer ${token}`) {
+            throw new UnauthorizedException('Invalid metrics token');
+        }
         return register.metrics();
     }
 }

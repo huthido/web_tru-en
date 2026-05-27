@@ -1,5 +1,6 @@
 'use client';
 
+import DOMPurify from 'isomorphic-dompurify';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
@@ -68,7 +69,7 @@ export function PageContent({ slug, fallbackTitle }: PageContentProps) {
                         )}
                         <div
                             className="mt-8 space-y-6 text-base text-on-surface-variant leading-relaxed prose prose-lg dark:prose-invert max-w-none"
-                            dangerouslySetInnerHTML={{ __html: page.content }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page.content) }}
                         />
                     </div>
                 </main>

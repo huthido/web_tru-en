@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
+import * as crypto from 'node:crypto';
 
 /**
  * Verification result the service layer consumes. Backed by App Store Server
@@ -79,9 +80,57 @@ export class AppleIapProvider {
         return JSON.parse(Buffer.from(padded, 'base64').toString('utf8'));
     }
 
+    /** Convert a base64-encoded DER certificate to PEM format. */
+    private derToPem(derB64: string): string {
+        const lines = derB64.match(/.{1,64}/g)?.join('\n') ?? derB64;
+        return `-----BEGIN CERTIFICATE-----\n${lines}\n-----END CERTIFICATE-----`;
+    }
+
+    /**
+     * Verify a JWS signed by Apple using the embedded x5c certificate chain,
+     * then decode and return the payload. Used for webhook signedPayload where
+     * the message originates from the network and must be cryptographically
+     * authenticated before we act on it.
+     */
+    private verifyAndDecodeJws(jws: string): any {
+        const b64 = (s: string) => s.replace(/-/g, '+').replace(/_/g, '/');
+
+        const parts = jws.split('.');
+        if (parts.length !== 3) throw new Error('Malformed JWS');
+        const [headerB64, , ] = parts;
+
+        // Decode header to get x5c chain
+        const headerJson = Buffer.from(b64(headerB64), 'base64').toString('utf8');
+        const header = JSON.parse(headerJson);
+        const x5c: string[] | undefined = header.x5c;
+        if (!x5c || x5c.length < 2) {
+            throw new Error('JWS header missing x5c chain (need at least leaf + intermediate)');
+        }
+
+        // Build X509Certificate objects from DER (base64-encoded in x5c)
+        const certs = x5c.map((derB64) => new crypto.X509Certificate(this.derToPem(derB64)));
+
+        // Verify the chain: each cert must be signed by the next one
+        for (let i = 0; i < certs.length - 1; i++) {
+            if (!certs[i].verify(certs[i + 1].publicKey)) {
+                throw new Error(`x5c chain verification failed at index ${i}`);
+            }
+        }
+
+        // Basic root CA validation — Apple's root cert must identify Apple
+        const rootSubject = certs[certs.length - 1].subject;
+        if (!rootSubject.includes('Apple')) {
+            throw new Error(`x5c root cert subject does not include 'Apple': ${rootSubject}`);
+        }
+
+        // Extract the leaf cert's public key and use it to verify the JWS signature
+        const leafPublicKeyPem = certs[0].publicKey.export({ format: 'pem', type: 'spki' }) as string;
+        return jwt.verify(jws, leafPublicKeyPem, { algorithms: ['ES256'] });
+    }
+
     /** Decode the OUTER signedPayload of an App Store Server Notification V2. */
     decodeNotificationPayload(signedPayload: string): any {
-        return this.decodeJwsPayload(signedPayload);
+        return this.verifyAndDecodeJws(signedPayload);
     }
 
     /**

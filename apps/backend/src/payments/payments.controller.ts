@@ -9,6 +9,7 @@ import {
   Res,
   HttpCode,
   HttpStatus,
+  Headers,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { PaymentsService } from './payments.service';
@@ -144,8 +145,8 @@ export class PaymentsController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('google/webhook')
-  async googleWebhook(@Body() body: unknown) {
-    return this.payments.handleGoogleWebhook(body);
+  async googleWebhook(@Body() body: unknown, @Headers('authorization') auth: string) {
+    return this.payments.handleGoogleWebhook(body, auth);
   }
 
   /**

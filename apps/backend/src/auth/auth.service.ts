@@ -330,6 +330,19 @@ export class AuthService {
           : existingUser.isActive;
 
         if (canLogin) {
+          // 🔒 Security: refuse to silently link an OAuth identity onto a
+          // local (password-based) account — prevents account takeover when
+          // an attacker controls an OAuth identity sharing the victim's email.
+          const isLocalAccount =
+            existingUser.password !== null &&
+            (!existingUser.provider || existingUser.provider === 'local');
+          if (isLocalAccount) {
+            this.logger.warn(
+              `OAuth link refused: ${oauthUser.email} is a local account (${oauthUser.provider})`,
+            );
+            return { conflict: 'local_account_exists', email: oauthUser.email } as any;
+          }
+
           // ✅ User có thể đăng nhập → Link OAuth account
           user = await this.prisma.user.update({
             where: { id: existingUser.id },
@@ -937,6 +950,12 @@ export class AuthService {
 
     // Send new verification
     await this.sendEmailVerification(userId, user.email, user.displayName || user.username);
+  }
+
+  async resendVerificationSafe(email: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user || user.emailVerified) return;
+    await this.sendEmailVerification(user.id, user.email, user.displayName || user.username);
   }
 
   // Exchange one-time code for tokens

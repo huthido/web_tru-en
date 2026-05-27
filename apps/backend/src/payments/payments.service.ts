@@ -485,8 +485,23 @@ export class PaymentsService {
    * invalid (already refunded), search providerData by purchaseToken as a
    * fallback.
    */
-  async handleGoogleWebhook(body: unknown) {
+  async handleGoogleWebhook(body: unknown, authHeader?: string) {
     try {
+      // Verify Google Pub/Sub OIDC JWT if audience is configured.
+      const audience = process.env.GOOGLE_PUBSUB_AUDIENCE;
+      if (audience) {
+        if (!authHeader?.startsWith('Bearer ')) {
+          this.logger.warn('Google webhook missing OIDC Bearer token');
+          return { ok: true }; // ack to stop retries; log for investigation
+        }
+        const token = authHeader.slice(7);
+        const valid = await this.verifyGoogleOidcToken(token, audience);
+        if (!valid) {
+          this.logger.warn('Google webhook OIDC token invalid');
+          return { ok: true };
+        }
+      }
+
       const message = (body as any)?.message;
       const dataB64: string | undefined = message?.data;
       if (!dataB64) {
@@ -547,6 +562,28 @@ export class PaymentsService {
     } catch (e: any) {
       this.logger.error(`Google webhook error: ${e?.message ?? e}`);
       return { ok: true };
+    }
+  }
+
+  private async verifyGoogleOidcToken(token: string, audience: string): Promise<boolean> {
+    try {
+      const jwksClient = require('jwks-rsa')({
+        jwksUri: 'https://www.googleapis.com/oauth2/v3/certs',
+        cache: true,
+        cacheMaxAge: 600_000,
+      });
+      const decoded = require('jsonwebtoken').decode(token, { complete: true });
+      if (!decoded || typeof decoded === 'string') return false;
+      const key = await jwksClient.getSigningKey(decoded.header.kid);
+      require('jsonwebtoken').verify(token, key.getPublicKey(), {
+        algorithms: ['RS256'],
+        issuer: 'https://accounts.google.com',
+        audience,
+      });
+      return true;
+    } catch (e: any) {
+      this.logger.warn(`Google OIDC verify failed: ${e?.message}`);
+      return false;
     }
   }
 
