@@ -65,11 +65,11 @@
   --md-on-surface: 26 28 28;             /* #1a1c1c near-black */
   --md-on-surface-variant: 75 69 73;     /* #4b4549 charcoal */
   --md-surface-container-lowest: 255 255 255;
-  --md-surface-container-low: 243 243 243;
-  --md-surface-container: 238 238 238;
-  --md-surface-container-high: 232 232 232;
-  --md-surface-container-highest: 226 226 226;
-  --md-surface-variant: 226 226 226;
+  --md-surface-container-low: 249 240 245;    /* #f9f0f5 hồng rất nhạt */
+  --md-surface-container: 244 232 239;        /* #f4e8ef hồng nhạt */
+  --md-surface-container-high: 238 222 232;   /* #eedee8 hồng trung */
+  --md-surface-container-highest: 231 212 224; /* #e7d4e0 hồng đậm hơn */
+  --md-surface-variant: 220 200 213;          /* #dcc8d5 hover/border state */
   --md-primary: 99 93 96;                /* #635d60 warm gray-brown */
   --md-on-primary: 255 255 255;
   --md-primary-container: 252 242 246;   /* #fcf2f6 soft pink-white */
