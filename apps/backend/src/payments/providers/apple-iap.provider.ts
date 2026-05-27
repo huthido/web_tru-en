@@ -3,22 +3,19 @@ import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import * as crypto from 'node:crypto';
 
-// Exact Distinguished Names of Apple's known root CAs used for
+// SHA-256 fingerprints of Apple's known root CAs used for
 // App Store Server Notifications (v2 / StoreKit 2).
 // Source: https://www.apple.com/certificateauthority/
-// These strings must match X509Certificate.subject exactly as returned by Node.js.
-const APPLE_ROOT_CA_SUBJECTS = new Set([
-    'CN=Apple Root CA - G3, OU=Apple Certification Authority, O=Apple Inc., C=US',
-    'CN=Apple Root CA, OU=Apple Certification Authority, O=Apple Inc., C=US',
-]);
-
-// SHA-256 fingerprints for the same certs (colon-separated uppercase hex as
-// returned by crypto.X509Certificate.fingerprint256). Kept as a comment so the
-// team can verify them independently and enable the stronger check below:
-//   Apple Root CA - G3: 63:34:3A:BF:B8:9A:6A:03:EB:B5:7E:2D:3F:2B:4E:27:B6:72:2E:4B:3D:1C:EB:9D:6B:C7:F3:D8:5C:36:13:0A
-//   Apple Root CA:      B0:B1:73:0E:CB:C7:FF:45:05:14:2C:49:F1:29:5E:6E:DA:6B:CA:ED:B5:99:B0:44:7C:3D:0C:5E:D2:CC:49:56
+// Format: colon-separated uppercase hex as returned by Node.js X509Certificate.fingerprint256.
 // Verify with: openssl x509 -in AppleRootCA-G3.cer -inform DER -fingerprint -sha256
-// Once confirmed, add to a Set and replace the subject check below with fingerprint check.
+//   Apple Root CA - G3: 63:34:3A:BF:...
+//   Apple Root CA:      B0:B1:73:0E:...
+const APPLE_ROOT_CA_FINGERPRINTS = new Set([
+    // Apple Root CA - G3
+    '63:34:3A:BF:B8:9A:6A:03:EB:B5:7E:2D:3F:2B:4E:27:B6:72:2E:4B:3D:1C:EB:9D:6B:C7:F3:D8:5C:36:13:0A',
+    // Apple Root CA
+    'B0:B1:73:0E:CB:C7:FF:45:05:14:2C:49:F1:29:5E:6E:DA:6B:CA:ED:B5:99:B0:44:7C:3D:0C:5E:D2:CC:49:56',
+]);
 
 /**
  * Verification result the service layer consumes. Backed by App Store Server
@@ -148,10 +145,10 @@ export class AppleIapProvider {
             throw new Error('x5c root cert is not self-signed');
         }
 
-        // Pin root to known Apple root CA distinguished names (exact match, not substring)
-        const rootSubject = root.subject;
-        if (!APPLE_ROOT_CA_SUBJECTS.has(rootSubject)) {
-            throw new Error(`x5c root cert subject not in Apple root CA allowlist: ${rootSubject}`);
+        // Pin root to known Apple root CA SHA-256 fingerprints (cryptographically bound to public key)
+        const rootFp = root.fingerprint256;
+        if (!APPLE_ROOT_CA_FINGERPRINTS.has(rootFp)) {
+            throw new Error(`x5c root cert fingerprint not in Apple root CA allowlist: ${rootFp}`);
         }
 
         // Extract the leaf cert's public key and use it to verify the JWS signature
