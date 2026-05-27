@@ -18,7 +18,7 @@ export function Footer() {
                 {/* Main Footer Content
                     Mobile:  grid-cols-3 — col1 full-width (col-span-3), col2+col3+col4 chia 3 đều nhau
                     Desktop: grid-cols-[2fr_1fr_1fr_1fr] — col1 rộng hơn, 3 cột list nhỏ đều nhau */}
-                <div className="grid grid-cols-3 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-4 sm:gap-8 lg:gap-12 mb-12">
+                <div className="grid grid-cols-3 lg:grid-cols-[3fr_1fr_1fr_1fr] gap-4 sm:gap-8 lg:gap-12 mb-12">
                     {/* Logo & About — full-width trên mobile */}
                     <div className="col-span-3 lg:col-span-1 flex flex-col gap-5">
                         <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
