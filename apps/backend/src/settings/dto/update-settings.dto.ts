@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsEmail, IsUrl, ValidateIf, IsInt, Min, Max } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsEmail, IsUrl, ValidateIf, IsInt, Min, Max, IsArray } from 'class-validator';
 
 export class UpdateSettingsDto {
   @IsOptional()
@@ -143,4 +143,9 @@ export class UpdateSettingsDto {
   @IsOptional()
   @IsBoolean()
   consentRequired?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  allowedImageDomains?: string[];
 }

@@ -753,6 +753,8 @@ model Settings {
   adsTxtContent              String?  @db.Text // Plain text serve qua GET /ads.txt
   // GDPR consent banner — bật theo region nếu cần. Mặc định bật (an toàn).
   consentRequired            Boolean  @default(true)
+  // Danh sách hostname được phép dùng ảnh ngoài (vd: "i.pinimg.com"). Admin quản lý qua UI.
+  allowedImageDomains        String[] @default([])
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
 

@@ -113,7 +113,7 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone', // Produces a self-contained server in .next/standalone for Docker
   images: {
-    domains: ['res.cloudinary.com', 'static.truyenfull.vision', 'cache.staticscdn.net', 'iads.staticscdn.net', 'images.unsplash.com', 'lh3.googleusercontent.com', 'gtvseo.com', 'ui-avatars.com'],
+    domains: ['res.cloudinary.com', 'static.truyenfull.vision', 'cache.staticscdn.net', 'iads.staticscdn.net', 'images.unsplash.com', 'lh3.googleusercontent.com', 'gtvseo.com', 'ui-avatars.com', 'i.pinimg.com'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -146,6 +146,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'ui-avatars.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pinimg.com',
       },
       // Ảnh upload local do backend phục vụ (story-covers, avatar...).
       ...apiImagePatterns,

@@ -27,6 +27,7 @@ export interface Settings {
     chapterSaleFeePercent: number;
     allowCoinTransfer?: boolean;
     minWithdrawalCoins?: number;
+    allowedImageDomains?: string[];
     createdAt: string;
     updatedAt: string;
 }
@@ -55,6 +56,7 @@ export interface UpdateSettingsRequest {
     chapterSaleFeePercent?: number;
     allowCoinTransfer?: boolean;
     minWithdrawalCoins?: number;
+    allowedImageDomains?: string[];
 }
 
 export const settingsService = {

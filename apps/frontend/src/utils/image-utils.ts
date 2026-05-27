@@ -4,6 +4,38 @@
  * Features: CDN integration, compression, format optimization
  */
 
+// Mirrors remotePatterns in next.config.js — these domains are whitelisted at build time
+// and can be used directly with next/image. All other HTTPS domains must go through the proxy.
+const BUILTIN_IMAGE_DOMAINS = new Set([
+  'res.cloudinary.com',
+  'static.truyenfull.vision',
+  'cache.staticscdn.net',
+  'iads.staticscdn.net',
+  'images.unsplash.com',
+  'lh3.googleusercontent.com',
+  'gtvseo.com',
+  'ui-avatars.com',
+  'i.pinimg.com',
+]);
+
+/**
+ * Trả về src an toàn cho next/image khi hiển thị ảnh từ domain ngoài.
+ * - Domain built-in → giữ nguyên URL (đã có trong remotePatterns).
+ * - Domain khác (admin-added) → route qua /api/image-proxy để validate trước khi fetch.
+ * - URL tương đối / data: / blob: → giữ nguyên.
+ */
+export function getExternalImageSrc(src: string): string {
+  if (!src) return src;
+  if (src.startsWith('/') || src.startsWith('data:') || src.startsWith('blob:')) return src;
+  try {
+    const { hostname } = new URL(src);
+    if (BUILTIN_IMAGE_DOMAINS.has(hostname.toLowerCase())) return src;
+    return `/api/image-proxy?url=${encodeURIComponent(src)}`;
+  } catch {
+    return src;
+  }
+}
+
 /**
  * Check if image URL should be unoptimized
  * Some external CDNs don't support Next.js image optimization

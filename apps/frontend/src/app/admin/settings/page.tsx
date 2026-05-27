@@ -8,6 +8,18 @@ import { Loading } from '@/components/ui/loading';
 import Image from 'next/image';
 import { isUsableImageSrc } from '@/utils/image-utils';
 
+const BUILTIN_DOMAINS = [
+    'res.cloudinary.com',
+    'static.truyenfull.vision',
+    'cache.staticscdn.net',
+    'iads.staticscdn.net',
+    'images.unsplash.com',
+    'lh3.googleusercontent.com',
+    'gtvseo.com',
+    'ui-avatars.com',
+    'i.pinimg.com',
+];
+
 export default function AdminSettingsPage() {
     const { data: settings, isLoading } = useSettings();
     const updateMutation = useUpdateSettings();
@@ -38,6 +50,7 @@ export default function AdminSettingsPage() {
         // --- Quảng cáo ---
         adsEnabled: true,
         consentRequired: true,
+        allowedImageDomains: [] as string[],
         googleAdsensePublisherId: '',
         admobAndroidAppId: '',
         admobIosAppId: '',
@@ -45,6 +58,7 @@ export default function AdminSettingsPage() {
         adsTxtContent: '',
     });
 
+    const [newDomain, setNewDomain] = useState('');
     const logoInputRef = useRef<HTMLInputElement>(null);
     const faviconInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,6 +86,7 @@ export default function AdminSettingsPage() {
                 allowCoinTransfer: settings.allowCoinTransfer || false,
                 adsEnabled: (settings as any).adsEnabled ?? true,
                 consentRequired: (settings as any).consentRequired ?? true,
+                allowedImageDomains: (settings as any).allowedImageDomains ?? [],
                 googleAdsensePublisherId: (settings as any).googleAdsensePublisherId || '',
                 admobAndroidAppId: (settings as any).admobAndroidAppId || '',
                 admobIosAppId: (settings as any).admobIosAppId || '',
@@ -635,6 +650,95 @@ export default function AdminSettingsPage() {
                                 </p>
                             </div>
                         </div>
+                    </div>
+
+                    {/* === Domain ảnh ngoài === */}
+                    <div className="bg-surface-container rounded-lg shadow-sm border border-outline-variant p-6">
+                        <h2 className="text-xl font-semibold text-on-surface mb-1">Domain ảnh ngoài (Image Domains)</h2>
+                        <p className="text-sm text-on-surface-variant mb-4">
+                            Danh sách hostname được phép hiển thị ảnh qua <code>/_next/image</code>.
+                            Domain built-in (hardcode) luôn hoạt động; thêm domain mới vào đây sẽ lưu vào
+                            database và có hiệu lực ngay lập tức — không cần rebuild.
+                        </p>
+
+                        {/* Built-in domains */}
+                        <div className="mb-4">
+                            <p className="text-xs font-medium text-on-surface-variant uppercase tracking-wide mb-2">Built-in (không thể xóa)</p>
+                            <div className="flex flex-wrap gap-2">
+                                {BUILTIN_DOMAINS.map((d) => (
+                                    <span key={d} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-surface-container-high text-on-surface-variant border border-outline-variant font-mono">
+                                        {d}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Custom domains */}
+                        <div className="mb-4">
+                            <p className="text-xs font-medium text-on-surface-variant uppercase tracking-wide mb-2">Thêm bởi admin</p>
+                            {formData.allowedImageDomains.length === 0 ? (
+                                <p className="text-sm text-on-surface-variant italic">Chưa có domain nào.</p>
+                            ) : (
+                                <div className="flex flex-wrap gap-2">
+                                    {formData.allowedImageDomains.map((domain) => (
+                                        <span key={domain} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-primary/10 text-primary border border-primary/30 font-mono">
+                                            {domain}
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        allowedImageDomains: formData.allowedImageDomains.filter((d) => d !== domain),
+                                                    })
+                                                }
+                                                className="ml-0.5 hover:text-error transition-colors"
+                                                aria-label={`Xóa ${domain}`}
+                                            >
+                                                ✕
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Add domain input */}
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={newDomain}
+                                onChange={(e) => setNewDomain(e.target.value.trim().toLowerCase())}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        const d = newDomain.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+                                        if (d && !BUILTIN_DOMAINS.includes(d) && !formData.allowedImageDomains.includes(d)) {
+                                            setFormData({ ...formData, allowedImageDomains: [...formData.allowedImageDomains, d] });
+                                            setNewDomain('');
+                                        }
+                                    }
+                                }}
+                                placeholder="vd: i.pinimg.com"
+                                className="flex-1 px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant font-mono text-sm"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const d = newDomain.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+                                    if (d && !BUILTIN_DOMAINS.includes(d) && !formData.allowedImageDomains.includes(d)) {
+                                        setFormData({ ...formData, allowedImageDomains: [...formData.allowedImageDomains, d] });
+                                        setNewDomain('');
+                                    }
+                                }}
+                                className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors text-sm"
+                            >
+                                Thêm
+                            </button>
+                        </div>
+                        <p className="text-xs text-on-surface-variant mt-2">
+                            Chỉ nhập hostname, không cần <code>https://</code>. Nhấn Enter hoặc bấm Thêm.
+                            Sau khi thêm, nhớ bấm <strong>Lưu cài đặt</strong> bên dưới.
+                        </p>
                     </div>
 
                     <div className="flex justify-end pt-4">
