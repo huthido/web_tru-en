@@ -806,7 +806,7 @@ export class AuthService {
   // Create one-time code for OAuth (iOS Safari compatible)
   async createOneTimeCode(userId: string): Promise<string> {
     // Generate random code
-    const code = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const code = crypto.randomBytes(32).toString('hex');
 
     // Store code with 10 minutes expiration (increased from 5 for slow connections)
     await (this.prisma as any).oAuthCode.create({

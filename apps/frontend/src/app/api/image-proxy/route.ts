@@ -193,7 +193,11 @@ export async function GET(req: NextRequest) {
         if (!result.location) return new NextResponse('Redirect with no Location', { status: 502 });
         const redirectUrl = new URL(result.location, currentUrl.toString());
         if (redirectUrl.protocol !== 'https:') return new NextResponse('Redirect to non-HTTPS', { status: 403 });
-        // Redirect destinations only need DNS/IP validation (allowlist applies to initial URL only)
+        // Re-apply domain allowlist on every redirect hop to prevent open-relay via 3xx chains
+        const redirectHost = redirectUrl.hostname.toLowerCase();
+        if (!BUILTIN_DOMAINS.has(redirectHost) && !adminDomains.has(redirectHost)) {
+          return new NextResponse('Redirect to non-allowlisted domain', { status: 403 });
+        }
         currentUrl = redirectUrl;
         continue;
       }

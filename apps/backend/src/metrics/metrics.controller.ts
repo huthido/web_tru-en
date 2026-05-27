@@ -23,7 +23,7 @@ export class MetricsController {
     @Header('Content-Type', register.contentType)
     async metrics(@Headers('authorization') auth: string): Promise<string> {
         const token = process.env.METRICS_TOKEN;
-        if (token && auth !== `Bearer ${token}`) {
+        if (!token || auth !== `Bearer ${token}`) {
             throw new UnauthorizedException('Invalid metrics token');
         }
         return register.metrics();
