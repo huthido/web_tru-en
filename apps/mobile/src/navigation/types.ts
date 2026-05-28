@@ -18,6 +18,7 @@ export type RootStackParamList = {
     Earnings: undefined;
     Eligibility: undefined;
     Withdrawals: undefined;
+    Wallet: undefined;
     Transactions: undefined;
     Notifications: undefined;
     Settings: undefined;
@@ -31,7 +32,6 @@ export type MainTabsParamList = {
     // Render screen `UploadStub` để có route entry; tabBar tự handle FAB click.
     Upload: undefined;
     Library: undefined;
-    Wallet: undefined;
     Profile: undefined;
 };
 

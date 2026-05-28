@@ -27,6 +27,9 @@ const config = {
   scheme: 'webtruyen',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
+  updates: {
+    url: 'https://u.expo.dev/582547a6-04e0-49ca-91b9-b58dd2ce428f',
+  },
   icon: './assets/icon.png',
   splash: {
     image: './assets/splash.png',
@@ -37,12 +40,16 @@ const config = {
   platforms: ['ios', 'android'],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.hungyeu.webtruyen',
+    bundleIdentifier: 'com.yeuyeu.webtruyen',
     usesAppleSignIn: true,
     icon: './assets/icon.png',
+    runtimeVersion: {
+      policy: 'appVersion',
+    },
   },
   android: {
-    package: 'com.hungyeu.webtruyen',
+    package: 'com.yeuyeu.webtruyen',
+    runtimeVersion: '1.0.0',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
@@ -56,17 +63,13 @@ const config = {
   },
   plugins: [
     'expo-secure-store',
-    // Sign in with Apple (only iOS uses it; the plugin is a no-op on Android).
     'expo-apple-authentication',
-    // react-native-iap needs both store frameworks linked. Plugin adds the
-    // billing client + StoreKit entitlement in the dev build manifest.
     [
       'react-native-iap',
       {
         paymentProvider: 'Play Store',
       },
     ],
-    // Image picker — tác giả chọn ảnh bìa truyện từ thư viện.
     [
       'expo-image-picker',
       {
@@ -74,9 +77,6 @@ const config = {
           'App YÊU cần truy cập thư viện ảnh để bạn chọn ảnh bìa cho truyện của mình.',
       },
     ],
-    // App Tracking Transparency — bắt buộc ở iOS 14.5+ khi app có quảng cáo
-    // third-party (AdMob/FAN/...). Chuẩn bị scaffold sẵn để khi tích hợp SDK
-    // quảng cáo bên ngoài v2 không cần đổi config nữa.
     [
       'expo-tracking-transparency',
       {
@@ -84,12 +84,6 @@ const config = {
           'App YÊU dùng dữ liệu này để hiển thị quảng cáo phù hợp hơn với sở thích của bạn.',
       },
     ],
-    // Google AdMob — banner / interstitial. App ID lấy từ AdMob console
-    // (ca-app-pub-XXXX~YYYY). Trên dev/local có thể tạm dùng Google test IDs
-    // để build chạy được khi user chưa setup AdMob account.
-    // Push notification — Expo proxy về FCM (Android) / APNs (iOS).
-    // EAS credentials cần: APNs .p8 (iOS) + Firebase Service Account JSON
-    // (Android). Setup riêng ở `eas credentials`.
     [
       'expo-notifications',
       {
@@ -97,23 +91,21 @@ const config = {
         color: '#635D60',
       },
     ],
-    [
-      'react-native-google-mobile-ads',
-      {
-        androidAppId:
-          process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID ||
-          // Google's official "sample" Android app ID for testing — KHÔNG kiếm
-          // được tiền nhưng cho build chạy. Thay bằng app ID thật trước khi ship.
-          'ca-app-pub-3940256099942544~3347511713',
-        iosAppId:
-          process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID ||
-          'ca-app-pub-3940256099942544~1458002511',
-        // App Tracking Transparency dialog message — show trước khi init SDK iOS 14.5+.
-        userTrackingUsageDescription:
-          'App YÊU dùng dữ liệu này để hiển thị quảng cáo phù hợp hơn với sở thích của bạn.',
-        skAdNetworkItems: [],
-      },
-    ],
+    // AdMob chỉ enable khi có App ID thật — SDK 25+ không chấp nhận test ID.
+    ...(process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID
+      ? [
+          [
+            'react-native-google-mobile-ads',
+            {
+              androidAppId: process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID,
+              iosAppId: process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID || '',
+              userTrackingUsageDescription:
+                'App YÊU dùng dữ liệu này để hiển thị quảng cáo phù hợp hơn với sở thích của bạn.',
+              skAdNetworkItems: [],
+            },
+          ],
+        ]
+      : []),
   ],
 };
 

@@ -1,14 +1,10 @@
 /**
- * Design tokens — Luminous Petal theme từ `docs/stitch_mobile/luminous_petal/DESIGN.md`.
- *
- * Style: Minimalism với glassmorphism accents. Warm gray primary (#635d60) +
- * soft pink-white container (#fcf2f6) cho cảm giác premium "lifestyle".
- *
+ * Design tokens — Luminous Petal (light) + Vivid Reader (dark).
  * Alias cũ (`bg`, `text`, `textMuted`, `border`) trỏ về tokens mới để screens
- * chưa refactor vẫn chạy với palette mới (chỉ đổi hue, không vỡ layout).
+ * chưa refactor vẫn chạy.
  */
 
-export const colors = {
+export const lightColors = {
     // === Luminous Petal tokens (Material Design 3-style) ===
     primary: '#635d60', // warm gray-brown — primary actions, focused borders
     primaryContainer: '#fcf2f6', // soft pink-white — large surface highlights
@@ -63,12 +59,75 @@ export const colors = {
 
     // === Backwards-compat alias — đừng dùng cho code mới, refactor screens
     // dần dần sang token chuẩn ở trên. ===
-    primaryDark: '#4b4548', // ≈ on-primary-fixed-variant
-    primarySoft: '#fcf2f6', // = primaryContainer
-    bg: '#f9f9f9', // = background
-    text: '#1a1c1c', // = onSurface
-    textMuted: '#4b4549', // = onSurfaceVariant
-    border: '#cdc4c8', // = outlineVariant
+    primaryDark: '#4b4548',
+    primarySoft: '#fcf2f6',
+    bg: '#f9f9f9',
+    text: '#1a1c1c',
+    textMuted: '#4b4549',
+    border: '#cdc4c8',
+} as const;
+
+/** Backward-compat alias — code cũ import `colors` vẫn dùng được. */
+export const colors = lightColors;
+
+/** Dark palette — Vivid Reader (warm dark surface). */
+export const darkColors = {
+    primary: '#cdc4c8',
+    primaryContainer: '#3a2f35',
+    onPrimary: '#352e31',
+    onPrimaryContainer: '#eae0e4',
+    primaryFixed: '#eae0e4',
+    primaryFixedDim: '#cdc4c8',
+
+    secondary: '#c8c6c5',
+    secondaryContainer: '#4a4948',
+    onSecondary: '#323130',
+    onSecondaryContainer: '#c4c2c1',
+
+    tertiary: '#d5bfc8',
+    tertiaryContainer: '#52424a',
+    onTertiary: '#3a2c34',
+    onTertiaryContainer: '#f2dde8',
+
+    background: '#141218',
+    onBackground: '#e6e1e5',
+    surface: '#141218',
+    surfaceDim: '#141218',
+    surfaceBright: '#3b383e',
+    surfaceContainerLowest: '#0f0d12',
+    surfaceContainerLow: '#1c1b1f',
+    surfaceContainer: '#201e22',
+    surfaceContainerHigh: '#2b292d',
+    surfaceContainerHighest: '#36343a',
+    onSurface: '#e6e1e5',
+    onSurfaceVariant: '#cac4ce',
+    surfaceVariant: '#49454f',
+    surfaceTint: '#cdc4c8',
+    inverseSurface: '#e6e1e5',
+    inverseOnSurface: '#313033',
+    inversePrimary: '#635d60',
+
+    outline: '#948f99',
+    outlineVariant: '#49454f',
+
+    error: '#ffb4ab',
+    errorContainer: '#93000a',
+    onError: '#690005',
+    onErrorContainer: '#ffdad6',
+
+    star: '#FFB300',
+    coin: '#F4A100',
+    success: '#4CAF50',
+    danger: '#ffb4ab',
+    overlay: 'rgba(0,0,0,0.65)',
+    white: '#FFFFFF',
+
+    primaryDark: '#b0aaad',
+    primarySoft: '#3a2f35',
+    bg: '#141218',
+    text: '#e6e1e5',
+    textMuted: '#cac4ce',
+    border: '#49454f',
 } as const;
 
 export const spacing = {

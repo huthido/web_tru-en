@@ -1,4 +1,4 @@
-package com.hungyeu.webtruyen
+package com.yeuyeu.webtruyen
 
 import android.os.Build
 import android.os.Bundle

@@ -73,7 +73,7 @@ export const NotificationsScreen: React.FC = () => {
     const markAsRead = useMarkAsRead();
     const markAllAsRead = useMarkAllAsRead();
 
-    const items = query.data?.pages.flatMap((p) => p.items) ?? [];
+    const items = query.data?.pages.flatMap((p) => p.items ?? []).filter((it): it is Notification => it != null) ?? [];
     const total = query.data?.pages[0]?.total ?? 0;
 
     const handlePress = (item: Notification) => {

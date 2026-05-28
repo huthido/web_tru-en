@@ -1,4 +1,4 @@
-package com.hungyeu.webtruyen
+package com.yeuyeu.webtruyen
 
 import android.app.Application
 import android.content.res.Configuration

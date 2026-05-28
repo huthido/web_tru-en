@@ -1,10 +1,10 @@
 import React from 'react';
-import { ActivityIndicator, Image, Text, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { ActivityIndicator, View } from 'react-native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { colors } from '@/theme';
 import { useAuth } from '@/contexts/auth-context';
+import { useAppTheme } from '@/contexts/theme-context';
 import type { MainTabsParamList, RootStackParamList } from '@/navigation/types';
 import { LoginScreen } from '@/screens/LoginScreen';
 import { ForgotPasswordScreen } from '@/screens/ForgotPasswordScreen';
@@ -30,23 +30,10 @@ import { NotificationsScreen } from '@/screens/NotificationsScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
 import { UserProfileScreen } from '@/screens/UserProfileScreen';
 import { MainTabBar } from '@/components/MainTabBar';
+import { MainHeader } from '@/components/MainHeader';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabsParamList>();
-
-/** Logo + wordmark "Yêu" hiển thị ở giữa header tab. */
-function BrandHeader() {
-    return (
-        <View style={styles.brandRow}>
-            <Image
-                source={require('../../assets/icon.png')}
-                style={styles.brandLogo}
-                resizeMode="contain"
-            />
-            <Text style={styles.brandText}>Yêu</Text>
-        </View>
-    );
-}
 
 /**
  * Upload là route placeholder — MainTabBar handle bấm FAB bằng cách navigate
@@ -62,15 +49,7 @@ function MainTabs() {
         <Tab.Navigator
             tabBar={(props) => <MainTabBar {...props} />}
             screenOptions={{
-                headerStyle: { backgroundColor: colors.primaryContainer },
-                headerTintColor: colors.onSurface,
-                headerTitleStyle: {
-                    fontFamily: 'PlusJakartaSans_700Bold',
-                    fontSize: 18,
-                },
-                headerTitleAlign: 'center',
-                headerTitle: () => <BrandHeader />,
-                headerShadowVisible: false,
+                header: () => <MainHeader />,
             }}
         >
             <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Khám phá' }} />
@@ -86,11 +65,6 @@ function MainTabs() {
                 options={{ title: 'Thư viện' }}
             />
             <Tab.Screen
-                name="Wallet"
-                component={WalletScreen}
-                options={{ title: 'Ví xu' }}
-            />
-            <Tab.Screen
                 name="Profile"
                 component={ProfileScreen}
                 options={{ title: 'Cá nhân' }}
@@ -101,21 +75,24 @@ function MainTabs() {
 
 export const RootNavigator: React.FC = () => {
     const { isAuthenticated, isBooting } = useAuth();
+    const { isDark, colors } = useAppTheme();
+
+    const navTheme = isDark
+        ? { ...DarkTheme, colors: { ...DarkTheme.colors, background: colors.background, card: colors.surfaceContainerLow } }
+        : { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: colors.background, card: colors.primaryContainer } };
 
     if (isBooting) {
         return (
-            <View style={styles.booting}>
+            <View style={[styles.booting, { backgroundColor: colors.background }]}>
                 <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
 
     return (
-        <NavigationContainer>
+        <NavigationContainer theme={navTheme}>
             <Stack.Navigator
                 screenOptions={{
-                    // Header Luminous Petal: soft pink background + dark text +
-                    // hairline border (no heavy shadow elevation).
                     headerStyle: { backgroundColor: colors.primaryContainer },
                     headerTintColor: colors.onSurface,
                     headerTitleStyle: {
@@ -198,6 +175,11 @@ export const RootNavigator: React.FC = () => {
                             options={{ title: 'Rút xu' }}
                         />
                         <Stack.Screen
+                            name="Wallet"
+                            component={WalletScreen}
+                            options={{ title: 'Ví xu' }}
+                        />
+                        <Stack.Screen
                             name="Transactions"
                             component={TransactionsScreen}
                             options={{ title: 'Lịch sử giao dịch' }}
@@ -237,25 +219,5 @@ const styles = {
         flex: 1,
         justifyContent: 'center' as const,
         alignItems: 'center' as const,
-        backgroundColor: colors.background,
-    },
-    brandRow: {
-        flexDirection: 'row' as const,
-        alignItems: 'center' as const,
-        gap: 8,
-    },
-    brandLogo: {
-        width: 28,
-        height: 28,
-        borderRadius: 6,
-    },
-    brandText: {
-        // Header brand "Yêu" — Plus Jakarta editorial trên primary-container
-        // (soft pink) cho cảm giác premium. Đặt color onSurface vì background
-        // sáng nay (#fcf2f6).
-        color: colors.onSurface,
-        fontSize: 22,
-        fontFamily: 'PlusJakartaSans_700Bold',
-        letterSpacing: -0.3,
     },
 };

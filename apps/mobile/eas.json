@@ -18,7 +18,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.yeuyeu.net/api"
+        "EXPO_PUBLIC_API_URL": "https://api.yeuyeu.net/api",
+        "EXPO_PUBLIC_ADMOB_ANDROID_APP_ID": "ca-app-pub-1865587135077064~2953143576"
       }
     },
     "production": {
@@ -28,7 +29,8 @@
       },
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.yeuyeu.net/api"
+        "EXPO_PUBLIC_API_URL": "https://api.yeuyeu.net/api",
+        "EXPO_PUBLIC_ADMOB_ANDROID_APP_ID": "ca-app-pub-1865587135077064~2953143576"
       }
     }
   },
@@ -36,3 +38,4 @@
     "production": {}
   }
 }
+

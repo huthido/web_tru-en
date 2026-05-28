@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@/contexts/auth-context';
 import { describeError } from '@/lib/error';
-import type { RootNavigation, TabNavigation } from '@/navigation/types';
+import type { RootNavigation } from '@/navigation/types';
 import { colors, fontSize, radius, spacing, typography } from '@/theme';
 
 const ROLE_LABEL: Record<string, string> = {
@@ -40,7 +40,6 @@ async function openExternal(url: string) {
 
 export const ProfileScreen: React.FC = () => {
     const { user, logout, deleteAccount } = useAuth();
-    const tabNav = useNavigation<TabNavigation>();
     const rootNav = useNavigation<RootNavigation>();
     const name = user?.displayName || user?.username || 'bạn';
     const initial = name.trim().charAt(0).toUpperCase() || '?';
@@ -91,7 +90,7 @@ export const ProfileScreen: React.FC = () => {
                 ) : null}
             </Pressable>
 
-            <Pressable style={styles.card} onPress={() => tabNav.navigate('Wallet')}>
+            <Pressable style={styles.card} onPress={() => rootNav.navigate('Wallet')}>
                 <View style={styles.cardHeader}>
                     <Ionicons name="wallet-outline" size={20} color={colors.primary} />
                     <Text style={styles.cardTitle}>Ví xu</Text>

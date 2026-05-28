@@ -19,6 +19,7 @@ import {
     DMSans_700Bold,
 } from '@expo-google-fonts/dm-sans';
 import { AuthProvider } from '@/contexts/auth-context';
+import { ThemeProvider, useAppTheme } from '@/contexts/theme-context';
 import { RootNavigator } from '@/navigation';
 import { PushBootstrap } from '@/lib/push/PushBootstrap';
 
@@ -64,6 +65,11 @@ async function bootstrapAdMob() {
     }
 }
 
+function ThemedStatusBar() {
+    const { isDark } = useAppTheme();
+    return <StatusBar style={isDark ? 'light' : 'dark'} />;
+}
+
 export default function App() {
     const [fontsLoaded] = usePlusJakartaSans({
         PlusJakartaSans_600SemiBold,
@@ -92,11 +98,13 @@ export default function App() {
         <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
             <SafeAreaProvider>
                 <QueryClientProvider client={queryClient}>
-                    <AuthProvider>
-                        <PushBootstrap />
-                        <RootNavigator />
-                        <StatusBar style="auto" />
-                    </AuthProvider>
+                    <ThemeProvider>
+                        <AuthProvider>
+                            <PushBootstrap />
+                            <RootNavigator />
+                            <ThemedStatusBar />
+                        </AuthProvider>
+                    </ThemeProvider>
                 </QueryClientProvider>
             </SafeAreaProvider>
         </View>

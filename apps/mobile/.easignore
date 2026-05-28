@@ -1,16 +1,2 @@
-# EAS Build uploads the whole git repo by default, then runs from this
-# project (apps/mobile/). The monorepo's pnpm-workspace.yaml excludes
-# apps/mobile, which trips up EAS's default `pnpm install --frozen-lockfile`
-# (installs nothing for mobile because it isn't in the workspace).
-#
-# We force EAS to treat apps/mobile as a STANDALONE pnpm project by:
-#   1. excluding the workspace config files from upload (this file), and
-#   2. providing an `eas-build-pre-install` script in package.json that
-#      runs `pnpm install --ignore-workspace`.
-#
-# Paths are relative to project root (apps/mobile/). `../../` = monorepo root.
-# We KEEP packages/shared because metro.config.js bundles its source.
-../../pnpm-workspace.yaml
-../../pnpm-lock.yaml
-../backend
-../frontend
+/android
+/ios
