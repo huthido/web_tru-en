@@ -247,6 +247,12 @@ export function Footer() {
                         >
                             Chính sách bảo mật
                         </Link>
+                        <Link
+                            href="/child-safety"
+                            className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
+                        >
+                            An toàn trẻ em
+                        </Link>
                     </div>
                 </div>
             </div>
