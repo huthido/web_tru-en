@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { colors, fontSize, radius, spacing, typography } from '@/theme';
+import { fontSize, radius, spacing, typography, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { AuthorsService } from '@/lib/api/authors.service';
 import { useAuth } from '@/contexts/auth-context';
 
@@ -14,6 +15,8 @@ interface Props {
 /** Nút "Theo dõi tác giả" tự fetch state — nhúng cạnh tên tác giả ở mọi screen. */
 export function QuickFollowAuthorButton({ authorId, compact = false }: Props) {
     const qc = useQueryClient();
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const { user, isAuthenticated } = useAuth();
     const isMe = isAuthenticated && user?.id === authorId;
 
@@ -77,7 +80,7 @@ export function QuickFollowAuthorButton({ authorId, compact = false }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     btn: {
         flexDirection: 'row',
         alignItems: 'center',

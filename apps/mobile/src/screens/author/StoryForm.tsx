@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -14,7 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { CategoriesApi } from '@/lib/api/categories.service';
 import { StoriesApi, type CreateStoryInput } from '@/lib/api/stories.service';
 import { MonetizationService } from '@/lib/api/monetization.service';
@@ -70,6 +71,8 @@ export function StoryForm({
     storyId,
     initialAdRevenueEnabled,
 }: StoryFormProps) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const nav = useNavigation<RootNavigation>();
     const [title, setTitle] = useState(initialValues?.title ?? '');
     const [description, setDescription] = useState(initialValues?.description ?? '');
@@ -348,7 +351,7 @@ export function StoryForm({
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxl },
     label: {

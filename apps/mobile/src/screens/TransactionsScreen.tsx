@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     FlatList,
     Pressable,
@@ -9,17 +9,20 @@ import {
     View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { formatNumber, timeAgo } from '@/lib/format';
 import { describeError } from '@/lib/error';
 import type { CoinTransaction, TransactionType } from '@/lib/api/types';
 import { useWalletHistoryInfinite } from '@/lib/hooks/wallet';
 import { EmptyView, ErrorView, Loading } from '@/components/ui';
 
-const TYPE_META: Record<
+type TxMeta = Record<
     TransactionType,
     { icon: keyof typeof Ionicons.glyphMap; tint: string; label: string }
-> = {
+>;
+
+const makeTypeMeta = (colors: ThemeColors): TxMeta => ({
     DEPOSIT: { icon: 'arrow-down-circle', tint: colors.success, label: 'Nạp xu' },
     REFUND: { icon: 'refresh-circle', tint: colors.success, label: 'Hoàn xu' },
     BONUS: { icon: 'gift', tint: '#7C4DFF', label: 'Quà tặng' },
@@ -29,16 +32,29 @@ const TYPE_META: Record<
     TRANSFER: { icon: 'swap-horizontal', tint: colors.coin, label: 'Chuyển xu' },
     WITHDRAWAL: { icon: 'arrow-up-circle', tint: colors.danger, label: 'Rút xu' },
     ADMIN_ADJUST: { icon: 'settings', tint: colors.textMuted, label: 'Điều chỉnh' },
-};
+});
 
-const TYPE_LIST = Object.keys(TYPE_META) as TransactionType[];
+const TYPE_LIST: TransactionType[] = [
+    'DEPOSIT',
+    'REFUND',
+    'BONUS',
+    'PURCHASE_CHAPTER',
+    'PURCHASE_STORY',
+    'DONATE_AUTHOR',
+    'TRANSFER',
+    'WITHDRAWAL',
+    'ADMIN_ADJUST',
+];
 
-function metaFor(type: TransactionType) {
-    return TYPE_META[type] ?? TYPE_META.ADMIN_ADJUST;
+function metaFor(typeMeta: TxMeta, type: TransactionType) {
+    return typeMeta[type] ?? typeMeta.ADMIN_ADJUST;
 }
 
 function TransactionRow({ tx }: { tx: CoinTransaction }) {
-    const meta = metaFor(tx.type);
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
+    const TYPE_META = useMemo(() => makeTypeMeta(colors), [colors]);
+    const meta = metaFor(TYPE_META, tx.type);
     const positive = tx.amount > 0;
     return (
         <View style={styles.txRow}>
@@ -60,6 +76,9 @@ function TransactionRow({ tx }: { tx: CoinTransaction }) {
 }
 
 export const TransactionsScreen: React.FC = () => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
+    const TYPE_META = useMemo(() => makeTypeMeta(colors), [colors]);
     const [types, setTypes] = useState<TransactionType[]>([]);
     const query = useWalletHistoryInfinite(types);
 
@@ -162,7 +181,7 @@ export const TransactionsScreen: React.FC = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     filterBar: {
         backgroundColor: colors.surfaceContainerLowest,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     Alert,
     Linking,
@@ -11,7 +11,8 @@ import {
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { colors, radius, spacing, typography } from '@/theme';
+import { radius, spacing, typography, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import type { RootNavigation } from '@/navigation/types';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -39,6 +40,8 @@ async function openExternal(url: string) {
 
 export const SettingsScreen: React.FC = () => {
     const nav = useNavigation<RootNavigation>();
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const appVersion =
         (Constants?.expoConfig?.version as string | undefined) ||
         (Constants?.manifest as { version?: string } | undefined)?.version ||
@@ -137,7 +140,7 @@ export const SettingsScreen: React.FC = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     content: { padding: spacing.lg, gap: spacing.lg },
     section: { gap: spacing.sm },

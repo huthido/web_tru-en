@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fontSize, radius, spacing, typography } from '../theme';
+import { fontSize, radius, spacing, typography, type ThemeColors } from '../theme';
+import { useAppTheme } from '@/contexts/theme-context';
 
 /** Full-area centered loading spinner. */
 export function Loading({ label }: { label?: string }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={styles.center}>
             <ActivityIndicator size="large" color={colors.primary} />
@@ -15,6 +18,8 @@ export function Loading({ label }: { label?: string }) {
 
 /** Error state with an optional retry button. */
 export function ErrorView({ message, onRetry }: { message?: string; onRetry?: () => void }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={styles.center}>
             <Ionicons name="cloud-offline-outline" size={44} color={colors.textMuted} />
@@ -37,6 +42,8 @@ export function EmptyView({
     icon?: keyof typeof Ionicons.glyphMap;
     message: string;
 }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={styles.center}>
             <Ionicons name={icon} size={48} color={colors.border} />
@@ -47,6 +54,8 @@ export function EmptyView({
 
 /** Section title with an optional "Xem thêm" action. */
 export function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll?: () => void }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{title}</Text>
@@ -62,6 +71,7 @@ export function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll?: (
 
 /** Five-icon star rating display. */
 export function Stars({ rating, size = 13 }: { rating?: number; size?: number }) {
+    const { colors } = useAppTheme();
     const r = rating ?? 0;
     return (
         <View style={{ flexDirection: 'row' }}>
@@ -75,6 +85,8 @@ export function Stars({ rating, size = 13 }: { rating?: number; size?: number })
 
 /** Thin horizontal progress bar (0-100). */
 export function ProgressBar({ value }: { value: number }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const pct = Math.max(0, Math.min(100, value));
     return (
         <View style={styles.progressTrack}>
@@ -83,7 +95,7 @@ export function ProgressBar({ value }: { value: number }) {
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     center: {
         flex: 1,
         alignItems: 'center',

@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import type { RootNavigation } from '@/navigation/types';
 import { timeAgo } from '@/lib/format';
 import {
@@ -33,6 +34,8 @@ function SegButton({
     active: boolean;
     onPress: () => void;
 }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <Pressable style={[styles.seg, active && styles.segActive]} onPress={onPress}>
             <Text style={[styles.segText, active && styles.segTextActive]}>{label}</Text>
@@ -42,6 +45,8 @@ function SegButton({
 
 export const LibraryScreen: React.FC = () => {
     const nav = useNavigation<RootNavigation>();
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const [tab, setTab] = useState<Tab>('follows');
 
     const follows = useMyFollows();
@@ -199,7 +204,7 @@ export const LibraryScreen: React.FC = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     tabs: {
         flexDirection: 'row',

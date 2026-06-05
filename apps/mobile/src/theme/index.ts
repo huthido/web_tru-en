@@ -70,6 +70,13 @@ export const lightColors = {
 /** Backward-compat alias — code cũ import `colors` vẫn dùng được. */
 export const colors = lightColors;
 
+/**
+ * Kiểu palette dùng chung cho `makeStyles(colors)` ở các màn/component.
+ * Value nới rộng thành `string` để cả `lightColors` lẫn `darkColors` (literal
+ * khác nhau) đều gán được vào cùng type — tránh TS2322 ở theme-context.
+ */
+export type ThemeColors = { readonly [K in keyof typeof lightColors]: string };
+
 /** Dark palette — Vivid Reader (warm dark surface). */
 export const darkColors = {
     primary: '#cdc4c8',

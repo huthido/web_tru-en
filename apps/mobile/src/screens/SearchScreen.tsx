@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import type { RootNavigation } from '@/navigation/types';
 import type { Story } from '@/lib/api/types';
 import { useCategories } from '@/lib/hooks/categories';
@@ -22,6 +23,8 @@ import { StoryListItem } from '@/components/StoryListItem';
 
 export const SearchScreen: React.FC = () => {
     const nav = useNavigation<RootNavigation>();
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const [query, setQuery] = useState('');
     const [debounced, setDebounced] = useState('');
     const [category, setCategory] = useState<string | undefined>(undefined);
@@ -150,7 +153,7 @@ export const SearchScreen: React.FC = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     searchBar: {
         flexDirection: 'row',

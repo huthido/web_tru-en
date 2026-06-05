@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -16,7 +16,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@/contexts/auth-context';
 import { describeError } from '@/lib/error';
 import type { RootNavigation } from '@/navigation/types';
-import { colors, fontSize, radius, spacing, typography } from '@/theme';
+import { fontSize, radius, spacing, typography, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 
 const ROLE_LABEL: Record<string, string> = {
     USER: 'Độc giả',
@@ -41,6 +42,8 @@ async function openExternal(url: string) {
 export const ProfileScreen: React.FC = () => {
     const { user, logout, deleteAccount } = useAuth();
     const rootNav = useNavigation<RootNavigation>();
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const name = user?.displayName || user?.username || 'bạn';
     const initial = name.trim().charAt(0).toUpperCase() || '?';
 
@@ -254,7 +257,7 @@ export const ProfileScreen: React.FC = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     // PaddingBottom 100 để không bị MainTabBar floating che.
     content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },

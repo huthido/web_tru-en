@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -14,7 +14,8 @@ import {
 import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import type { CreateChapterInput } from '@/lib/api/chapters.service';
 import { MonetizationService } from '@/lib/api/monetization.service';
 import { describeError } from '@/lib/error';
@@ -58,6 +59,8 @@ export function ChapterForm({
     hidePublishToggle = false,
     onSubmit,
 }: ChapterFormProps) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const nav = useNavigation<RootNavigation>();
     const richRef = useRef<RichEditor>(null);
 
@@ -230,7 +233,7 @@ export function ChapterForm({
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     scroll: { flex: 1 },
     content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxl },

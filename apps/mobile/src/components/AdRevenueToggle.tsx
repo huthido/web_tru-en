@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -11,7 +11,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
-import { colors, fontSize, radius, spacing, typography } from '@/theme';
+import { fontSize, radius, spacing, typography, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { StoriesApi } from '@/lib/api/stories.service';
 import { MonetizationService } from '@/lib/api/monetization.service';
 import { describeError } from '@/lib/error';
@@ -28,6 +29,8 @@ interface Props {
  */
 export function AdRevenueToggle({ storyId, initialEnabled }: Props) {
     const nav = useNavigation<RootNavigation>();
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const [enabled, setEnabled] = useState(initialEnabled);
     const [saving, setSaving] = useState(false);
 
@@ -95,7 +98,7 @@ export function AdRevenueToggle({ storyId, initialEnabled }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     wrap: { marginTop: spacing.md, gap: spacing.xs },
     row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     label: { ...typography.labelMd, color: colors.onSurface, fontFamily: 'DMSans_500Medium' },

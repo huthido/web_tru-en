@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import { darkColors, lightColors } from '@/theme';
+import { darkColors, lightColors, type ThemeColors } from '@/theme';
 
 type Preference = 'light' | 'dark' | 'system';
 type Scheme = 'light' | 'dark';
@@ -12,7 +12,7 @@ interface ThemeCtx {
     preference: Preference;
     scheme: Scheme;
     isDark: boolean;
-    colors: typeof lightColors;
+    colors: ThemeColors;
     setPreference: (p: Preference) => void;
     toggle: () => void;
 }
@@ -44,13 +44,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const toggle = useCallback(() => {
-        setPreference((prev: Preference) => {
-            // light → dark → system → light
-            if (prev === 'light') return 'dark';
-            if (prev === 'dark') return 'system';
-            return 'light';
+        // light → dark → system → light. Dùng functional update để đọc giá trị
+        // mới nhất, đồng thời tự persist (setPreference chỉ nhận Preference, không
+        // nhận updater nên không gọi nó với function ở đây).
+        setPreferenceState((prev) => {
+            const next: Preference =
+                prev === 'light' ? 'dark' : prev === 'dark' ? 'system' : 'light';
+            SecureStore.setItemAsync(STORE_KEY, next).catch(() => {});
+            return next;
         });
-    }, [setPreference]);
+    }, []);
 
     const scheme: Scheme = preference === 'system' ? systemScheme : preference;
     const themeColors = scheme === 'dark' ? darkColors : lightColors;

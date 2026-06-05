@@ -2,7 +2,8 @@ import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius } from '../theme';
+import { radius } from '../theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { resolveImageUrl } from '../lib/url';
 
 interface Props {
@@ -19,6 +20,7 @@ interface Props {
  * - background primaryContainer (soft pink-white) khi chưa load
  */
 export function StoryCover({ uri, width, rounded = radius.lg, style }: Props) {
+    const { colors } = useAppTheme();
     const height = (width * 4) / 3;
     const resolved = resolveImageUrl(uri);
     return (

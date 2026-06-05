@@ -46,7 +46,7 @@ export function MainHeader() {
                 <View style={styles.brand}>
                     <Image
                         source={require('../../assets/icon.png')}
-                        style={[styles.logo, isDark && styles.logoDark]}
+                        style={styles.logo}
                         resizeMode="contain"
                     />
                     <Text style={styles.brandText}>Yêu</Text>
@@ -133,9 +133,6 @@ function makeStyles(colors: ReturnType<typeof import('@/contexts/theme-context')
             width: 30,
             height: 30,
             borderRadius: 8,
-        },
-        logoDark: {
-            tintColor: '#e6e1e5',
         },
         brandText: {
             fontFamily: 'PlusJakartaSans_700Bold',

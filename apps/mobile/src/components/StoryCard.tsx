@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { colors, fontSize, spacing, typography } from '../theme';
+import { fontSize, spacing, typography, type ThemeColors } from '../theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { formatRating } from '../lib/format';
 import { StoryCover } from './StoryCover';
 import type { RootNavigation } from '@/navigation/types';
@@ -25,6 +26,8 @@ interface Props {
 /** Vertical poster card used in horizontal rows and grids. */
 export function StoryCard({ data, width = 118, onPress }: Props) {
     const nav = useNavigation<RootNavigation>();
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const author =
         data.authorName ||
         data.author?.displayName ||
@@ -62,7 +65,7 @@ export function StoryCard({ data, width = 118, onPress }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     title: {
         marginTop: spacing.sm,
         ...typography.bodySm,

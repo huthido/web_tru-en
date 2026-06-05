@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     FlatList,
     Pressable,
@@ -8,7 +8,8 @@ import {
     View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fontSize, radius, spacing, typography } from '@/theme';
+import { fontSize, radius, spacing, typography, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { timeAgo } from '@/lib/format';
 import { describeError } from '@/lib/error';
 import {
@@ -21,7 +22,9 @@ import { EmptyView, ErrorView, Loading } from '@/components/ui';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
-const TYPE_META: Record<NotificationType, { icon: IoniconName; tint: string }> = {
+const makeTypeMeta = (
+    colors: ThemeColors,
+): Record<NotificationType, { icon: IoniconName; tint: string }> => ({
     STORY_NEW_CHAPTER: { icon: 'book', tint: colors.primary },
     STORY_APPROVED: { icon: 'checkmark-circle', tint: colors.success },
     STORY_REJECTED: { icon: 'close-circle', tint: colors.error },
@@ -33,7 +36,7 @@ const TYPE_META: Record<NotificationType, { icon: IoniconName; tint: string }> =
     COIN_DEPOSITED: { icon: 'arrow-down-circle', tint: colors.success },
     COMMENT_REPLY: { icon: 'chatbubble', tint: colors.tertiary },
     SYSTEM: { icon: 'megaphone', tint: colors.onSurfaceVariant },
-};
+});
 
 function NotificationRow({
     item,
@@ -42,6 +45,9 @@ function NotificationRow({
     item: Notification;
     onPress: (item: Notification) => void;
 }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
+    const TYPE_META = useMemo(() => makeTypeMeta(colors), [colors]);
     const meta = TYPE_META[item.type] ?? TYPE_META.SYSTEM;
     return (
         <Pressable
@@ -68,6 +74,8 @@ function NotificationRow({
 }
 
 export const NotificationsScreen: React.FC = () => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const [filter, setFilter] = useState<'all' | 'unread'>('all');
     const query = useNotifications(filter);
     const markAsRead = useMarkAsRead();
@@ -160,7 +168,7 @@ export const NotificationsScreen: React.FC = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     tabBar: {
         flexDirection: 'row',

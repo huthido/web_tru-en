@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     ActivityIndicator,
     Pressable,
@@ -11,7 +11,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useQueries, useQuery } from '@tanstack/react-query';
-import { colors, fontSize, radius, spacing, typography } from '@/theme';
+import { fontSize, radius, spacing, typography, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { ErrorView } from '@/components/ui';
 import { WalletApi, type EarningsBreakdown, type TodayEarnings } from '@/lib/api/wallet.service';
 import { MonetizationService } from '@/lib/api/monetization.service';
@@ -20,6 +21,8 @@ import { describeError } from '@/lib/error';
 import type { RootNavigation } from '@/navigation/types';
 
 export const EarningsScreen: React.FC = () => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const nav = useNavigation<RootNavigation>();
 
     // Donate / bán content đã tạo mở tự do cho mọi tác giả. Eligibility chỉ
@@ -168,6 +171,8 @@ function SectionCard({
     loading?: boolean;
     children?: React.ReactNode;
 }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={styles.card}>
             <Text style={styles.cardTitle}>{title}</Text>
@@ -177,6 +182,8 @@ function SectionCard({
 }
 
 function BreakdownRows({ data }: { data: EarningsBreakdown }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={{ gap: spacing.xs }}>
             <KV k="Doanh thu gốc" v={`${formatNumber(data.gross)} xu`} />
@@ -199,6 +206,8 @@ function Cell({
     value: string;
     highlight?: boolean;
 }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={styles.cell}>
             <Text style={styles.cellLabel}>{label}</Text>
@@ -210,6 +219,8 @@ function Cell({
 }
 
 function KV({ k, v, highlight }: { k: string; v: string; highlight?: boolean }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={styles.kv}>
             <Text style={styles.kvK}>{k}</Text>
@@ -220,7 +231,7 @@ function KV({ k, v, highlight }: { k: string; v: string; highlight?: boolean }) 
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
     balanceCard: {

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
     FlatList,
     Pressable,
@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
-import { colors, fontSize, spacing, typography } from '@/theme';
+import { fontSize, spacing, typography, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import type { RootNavigation } from '@/navigation/types';
 import type { Story } from '@/lib/api/types';
 import { useHomeStories } from '@/lib/hooks/stories';
@@ -23,6 +24,8 @@ import { AdBanner } from '@/components/AdBanner';
 export const HomeScreen: React.FC = () => {
     const nav = useNavigation<RootNavigation>();
     const qc = useQueryClient();
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const [refreshing, setRefreshing] = useState(false);
 
     const newest = useHomeStories('newest');
@@ -139,7 +142,7 @@ export const HomeScreen: React.FC = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     // Bottom padding lớn để không bị MainTabBar (~70px absolute) che — tab bar
     // floating phía dưới, content cuối ScrollView cần buffer.

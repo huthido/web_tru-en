@@ -49,8 +49,12 @@ export async function requestAdTrackingIfNeeded(): Promise<boolean> {
     const lib = load();
     if (!lib) return true;
     const current = await lib.getTrackingPermissionsAsync();
-    if (current.status === 'granted') return true;
-    if (current.status === 'denied' || current.status === 'restricted') return false;
+    // Native iOS có thể trả 'restricted' (parental controls/MDM) nhưng type của
+    // expo chỉ là granted|undetermined|denied — cast sang AttStatus như
+    // getTrackingStatus() để giữ check runtime mà không vướng TS2367.
+    const status = current.status as AttStatus;
+    if (status === 'granted') return true;
+    if (status === 'denied' || status === 'restricted') return false;
     // undetermined → prompt
     const res = await lib.requestTrackingPermissionsAsync();
     return res.status === 'granted';

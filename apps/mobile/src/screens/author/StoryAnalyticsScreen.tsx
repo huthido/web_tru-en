@@ -6,7 +6,8 @@ import type { RouteProp } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient, unwrap } from '@/lib/api/client';
 import { ErrorView, Loading } from '@/components/ui';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { formatCount } from '@/lib/format';
 import { describeError } from '@/lib/error';
 import type { RootStackParamList } from '@/navigation/types';
@@ -39,6 +40,8 @@ interface StoryStats {
 type R = RouteProp<RootStackParamList, 'StoryAnalytics'>;
 
 export const StoryAnalyticsScreen: React.FC = () => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const route = useRoute<R>();
     const { storyId, storyTitle } = route.params;
 
@@ -140,6 +143,8 @@ function StatCard({
     label: string;
     value: string;
 }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={styles.card}>
             <Ionicons name={icon} size={20} color={colors.primary} />
@@ -160,6 +165,8 @@ function CompareRow({
     max: number;
     color: string;
 }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const pct = max > 0 ? (value / max) * 100 : 0;
     return (
         <View style={styles.compareRow}>
@@ -174,7 +181,7 @@ function CompareRow({
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg },
     content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
     title: { fontSize: fontSize.lg, fontWeight: '700', color: colors.text },

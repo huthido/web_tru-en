@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
     Alert,
     FlatList,
@@ -12,7 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { ChaptersApi } from '@/lib/api/chapters.service';
 import { EmptyView, ErrorView, Loading } from '@/components/ui';
 import { describeError } from '@/lib/error';
@@ -23,6 +24,8 @@ import type { Chapter } from '@/lib/api/types';
 type R = RouteProp<RootStackParamList, 'ChapterList'>;
 
 export const ChapterListScreen: React.FC = () => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const route = useRoute<R>();
     const nav = useNavigation<RootNavigation>();
     const qc = useQueryClient();
@@ -153,7 +156,7 @@ export const ChapterListScreen: React.FC = () => {
                 </View>
             </View>
         ),
-        [nav, storyId, storySlug, togglePublish, onDelete],
+        [nav, storyId, storySlug, togglePublish, onDelete, styles, colors],
     );
 
     if (q.isLoading) return <Loading />;
@@ -201,7 +204,7 @@ export const ChapterListScreen: React.FC = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     header: {
         backgroundColor: colors.surfaceContainerLowest,

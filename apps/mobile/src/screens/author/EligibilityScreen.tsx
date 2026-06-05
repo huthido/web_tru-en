@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
-import { colors, fontSize, radius, spacing, typography } from '@/theme';
+import { fontSize, radius, spacing, typography, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { MonetizationService, type MonetizationEligibility } from '@/lib/api/monetization.service';
 import { formatNumber } from '@/lib/format';
 import type { RootNavigation } from '@/navigation/types';
 
 /** Tiến độ mở khoá Trung tâm Kiếm tiền — theo docs/Điều Kiện Bật Kiếm Tiền.docx. */
 export const EligibilityScreen: React.FC = () => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const nav = useNavigation<RootNavigation>();
     const { data, isLoading } = useQuery<MonetizationEligibility>({
         queryKey: ['monetization', 'eligibility', 'me'],
@@ -94,6 +97,8 @@ function ProgressCard({
     required: number;
     ok: boolean;
 }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const pct = Math.min(100, Math.round((current / required) * 100));
     return (
         <View style={[styles.card, ok && styles.cardOk]}>
@@ -127,6 +132,8 @@ function BinaryCard({
     okMessage: string;
     failMessage: string;
 }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={[styles.card, ok ? styles.cardOk : styles.cardErr]}>
             <View style={styles.cardHead}>
@@ -140,7 +147,7 @@ function BinaryCard({
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.surface },
     content: { padding: spacing.lg, gap: spacing.md },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface },

@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { resolveImageUrl } from '@/lib/url';
 import { AdsApi, type Ad, type AdPosition, type AdType } from '@/lib/api/ads.service';
 import { useActiveAds } from '@/lib/hooks/ads';
@@ -83,6 +84,8 @@ function SelfServedBanner({
     rotationCount: number;
     rotationIndex: number;
 }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const trackedIdsRef = useRef<Set<string>>(new Set());
 
     const handleImpression = useCallback(() => {
@@ -145,6 +148,8 @@ function SelfServedBanner({
  * policy khi develop. Prod build dùng `adUnitId` thật từ admin form.
  */
 function AdmobBannerStub({ ad, height }: { ad: Ad; height: number }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const realUnitId = ad.networkConfig?.adUnitId;
     if (!realUnitId) return null;
 
@@ -171,6 +176,8 @@ function AdmobBannerStub({ ad, height }: { ad: Ad; height: number }) {
 
 /** FAN stub — Facebook Audience Network. Cần `react-native-fbads` + Facebook SDK config. */
 function FanBannerStub({ ad, height }: { ad: Ad; height: number }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const placementId = ad.networkConfig?.placementId;
     if (!placementId) return null;
     return (
@@ -184,7 +191,7 @@ function FanBannerStub({ ad, height }: { ad: Ad; height: number }) {
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     wrapper: {
         marginHorizontal: spacing.lg,
         marginVertical: spacing.md,

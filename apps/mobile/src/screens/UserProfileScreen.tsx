@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Dimensions,
@@ -13,7 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { Image } from 'expo-image';
-import { colors, fontSize, radius, spacing, typography } from '@/theme';
+import { fontSize, radius, spacing, typography, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { AuthorsService } from '@/lib/api/authors.service';
 import { StoryCover } from '@/components/StoryCover';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
@@ -30,6 +31,8 @@ const ITEM_W = Math.floor((SCREEN_W - spacing.lg * 2 - spacing.md) / 2);
  * 2 CTA (Theo dõi · Donate xu) + tab Tác phẩm.
  */
 export const UserProfileScreen: React.FC = () => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const route = useRoute<RouteProp<RootStackParamList, 'UserProfile'>>();
     const nav = useNavigation<RootNavigation>();
     const qc = useQueryClient();
@@ -167,6 +170,8 @@ export const UserProfileScreen: React.FC = () => {
 };
 
 function Stat({ icon, label, value }: { icon: any; label: string; value: number }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={styles.stat}>
             <Ionicons name={icon} size={14} color={colors.onSurfaceVariant} />
@@ -176,7 +181,7 @@ function Stat({ icon, label, value }: { icon: any; label: string; value: number 
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.surface },
     content: { padding: spacing.lg, gap: spacing.md },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface },

@@ -16,7 +16,8 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colors, fontSize, radius, readerThemes, spacing } from '@/theme';
+import { fontSize, radius, readerThemes, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import type { ReaderThemeKey } from '@/theme';
 import type { RootStackParamList } from '@/navigation/types';
 import { htmlToBlocks } from '@/lib/html';
@@ -33,6 +34,8 @@ const MAX_FONT = 28;
 const SAVE_DEBOUNCE_MS = 1500;
 
 export const ReaderScreen: React.FC<Props> = ({ route, navigation }) => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const { storySlug, chapterSlug } = route.params;
     const insets = useSafeAreaInsets();
     const { width } = useWindowDimensions();
@@ -377,7 +380,7 @@ export const ReaderScreen: React.FC<Props> = ({ route, navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     fill: { flex: 1 },
     header: {
         flexDirection: 'row',

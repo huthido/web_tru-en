@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
-import { colors, radius, spacing } from '../theme';
+import { radius, spacing, type ThemeColors } from '../theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import type { Story } from '../lib/api/types';
 import { SectionHeader } from './ui';
 import { StoryCard } from './StoryCard';
@@ -20,6 +21,8 @@ interface Props {
 
 /** 2-column grid of story cards — matches web mobile BookSection layout. */
 export function StoryRow({ title, stories, loading, onPressStory, onSeeAll }: Props) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     if (!loading && (!stories || stories.length === 0)) return null;
 
     const displayed = stories?.slice(0, 4) ?? [];
@@ -47,7 +50,7 @@ export function StoryRow({ title, stories, loading, onPressStory, onSeeAll }: Pr
 
 const SKELETON_H = Math.round((CARD_WIDTH * 4) / 3) + 56;
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     wrap: { marginBottom: spacing.xl, paddingHorizontal: H_PAD },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
     skeleton: {

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
     Alert,
     FlatList,
@@ -11,7 +11,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import type { RootNavigation } from '@/navigation/types';
 import { StoriesApi } from '@/lib/api/stories.service';
 import { ApprovalsApi } from '@/lib/api/approvals.service';
@@ -23,13 +24,15 @@ import type { Story } from '@/lib/api/types';
 
 const PAGE_SIZE = 30;
 
-function statusLabel(s: Story): { text: string; bg: string; fg: string } {
+function statusLabel(s: Story, colors: ThemeColors): { text: string; bg: string; fg: string } {
     if (s.isPublished) return { text: 'Đã xuất bản', bg: '#E8F5E9', fg: '#2E7D32' };
     if (s.status === 'DRAFT') return { text: 'Bản nháp', bg: '#FFF3E0', fg: '#EF6C00' };
     return { text: s.status, bg: colors.primarySoft, fg: colors.primaryDark };
 }
 
 export const MyStoriesScreen: React.FC = () => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const nav = useNavigation<RootNavigation>();
     const qc = useQueryClient();
 
@@ -78,7 +81,7 @@ export const MyStoriesScreen: React.FC = () => {
 
     const renderItem = useCallback(
         ({ item }: { item: Story }) => {
-            const status = statusLabel(item);
+            const status = statusLabel(item, colors);
             return (
                 <View style={styles.card}>
                     <View style={styles.row}>
@@ -164,7 +167,7 @@ export const MyStoriesScreen: React.FC = () => {
                 </View>
             );
         },
-        [nav, onDelete, sendApproval],
+        [nav, onDelete, sendApproval, styles, colors],
     );
 
     if (query.isLoading && !query.data) return <Loading />;
@@ -203,7 +206,7 @@ export const MyStoriesScreen: React.FC = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     list: { padding: spacing.lg, gap: spacing.md, flexGrow: 1 },
     card: {

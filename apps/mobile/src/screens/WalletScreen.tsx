@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
     Alert,
     FlatList,
@@ -13,7 +13,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import type { RootNavigation } from '@/navigation/types';
 import { formatNumber, timeAgo } from '@/lib/format';
 import { describeError } from '@/lib/error';
@@ -34,10 +35,12 @@ import {
 
 /* ── transaction styling ─────────────────────────────────────────────── */
 
-const TYPE_META: Record<
+type TxMeta = Record<
     TransactionType,
     { icon: keyof typeof Ionicons.glyphMap; tint: string; label: string }
-> = {
+>;
+
+const makeTypeMeta = (colors: ThemeColors): TxMeta => ({
     DEPOSIT: { icon: 'arrow-down-circle', tint: colors.success, label: 'Nạp xu' },
     REFUND: { icon: 'refresh-circle', tint: colors.success, label: 'Hoàn xu' },
     BONUS: { icon: 'gift', tint: '#7C4DFF', label: 'Quà tặng' },
@@ -47,14 +50,17 @@ const TYPE_META: Record<
     TRANSFER: { icon: 'swap-horizontal', tint: colors.coin, label: 'Chuyển xu' },
     WITHDRAWAL: { icon: 'arrow-up-circle', tint: colors.danger, label: 'Rút xu' },
     ADMIN_ADJUST: { icon: 'settings', tint: colors.textMuted, label: 'Điều chỉnh' },
-};
+});
 
-function metaFor(type: TransactionType) {
-    return TYPE_META[type] ?? TYPE_META.ADMIN_ADJUST;
+function metaFor(typeMeta: TxMeta, type: TransactionType) {
+    return typeMeta[type] ?? typeMeta.ADMIN_ADJUST;
 }
 
 function TransactionRow({ tx }: { tx: CoinTransaction }) {
-    const meta = metaFor(tx.type);
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
+    const TYPE_META = useMemo(() => makeTypeMeta(colors), [colors]);
+    const meta = metaFor(TYPE_META, tx.type);
     const positive = tx.amount > 0;
     return (
         <View style={styles.txRow}>
@@ -97,6 +103,8 @@ function PackageCard({
     onBuy: (pkg: CoinPackage, sku: string) => void;
     busySku: string | null;
 }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const sku = pickSku(pkg);
     const onMobile = !!sku;
     const busy = !!sku && busySku === sku;
@@ -133,6 +141,8 @@ function PackageCard({
 /* ── screen ─────────────────────────────────────────────────────────── */
 
 export const WalletScreen: React.FC = () => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const qc = useQueryClient();
     const nav = useNavigation<RootNavigation>();
     const balance = useWalletBalance();
@@ -371,7 +381,7 @@ export const WalletScreen: React.FC = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     // PaddingBottom 100 chừa MainTabBar floating.
     content: { paddingBottom: 100 },

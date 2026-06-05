@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, fontSize, radius, spacing } from '../theme';
+import { fontSize, radius, spacing, type ThemeColors } from '../theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { ProgressBar } from './ui';
 import { StoryCover } from './StoryCover';
 
@@ -18,6 +19,8 @@ interface Props {
 
 /** Horizontal list row: small cover + up to three text lines. */
 export function StoryListItem({ title, coverImage, line2, line3, progress, onPress }: Props) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <Pressable style={styles.row} onPress={onPress}>
             <StoryCover uri={coverImage} width={54} rounded={radius.sm} />
@@ -45,7 +48,7 @@ export function StoryListItem({ title, coverImage, line2, line3, progress, onPre
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     row: {
         flexDirection: 'row',
         gap: spacing.md,

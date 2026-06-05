@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import { EmptyView, ErrorView, Loading } from '@/components/ui';
 import {
     WalletApi,
@@ -32,6 +33,8 @@ const STATUS_LABEL: Record<WithdrawalStatus, { text: string; bg: string; fg: str
 };
 
 export const WithdrawalsScreen: React.FC = () => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const qc = useQueryClient();
     const [modalOpen, setModalOpen] = useState(false);
 
@@ -99,6 +102,8 @@ export const WithdrawalsScreen: React.FC = () => {
 };
 
 function WithdrawalRow({ item }: { item: Withdrawal }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const status = STATUS_LABEL[item.status] ?? STATUS_LABEL.PENDING;
     return (
         <View style={styles.row}>
@@ -139,6 +144,8 @@ function NewWithdrawalModal({
     const [bankAccount, setBankAccount] = useState('');
     const [note, setNote] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
 
     const reset = () => {
         setAmount('');
@@ -242,7 +249,7 @@ function NewWithdrawalModal({
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     headerCard: {
         backgroundColor: colors.primary,

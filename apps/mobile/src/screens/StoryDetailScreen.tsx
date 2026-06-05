@@ -13,7 +13,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation } from '@tanstack/react-query';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colors, fontSize, radius, spacing } from '@/theme';
+import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
+import { useAppTheme } from '@/contexts/theme-context';
 import type { RootStackParamList } from '@/navigation/types';
 import type { Chapter } from '@/lib/api/types';
 import { formatCount, storyStatusLabel } from '@/lib/format';
@@ -39,6 +40,8 @@ const ACCESS_LABEL: Record<string, string> = {
 };
 
 function ChapterRow({ chapter, onPress }: { chapter: Chapter; onPress: () => void }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <Pressable style={styles.chapterRow} onPress={onPress}>
             <View style={styles.chapterMain}>
@@ -62,6 +65,8 @@ function ChapterRow({ chapter, onPress }: { chapter: Chapter; onPress: () => voi
 }
 
 export const StoryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     const { slug } = route.params;
     const story = useStory(slug);
     const chapters = useChapters(slug);
@@ -464,6 +469,8 @@ function Stat({
     label: string;
     value: string;
 }) {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={styles.stat}>
             <Ionicons name={icon} size={18} color={colors.primary} />
@@ -473,7 +480,7 @@ function Stat({
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg },
     content: { paddingBottom: spacing.xl },
     hero: {
