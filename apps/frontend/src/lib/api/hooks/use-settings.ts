@@ -14,7 +14,7 @@ export const useSettings = () => {
                 return {
                     id: 'default',
                     siteName: 'YÊU',
-                    siteDescription: 'Nền tảng đọc truyện online',
+                    siteDescription: 'Mạng Xã Hội Giải Trí Nghệ Thuật',
                     maintenanceMode: false,
                     allowRegistration: true,
                     requireEmailVerification: false,

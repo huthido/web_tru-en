@@ -233,7 +233,9 @@ function KV({ k, v, highlight }: { k: string; v: string; highlight?: boolean }) 
 
 const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
-    content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
+    // PaddingBottom 100 — màn này giờ là tab "Kiếm tiền", cần buffer để không
+    // bị MainTabBar floating che.
+    content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
     balanceCard: {
         backgroundColor: colors.primary,
         borderRadius: radius.xl,

@@ -52,22 +52,27 @@ function MainTabs() {
                 header: () => <MainHeader />,
             }}
         >
-            <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Khám phá' }} />
-            <Tab.Screen name="Search" component={SearchScreen} options={{ title: 'Tìm kiếm' }} />
+            <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Trang chủ' }} />
+            <Tab.Screen name="Search" component={SearchScreen} options={{ title: 'Khám phá' }} />
             <Tab.Screen
                 name="Upload"
                 component={UploadStub}
                 options={{ title: 'Đăng truyện' }}
             />
             <Tab.Screen
-                name="Library"
-                component={LibraryScreen}
-                options={{ title: 'Thư viện' }}
+                name="Earn"
+                component={EarningsScreen}
+                options={{ title: 'Kiếm tiền' }}
+            />
+            <Tab.Screen
+                name="Shop"
+                component={WalletScreen}
+                options={{ title: 'Cửa hàng' }}
             />
             <Tab.Screen
                 name="Profile"
                 component={ProfileScreen}
-                options={{ title: 'Cá nhân' }}
+                options={{ title: 'Tài khoản' }}
             />
         </Tab.Navigator>
     );
@@ -193,6 +198,11 @@ export const RootNavigator: React.FC = () => {
                             name="Settings"
                             component={SettingsScreen}
                             options={{ title: 'Cài đặt' }}
+                        />
+                        <Stack.Screen
+                            name="Library"
+                            component={LibraryScreen}
+                            options={{ title: 'Thư viện' }}
                         />
                     </>
                 ) : (

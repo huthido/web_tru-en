@@ -7,6 +7,7 @@ import { Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
 import { SiX, SiTiktok, SiLinkedin, SiThreads } from 'react-icons/si';
 
 import { useSettings } from '@/lib/api/hooks/use-settings';
+import { BrandMark } from '@/components/ui/brand-mark';
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
@@ -35,22 +36,7 @@ export function Footer() {
                                         className="dark:invert dark:brightness-200"
                                     />
                                 ) : (
-                                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-black dark:text-white transition-colors duration-300">
-                                        <path
-                                            d="M50 5L50 55L30 45.3594L10 55L10 5L50 5Z"
-                                            stroke="currentColor"
-                                            strokeWidth="4.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                        <path
-                                            d="M30 5V45.3594"
-                                            stroke="currentColor"
-                                            strokeWidth="4.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                    </svg>
+                                    <BrandMark size={60} />
                                 )}
                             </div>
                         </Link>

@@ -26,6 +26,10 @@ interface BookSectionProps {
   hasMore?: boolean;
   onLoadMore?: () => void;
   skeletonCount?: number;
+  /** Ẩn heading (dùng khi danh mục đã chọn bằng chip phía trên). */
+  hideTitle?: boolean;
+  /** Số card tối đa ở grid mobile (mặc định 4). */
+  mobileLimit?: number;
 }
 
 export function BookSection({
@@ -36,7 +40,9 @@ export function BookSection({
   isLoading = false,
   hasMore = false,
   onLoadMore,
-  skeletonCount = 6
+  skeletonCount = 6,
+  hideTitle = false,
+  mobileLimit = 4
 }: BookSectionProps) {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLElement>(null);
@@ -278,19 +284,21 @@ export function BookSection({
       aria-label={`Section: ${title}`}
     >
       {/* Section Header — editorial Plus Jakarta on mobile theo Stitch */}
-      <div className="flex items-center justify-between gap-3 mb-4 px-4 md:px-4 flex-wrap">
-        <h2 className="text-lg md:text-2xl font-display font-extrabold tracking-tight text-on-surface transition-colors duration-300 flex-shrink-0 md:uppercase">
-          {title}
-        </h2>
-        {seeMoreLink && (
-          <Link
-            href={seeMoreLink}
-            className="text-xs md:text-sm font-semibold text-primary hover:underline transition-colors duration-300 flex-shrink-0 whitespace-nowrap"
-          >
-            Xem tất cả →
-          </Link>
-        )}
-      </div>
+      {!hideTitle && (
+        <div className="flex items-center justify-between gap-3 mb-4 px-4 md:px-4 flex-wrap">
+          <h2 className="text-lg md:text-2xl font-display font-extrabold tracking-tight text-on-surface transition-colors duration-300 flex-shrink-0 md:uppercase">
+            {title}
+          </h2>
+          {seeMoreLink && (
+            <Link
+              href={seeMoreLink}
+              className="text-xs md:text-sm font-semibold text-primary hover:underline transition-colors duration-300 flex-shrink-0 whitespace-nowrap"
+            >
+              Xem tất cả →
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* === MOBILE: 2-col grid theo Stitch mockup === */}
       <div className="md:hidden px-4">
@@ -302,7 +310,7 @@ export function BookSection({
           </div>
         ) : books.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
-            {books.slice(0, 4).map((book) => (
+            {books.slice(0, mobileLimit).map((book) => (
               <BookCard
                 key={`m-${book.id}`}
                 id={book.id}

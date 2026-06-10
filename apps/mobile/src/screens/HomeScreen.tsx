@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
-import { fontSize, spacing, typography, type ThemeColors } from '@/theme';
+import { fontSize, radius, spacing, typography, type ThemeColors } from '@/theme';
 import { useAppTheme } from '@/contexts/theme-context';
 import type { RootNavigation } from '@/navigation/types';
 import type { Story } from '@/lib/api/types';
@@ -21,18 +21,34 @@ import { StoryCover } from '@/components/StoryCover';
 import { StoryRow } from '@/components/StoryRow';
 import { AdBanner } from '@/components/AdBanner';
 
+// Danh mục trang chủ dạng chip (docs/Fix vài điểm trên app web.pdf) —
+// chọn 1 chip hiển thị 1 lưới truyện thay vì 5 section xếp chồng.
+const HOME_TABS = [
+    { key: 'newest', label: 'Mới nhất' },
+    { key: 'bestOfMonth', label: 'Hay nhất tháng' },
+    { key: 'topRated', label: 'Đánh giá cao' },
+    { key: 'recommended', label: 'Đề xuất' },
+    { key: 'mostLiked', label: 'Yêu thích' },
+] as const;
+
+type HomeTabKey = (typeof HOME_TABS)[number]['key'];
+
 export const HomeScreen: React.FC = () => {
     const nav = useNavigation<RootNavigation>();
     const qc = useQueryClient();
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
     const [refreshing, setRefreshing] = useState(false);
+    const [activeTab, setActiveTab] = useState<HomeTabKey>('newest');
 
-    const newest = useHomeStories('newest');
-    const recommended = useHomeStories('recommended');
-    const bestOfMonth = useHomeStories('bestOfMonth');
-    const topRated = useHomeStories('topRated');
-    const mostLiked = useHomeStories('mostLiked');
+    const sections: Record<HomeTabKey, ReturnType<typeof useHomeStories>> = {
+        newest: useHomeStories('newest'),
+        recommended: useHomeStories('recommended'),
+        bestOfMonth: useHomeStories('bestOfMonth'),
+        topRated: useHomeStories('topRated'),
+        mostLiked: useHomeStories('mostLiked'),
+    };
+    const activeSection = sections[activeTab];
     const continueReading = useContinueReading(10);
 
     const openStory = useCallback(
@@ -105,39 +121,39 @@ export const HomeScreen: React.FC = () => {
 
             <AdBanner position="TOP" />
 
+            {/* Chip danh mục — pill, active = filled tối (mock PDF) */}
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.chipScroll}
+                contentContainerStyle={styles.chipRow}
+            >
+                {HOME_TABS.map((tab) => {
+                    const isActive = tab.key === activeTab;
+                    return (
+                        <Pressable
+                            key={tab.key}
+                            onPress={() => setActiveTab(tab.key)}
+                            style={[styles.chip, isActive && styles.chipActive]}
+                        >
+                            <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
+                                {tab.label}
+                            </Text>
+                        </Pressable>
+                    );
+                })}
+            </ScrollView>
+
+            {/* Lưới truyện của danh mục đang chọn */}
             <StoryRow
-                title="Mới cập nhật"
-                stories={newest.data}
-                loading={newest.isLoading}
+                title=""
+                stories={activeSection.data}
+                loading={activeSection.isLoading}
                 onPressStory={openStory}
-            />
-            <StoryRow
-                title="Đề xuất cho bạn"
-                stories={recommended.data}
-                loading={recommended.isLoading}
-                onPressStory={openStory}
+                limit={12}
             />
 
             <AdBanner position="INLINE" />
-
-            <StoryRow
-                title="Hay nhất tháng"
-                stories={bestOfMonth.data}
-                loading={bestOfMonth.isLoading}
-                onPressStory={openStory}
-            />
-            <StoryRow
-                title="Đánh giá cao"
-                stories={topRated.data}
-                loading={topRated.isLoading}
-                onPressStory={openStory}
-            />
-            <StoryRow
-                title="Được yêu thích"
-                stories={mostLiked.data}
-                loading={mostLiked.isLoading}
-                onPressStory={openStory}
-            />
         </ScrollView>
     );
 };
@@ -158,4 +174,27 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     },
     crChapter: { marginTop: 2, ...typography.bodySm, fontSize: fontSize.xs, color: colors.onSurfaceVariant },
     crProgress: { marginTop: spacing.xs },
+    /* chip danh mục */
+    chipScroll: { marginBottom: spacing.lg },
+    chipRow: { paddingHorizontal: spacing.lg, gap: spacing.sm },
+    chip: {
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.sm,
+        borderRadius: radius.pill,
+        backgroundColor: colors.surfaceContainerLow,
+        borderWidth: 1,
+        borderColor: colors.outlineVariant,
+    },
+    chipActive: {
+        backgroundColor: colors.onSurface,
+        borderColor: colors.onSurface,
+    },
+    chipText: {
+        ...typography.labelMd,
+        color: colors.onSurfaceVariant,
+    },
+    chipTextActive: {
+        color: colors.background,
+        fontFamily: 'DMSans_700Bold',
+    },
 });

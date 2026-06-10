@@ -49,7 +49,7 @@ export function MainHeader() {
                         style={styles.logo}
                         resizeMode="contain"
                     />
-                    <Text style={styles.brandText}>Yêu</Text>
+                    <Text style={styles.brandText}>YÊU</Text>
                 </View>
 
                 {/* Search bar — tap to switch to Search tab */}

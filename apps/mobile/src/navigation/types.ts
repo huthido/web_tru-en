@@ -23,15 +23,20 @@ export type RootStackParamList = {
     Notifications: undefined;
     Settings: undefined;
     UserProfile: { username: string };
+    // Thư viện rời tab bar (PDF fix nav) — truy cập từ Tài khoản.
+    Library: undefined;
 };
 
+// Thứ tự tab theo docs/Fix vài điểm trên app web.pdf:
+// Trang chủ · Khám phá · [FAB Đăng truyện] · Kiếm tiền · Cửa hàng · Tài khoản.
 export type MainTabsParamList = {
     Home: undefined;
     Search: undefined;
     // Upload là route trung tâm FAB — bấm sẽ navigate sang CreateStoryScreen stack.
     // Render screen `UploadStub` để có route entry; tabBar tự handle FAB click.
     Upload: undefined;
-    Library: undefined;
+    Earn: undefined;
+    Shop: undefined;
     Profile: undefined;
 };
 

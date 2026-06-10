@@ -109,8 +109,18 @@ export const ProfileScreen: React.FC = () => {
                 </Text>
             </Pressable>
 
-            {/* Notifications + Settings — gom thành 1 group hai-hàng để gọn. */}
+            {/* Tiện ích + cài đặt — Thư viện rời tab bar (PDF fix nav) nên gom
+                vào đây cùng Thông báo / Cài đặt. */}
             <View style={styles.legalGroup}>
+                <Pressable
+                    style={[styles.legalRow, styles.legalRowDivider]}
+                    onPress={() => rootNav.navigate('Library')}
+                >
+                    <Ionicons name="library-outline" size={20} color={colors.onSurfaceVariant} />
+                    <Text style={styles.legalText}>Thư viện</Text>
+                    <View style={{ flex: 1 }} />
+                    <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceVariant} />
+                </Pressable>
                 <Pressable
                     style={[styles.legalRow, styles.legalRowDivider]}
                     onPress={() => rootNav.navigate('Notifications')}

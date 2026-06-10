@@ -1,6 +1,6 @@
 'use client';
 
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
@@ -14,25 +14,32 @@ import {
   useTopRatedStories,
   useMostLikedStories,
 } from '@/lib/api/hooks/use-stories';
-import { useContinueReading } from '@/lib/api/hooks/use-reading-history';
-import { useAuth } from '@/contexts/auth-context';
 import { Story } from '@/lib/api/stories.service';
 
 // Lazy load heavy components
 const BookSection = lazy(() => import('@/components/books/book-section').then(mod => ({ default: mod.BookSection })));
-const ContinueReadingCard = lazy(() => import('@/components/stories/continue-reading-card').then(mod => ({ default: mod.ContinueReadingCard })));
+
+// Danh mục trang chủ dạng chip (docs/Fix vài điểm trên app web.pdf) —
+// chọn 1 chip hiển thị 1 lưới truyện thay vì 5 section xếp chồng.
+const HOME_TABS = [
+  { key: 'newest', label: 'Mới nhất', seeMore: '/stories?sortBy=newest' },
+  { key: 'bestOfMonth', label: 'Hay nhất tháng', seeMore: '/stories?sortBy=viewCount' },
+  { key: 'topRated', label: 'Đánh giá cao', seeMore: '/stories?sortBy=rating' },
+  { key: 'recommended', label: 'Đề xuất', seeMore: '/stories?sortBy=popular' },
+  { key: 'mostLiked', label: 'Yêu thích', seeMore: '/stories?sortBy=popular' },
+] as const;
+
+type HomeTabKey = (typeof HOME_TABS)[number]['key'];
 
 export default function Home() {
-  const { user } = useAuth();
-  // Fetch all homepage data
+  const [activeTab, setActiveTab] = useState<HomeTabKey>('newest');
+
+  // Fetch all homepage data (cache sẵn để chuyển chip không phải chờ).
   const { data: newestBooks = [], isLoading: isLoadingNewest } = useNewestStories(15);
   const { data: bestOfMonth = [], isLoading: isLoadingBestOfMonth } = useBestOfMonth(15);
   const { data: recommendedBooks = [], isLoading: isLoadingRecommended } = useRecommendedStories(15);
   const { data: topRated = [], isLoading: isLoadingTopRated } = useTopRatedStories(20);
   const { data: mostLiked = [], isLoading: isLoadingMostLiked } = useMostLikedStories(15);
-  const { data: continueReading = [], isLoading: isLoadingContinueReading } = useContinueReading(3, !!user);
-
-  const isLoading = isLoadingNewest || isLoadingBestOfMonth || isLoadingRecommended || isLoadingTopRated || isLoadingMostLiked;
 
   // Transform Story to Book format for BookSection component
   const transformStoryToBook = (story: Story) => ({
@@ -47,11 +54,16 @@ export default function Home() {
     storyId: story.id,
   });
 
-  const newestBooksTransformed = newestBooks.map(transformStoryToBook);
-  const bestOfMonthTransformed = bestOfMonth.map(transformStoryToBook);
-  const recommendedBooksTransformed = recommendedBooks.map(transformStoryToBook);
-  const topRatedTransformed = topRated.map(transformStoryToBook);
-  const mostLikedTransformed = mostLiked.map(transformStoryToBook);
+  const sections: Record<HomeTabKey, { books: ReturnType<typeof transformStoryToBook>[]; isLoading: boolean }> = {
+    newest: { books: newestBooks.map(transformStoryToBook), isLoading: isLoadingNewest },
+    bestOfMonth: { books: bestOfMonth.map(transformStoryToBook), isLoading: isLoadingBestOfMonth },
+    topRated: { books: topRated.map(transformStoryToBook), isLoading: isLoadingTopRated },
+    recommended: { books: recommendedBooks.map(transformStoryToBook), isLoading: isLoadingRecommended },
+    mostLiked: { books: mostLiked.map(transformStoryToBook), isLoading: isLoadingMostLiked },
+  };
+
+  const active = HOME_TABS.find((t) => t.key === activeTab) ?? HOME_TABS[0];
+  const { books: activeBooks, isLoading: isLoadingActive } = sections[active.key];
 
   return (
     <div className="min-h-screen bg-background text-on-surface transition-colors duration-300">
@@ -68,113 +80,64 @@ export default function Home() {
           <div className="px-4 md:px-6">
             <AdSlot slotKey="home.top" />
           </div>
-          {isLoading ? (
-            <>
-              {/* Loading Skeletons */}
-              <BookSectionSkeleton />
-              <BookSectionSkeleton />
-              <BookSectionSkeleton />
-              <BookSectionSkeleton />
-              <BookSectionSkeleton />
-            </>
-          ) : (
-            <>
-              {/* Continue Reading Section - Only show if user is logged in and has reading history */}
-              {/* {user && (isLoadingContinueReading || continueReading.length > 0) && (
-                <div className="px-4 md:px-6 mb-8">
-                  <div className="mx-auto">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-2xl md:text-3xl font-bold text-on-surface">
-                        Tiếp tục đọc
-                      </h2>
-                      {continueReading.length > 0 && (
-                        <Link
-                          href="/history"
-                          className="text-sm md:text-base text-primary hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-semibold transition-colors duration-200 flex items-center gap-1 group"
-                        >
-                          <span>Xem tất cả</span>
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="group-hover:translate-x-1 transition-transform duration-200"
-                          >
-                            <path d="M5 12h14M12 5l7 7-7 7" />
-                          </svg>
-                        </Link>
-                      )}
-                    </div>
-                    {isLoadingContinueReading ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {Array.from({ length: 3 }).map((_, i) => (
-                          <div key={i} className="bg-surface-container rounded-xl p-5 shadow-md border border-outline-variant animate-pulse">
-                            <div className="flex gap-4">
-                              <div className="w-20 h-28 md:w-24 md:h-32 bg-surface-variant rounded-lg flex-shrink-0"></div>
-                              <div className="flex-1 space-y-3">
-                                <div className="h-5 bg-surface-variant rounded w-3/4"></div>
-                                <div className="h-4 bg-surface-variant rounded w-1/2"></div>
-                                <div className="space-y-2">
-                                  <div className="h-3 bg-surface-variant rounded w-full"></div>
-                                  <div className="h-2.5 bg-surface-variant rounded w-full"></div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : continueReading.length > 0 ? (
-                      <Suspense fallback={
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {Array.from({ length: 3 }).map((_, i) => (
-                            <div key={i} className="bg-surface-container rounded-xl p-5 shadow-md border border-outline-variant animate-pulse">
-                              <div className="flex gap-4">
-                                <div className="w-20 h-28 md:w-24 md:h-32 bg-surface-variant rounded-lg flex-shrink-0"></div>
-                                <div className="flex-1 space-y-3">
-                                  <div className="h-5 bg-surface-variant rounded w-3/4"></div>
-                                  <div className="h-4 bg-surface-variant rounded w-1/2"></div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      }>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                          {continueReading.map((item) => (
-                            <ContinueReadingCard key={item.id} history={item} />
-                          ))}
-                        </div>
-                      </Suspense>
-                    ) : null}
-                  </div>
-                </div>
-              )} */}
 
-              {/* Book Sections */}
-              <Suspense fallback={<BookSectionSkeleton />}>
-                <BookSection title="TRUYỆN MỚI NHẤT" books={newestBooksTransformed} seeMoreLink="/stories?sortBy=newest" showLikeButton={false} />
-              </Suspense>
-              <Suspense fallback={<BookSectionSkeleton />}>
-                <BookSection title="TRUYỆN ĐƯỢC ĐỀ XUẤT" books={recommendedBooksTransformed} seeMoreLink="/stories?sortBy=popular" showLikeButton={false} />
-              </Suspense>
-              <Suspense fallback={<BookSectionSkeleton />}>
-                <BookSection title="TRUYỆN HAY NHẤT THÁNG" books={bestOfMonthTransformed} seeMoreLink="/stories?sortBy=viewCount" showLikeButton={false} />
-              </Suspense>
-              <Suspense fallback={<BookSectionSkeleton />}>
-                <BookSection title="TRUYỆN ĐƯỢC ĐÁNH GIÁ CAO" books={topRatedTransformed} seeMoreLink="/stories?sortBy=rating" showLikeButton={false} />
-              </Suspense>
-              <Suspense fallback={<BookSectionSkeleton />}>
-                <BookSection title="TRUYỆN ĐƯỢC YÊU THÍCH" books={mostLikedTransformed} seeMoreLink="/stories?sortBy=popular" showLikeButton={false} />
-              </Suspense>
-              <div className="px-4 md:px-6 mt-8">
-                <AdSlot slotKey="home.bottom" />
-              </div>
-            </>
+          {/* Chip danh mục — pill MD3, active = filled tối */}
+          <div className="px-4 md:px-6 mb-5 flex items-center gap-3">
+            <div className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide" role="tablist" aria-label="Danh mục truyện">
+              {HOME_TABS.map((tab) => {
+                const isActive = tab.key === active.key;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 active:scale-95 border ${
+                      isActive
+                        ? 'bg-on-surface text-surface border-transparent shadow-sm'
+                        : 'bg-surface-container text-on-surface-variant border-outline-variant/60 hover:bg-surface-variant hover:text-on-surface'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+            <Link
+              href={active.seeMore}
+              className="hidden sm:block flex-shrink-0 text-xs md:text-sm font-semibold text-primary hover:underline whitespace-nowrap"
+            >
+              Xem tất cả →
+            </Link>
+          </div>
+
+          {/* Lưới truyện của danh mục đang chọn */}
+          {isLoadingActive ? (
+            <BookSectionSkeleton />
+          ) : (
+            <Suspense fallback={<BookSectionSkeleton />}>
+              <BookSection
+                title={active.label}
+                hideTitle
+                books={activeBooks}
+                seeMoreLink={active.seeMore}
+                showLikeButton={false}
+                mobileLimit={12}
+              />
+            </Suspense>
           )}
+
+          {/* Link Xem tất cả cho mobile (chip row giấu link để đỡ chật) */}
+          <div className="sm:hidden px-4 -mt-6 mb-6 text-right">
+            <Link href={active.seeMore} className="text-xs font-semibold text-primary hover:underline">
+              Xem tất cả →
+            </Link>
+          </div>
+
+          <div className="px-4 md:px-6 mt-8">
+            <AdSlot slotKey="home.bottom" />
+          </div>
         </main>
 
         {/* Footer */}

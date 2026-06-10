@@ -17,19 +17,22 @@ interface Props {
     loading?: boolean;
     onPressStory: (story: Story) => void;
     onSeeAll?: () => void;
+    /** Số card tối đa (mặc định 4). Trang chủ chip-mode dùng limit lớn hơn. */
+    limit?: number;
 }
 
 /** 2-column grid of story cards — matches web mobile BookSection layout. */
-export function StoryRow({ title, stories, loading, onPressStory, onSeeAll }: Props) {
+export function StoryRow({ title, stories, loading, onPressStory, onSeeAll, limit = 4 }: Props) {
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
     if (!loading && (!stories || stories.length === 0)) return null;
 
-    const displayed = stories?.slice(0, 4) ?? [];
+    const displayed = stories?.slice(0, limit) ?? [];
 
     return (
         <View style={styles.wrap}>
-            <SectionHeader title={title} onSeeAll={onSeeAll} />
+            {/* title rỗng = danh mục đã chọn bằng chip phía trên, bỏ heading */}
+            {title ? <SectionHeader title={title} onSeeAll={onSeeAll} /> : null}
             <View style={styles.grid}>
                 {loading
                     ? [...Array(4)].map((_, i) => (

@@ -5,7 +5,8 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Compass, Library, Clock, Bookmark, Heart, Store, Upload, LayoutDashboard, Wallet, Settings, BookOpen, HelpCircle, Plus, type LucideIcon } from 'lucide-react';
+import { Home, Compass, Library, Clock, Bookmark, Heart, Store, Upload, LayoutDashboard, Wallet, Settings, User, HelpCircle, Plus, type LucideIcon } from 'lucide-react';
+import { BrandMark } from '@/components/ui/brand-mark';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
 function roleLabel(role?: string): string {
@@ -54,42 +55,44 @@ export function Sidebar() {
   const { data: settings } = useSettings();
   const canCreateStories = !!user;
 
-  // Danh mục bám theo mockup theme Stitch (Home · Discover · Library ·
-  // History · Bookmarks · Shop · Upload · Monetization).
+  // Chưa đăng nhập → đẩy qua login kèm redirect, để Đăng truyện / Kiếm tiền
+  // luôn hiển thị và thu hút người mới + tác giả.
+  const uploadHref = canCreateStories ? '/author/stories/create' : '/login?redirect=/author/stories/create';
+  const earnHref = user ? '/author/earnings' : '/login?redirect=/author/earnings';
+
+  // Thứ tự tính năng chính theo docs/Fix vài điểm trên app web.pdf:
+  // 1 Trang chủ · 2 Khám phá · 3 Đăng truyện · 4 Kiếm tiền · 5 Cửa hàng ·
+  // 6 Tài khoản (cài đặt + tính năng phụ nằm trong Tài khoản).
   const links: NavLink[] = [
     { href: '/', label: 'Trang chủ', icon: Home, active: pathname === '/' },
     { href: '/stories', label: 'Khám phá', icon: Compass, active: pathname === '/stories' },
+    { href: uploadHref, label: 'Đăng truyện', icon: Upload, active: pathname === '/author/stories/create' },
+    { href: earnHref, label: 'Kiếm tiền', icon: Wallet, active: pathname === '/author/earnings' },
+    { href: '/shop', label: 'Cửa hàng', icon: Store, active: pathname === '/shop' },
+    { href: '/profile', label: 'Tài khoản', icon: User, active: pathname === '/profile' },
+  ];
+
+  // Tiện ích phụ — desktop hiển thị nhóm riêng dưới primary; mobile truy cập
+  // qua Tài khoản (ProfileScreen / MobileExtraMenu).
+  const extraLinks: NavLink[] = [
     { href: '/library', label: 'Thư viện', icon: Library, active: pathname === '/library' },
     { href: '/history', label: 'Lịch sử', icon: Clock, active: pathname === '/history' },
     { href: '/follows', label: 'Theo dõi', icon: Bookmark, active: pathname === '/follows', fillWhenActive: true },
     { href: '/favorites', label: 'Yêu thích', icon: Heart, active: pathname === '/favorites', fillWhenActive: true },
-    { href: '/shop', label: 'Cửa hàng', icon: Store, active: pathname === '/shop' },
-    { href: '/author/stories/create', label: 'Đăng truyện', icon: Upload, active: pathname === '/author/stories/create', authOnly: true },
     { href: '/author/dashboard', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
-    // Trung tâm Kiếm tiền — hiển thị cho mọi tác giả đăng nhập (donate +
-    // bán chương đã tạo trước đó vẫn nhận xu tự do). Eligibility unlock
-    // tính năng nâng cao (ads, paid content, verified) ở /author/eligibility.
-    { href: '/author/earnings', label: 'Kiếm tiền', icon: Wallet, active: pathname === '/author/earnings', authOnly: true },
   ];
 
   // Secondary section, pinned to the bottom of the rail.
   const bottomLinks: NavLink[] = [
-    { href: '/profile', label: 'Cài đặt', icon: Settings, active: pathname === '/profile' },
+    { href: '/profile', label: 'Cài đặt', icon: Settings, active: false },
     { href: '/gioi-thieu', label: 'Trợ giúp', icon: HelpCircle, active: pathname === '/gioi-thieu' },
   ];
 
-  const visible = links.filter((l) => !l.authOnly || canCreateStories);
-  // Mobile bottom bar theo Stitch Luminous Petal: 5 items + FAB Đăng truyện ở
-  // giữa = 6 slot. FAB navigate sang `/author/stories/create` (nếu đăng nhập)
-  // hoặc `/login?redirect=...` (nếu chưa).
-  // Slot order: Home · Khám phá · [FAB Upload] · Thư viện · Tài khoản · Khác.
-  // Profile vào primary để user truy cập tài khoản nhanh, không bị "chôn"
-  // trong drawer Khác như trước.
-  const mobilePrimaryHrefs = ['/', '/stories', '/library', '/profile'];
-  const mobilePrimary = links.filter((l) => mobilePrimaryHrefs.includes(l.href));
-  // Profile link: lấy từ bottomLinks (vì không nằm trong primary `links`).
-  const profileLink = bottomLinks.find((l) => l.href === '/profile');
-  const uploadHref = canCreateStories ? '/author/stories/create' : '/login?redirect=/author/stories/create';
+  const visibleExtra = extraLinks.filter((l) => !l.authOnly || canCreateStories);
+  // Mobile bottom bar theo mock PDF: Trang chủ · Khám phá · [FAB Đăng truyện]
+  // · Kiếm tiền · Cửa hàng · Tài khoản = 6 slot.
+  const mobileLeft = [links[0], links[1]];
+  const mobileRight = [links[3], links[4], links[5]];
 
   return (
     <>
@@ -114,7 +117,7 @@ export function Sidebar() {
               className="w-9 h-9 flex-shrink-0 dark:invert dark:brightness-200"
             />
           ) : (
-            <BookOpen size={30} className="text-black dark:text-white flex-shrink-0" />
+            <BrandMark size={30} className="flex-shrink-0" />
           )}
           <span className="font-display text-2xl font-extrabold tracking-tight text-black dark:text-white">YÊU</span>
         </Link>
@@ -123,8 +126,16 @@ export function Sidebar() {
             con scroll được; không có nó, flex-1 cao bằng nội dung và mục dưới
             bị crop khi list dài (10+ links với author role). */}
         <nav className="flex-1 min-h-0 overflow-y-auto space-y-1.5 px-3">
-          {visible.map((l) => (
-            <NavRow key={l.href} link={l} />
+          {links.map((l) => (
+            <NavRow key={l.label} link={l} />
+          ))}
+
+          {/* Tiện ích phụ */}
+          <p className="px-3 pt-5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
+            Tiện ích
+          </p>
+          {visibleExtra.map((l) => (
+            <NavRow key={l.label} link={l} />
           ))}
         </nav>
 
@@ -167,38 +178,24 @@ export function Sidebar() {
         </div>
       </aside>
 
-      {/* Mobile Bottom Navigation — Luminous Petal 5 slots:
-          Home · Khám phá · [FAB Upload] · Thư viện · Tài khoản.
-          "Khác" drawer bỏ — tất cả mục phụ (Lịch sử, Theo dõi, Yêu thích,
-          Cửa hàng, Kênh tác giả, Kiếm tiền, Cài đặt, Trợ giúp) chuyển vào
-          ProfileScreen via <MobileExtraMenu> component. */}
+      {/* Mobile Bottom Navigation — thứ tự theo mock PDF:
+          Trang chủ · Khám phá · [FAB Đăng truyện] · Kiếm tiền · Cửa hàng ·
+          Tài khoản. Tính năng phụ (Thư viện, Lịch sử, Theo dõi, Yêu thích,
+          Kênh tác giả, Cài đặt, Trợ giúp) nằm trong Tài khoản. */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container/80 backdrop-blur-xl border-t border-outline-variant/40 z-50 safe-area-inset-bottom">
         <div className="flex items-stretch justify-around h-16 px-1 py-1 relative">
-          {/* Slot 1: Trang chủ */}
-          {mobilePrimary[0] && (() => {
-            const l = mobilePrimary[0]; const Icon = l.icon;
+          {mobileLeft.map((l) => {
+            const Icon = l.icon;
             return (
-              <Link key={l.href} href={l.href} aria-label={l.label}
+              <Link key={l.label} href={l.href} aria-label={l.label}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
                 <Icon size={20} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
                 <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{l.label}</span>
               </Link>
             );
-          })()}
+          })}
 
-          {/* Slot 2: Khám phá */}
-          {mobilePrimary[1] && (() => {
-            const l = mobilePrimary[1]; const Icon = l.icon;
-            return (
-              <Link key={l.href} href={l.href} aria-label={l.label}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
-                <Icon size={20} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
-                <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{l.label}</span>
-              </Link>
-            );
-          })()}
-
-          {/* Slot 3: FAB Upload — nổi giữa */}
+          {/* FAB Đăng truyện — nổi giữa */}
           <div className="flex-1 flex items-center justify-center">
             <Link
               href={uploadHref}
@@ -210,29 +207,25 @@ export function Sidebar() {
             </Link>
           </div>
 
-          {/* Slot 4: Thư viện */}
-          {mobilePrimary[2] && (() => {
-            const l = mobilePrimary[2]; const Icon = l.icon;
+          {mobileRight.map((l) => {
+            const Icon = l.icon;
+            const isAccount = l.label === 'Tài khoản';
             return (
-              <Link key={l.href} href={l.href} aria-label={l.label}
+              <Link key={l.label} href={l.href} aria-label={l.label}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
-                <Icon size={20} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
+                {isAccount && user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={l.label}
+                    className={`w-5 h-5 rounded-full object-cover ${l.active ? 'ring-2 ring-primary' : ''}`}
+                  />
+                ) : (
+                  <Icon size={20} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
+                )}
                 <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{l.label}</span>
               </Link>
             );
-          })()}
-
-          {/* Slot 5: Tài khoản (Profile) */}
-          {profileLink && (() => {
-            const Icon = profileLink.icon;
-            return (
-              <Link href={profileLink.href} aria-label={profileLink.label}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${profileLink.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
-                <Icon size={20} className={profileLink.active ? 'text-primary' : 'text-on-surface-variant'} />
-                <span className={`text-[10px] font-medium ${profileLink.active ? 'text-primary' : 'text-on-surface-variant'}`}>Tài khoản</span>
-              </Link>
-            );
-          })()}
+          })}
         </div>
       </nav>
 

@@ -13,6 +13,9 @@ const ACTIVE_PINK = '#C0788A';       // muted dusty rose — nhạt, khớp Lumi
 const ACTIVE_PILL_LIGHT = '#fbe8ee'; // blush nhạt
 const ACTIVE_PILL_DARK  = '#3d1e28'; // blush tối cho dark mode
 
+// Thứ tự theo docs/Fix vài điểm trên app web.pdf: Trang chủ · Khám phá ·
+// [FAB Đăng truyện] · Kiếm tiền · Cửa hàng · Tài khoản. Thư viện chuyển vào
+// Tài khoản (ProfileScreen).
 const TAB_META: Record<
     string,
     { label: string; icon: IoniconName; iconActive: IoniconName }
@@ -20,8 +23,9 @@ const TAB_META: Record<
     Home: { label: 'Trang chủ', icon: 'home-outline', iconActive: 'home' },
     Search: { label: 'Khám phá', icon: 'compass-outline', iconActive: 'compass' },
     Upload: { label: 'Đăng', icon: 'add-outline', iconActive: 'add' },
-    Library: { label: 'Thư viện', icon: 'library-outline', iconActive: 'library' },
-    Profile: { label: 'Cá nhân', icon: 'person-outline', iconActive: 'person' },
+    Earn: { label: 'Kiếm tiền', icon: 'cash-outline', iconActive: 'cash' },
+    Shop: { label: 'Cửa hàng', icon: 'storefront-outline', iconActive: 'storefront' },
+    Profile: { label: 'Tài khoản', icon: 'person-outline', iconActive: 'person' },
 };
 
 export function MainTabBar({ state, descriptors, navigation }: BottomTabBarProps) {

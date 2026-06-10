@@ -19,7 +19,8 @@
 
 /** @type {import('expo/config').ExpoConfig} */
 const config = {
-  name: 'Yêu',
+  // Tên 3 chữ cái — in hoa bắt buộc để không bị lu mờ cạnh các app khác.
+  name: 'YÊU',
   slug: 'web-truyen-hungyeu',
   owner: 'huthido.dev',
   version: '0.1.0',
@@ -34,7 +35,8 @@ const config = {
   splash: {
     image: './assets/splash.png',
     resizeMode: 'contain',
-    backgroundColor: '#ffffff',
+    // Brand đen trắng: splash nền đen + tim trắng.
+    backgroundColor: '#000000',
   },
   // Native only — no web target (expo-secure-store has no web support).
   platforms: ['ios', 'android'],
@@ -51,8 +53,9 @@ const config = {
     package: 'com.yeuyeu.webtruyen',
     runtimeVersion: '1.0.0',
     adaptiveIcon: {
+      // Foreground = tim trắng trên nền trong suốt; nền đen ở đây.
       foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#ffffff',
+      backgroundColor: '#000000',
     },
   },
   extra: {
@@ -87,8 +90,9 @@ const config = {
     [
       'expo-notifications',
       {
-        icon: './assets/icon.png',
-        color: '#635D60',
+        // Android status-bar icon phải là trắng-trên-trong-suốt.
+        icon: './assets/notification-icon.png',
+        color: '#000000',
       },
     ],
     // AdMob chỉ enable khi có App ID thật — SDK 25+ không chấp nhận test ID.

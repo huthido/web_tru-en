@@ -32,7 +32,8 @@ const fontDisplay = Be_Vietnam_Pro({
 // Default metadata values (fallback)
 const DEFAULT_METADATA = {
   siteName: 'YÊU',
-  siteDescription: 'Nền tảng đọc truyện và tiểu thuyết trực tuyến. Khám phá hàng ngàn câu chuyện hay, đa dạng thể loại từ kiếm hiệp, tiên hiệp, ngôn tình đến khoa học viễn tưởng.',
+  // Slogan thống nhất toàn dự án (docs/Fix vài điểm trên app web.pdf).
+  siteDescription: 'Mạng Xã Hội Giải Trí Nghệ Thuật. Khám phá hàng ngàn câu chuyện hay, đa dạng thể loại từ kiếm hiệp, tiên hiệp, ngôn tình đến khoa học viễn tưởng.',
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://hungyeu.com',
   keywords: ['truyện', 'tiểu thuyết', 'đọc truyện', 'truyện online', 'manga', 'light novel', 'kiếm hiệp', 'tiên hiệp', 'ngôn tình'],
   author: 'YÊU',
@@ -76,7 +77,7 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: 'vi_VN',
       url: siteUrl,
       siteName: siteName,
-      title: `${siteName} - Nền tảng đọc truyện trực tuyến`,
+      title: `${siteName} - Mạng Xã Hội Giải Trí Nghệ Thuật`,
       description: siteDescription,
       images: siteLogo ? [{ url: siteLogo, alt: siteName }] : undefined,
     },

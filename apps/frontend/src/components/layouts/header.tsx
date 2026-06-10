@@ -12,6 +12,7 @@ import { NotificationBell } from '@/components/notifications/notification-bell';
 import { useSettings } from '@/lib/api/hooks/use-settings';
 import { useWalletBalance } from '@/lib/api/hooks/use-wallet';
 import { Coins } from 'lucide-react';
+import { BrandMark } from '@/components/ui/brand-mark';
 
 export function Header() {
   const { user, isAuthenticated, isLoading, logout, isLoggingOut } = useAuth();
@@ -102,10 +103,7 @@ export function Header() {
             className="w-8 h-8 dark:invert dark:brightness-200"
           />
         ) : (
-          <svg width="32" height="32" viewBox="0 0 60 60" fill="none" className="text-black dark:text-white w-8 h-8">
-            <path d="M50 5L50 55L30 45.3594L10 55L10 5L50 5Z" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M30 5V45.3594" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <BrandMark size={32} className="w-8 h-8" />
         )}
       </Link>
 

@@ -90,7 +90,8 @@ export const LoginScreen: React.FC = () => {
                     style={styles.logo}
                     resizeMode="contain"
                 />
-                <Text style={styles.subtitle}>Đăng nhập để đọc và ủng hộ tác giả</Text>
+                <Text style={styles.appName}>YÊU</Text>
+                <Text style={styles.subtitle}>Mạng Xã Hội Giải Trí Nghệ Thuật</Text>
 
                 <TextInput
                     placeholder="Email hoặc username"
@@ -168,6 +169,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#FFF2F8' },
     inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
     logo: { width: 120, height: 120, alignSelf: 'center', marginBottom: 12, borderRadius: 24 },
+    appName: { fontSize: 28, fontWeight: '800', color: '#1a1a1a', textAlign: 'center', letterSpacing: 1, marginBottom: 4 },
     subtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 32 },
     input: { backgroundColor: '#fff', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 12, fontSize: 16, color: '#1a1a1a', borderWidth: 1, borderColor: '#e0e0e0' },
     forgotLink: { alignSelf: 'flex-end', paddingVertical: 6, marginBottom: 4 },
