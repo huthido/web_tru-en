@@ -81,8 +81,8 @@ export default function Home() {
             <AdSlot slotKey="home.top" />
           </div>
 
-          {/* Chip danh mục — pill MD3, active = filled tối */}
-          <div className="px-4 md:px-6 mb-5 flex items-center gap-3">
+          {/* Chip danh mục — sticky dưới header, pill MD3, active = filled tối */}
+          <div className="sticky top-[60px] z-30 px-4 md:px-6 mb-5 flex items-center gap-3 bg-background/90 backdrop-blur-md py-3 -mx-0 border-b border-outline-variant/20">
             <div className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide" role="tablist" aria-label="Danh mục truyện">
               {HOME_TABS.map((tab) => {
                 const isActive = tab.key === active.key;
