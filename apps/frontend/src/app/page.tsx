@@ -75,41 +75,41 @@ export default function Home() {
         {/* Header */}
         <Header />
 
+        {/* Chip danh mục — sticky ngay dưới header (đặt ngoài <main> để tránh overflow-x:hidden trên body làm sticky bị nhốt) */}
+        <div className="sticky top-[60px] z-30 flex items-center gap-3 bg-background/90 backdrop-blur-md px-4 md:px-6 py-3 border-b border-outline-variant/20">
+          <div className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide" role="tablist" aria-label="Danh mục truyện">
+            {HOME_TABS.map((tab) => {
+              const isActive = tab.key === active.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 active:scale-95 border ${
+                    isActive
+                      ? 'bg-on-surface text-surface border-transparent shadow-sm'
+                      : 'bg-surface-container text-on-surface-variant border-outline-variant/60 hover:bg-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+          <Link
+            href={active.seeMore}
+            className="hidden sm:block flex-shrink-0 text-xs md:text-sm font-semibold text-primary hover:underline whitespace-nowrap"
+          >
+            Xem tất cả →
+          </Link>
+        </div>
+
         {/* Page Content */}
         <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)]">
           <div className="px-4 md:px-6">
             <AdSlot slotKey="home.top" />
-          </div>
-
-          {/* Chip danh mục — sticky dưới header, pill MD3, active = filled tối */}
-          <div className="sticky top-[60px] z-30 px-4 md:px-6 mb-5 flex items-center gap-3 bg-background/90 backdrop-blur-md py-3 -mx-0 border-b border-outline-variant/20">
-            <div className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide" role="tablist" aria-label="Danh mục truyện">
-              {HOME_TABS.map((tab) => {
-                const isActive = tab.key === active.key;
-                return (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 active:scale-95 border ${
-                      isActive
-                        ? 'bg-on-surface text-surface border-transparent shadow-sm'
-                        : 'bg-surface-container text-on-surface-variant border-outline-variant/60 hover:bg-surface-variant hover:text-on-surface'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-            <Link
-              href={active.seeMore}
-              className="hidden sm:block flex-shrink-0 text-xs md:text-sm font-semibold text-primary hover:underline whitespace-nowrap"
-            >
-              Xem tất cả →
-            </Link>
           </div>
 
           {/* Lưới truyện của danh mục đang chọn */}
