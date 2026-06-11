@@ -131,11 +131,10 @@
 
 html,
 body {
-  /* Clamp horizontal overflow toàn site — element nào lệch viewport (vd 100vw
-     không trừ scrollbar, table rộng, absolute positioned ra ngoài) sẽ bị crop
-     thay vì gây horizontal scroll cả body. Mobile thấy "dư bên phải = width
-     bell" thường do scrollbar 14px reserved + element nào đó 100vw. */
-  overflow-x: hidden;
+  /* overflow-x:clip thay vì hidden — clip cắt ngang mà KHÔNG tạo scroll
+     container mới, nên position:sticky trên các element con vẫn hoạt động.
+     hidden tạo BFC → body trở thành scroll container → sticky bị phá. */
+  overflow-x: clip;
 }
 
 body {
