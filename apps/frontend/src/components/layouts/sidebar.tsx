@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRef, useEffect } from 'react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
@@ -53,6 +54,23 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { data: settings } = useSettings();
+  const navRef = useRef<HTMLElement>(null);
+  const savedScroll = useRef(0);
+
+  // Lưu scroll position trước khi route thay đổi
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    savedScroll.current = nav.scrollTop;
+  });
+
+  // Restore scroll position sau khi route thay đổi — chặn browser tự scroll
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    nav.scrollTop = savedScroll.current;
+  }, [pathname]);
+
   const canCreateStories = !!user;
 
   // Chưa đăng nhập → đẩy qua login kèm redirect, để Đăng truyện / Kiếm tiền
@@ -125,7 +143,7 @@ export function Sidebar() {
         {/* Primary navigation — `min-h-0` bắt buộc trong flex parent để overflow
             con scroll được; không có nó, flex-1 cao bằng nội dung và mục dưới
             bị crop khi list dài (10+ links với author role). */}
-        <nav className="flex-1 min-h-0 overflow-y-auto space-y-1.5 px-3">
+        <nav ref={navRef} className="flex-1 min-h-0 overflow-y-auto space-y-1.5 px-3" style={{ scrollBehavior: 'auto' }}>
           {links.map((l) => (
             <NavRow key={l.label} link={l} />
           ))}
