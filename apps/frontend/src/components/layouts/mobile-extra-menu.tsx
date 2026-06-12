@@ -11,6 +11,7 @@ import {
     Wallet,
     Settings,
     HelpCircle,
+    Bug,
     type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
@@ -42,6 +43,7 @@ export function MobileExtraMenu() {
         { href: '/author/earnings', label: 'Kiếm tiền', icon: Wallet, authOnly: true },
         { href: '/profile', label: 'Cài đặt', icon: Settings },
         { href: '/gioi-thieu', label: 'Trợ giúp', icon: HelpCircle },
+        { href: '/bao-loi', label: 'Báo lỗi', icon: Bug, authOnly: true },
     ];
 
     const visible = items.filter((i) => !i.authOnly || isAuth);

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useLayoutEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Compass, Library, Clock, Bookmark, Heart, Store, Upload, LayoutDashboard, Wallet, Settings, User, HelpCircle, Plus, type LucideIcon } from 'lucide-react';
+import { Home, Compass, Library, Clock, Bookmark, Heart, Store, Upload, LayoutDashboard, Wallet, Settings, User, HelpCircle, Plus, Bug, type LucideIcon } from 'lucide-react';
 import { BrandMark } from '@/components/ui/brand-mark';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
@@ -103,6 +103,7 @@ export function Sidebar() {
   const bottomLinks: NavLink[] = [
     { href: '/profile', label: 'Cài đặt', icon: Settings, active: false },
     { href: '/gioi-thieu', label: 'Trợ giúp', icon: HelpCircle, active: pathname === '/gioi-thieu' },
+    { href: '/bao-loi', label: 'Báo lỗi', icon: Bug, active: pathname === '/bao-loi' },
   ];
 
   const visibleExtra = extraLinks.filter((l) => !l.authOnly || canCreateStories);
