@@ -3,68 +3,64 @@
 import { useRef, useCallback } from 'react';
 import { useArtFeed } from '@/lib/api/hooks/use-art';
 import { ArtCard } from './art-card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ImageIcon } from 'lucide-react';
 
 interface Props {
   currentUserId?: string;
 }
 
-// Skeleton card
-function SkeletonCard({ height }: { height: number }) {
+function SkeletonPost() {
   return (
-    <div
-      className="rounded-2xl bg-surface-variant animate-pulse break-inside-avoid mb-3"
-      style={{ height }}
-    />
+    <div className="bg-surface border border-outline-variant/20 rounded-2xl overflow-hidden shadow-sm animate-pulse">
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="w-9 h-9 rounded-full bg-surface-variant" />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-3 w-28 bg-surface-variant rounded" />
+          <div className="h-2.5 w-16 bg-surface-variant rounded" />
+        </div>
+      </div>
+      <div className="bg-surface-variant" style={{ height: 320 }} />
+      <div className="px-4 py-3 space-y-2">
+        <div className="h-3 w-20 bg-surface-variant rounded" />
+        <div className="h-3 w-48 bg-surface-variant rounded" />
+      </div>
+    </div>
   );
 }
 
-const SKELETON_HEIGHTS = [200, 280, 240, 320, 180, 260, 300, 210];
-
 export function ArtMasonryFeed({ currentUserId }: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useArtFeed();
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  const observerCb = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage();
-      }
-    },
-    [hasNextPage, isFetchingNextPage, fetchNextPage],
-  );
 
   const refCallback = useCallback(
     (node: HTMLDivElement | null) => {
       if (!node) return;
-      const obs = new IntersectionObserver(observerCb, { rootMargin: '200px' });
+      const obs = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) fetchNextPage();
+        },
+        { rootMargin: '300px' },
+      );
       obs.observe(node);
       return () => obs.disconnect();
     },
-    [observerCb],
+    [hasNextPage, isFetchingNextPage, fetchNextPage],
   );
 
   const posts = data?.pages.flatMap((p) => p.items) ?? [];
 
   if (isLoading) {
     return (
-      <div className="columns-2 sm:columns-3 md:columns-3 lg:columns-4 gap-3">
-        {SKELETON_HEIGHTS.map((h, i) => (
-          <SkeletonCard key={i} height={h} />
-        ))}
+      <div className="max-w-xl mx-auto space-y-4 px-0 sm:px-4">
+        {[0, 1, 2].map((i) => <SkeletonPost key={i} />)}
       </div>
     );
   }
 
-  if (!isLoading && posts.length === 0) {
+  if (posts.length === 0) {
     return (
       <div className="py-20 flex flex-col items-center gap-3 text-on-surface-variant">
-        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" className="opacity-30">
-          <rect x="8" y="8" width="48" height="48" rx="8" stroke="currentColor" strokeWidth="2" />
-          <circle cx="24" cy="26" r="4" stroke="currentColor" strokeWidth="2" />
-          <path d="M8 44l12-12 8 8 8-10 12 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-        <p className="text-sm">Chưa có bài đăng nào</p>
+        <ImageIcon className="w-14 h-14 opacity-25" />
+        <p className="text-sm font-medium">Chưa có bài đăng nào</p>
         <p className="text-xs opacity-60">Hãy là người đăng ảnh đầu tiên!</p>
       </div>
     );
@@ -72,14 +68,12 @@ export function ArtMasonryFeed({ currentUserId }: Props) {
 
   return (
     <>
-      {/* CSS columns masonry — không cần JS */}
-      <div className="columns-2 sm:columns-3 md:columns-3 lg:columns-4 gap-3">
+      <div className="max-w-xl mx-auto space-y-4 px-0 sm:px-4">
         {posts.map((post) => (
           <ArtCard key={post.id} post={post} currentUserId={currentUserId} />
         ))}
       </div>
 
-      {/* Sentinel cho infinite scroll */}
       <div ref={refCallback} className="h-1" />
 
       {isFetchingNextPage && (
