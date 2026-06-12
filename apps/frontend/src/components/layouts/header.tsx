@@ -11,7 +11,7 @@ import { useSearchSuggestions } from '@/lib/api/hooks/use-search';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { useSettings } from '@/lib/api/hooks/use-settings';
 import { useWalletBalance } from '@/lib/api/hooks/use-wallet';
-import { Coins } from 'lucide-react';
+import { Coins, LayoutDashboard } from 'lucide-react';
 import { BrandMark } from '@/components/ui/brand-mark';
 
 export function Header() {
@@ -331,6 +331,15 @@ export function Header() {
                         />
                       </svg>
                       <span>Trang cá nhân</span>
+                    </Link>
+                    {/* Kênh tác giả — quản lý truyện, chương, doanh thu. */}
+                    <Link
+                      href="/author/dashboard"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-variant transition-colors duration-200"
+                    >
+                      <LayoutDashboard size={20} className="text-on-surface-variant" />
+                      <span>Kênh tác giả</span>
                     </Link>
                     <Link
                       href="/profile"
