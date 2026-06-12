@@ -80,6 +80,32 @@ function ProfileContent() {
     },
   });
 
+  // Tài khoản Google chưa có mật khẩu → form "Tạo mật khẩu" (không cần
+  // mật khẩu hiện tại). hasPassword đến từ /auth/me.
+  const needsSetPassword = !!user && user.hasPassword === false;
+
+  // Set password mutation — tạo mật khẩu lần đầu cho tài khoản OAuth
+  const setPasswordMutation = useMutation({
+    mutationFn: (data: { newPassword: string; confirmNewPassword: string }) =>
+      authService.setPassword(data),
+    onSuccess: () => {
+      // Refetch /auth/me để hasPassword chuyển true → form trở về "Đổi mật khẩu"
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      setSuccessMessage('Tạo mật khẩu thành công! Từ giờ bạn có thể đăng nhập bằng email + mật khẩu.');
+      setTimeout(() => setSuccessMessage(''), 5000);
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmNewPassword: '',
+      });
+      setShowPasswordForm(false);
+      setErrors({});
+    },
+    onError: (error: any) => {
+      setErrors({ password: error.response?.data?.error || 'Có lỗi xảy ra khi tạo mật khẩu' });
+    },
+  });
+
   // Change password mutation
   const changePasswordMutation = useMutation({
     mutationFn: (data: {
@@ -131,7 +157,7 @@ function ProfileContent() {
       const trimmedNewPassword = passwordData.newPassword.trim();
       const trimmedConfirmPassword = passwordData.confirmNewPassword.trim();
 
-      if (!passwordData.currentPassword.trim()) {
+      if (!needsSetPassword && !passwordData.currentPassword.trim()) {
         newErrors.password = 'Vui lòng nhập mật khẩu hiện tại';
       } else if (!trimmedNewPassword) {
         newErrors.password = 'Vui lòng nhập mật khẩu mới';
@@ -161,11 +187,18 @@ function ProfileContent() {
 
     if (showPasswordForm) {
       // Trim passwords before sending to avoid whitespace issues
-      changePasswordMutation.mutate({
-        currentPassword: passwordData.currentPassword.trim(),
-        newPassword: passwordData.newPassword.trim(),
-        confirmNewPassword: passwordData.confirmNewPassword.trim(),
-      });
+      if (needsSetPassword) {
+        setPasswordMutation.mutate({
+          newPassword: passwordData.newPassword.trim(),
+          confirmNewPassword: passwordData.confirmNewPassword.trim(),
+        });
+      } else {
+        changePasswordMutation.mutate({
+          currentPassword: passwordData.currentPassword.trim(),
+          newPassword: passwordData.newPassword.trim(),
+          confirmNewPassword: passwordData.confirmNewPassword.trim(),
+        });
+      }
     } else {
       updateMutation.mutate({
         displayName: formData.displayName.trim() || undefined,
@@ -367,7 +400,13 @@ function ProfileContent() {
                             }
                           }}
                           onFocus={() => setShowPasswordForm(true)}
-                          placeholder={showPasswordForm ? 'Nhập mật khẩu mới' : '••••••••'}
+                          placeholder={
+                            showPasswordForm
+                              ? 'Nhập mật khẩu mới'
+                              : needsSetPassword
+                                ? 'Chưa có mật khẩu — nhấn để tạo'
+                                : '••••••••'
+                          }
                           className="flex-1 px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
                         />
                         {showPasswordForm && (
@@ -390,13 +429,20 @@ function ProfileContent() {
                       </div>
                       {showPasswordForm && (
                         <div className="mt-2 space-y-3">
-                          <input
-                            type="password"
-                            value={passwordData.currentPassword}
-                            onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
-                            placeholder="Mật khẩu hiện tại"
-                            className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
-                          />
+                          {needsSetPassword ? (
+                            <p className="text-xs text-on-surface-variant">
+                              Tài khoản đăng nhập bằng Google chưa có mật khẩu. Tạo mật khẩu
+                              để có thể đăng nhập trực tiếp bằng email.
+                            </p>
+                          ) : (
+                            <input
+                              type="password"
+                              value={passwordData.currentPassword}
+                              onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                              placeholder="Mật khẩu hiện tại"
+                              className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
+                            />
+                          )}
                           <input
                             type="password"
                             value={passwordData.confirmNewPassword}
@@ -431,13 +477,15 @@ function ProfileContent() {
                     {/* Submit Button */}
                     <button
                       type="submit"
-                      disabled={updateMutation.isPending || changePasswordMutation.isPending}
+                      disabled={updateMutation.isPending || changePasswordMutation.isPending || setPasswordMutation.isPending}
                       className="w-full px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary font-medium rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
-                      {updateMutation.isPending || changePasswordMutation.isPending
+                      {updateMutation.isPending || changePasswordMutation.isPending || setPasswordMutation.isPending
                         ? 'Đang xử lý...'
                         : showPasswordForm
-                          ? 'Đổi mật khẩu'
+                          ? needsSetPassword
+                            ? 'Tạo mật khẩu'
+                            : 'Đổi mật khẩu'
                           : 'Xác nhận'}
                     </button>
                   </form>

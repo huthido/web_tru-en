@@ -10,6 +10,8 @@ interface User {
   displayName?: string;
   avatar?: string;
   role: string;
+  /** false = tài khoản OAuth (Google) chưa tạo mật khẩu. */
+  hasPassword?: boolean;
 }
 
 interface AuthContextType {

@@ -22,6 +22,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { SetPasswordDto } from './dto/set-password.dto';
 import { UpdateEmailDto } from './dto/update-email.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
@@ -171,6 +172,9 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@CurrentUser() user: any) {
+    // hasPassword: false = tài khoản OAuth chưa tạo mật khẩu → UI hiện
+    // "Tạo mật khẩu" thay vì "Đổi mật khẩu".
+    const hasPassword = await this.authService.hasPassword(user.id);
     return {
       success: true,
       data: {
@@ -181,6 +185,7 @@ export class AuthController {
           displayName: user.displayName,
           avatar: user.avatar,
           role: user.role,
+          hasPassword,
         },
       },
       timestamp: new Date().toISOString(),
@@ -197,6 +202,17 @@ export class AuthController {
     await this.authService.changePassword(user.id, changePasswordDto);
     return {
       message: 'Đổi mật khẩu thành công',
+    };
+  }
+
+  // 🔑 Tạo mật khẩu lần đầu cho tài khoản OAuth (password == null)
+  @Post('set-password')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async setPassword(@CurrentUser() user: any, @Body() setPasswordDto: SetPasswordDto) {
+    await this.authService.setPassword(user.id, setPasswordDto);
+    return {
+      message: 'Tạo mật khẩu thành công. Từ giờ bạn có thể đăng nhập bằng email + mật khẩu.',
     };
   }
 

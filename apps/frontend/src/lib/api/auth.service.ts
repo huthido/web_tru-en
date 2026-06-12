@@ -57,6 +57,12 @@ export interface ChangePasswordRequest {
   confirmNewPassword: string;
 }
 
+/** Tạo mật khẩu lần đầu cho tài khoản Google chưa có mật khẩu. */
+export interface SetPasswordRequest {
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
 export interface AuthResponse {
   user: {
     id: string;
@@ -65,6 +71,8 @@ export interface AuthResponse {
     displayName?: string;
     avatar?: string;
     role: string;
+    /** false = tài khoản OAuth chưa tạo mật khẩu (chỉ có trong /auth/me). */
+    hasPassword?: boolean;
   };
   message?: string;
 }
@@ -117,6 +125,11 @@ export const authService = {
 
   changePassword: async (data: ChangePasswordRequest): Promise<ApiResponse> => {
     const response = await apiClient.post('/auth/change-password', data);
+    return asApiResponse(response.data);
+  },
+
+  setPassword: async (data: SetPasswordRequest): Promise<ApiResponse> => {
+    const response = await apiClient.post('/auth/set-password', data);
     return asApiResponse(response.data);
   },
 

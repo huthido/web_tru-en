@@ -16,6 +16,7 @@ import { Prisma } from '@prisma/client';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { SetPasswordDto } from './dto/set-password.dto';
 import { JwtPayload, TokenResponseDto } from './dto/auth-response.dto';
 
 @Injectable()
@@ -696,6 +697,45 @@ export class AuthService {
       where: { id: userId },
       data: { password: hashedNewPassword },
     });
+  }
+
+  /**
+   * Tạo mật khẩu lần đầu cho tài khoản OAuth chưa có mật khẩu.
+   * Không đòi currentPassword nhưng CHỈ cho phép khi password == null —
+   * tài khoản đã có mật khẩu phải đi qua changePassword (chống chiếm
+   * session rồi lén thay mật khẩu).
+   */
+  async setPassword(userId: string, dto: SetPasswordDto): Promise<void> {
+    if (dto.newPassword !== dto.confirmNewPassword) {
+      throw new BadRequestException('Mật khẩu xác nhận không khớp');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException('User không tồn tại');
+    }
+    if (user.password) {
+      throw new BadRequestException(
+        'Tài khoản đã có mật khẩu — dùng chức năng đổi mật khẩu.',
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    this.logger.log(`User ${userId} đã tạo mật khẩu lần đầu (OAuth account)`);
+  }
+
+  /** Tài khoản đã có mật khẩu chưa — cho UI quyết định hiện Tạo/Đổi mật khẩu. */
+  async hasPassword(userId: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { password: true },
+    });
+    return !!user?.password;
   }
 
   // ===== Password Reset (quên mật khẩu) =====
