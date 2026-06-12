@@ -1,0 +1,20 @@
+{
+  "name": "mcp-bug-reports",
+  "version": "1.0.0",
+  "description": "MCP server cho AI agent đọc/cập nhật bug reports của YÊU qua API key",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "mcp-bug-reports": "index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.24.0"
+  }
+}

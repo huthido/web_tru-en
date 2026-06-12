@@ -1,0 +1,20 @@
+{
+  "name": "mcp-author",
+  "version": "1.0.0",
+  "description": "MCP server cho AI đăng nhập YÊU, đọc truyện của user, tạo/sửa chương",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "mcp-author": "index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.24.0"
+  }
+}
