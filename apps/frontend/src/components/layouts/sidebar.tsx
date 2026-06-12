@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
+import { useLayoutEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
 import { Home, Compass, Library, Clock, Bookmark, Heart, Store, Upload, LayoutDashboard, Wallet, Settings, User, HelpCircle, Plus, type LucideIcon } from 'lucide-react';
@@ -56,6 +57,18 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { data: settings } = useSettings();
+
+  const navRef = useRef<HTMLElement>(null);
+
+  // Khôi phục vị trí scroll trước khi paint (tránh nhảy)
+  useLayoutEffect(() => {
+    const saved = sessionStorage.getItem('sidebar-scroll');
+    if (saved && navRef.current) navRef.current.scrollTop = Number(saved);
+  }, []);
+
+  const saveScroll = useCallback(() => {
+    if (navRef.current) sessionStorage.setItem('sidebar-scroll', String(navRef.current.scrollTop));
+  }, []);
 
   const canCreateStories = !!user;
 
@@ -129,7 +142,7 @@ export function Sidebar() {
         {/* Primary navigation — `min-h-0` bắt buộc trong flex parent để overflow
             con scroll được; không có nó, flex-1 cao bằng nội dung và mục dưới
             bị crop khi list dài (10+ links với author role). */}
-        <nav className="flex-1 min-h-0 overflow-y-auto space-y-1.5 px-3">
+        <nav ref={navRef} onScroll={saveScroll} className="flex-1 min-h-0 overflow-y-auto space-y-1.5 px-3">
           {links.map((l) => (
             <NavRow key={l.label} link={l} />
           ))}
