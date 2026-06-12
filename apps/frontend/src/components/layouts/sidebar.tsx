@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useEffect, useLayoutEffect } from 'react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/api/hooks/use-auth';
@@ -34,6 +33,9 @@ function NavRow({ link }: { link: NavLink }) {
     <Link
       href={link.href}
       aria-label={link.label}
+      // preventDefault trên mousedown ngăn browser gán focus cho link khi click
+      // chuột → không trigger scroll-to-focused-element. Keyboard nav vẫn hoạt động.
+      onMouseDown={(e) => e.preventDefault()}
       className={`flex items-center gap-4 p-3 transition-all duration-200 active:scale-[0.98] ${
         link.active
           ? 'text-primary font-bold bg-primary/10 border-r-4 border-primary rounded-l-lg'
@@ -54,18 +56,6 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { data: settings } = useSettings();
-  const navRef = useRef<HTMLElement>(null);
-  const savedScroll = useRef(0);
-
-  // Lưu scroll ngay lúc click — trước khi Next.js navigate
-  const saveScroll = () => {
-    if (navRef.current) savedScroll.current = navRef.current.scrollTop;
-  };
-
-  // Restore TRƯỚC khi browser paint (useLayoutEffect) để không thấy flash
-  useLayoutEffect(() => {
-    if (navRef.current) navRef.current.scrollTop = savedScroll.current;
-  }, [pathname]);
 
   const canCreateStories = !!user;
 
@@ -139,7 +129,7 @@ export function Sidebar() {
         {/* Primary navigation — `min-h-0` bắt buộc trong flex parent để overflow
             con scroll được; không có nó, flex-1 cao bằng nội dung và mục dưới
             bị crop khi list dài (10+ links với author role). */}
-        <nav ref={navRef} onClick={saveScroll} className="flex-1 min-h-0 overflow-y-auto space-y-1.5 px-3" style={{ scrollBehavior: 'auto' }}>
+        <nav className="flex-1 min-h-0 overflow-y-auto space-y-1.5 px-3">
           {links.map((l) => (
             <NavRow key={l.label} link={l} />
           ))}
