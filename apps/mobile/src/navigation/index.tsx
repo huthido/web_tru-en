@@ -11,6 +11,7 @@ import { ForgotPasswordScreen } from '@/screens/ForgotPasswordScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { SearchScreen } from '@/screens/SearchScreen';
 import { LibraryScreen } from '@/screens/LibraryScreen';
+import { BugReportScreen } from '@/screens/BugReportScreen';
 import { WalletScreen } from '@/screens/WalletScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { StoryDetailScreen } from '@/screens/StoryDetailScreen';
@@ -203,6 +204,11 @@ export const RootNavigator: React.FC = () => {
                             name="Library"
                             component={LibraryScreen}
                             options={{ title: 'Thư viện' }}
+                        />
+                        <Stack.Screen
+                            name="BugReport"
+                            component={BugReportScreen}
+                            options={{ title: 'Báo lỗi' }}
                         />
                     </>
                 ) : (

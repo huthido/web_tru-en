@@ -131,11 +131,20 @@ export const ProfileScreen: React.FC = () => {
                     <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceVariant} />
                 </Pressable>
                 <Pressable
-                    style={styles.legalRow}
+                    style={[styles.legalRow, styles.legalRowDivider]}
                     onPress={() => rootNav.navigate('Settings')}
                 >
                     <Ionicons name="settings-outline" size={20} color={colors.onSurfaceVariant} />
                     <Text style={styles.legalText}>Cài đặt</Text>
+                    <View style={{ flex: 1 }} />
+                    <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceVariant} />
+                </Pressable>
+                <Pressable
+                    style={styles.legalRow}
+                    onPress={() => rootNav.navigate('BugReport')}
+                >
+                    <Ionicons name="bug-outline" size={20} color={colors.onSurfaceVariant} />
+                    <Text style={styles.legalText}>Báo lỗi</Text>
                     <View style={{ flex: 1 }} />
                     <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceVariant} />
                 </Pressable>

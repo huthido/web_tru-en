@@ -25,6 +25,7 @@ export type RootStackParamList = {
     UserProfile: { username: string };
     // Thư viện rời tab bar (PDF fix nav) — truy cập từ Tài khoản.
     Library: undefined;
+    BugReport: undefined;
 };
 
 // Thứ tự tab theo docs/Fix vài điểm trên app web.pdf:
