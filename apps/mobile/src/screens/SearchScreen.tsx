@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
 import { useAppTheme } from '@/contexts/theme-context';
+import { useAuth } from '@/contexts/auth-context';
 import type { RootNavigation } from '@/navigation/types';
 import type { Story } from '@/lib/api/types';
 import { useCategories } from '@/lib/hooks/categories';
@@ -20,11 +21,16 @@ import { describeError } from '@/lib/error';
 import { formatCount, formatRating } from '@/lib/format';
 import { EmptyView, ErrorView, Loading } from '@/components/ui';
 import { StoryListItem } from '@/components/StoryListItem';
+import { ArtFeedScreen } from '@/screens/ArtFeedScreen';
+
+type TabKey = 'truyen' | 'nghe-thuat';
 
 export const SearchScreen: React.FC = () => {
     const nav = useNavigation<RootNavigation>();
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
+    const { user, isAuthenticated } = useAuth();
+    const [activeTab, setActiveTab] = useState<TabKey>('truyen');
     const [query, setQuery] = useState('');
     const [debounced, setDebounced] = useState('');
     const [category, setCategory] = useState<string | undefined>(undefined);
@@ -56,6 +62,25 @@ export const SearchScreen: React.FC = () => {
 
     return (
         <View style={styles.screen}>
+            {/* Tab switcher */}
+            <View style={styles.tabRow}>
+                {(['truyen', 'nghe-thuat'] as TabKey[]).map((tab) => (
+                    <Pressable
+                        key={tab}
+                        style={[styles.tabBtn, activeTab === tab && styles.tabBtnActive]}
+                        onPress={() => setActiveTab(tab)}
+                    >
+                        <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                            {tab === 'truyen' ? '📚 Truyện' : '🎨 Nghệ thuật'}
+                        </Text>
+                    </Pressable>
+                ))}
+            </View>
+
+            {activeTab === 'nghe-thuat' ? (
+                <ArtFeedScreen currentUserId={user?.id} isLoggedIn={isAuthenticated} />
+            ) : (
+            <>
             <View style={styles.searchBar}>
                 <Ionicons name="search" size={18} color={colors.textMuted} />
                 <TextInput
@@ -149,12 +174,29 @@ export const SearchScreen: React.FC = () => {
                     stories.length === 0 ? styles.emptyContent : styles.listContent
                 }
             />
+            </>
+            )}
         </View>
     );
 };
 
 const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
+    tabRow: {
+        flexDirection: 'row',
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: colors.outlineVariant,
+    },
+    tabBtn: {
+        flex: 1,
+        alignItems: 'center',
+        paddingVertical: spacing.md,
+        borderBottomWidth: 2,
+        borderBottomColor: 'transparent',
+    },
+    tabBtnActive: { borderBottomColor: colors.onSurface },
+    tabText: { fontSize: fontSize.sm, fontFamily: 'DMSans_500Medium', color: colors.onSurfaceVariant },
+    tabTextActive: { fontFamily: 'DMSans_700Bold', color: colors.onSurface },
     searchBar: {
         flexDirection: 'row',
         alignItems: 'center',
