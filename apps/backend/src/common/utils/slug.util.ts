@@ -1,13 +1,24 @@
 /**
- * Generate a URL-friendly slug from a string
+ * Generate a URL-friendly slug from a string.
+ *
+ * Hỗ trợ tiếng Việt có dấu: chuẩn hoá NFD để tách dấu khỏi chữ cái rồi xoá
+ * các combining marks (U+0300–U+036F), riêng đ/Đ không decompose được nên
+ * thay thủ công. Ví dụ: "Truyện Tiên Hiệp Đỉnh Cao" → "truyen-tien-hiep-dinh-cao".
  */
 export function generateSlug(text: string): string {
-  return text
+  const slug = text
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '') // Remove diacritical marks (dấu thanh + dấu mũ)
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/[^\p{L}\p{N}\s-]/gu, '') // Keep letters/digits (kể cả CJK), spaces, hyphens
     .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
     .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+
+  // Tiêu đề toàn ký tự đặc biệt → fallback để generateUniqueSlug còn đánh số.
+  return slug || 'untitled';
 }
 
 /**
@@ -32,4 +43,3 @@ export async function generateUniqueSlug(
 
   return slug;
 }
-
