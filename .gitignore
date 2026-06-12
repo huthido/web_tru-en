@@ -79,3 +79,7 @@ apps/backend/error.log
 
 # next-pwa generated fallback (new hash every build — not source)
 apps/frontend/public/fallback-*.js
+
+# MCP config local — chứa API key + mật khẩu thật, TUYỆT ĐỐI không commit.
+# Mẫu cấu hình xem tools/mcp-bug-reports/README.md + tools/mcp-author/README.md
+.mcp.json

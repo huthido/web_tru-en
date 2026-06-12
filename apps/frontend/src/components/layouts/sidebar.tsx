@@ -158,11 +158,30 @@ export function Sidebar() {
         </nav>
 
         {/* Secondary section + người dùng đăng nhập (đáy sidebar — luôn hiển
-            thị vì nằm ngoài <nav> scroll). */}
-        <div className="flex-shrink-0 px-3 pt-5 mt-2 border-t border-outline-variant/30 space-y-1.5">
-          {bottomLinks.map((l) => (
-            <NavRow key={l.href} link={l} />
-          ))}
+            thị vì nằm ngoài <nav> scroll). Compact: 3 mục gọn một hàng ngang
+            icon + nhãn nhỏ thay vì 3 NavRow xếp dọc. */}
+        <div className="flex-shrink-0 px-3 pt-3 mt-2 border-t border-outline-variant/30 space-y-1.5">
+          <div className="flex items-stretch gap-1">
+            {bottomLinks.map((l) => {
+              const Icon = l.icon;
+              return (
+                <Link
+                  key={l.label}
+                  href={l.href}
+                  aria-label={l.label}
+                  onMouseDown={(e) => e.preventDefault()}
+                  className={`flex-1 flex flex-col items-center gap-1 py-2 rounded-lg transition-colors duration-200 active:scale-95 ${
+                    l.active
+                      ? 'text-primary bg-primary/10 font-semibold'
+                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-variant'
+                  }`}
+                >
+                  <Icon size={18} className="flex-shrink-0" />
+                  <span className="text-[10px] font-medium leading-none">{l.label}</span>
+                </Link>
+              );
+            })}
+          </div>
 
           {user && (
             <Link
