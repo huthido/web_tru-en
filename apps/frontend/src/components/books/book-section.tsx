@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { BookCard } from './book-card';
 import { BookCardSkeleton } from '@/components/ui/loading';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Book {
   id: string;
   title: string;
+  author?: string | null;
   viewCount: number;
   rating?: number;
   ratingCount?: number;
@@ -26,273 +26,67 @@ interface BookSectionProps {
   hasMore?: boolean;
   onLoadMore?: () => void;
   skeletonCount?: number;
-  /** Ẩn heading (dùng khi danh mục đã chọn bằng chip phía trên). */
   hideTitle?: boolean;
-  /** Số card tối đa ở grid mobile (mặc định 4). */
+  /** Số card tối đa hiển thị (áp dụng cả mobile & desktop). */
   mobileLimit?: number;
 }
+
+const GRID = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4';
 
 export function BookSection({
   title,
   books,
   seeMoreLink = '#',
-  showLikeButton = true,
   isLoading = false,
   hasMore = false,
   onLoadMore,
-  skeletonCount = 6,
+  skeletonCount = 10,
   hideTitle = false,
-  mobileLimit = 4
+  mobileLimit = 12,
 }: BookSectionProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef<HTMLElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const observerRef = useRef<IntersectionObserver | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  // Update scroll indicators
-  const updateScrollIndicators = useCallback(() => {
-    if (!scrollContainerRef.current) return;
-
-    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-    const maxScroll = scrollWidth - clientWidth;
-
-    setCanScrollLeft(scrollLeft > 0);
-    setCanScrollRight(scrollLeft < maxScroll - 1); // -1 for floating point precision
-
-    // Calculate scroll progress (0-100)
-    const progress = maxScroll > 0 ? (scrollLeft / maxScroll) * 100 : 0;
-    setScrollProgress(progress);
-  }, []);
-
-  // Intersection Observer for animation
+  // Fade-in on enter viewport
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px',
-      }
+      ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
+      { threshold: 0.05, rootMargin: '0px 0px -40px 0px' },
     );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
-      }
-    };
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
   }, []);
 
-  // Update scroll indicators on mount and scroll
-  // Update scroll indicators on mount and scroll
+  // Infinite scroll sentinel
   useEffect(() => {
-    if (!scrollContainerRef.current) return;
-
-    updateScrollIndicators();
-
-    const container = scrollContainerRef.current;
-
-    // Native wheel handler with passive: false to allow preventing default
-    const handleWheelNative = (e: WheelEvent) => {
-      // Check if shift key is pressed or if it's a horizontal scroll
-      if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-        e.preventDefault();
-        e.stopPropagation();
-        const delta = e.deltaY || e.deltaX;
-        container.scrollLeft += delta;
-      }
-    };
-
-    container.addEventListener('scroll', updateScrollIndicators);
-    container.addEventListener('wheel', handleWheelNative, { passive: false });
-    window.addEventListener('resize', updateScrollIndicators);
-
-    return () => {
-      container.removeEventListener('scroll', updateScrollIndicators);
-      container.removeEventListener('wheel', handleWheelNative);
-      window.removeEventListener('resize', updateScrollIndicators);
-    };
-  }, [updateScrollIndicators, books.length]);
-
-  // Infinite scroll observer
-  useEffect(() => {
-    if (!hasMore || !onLoadMore || isLoading) return;
-
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        const lastEntry = entries[0];
-        if (lastEntry.isIntersecting) {
-          onLoadMore();
-        }
-      },
-      {
-        root: null, // Use viewport as root
-        rootMargin: '200px', // Trigger 200px before last card is visible
-        threshold: 0.1,
-      }
+    if (!hasMore || !onLoadMore || isLoading || !sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) onLoadMore(); },
+      { rootMargin: '200px' },
     );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, onLoadMore, isLoading]);
 
-    // Observe the last book card
-    const lastCard = container.querySelector('[data-last-card]');
-    if (lastCard) {
-      observerRef.current.observe(lastCard);
-    }
-
-    return () => {
-      if (observerRef.current && lastCard) {
-        observerRef.current.unobserve(lastCard);
-      }
-    };
-  }, [hasMore, onLoadMore, isLoading, books.length]);
-
-  // Keyboard navigation
-  useEffect(() => {
-    if (!scrollContainerRef.current || books.length === 0) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const container = scrollContainerRef.current;
-      if (!container) return;
-
-      // Check if section is visible in viewport
-      const sectionElement = ref.current;
-      if (!sectionElement) return;
-
-      const rect = sectionElement.getBoundingClientRect();
-      const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
-
-      // Only handle if section is in viewport and user is not typing in an input
-      const activeElement = document.activeElement;
-      const isTyping = activeElement?.tagName === 'INPUT' ||
-        activeElement?.tagName === 'TEXTAREA' ||
-        activeElement?.getAttribute('contenteditable') === 'true';
-
-      if (!isInViewport || isTyping) return;
-
-      const cardWidth = 150 + 16; // card width + gap
-
-      switch (e.key) {
-        case 'ArrowLeft':
-          e.preventDefault();
-          e.stopPropagation();
-          container.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          e.stopPropagation();
-          container.scrollBy({ left: cardWidth, behavior: 'smooth' });
-          break;
-        case 'Home':
-          e.preventDefault();
-          e.stopPropagation();
-          container.scrollTo({ left: 0, behavior: 'smooth' });
-          break;
-        case 'End':
-          e.preventDefault();
-          e.stopPropagation();
-          container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown, true); // Use capture phase
-    return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [books.length]);
-
-  // Drag to scroll functionality for desktop with smooth animation
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!scrollContainerRef.current) return;
-    // Only start dragging on left mouse button
-    if (e.button !== 0) return;
-
-    setIsDragging(true);
-    const rect = scrollContainerRef.current.getBoundingClientRect();
-    setStartX(e.pageX - rect.left);
-    setScrollLeft(scrollContainerRef.current.scrollLeft);
-    scrollContainerRef.current.style.cursor = 'grabbing';
-    scrollContainerRef.current.style.userSelect = 'none';
-    e.preventDefault();
-  };
-
-  const handleMouseLeave = () => {
-    if (!scrollContainerRef.current) return;
-    setIsDragging(false);
-    scrollContainerRef.current.style.cursor = 'grab';
-    scrollContainerRef.current.style.userSelect = '';
-  };
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (!scrollContainerRef.current) return;
-    setIsDragging(false);
-    scrollContainerRef.current.style.cursor = 'grab';
-    scrollContainerRef.current.style.userSelect = '';
-    e.preventDefault();
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    // Only scroll if actively dragging
-    if (!isDragging || !scrollContainerRef.current) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const rect = scrollContainerRef.current.getBoundingClientRect();
-    const x = e.pageX - rect.left;
-    const walk = (x - startX) * 1.5; // Reduced multiplier for smoother feel
-
-    // Direct scroll update - no animation frame to prevent lag
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-
-
-  // Smooth scroll to next/prev
-  const scrollToNext = useCallback(() => {
-    if (!scrollContainerRef.current) return;
-    const cardWidth = 150 + 16; // card width + gap
-    scrollContainerRef.current.scrollBy({ left: cardWidth, behavior: 'smooth' });
-  }, []);
-
-  const scrollToPrev = useCallback(() => {
-    if (!scrollContainerRef.current) return;
-    const cardWidth = 150 + 16; // card width + gap
-    scrollContainerRef.current.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-  }, []);
+  const displayed = books.slice(0, mobileLimit);
 
   return (
     <section
-      ref={ref}
-      className={`mb-12 transition-all duration-700 overflow-x-hidden relative ${isVisible
-        ? 'opacity-100 translate-y-0'
-        : 'opacity-0 translate-y-8'
-        }`}
-      tabIndex={0}
-      aria-label={`Section: ${title}`}
+      ref={sectionRef}
+      className={`mb-12 transition-all duration-700 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
     >
-      {/* Section Header — editorial Plus Jakarta on mobile theo Stitch */}
       {!hideTitle && (
-        <div className="flex items-center justify-between gap-3 mb-4 px-4 md:px-4 flex-wrap">
-          <h2 className="text-lg md:text-2xl font-display font-extrabold tracking-tight text-on-surface transition-colors duration-300 flex-shrink-0 md:uppercase">
+        <div className="flex items-center justify-between gap-3 mb-4 px-4 md:px-6">
+          <h2 className="text-lg md:text-2xl font-display font-extrabold tracking-tight text-on-surface transition-colors duration-300 md:uppercase">
             {title}
           </h2>
           {seeMoreLink && (
             <Link
               href={seeMoreLink}
-              className="text-xs md:text-sm font-semibold text-primary hover:underline transition-colors duration-300 flex-shrink-0 whitespace-nowrap"
+              className="text-xs md:text-sm font-semibold text-primary hover:underline transition-colors duration-300 whitespace-nowrap"
             >
               Xem tất cả →
             </Link>
@@ -300,158 +94,30 @@ export function BookSection({
         </div>
       )}
 
-      {/* === MOBILE: 2-col grid theo Stitch mockup === */}
-      <div className="md:hidden px-4">
+      <div className="px-4 md:px-6">
         {isLoading && books.length === 0 ? (
-          <div className="grid grid-cols-2 gap-3">
-            {[...Array(4)].map((_, i) => (
-              <BookCardSkeleton key={`m-skel-${i}`} />
+          <div className={GRID}>
+            {[...Array(skeletonCount)].map((_, i) => (
+              <BookCardSkeleton key={`skel-${i}`} />
             ))}
           </div>
-        ) : books.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
-            {books.slice(0, mobileLimit).map((book) => (
-              <BookCard
-                key={`m-${book.id}`}
-                id={book.id}
-                title={book.title}
-                viewCount={book.viewCount}
-                rating={book.rating}
-                ratingCount={book.ratingCount}
-                coverImage={book.coverImage}
-                slug={book.slug}
-                storyId={book.storyId}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="py-6 text-center text-sm text-on-surface-variant">Chưa có sách nào</div>
-        )}
-      </div>
-
-      {/* === DESKTOP: horizontal scroll (giữ original UX) === */}
-
-      {/* Scroll Position Indicator — desktop only */}
-      {books.length > 0 && (
-        <div className="hidden md:block px-4 md:px-6 lg:px-8 mb-2">
-          <div className="h-1 bg-surface-variant rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary transition-all duration-300 ease-out"
-              style={{ width: `${scrollProgress}%` }}
-              aria-hidden="true"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Navigation Buttons — desktop only */}
-      {books.length > 0 && (
-        <div className="hidden md:block">
-          {/* Previous Button */}
-          <button
-            onClick={scrollToPrev}
-            disabled={!canScrollLeft}
-            className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full glass-card shadow-lg flex items-center justify-center transition-all duration-300 ${canScrollLeft
-              ? 'opacity-100 hover:bg-surface-container hover:scale-110 cursor-pointer'
-              : 'opacity-0 pointer-events-none cursor-not-allowed'
-              }`}
-            aria-label="Scroll to previous books"
-          >
-            <ChevronLeft className="w-6 h-6 text-on-surface" />
-          </button>
-
-          {/* Next Button */}
-          <button
-            onClick={scrollToNext}
-            disabled={!canScrollRight}
-            className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full glass-card shadow-lg flex items-center justify-center transition-all duration-300 ${canScrollRight
-              ? 'opacity-100 hover:bg-surface-container hover:scale-110 cursor-pointer'
-              : 'opacity-0 pointer-events-none cursor-not-allowed'
-              }`}
-            aria-label="Scroll to next books"
-          >
-            <ChevronRight className="w-6 h-6 text-on-surface" />
-          </button>
-        </div>
-      )}
-
-      {/* Loading State — desktop horizontal */}
-      {isLoading && books.length === 0 ? (
-        <div className="hidden md:block ml-[16px] md:ml-0 md:px-6 lg:px-8 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-3 md:gap-4 pb-4 min-w-max pr-4 md:pr-6 lg:pr-8">
-            {[...Array(skeletonCount)].map((_, index) => (
-              <BookCardSkeleton key={`skeleton-${index}`} />
-            ))}
-          </div>
-        </div>
-      ) : books.length > 0 ? (
-        <div
-          ref={scrollContainerRef}
-          className="hidden md:block relative ml-[16px] md:ml-4 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory touch-pan-x cursor-grab focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg"
-          onMouseDown={handleMouseDown}
-          onMouseLeave={handleMouseLeave}
-          onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
-          onKeyDown={(e) => {
-            const container = scrollContainerRef.current;
-            if (!container) return;
-
-            const cardWidth = 150 + 16;
-            switch (e.key) {
-              case 'ArrowLeft':
-                e.preventDefault();
-                e.stopPropagation();
-                container.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-                break;
-              case 'ArrowRight':
-                e.preventDefault();
-                e.stopPropagation();
-                container.scrollBy({ left: cardWidth, behavior: 'smooth' });
-                break;
-              case 'Home':
-                e.preventDefault();
-                e.stopPropagation();
-                container.scrollTo({ left: 0, behavior: 'smooth' });
-                break;
-              case 'End':
-                e.preventDefault();
-                e.stopPropagation();
-                container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
-                break;
-            }
-          }}
-          onClick={(e) => {
-            // Focus container when clicked to enable keyboard navigation
-            if (scrollContainerRef.current && e.target === scrollContainerRef.current) {
-              scrollContainerRef.current.focus();
-            }
-          }}
-          tabIndex={0}
-          style={{
-            WebkitOverflowScrolling: 'touch',
-            scrollBehavior: 'smooth',
-          }}
-          role="region"
-          aria-label={`Scrollable book list: ${title}. Use arrow keys to navigate.`}
-        >
-          <div className="flex gap-3 md:gap-4 pb-4 min-w-max" style={{ touchAction: 'auto' }}>
-            {books.map((book, index) => {
-              const isLastCard = index === books.length - 1;
-              return (
+        ) : displayed.length > 0 ? (
+          <>
+            <div className={GRID}>
+              {displayed.map((book, index) => (
                 <div
                   key={book.id}
-                  data-last-card={isLastCard ? 'true' : undefined}
-                  className="transition-all duration-500 snap-start flex-shrink-0"
+                  className="transition-all duration-500"
                   style={{
-                    animationDelay: isVisible ? `${index * 50}ms` : '0ms',
                     opacity: isVisible ? 1 : 0,
-                    transform: isVisible ? 'translateX(0)' : 'translateX(20px)',
-                    touchAction: 'auto',
+                    transform: isVisible ? 'translateY(0)' : 'translateY(16px)',
+                    transitionDelay: isVisible ? `${index * 25}ms` : '0ms',
                   }}
                 >
                   <BookCard
                     id={book.id}
                     title={book.title}
+                    author={book.author}
                     viewCount={book.viewCount}
                     rating={book.rating}
                     ratingCount={book.ratingCount}
@@ -460,29 +126,25 @@ export function BookSection({
                     storyId={book.storyId}
                   />
                 </div>
-              );
-            })}
+              ))}
+            </div>
 
-            {/* Loading more skeleton */}
+            {hasMore && <div ref={sentinelRef} className="h-1" />}
+
             {isLoading && hasMore && (
-              <>
-                {[...Array(3)].map((_, index) => (
-                  <div key={`loading-more-${index}`} className="snap-start flex-shrink-0">
-                    <BookCardSkeleton />
-                  </div>
+              <div className={`${GRID} mt-4`}>
+                {[...Array(4)].map((_, i) => (
+                  <BookCardSkeleton key={`more-${i}`} />
                 ))}
-              </>
+              </div>
             )}
-          </div>
-        </div>
-      ) : (
-        <div className="hidden md:block px-6 md:px-6 ml-0">
-          <div className="py-8 text-center text-on-surface-variant">
+          </>
+        ) : (
+          <div className="py-8 text-center text-sm text-on-surface-variant">
             Chưa có sách nào
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   );
 }
-

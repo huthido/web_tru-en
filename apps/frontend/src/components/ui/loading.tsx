@@ -33,14 +33,13 @@ export function Loading({ fullScreen = false, message }: LoadingProps) {
 
 export function BookCardSkeleton() {
   return (
-    <div className="flex-shrink-0 w-[150px] animate-pulse">
+    <div className="w-full animate-pulse">
       <div className="flex flex-col gap-2">
-        {/* Book Cover Skeleton */}
-        <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-surface-variant"></div>
-        {/* Book Info Skeleton */}
-        <div className="flex flex-col gap-1">
-          <div className="h-4 bg-surface-variant rounded w-full"></div>
-          <div className="h-3 bg-surface-variant rounded w-2/3"></div>
+        <div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-surface-variant" />
+        <div className="flex flex-col gap-1.5">
+          <div className="h-4 bg-surface-variant rounded w-full" />
+          <div className="h-3 bg-surface-variant rounded w-2/3" />
+          <div className="h-3 bg-surface-variant rounded w-1/2" />
         </div>
       </div>
     </div>
@@ -49,19 +48,11 @@ export function BookCardSkeleton() {
 
 export function BookSectionSkeleton() {
   return (
-    <section className="mb-12">
-      {/* Section Header Skeleton */}
-      <div className="flex items-center justify-between mb-4 px-4">
-        <div className="h-7 w-48 bg-surface-variant rounded animate-pulse"></div>
-        <div className="h-5 w-20 bg-surface-variant rounded animate-pulse"></div>
-      </div>
-      {/* Book List Skeleton */}
-      <div className="overflow-x-auto scrollbar-hide">
-        <div className="flex gap-4 px-4 pb-4">
-          {[...Array(6)].map((_, i) => (
-            <BookCardSkeleton key={i} />
-          ))}
-        </div>
+    <section className="mb-12 px-4 md:px-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+        {[...Array(10)].map((_, i) => (
+          <BookCardSkeleton key={i} />
+        ))}
       </div>
     </section>
   );

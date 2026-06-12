@@ -11,10 +11,27 @@ import { Loading } from '@/components/ui/loading';
 import { useStories } from '@/lib/api/hooks/use-stories';
 import { useCategories } from '@/lib/api/hooks/use-categories';
 import { Story } from '@/lib/api/stories.service';
+import { ArtTab } from '@/components/art/art-tab';
+import { useAuth } from '@/lib/api/hooks/use-auth';
+
+type StoryTab = 'truyen' | 'nghe-thuat';
 
 function StoriesContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { user, isAuthenticated } = useAuth();
+
+    // Tab: truyen | nghe-thuat
+    const initialTab = (searchParams.get('tab') as StoryTab) || 'truyen';
+    const [activeTab, setActiveTab] = useState<StoryTab>(initialTab);
+
+    const handleTabChange = (tab: StoryTab) => {
+        setActiveTab(tab);
+        const params = new URLSearchParams(searchParams.toString());
+        if (tab === 'truyen') params.delete('tab');
+        else params.set('tab', tab);
+        router.replace(params.toString() ? `/stories?${params.toString()}` : '/stories', { scroll: false });
+    };
 
     // Get initial values from URL params
     const initialPage = parseInt(searchParams.get('page') || '1', 10);
@@ -125,8 +142,36 @@ function StoriesContent() {
             <div className="md:ml-60 pb-16 md:pb-0">
                 <Header />
 
+                {/* Tab switcher */}
+                <div className="sticky top-[60px] z-30 bg-background/90 backdrop-blur-md border-b border-outline-variant/20 px-4 md:px-6">
+                    <div className="max-w-7xl mx-auto flex">
+                        {(['truyen', 'nghe-thuat'] as StoryTab[]).map((tab) => (
+                            <button
+                                key={tab}
+                                type="button"
+                                onClick={() => handleTabChange(tab)}
+                                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
+                                    activeTab === tab
+                                        ? 'border-on-surface text-on-surface'
+                                        : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                                }`}
+                            >
+                                {tab === 'truyen' ? '📚 Truyện' : '🎨 Nghệ thuật'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)]">
                     <div className="max-w-7xl mx-auto px-4 md:px-6">
+
+                        {/* ── Tab Nghệ thuật ─────────────────────────────────── */}
+                        {activeTab === 'nghe-thuat' && (
+                            <ArtTab currentUserId={user?.id} isLoggedIn={isAuthenticated} />
+                        )}
+
+                        {/* ── Tab Truyện ─────────────────────────────────────── */}
+                        {activeTab === 'truyen' && (<>
                         <AdSlot slotKey="stories.list.top" />
                         {/* Page Header */}
                         <div className="mb-6">
@@ -373,6 +418,8 @@ function StoriesContent() {
                         <div className="mt-8">
                             <AdSlot slotKey="stories.list.bottom" />
                         </div>
+                        </>)}
+                        {/* ── End Tab Truyện ──────────────────────────────── */}
                     </div>
                 </main>
 

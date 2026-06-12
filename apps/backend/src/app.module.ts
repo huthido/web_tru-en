@@ -35,6 +35,7 @@ import { QueueModule } from './queue/queue.module';
 import { EmailModule } from './email/email.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { RedisModule } from './redis/redis.module';
+import { ArtModule } from './art/art.module';
 
 @Module({
   imports: [
@@ -100,6 +101,7 @@ import { RedisModule } from './redis/redis.module';
     UgcReportsModule,
     MonetizationModule,
     MetricsModule,
+    ArtModule,
     MiddlewareModule, // Must be imported to provide MaintenanceMiddleware
   ],
   controllers: [HealthController],

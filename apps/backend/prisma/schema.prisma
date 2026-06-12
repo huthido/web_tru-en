@@ -72,6 +72,12 @@ model User {
   ugcReportsReviewed      UgcReport[]              @relation("UgcReportResolver")
   blocks                  UserBlock[]              @relation("UserBlockBlocker")
   blockedBy               UserBlock[]              @relation("UserBlockBlocked")
+  // Art feed (mục Nghệ thuật / Khám phá).
+  artPosts                ArtPost[]
+  artLikes                ArtLike[]
+  artComments             ArtComment[]
+  artStories              ArtStory[]
+  artStoryViews           ArtStoryView[]
   // Theo dõi tác giả (khác với Follow theo truyện). Phục vụ điều kiện
   // bật kiếm tiền (≥100 followers) + nút "Theo dõi tác giả" ở profile MXH.
   authorFollowsFollowing  AuthorFollow[]           @relation("AuthorFollowFollower")
@@ -1161,4 +1167,84 @@ model UserBlock {
   @@index([blockerId])
   @@index([blockedId])
   @@map("user_blocks")
+}
+
+// ─── Art Feed (mục Nghệ thuật / Khám phá) ───────────────────────────────────
+
+model ArtPost {
+  id           String       @id @default(cuid())
+  userId       String
+  imageUrl     String
+  caption      String?      @db.Text
+  /// Dimensions gợi ý (px) — frontend dùng để tính masonry height trước khi ảnh tải.
+  width        Int?
+  height       Int?
+  likeCount    Int          @default(0)
+  commentCount Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes        ArtLike[]
+  comments     ArtComment[]
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("art_posts")
+}
+
+model ArtLike {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      ArtPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([postId])
+  @@map("art_likes")
+}
+
+model ArtComment {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      ArtPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@map("art_comments")
+}
+
+/// Stories 24h — ảnh tạm thời, hết hạn sau expiresAt.
+model ArtStory {
+  id        String   @id @default(cuid())
+  userId    String
+  imageUrl  String
+  expiresAt DateTime
+  viewCount Int      @default(0)
+  createdAt DateTime @default(now())
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  views     ArtStoryView[]
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("art_stories")
+}
+
+model ArtStoryView {
+  userId    String
+  storyId   String
+  viewedAt  DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  story     ArtStory  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  @@id([userId, storyId])
+  @@map("art_story_views")
 }
