@@ -1,13 +1,12 @@
 # E2E driver: drive cả 2 MCP server qua stdio JSON-RPC, đánh vào backend thật.
 # Chạy: python tools/e2e-mcp-test.py  (backend phải đang chạy ở :3009)
-import json
 import os
-import subprocess
 import sys
-import threading
-import queue
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from mcp_client import McpClient, connect, ROOT  # noqa: E402
+import json
+
 API = "http://localhost:3009/api"
 EMAIL = "e2e-author@test.local"
 PASSWORD = "E2eTest!2026"
@@ -18,69 +17,6 @@ PASS, FAIL = [], []
 def check(name, cond, detail=""):
     (PASS if cond else FAIL).append(name)
     print(("  PASS  " if cond else "  FAIL  ") + name + (f"  -- {detail}" if detail else ""))
-
-
-class McpClient:
-    def __init__(self, script, env_extra):
-        env = {**os.environ, **env_extra}
-        self.proc = subprocess.Popen(
-            ["node", script], cwd=ROOT, env=env,
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-            text=True, encoding="utf-8",
-        )
-        self.q = queue.Queue()
-        self._id = 0
-        threading.Thread(target=self._reader, daemon=True).start()
-        self.request("initialize", {
-            "protocolVersion": "2025-03-26", "capabilities": {},
-            "clientInfo": {"name": "e2e", "version": "1.0"},
-        })
-        self.notify("notifications/initialized")
-
-    def _reader(self):
-        for line in self.proc.stdout:
-            line = line.strip()
-            if line:
-                try:
-                    self.q.put(json.loads(line))
-                except json.JSONDecodeError:
-                    pass
-
-    def _send(self, msg):
-        self.proc.stdin.write(json.dumps(msg) + "\n")
-        self.proc.stdin.flush()
-
-    def notify(self, method, params=None):
-        self._send({"jsonrpc": "2.0", "method": method, **({"params": params} if params else {})})
-
-    def request(self, method, params=None, timeout=30):
-        self._id += 1
-        rid = self._id
-        self._send({"jsonrpc": "2.0", "id": rid, "method": method, **({"params": params} if params else {})})
-        while True:
-            msg = self.q.get(timeout=timeout)
-            if msg.get("id") == rid:
-                return msg
-
-    def tool(self, name, args=None, timeout=30):
-        """Gọi tool, trả (ok, payload). payload = JSON đã parse từ text content."""
-        res = self.request("tools/call", {"name": name, "arguments": args or {}}, timeout)
-        if "error" in res:
-            return False, res["error"]
-        result = res["result"]
-        if result.get("isError"):
-            return False, result.get("content")
-        try:
-            return True, json.loads(result["content"][0]["text"])
-        except Exception:
-            return True, result.get("content")
-
-    def close(self):
-        try:
-            self.proc.stdin.close()
-            self.proc.terminate()
-        except Exception:
-            pass
 
 
 def read_agent_key():
