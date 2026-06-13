@@ -9,6 +9,9 @@ export interface AuthUser {
     displayName: string | null;
     avatar: string | null;
     role: UserRole;
+    /** false = tài khoản OAuth (Google/Apple) chưa tạo mật khẩu.
+     *  Chỉ /auth/me trả về field này — login response không có. */
+    hasPassword?: boolean;
 }
 
 export interface LoginPayload {
@@ -44,6 +47,23 @@ export const AuthApi = {
         } catch {
             return null;
         }
+    },
+
+    /** Đổi mật khẩu — tài khoản đã có mật khẩu. */
+    async changePassword(input: {
+        currentPassword: string;
+        newPassword: string;
+        confirmNewPassword: string;
+    }): Promise<void> {
+        await apiClient.post('/auth/change-password', input);
+    },
+
+    /** Tạo mật khẩu lần đầu — tài khoản OAuth có password == null. */
+    async setPassword(input: {
+        newPassword: string;
+        confirmNewPassword: string;
+    }): Promise<void> {
+        await apiClient.post('/auth/set-password', input);
     },
 
     async logout(): Promise<void> {

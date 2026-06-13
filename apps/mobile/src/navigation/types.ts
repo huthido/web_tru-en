@@ -26,6 +26,7 @@ export type RootStackParamList = {
     // Thư viện rời tab bar (PDF fix nav) — truy cập từ Tài khoản.
     Library: undefined;
     BugReport: undefined;
+    ChangePassword: undefined;
 };
 
 // Thứ tự tab theo docs/Fix vài điểm trên app web.pdf:

@@ -52,6 +52,12 @@ export const SettingsScreen: React.FC = () => {
             title: 'Tài khoản',
             rows: [
                 {
+                    icon: 'lock-closed-outline',
+                    label: 'Mật khẩu',
+                    sub: 'Tạo hoặc đổi mật khẩu đăng nhập',
+                    onPress: () => nav.navigate('ChangePassword'),
+                },
+                {
                     icon: 'notifications-outline',
                     label: 'Thông báo',
                     sub: 'Xem thông báo và đánh dấu đã đọc',
