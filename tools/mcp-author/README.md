@@ -53,6 +53,7 @@ Với server production, đổi `YEU_API_URL` thành `https://<domain>/api`.
 | `list_my_stories` | Truyện do user sáng tác, mọi trạng thái, phân trang |
 | `get_story` | Chi tiết truyện theo slug/id |
 | `create_story` | Tạo truyện mới (bản nháp) |
+| `update_story` | Sửa tiêu đề / mô tả / tags của truyện |
 | `list_chapters` | Danh sách chương của truyện |
 | `get_chapter` | Đọc nội dung đầy đủ một chương |
 | `create_chapter` | Tạo chương mới — nội dung HTML, mỗi đoạn trong `<p>` |

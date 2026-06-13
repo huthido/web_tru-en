@@ -276,6 +276,22 @@ server.registerTool(
   async (input) => asText(await api('/stories', { method: 'POST', body: input })),
 );
 
+server.registerTool(
+  'update_story',
+  {
+    title: 'Sửa thông tin truyện',
+    description: 'Cập nhật tiêu đề / mô tả / tags của truyện thuộc về user.',
+    inputSchema: {
+      storyId: z.string().min(1).describe('ID của truyện (không phải slug)'),
+      title: z.string().min(1).max(200).optional(),
+      description: z.string().max(5000).optional().describe('Mô tả mới — ghi đè toàn bộ'),
+      tags: z.array(z.string()).optional(),
+    },
+  },
+  async ({ storyId, ...body }) =>
+    asText(await api(`/stories/${encodeURIComponent(storyId)}`, { method: 'PATCH', body })),
+);
+
 // ─── Chương ──────────────────────────────────────────────────────────────
 
 server.registerTool(
