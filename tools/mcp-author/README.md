@@ -58,6 +58,9 @@ Với server production, đổi `YEU_API_URL` thành `https://<domain>/api`.
 | `create_chapter` | Tạo chương mới — nội dung HTML, mỗi đoạn trong `<p>` |
 | `update_chapter` | Sửa tiêu đề/nội dung/giá — `content` ghi đè toàn bộ |
 | `publish_chapter` | Xuất bản / gỡ xuất bản chương |
+| `upload_story_cover` | Upload ảnh bìa (file local hoặc URL) + gán vào truyện |
+| `upload_chapter_image` | Upload ảnh minh hoạ, trả URL + thẻ `<img>` để chèn vào chương |
+| `request_story_approval` | Gửi yêu cầu admin duyệt xuất bản truyện (STORY_PUBLISH) |
 
 Quy ước an toàn cho agent: chỉ `publish_chapter` khi user yêu cầu rõ ràng;
 khi "viết tiếp" một chương phải `get_chapter` lấy nội dung cũ rồi nối thêm

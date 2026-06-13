@@ -16,6 +16,8 @@
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { readFile } from 'fs/promises';
+import path from 'path';
 import { z } from 'zod';
 
 const BASE_URL = (process.env.YEU_API_URL || 'http://localhost:3001/api').replace(/\/+$/, '');
@@ -140,6 +142,58 @@ async function api(path, { method = 'GET', body, params } = {}, isRetry = false)
 
 function asText(data) {
   return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+}
+
+// ─── Upload ảnh ──────────────────────────────────────────────────────────
+
+const IMAGE_MIME = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+};
+
+/** Đọc ảnh từ đường dẫn file local hoặc URL http(s). */
+async function loadImage(source) {
+  if (/^https?:\/\//i.test(source)) {
+    const res = await fetch(source);
+    if (!res.ok) throw new Error(`Tải ảnh từ URL thất bại: HTTP ${res.status}`);
+    const ct = (res.headers.get('content-type') || 'image/jpeg').split(';')[0];
+    if (!ct.startsWith('image/')) throw new Error(`URL không phải ảnh (content-type: ${ct})`);
+    const ext = ct.includes('png') ? '.png' : ct.includes('webp') ? '.webp' : ct.includes('gif') ? '.gif' : '.jpg';
+    return { buf: Buffer.from(await res.arrayBuffer()), type: ct, name: `image${ext}` };
+  }
+  const ext = path.extname(source).toLowerCase();
+  const type = IMAGE_MIME[ext];
+  if (!type) throw new Error(`Định dạng không hỗ trợ: "${ext}" — chỉ nhận jpg/jpeg/png/webp/gif`);
+  const buf = await readFile(source);
+  return { buf, type, name: path.basename(source) };
+}
+
+/** POST multipart có xác thực; tự refresh + retry một lần khi 401. */
+async function apiUpload(endpoint, image, isRetry = false) {
+  await ensureAuth();
+  const form = new FormData();
+  form.append('file', new Blob([image.buf], { type: image.type }), image.name);
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${state.accessToken}`,
+      'x-client-type': 'mobile',
+    },
+    body: form,
+  });
+  if (res.status === 401 && !isRetry) {
+    await refreshSession();
+    return apiUpload(endpoint, image, true);
+  }
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    const msg = json?.message || json?.error || `HTTP ${res.status}`;
+    throw new Error(`Backend trả lỗi: ${Array.isArray(msg) ? msg.join('; ') : msg}`);
+  }
+  return unwrap(json);
 }
 
 const server = new McpServer({ name: 'yeu-author', version: '1.0.0' });
@@ -314,6 +368,69 @@ server.registerTool(
         `/stories/${encodeURIComponent(storySlug)}/chapters/${encodeURIComponent(chapterId)}/${publish ? 'publish' : 'unpublish'}`,
         { method: 'POST' },
       ),
+    ),
+);
+
+server.registerTool(
+  'upload_story_cover',
+  {
+    title: 'Upload ảnh bìa truyện',
+    description:
+      'Upload ảnh bìa từ đường dẫn file local hoặc URL ảnh, rồi gán làm cover của truyện. Hỗ trợ jpg/png/webp/gif.',
+    inputSchema: {
+      storyId: z.string().min(1).describe('ID của truyện (không phải slug)'),
+      source: z.string().min(1).describe('Đường dẫn file local (VD C:\\anh\\cover.jpg) hoặc URL http(s) của ảnh'),
+    },
+  },
+  async ({ storyId, source }) => {
+    const image = await loadImage(source);
+    const uploaded = await apiUpload('/stories/upload-cover', image);
+    const coverImage = uploaded?.coverImage ?? uploaded?.url;
+    if (!coverImage) throw new Error('Upload không trả về URL ảnh');
+    const story = await api(`/stories/${encodeURIComponent(storyId)}`, {
+      method: 'PATCH',
+      body: { coverImage },
+    });
+    return asText({ message: 'Đã gán ảnh bìa', coverImage, storyId: story?.id ?? storyId });
+  },
+);
+
+server.registerTool(
+  'upload_chapter_image',
+  {
+    title: 'Upload ảnh minh hoạ cho chương',
+    description:
+      'Upload một ảnh (file local hoặc URL) và trả về URL để chèn vào nội dung chương dạng <img src="..."/>. Hỗ trợ jpg/png/webp/gif.',
+    inputSchema: {
+      source: z.string().min(1).describe('Đường dẫn file local hoặc URL http(s) của ảnh'),
+    },
+  },
+  async ({ source }) => {
+    const image = await loadImage(source);
+    const uploaded = await apiUpload('/chapters/upload-image', image);
+    const url = uploaded?.url ?? uploaded?.coverImage;
+    if (!url) throw new Error('Upload không trả về URL ảnh');
+    return asText({ message: 'Upload thành công — chèn vào chương bằng thẻ <img>', url, embed: `<img src="${url}" alt=""/>` });
+  },
+);
+
+server.registerTool(
+  'request_story_approval',
+  {
+    title: 'Gửi yêu cầu phê duyệt xuất bản truyện',
+    description:
+      'Tác giả (không phải admin) phải gửi yêu cầu phê duyệt STORY_PUBLISH và chờ admin duyệt thì truyện mới được xuất bản. Sau khi truyện đã xuất bản, publish_chapter dùng được trực tiếp.',
+    inputSchema: {
+      storyId: z.string().min(1).describe('ID của truyện (không phải slug)'),
+      message: z.string().max(1000).optional().describe('Lời nhắn gửi admin'),
+    },
+  },
+  async ({ storyId, message }) =>
+    asText(
+      await api(`/approvals/stories/${encodeURIComponent(storyId)}`, {
+        method: 'POST',
+        body: { type: 'STORY_PUBLISH', ...(message ? { message } : {}) },
+      }),
     ),
 );
 
