@@ -724,5 +724,115 @@ export class ChaptersService {
             alreadyOwned: result.alreadyOwned,
         };
     }
+
+    // ===== Lịch tự xuất bản (drip release) =====
+
+    /**
+     * Rải đều lịch xuất bản cho các chương NHÁP của một truyện đã publish.
+     * Chương được sắp theo `order`; mỗi `perBatch` chương dùng chung một mốc
+     * giờ, các đợt cách nhau `intervalHours`. Chỉ tác giả truyện (hoặc admin)
+     * thao tác được, và truyện phải đã publish (hướng a).
+     */
+    async scheduleDraftChapters(
+        storySlug: string,
+        userId: string,
+        userRole: UserRole,
+        opts: { startAt: string; intervalHours?: number; perBatch?: number; reset?: boolean },
+    ) {
+        const story = await this.prisma.story.findFirst({
+            where: { OR: [{ slug: storySlug }, { id: storySlug }] },
+            select: { id: true, authorId: true, isPublished: true },
+        });
+        if (!story) throw new NotFoundException('Truyện không tồn tại');
+        if (story.authorId !== userId && userRole !== UserRole.ADMIN) {
+            throw new ForbiddenException('Bạn chỉ có thể đặt lịch cho truyện của mình');
+        }
+        if (!story.isPublished) {
+            throw new BadRequestException(
+                'Truyện cần được xuất bản (đã duyệt) trước khi đặt lịch ra chương.',
+            );
+        }
+
+        const start = new Date(opts.startAt);
+        if (isNaN(start.getTime())) throw new BadRequestException('startAt không hợp lệ');
+        const intervalHours = opts.intervalHours ?? 24;
+        const perBatch = opts.perBatch ?? 1;
+
+        // Chương nháp, theo thứ tự đăng. reset=false thì bỏ qua chương đã có lịch.
+        const drafts = await this.prisma.chapter.findMany({
+            where: {
+                storyId: story.id,
+                isPublished: false,
+                ...(opts.reset ? {} : { scheduledPublishAt: null }),
+            },
+            orderBy: { order: 'asc' },
+            select: { id: true, title: true, order: true },
+        });
+
+        if (drafts.length === 0) {
+            return { scheduled: [], message: 'Không có chương nháp nào để đặt lịch.' };
+        }
+
+        const intervalMs = intervalHours * 60 * 60 * 1000;
+        const scheduled = await this.prisma.$transaction(
+            drafts.map((ch, i) => {
+                const when = new Date(start.getTime() + Math.floor(i / perBatch) * intervalMs);
+                return this.prisma.chapter.update({
+                    where: { id: ch.id },
+                    data: { scheduledPublishAt: when },
+                    select: { id: true, title: true, order: true, scheduledPublishAt: true },
+                });
+            }),
+        );
+
+        return {
+            scheduled,
+            count: scheduled.length,
+            message: `Đã đặt lịch ${scheduled.length} chương, ${perBatch} chương mỗi ${intervalHours}h.`,
+        };
+    }
+
+    /**
+     * Cron gọi mỗi phút: tìm chương tới hạn (scheduledPublishAt <= now,
+     * chưa publish, truyện đã publish) và xuất bản + fanout thông báo.
+     * Trả về số chương đã đăng.
+     */
+    async publishDueScheduled(now: Date = new Date()): Promise<number> {
+        const due = await this.prisma.chapter.findMany({
+            where: {
+                isPublished: false,
+                scheduledPublishAt: { not: null, lte: now },
+                story: { isPublished: true },
+            },
+            orderBy: { scheduledPublishAt: 'asc' },
+            take: 50, // an toàn: tối đa 50 chương/phút
+            select: {
+                id: true,
+                title: true,
+                slug: true,
+                story: { select: { id: true, title: true, slug: true } },
+            },
+        });
+
+        let published = 0;
+        for (const ch of due) {
+            try {
+                await this.prisma.chapter.update({
+                    where: { id: ch.id },
+                    data: { isPublished: true },
+                });
+                void this.notificationsService.fanoutChapterPublished({
+                    id: ch.id,
+                    title: ch.title,
+                    slug: ch.slug,
+                    story: { id: ch.story.id, title: ch.story.title, slug: ch.story.slug },
+                });
+                published++;
+            } catch {
+                // Lỗi 1 chương không chặn các chương còn lại; cron sau thử lại.
+            }
+        }
+        return published;
+    }
 }
 

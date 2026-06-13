@@ -160,6 +160,9 @@ model Chapter {
   images         String[]
   order          Int
   isPublished    Boolean          @default(false)
+  /// Lịch tự xuất bản: khi != null và đã tới giờ, cron ChaptersCron sẽ tự
+  /// set isPublished=true (chỉ với truyện đã publish). null = không đặt lịch.
+  scheduledPublishAt DateTime?
   viewCount      Int              @default(0)
   wordCount      Int              @default(0)
   readingTime    Int              @default(0)
@@ -182,6 +185,8 @@ model Chapter {
   @@index([slug])
   @@index([isPublished])
   @@index([createdAt])
+  // Cron quét chương tới hạn đăng: lọc isPublished=false + scheduledPublishAt<=now.
+  @@index([isPublished, scheduledPublishAt])
   @@map("chapters")
 }
 

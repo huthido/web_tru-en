@@ -431,6 +431,38 @@ server.registerTool(
 );
 
 server.registerTool(
+  'schedule_chapters',
+  {
+    title: 'Đặt lịch tự xuất bản các chương nháp',
+    description:
+      'Rải đều lịch xuất bản cho các chương NHÁP của truyện (đã được duyệt). Server sẽ tự đăng từng chương đúng giờ, không cần client mở. Mặc định 1 chương mỗi 24h. startAt là mốc giờ tuyệt đối ISO 8601 (UTC, có hậu tố Z) — tự tính theo múi giờ mong muốn trước khi truyền. Chương chưa có lịch mới được gán (trừ khi reset=true).',
+    inputSchema: {
+      storySlug: z.string().min(1).describe('Slug (hoặc id) của truyện'),
+      startAt: z
+        .string()
+        .min(1)
+        .describe('Mốc giờ ISO 8601 UTC cho chương đầu, VD "2026-06-13T12:00:00Z" = 19:00 giờ VN'),
+      intervalHours: z
+        .number()
+        .int()
+        .min(1)
+        .max(24 * 30)
+        .optional()
+        .describe('Khoảng cách giữa các đợt, giờ. Mặc định 24'),
+      perBatch: z.number().int().min(1).max(10).optional().describe('Số chương mỗi đợt. Mặc định 1'),
+      reset: z.boolean().optional().describe('true = xoá lịch cũ đặt lại từ đầu. Mặc định false'),
+    },
+  },
+  async ({ storySlug, ...body }) =>
+    asText(
+      await api(`/stories/${encodeURIComponent(storySlug)}/chapters/schedule`, {
+        method: 'POST',
+        body,
+      }),
+    ),
+);
+
+server.registerTool(
   'request_story_approval',
   {
     title: 'Gửi yêu cầu phê duyệt xuất bản truyện',

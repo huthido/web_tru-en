@@ -17,6 +17,7 @@ import { memoryStorage } from 'multer';
 import { ChaptersService } from './chapters.service';
 import { CreateChapterDto } from './dto/create-chapter.dto';
 import { UpdateChapterDto } from './dto/update-chapter.dto';
+import { ScheduleChaptersDto } from './dto/schedule-chapters.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
@@ -110,6 +111,17 @@ export class ChaptersController {
     @UseGuards(JwtAuthGuard)
     unpublish(@Param('id') id: string, @CurrentUser() user: any) {
         return this.chaptersService.unpublish(id, user.id);
+    }
+
+    /** Đặt lịch rải đều xuất bản các chương nháp của truyện (drip release). */
+    @Post('schedule')
+    @UseGuards(JwtAuthGuard)
+    schedule(
+        @Param('storySlug') storySlug: string,
+        @CurrentUser() user: any,
+        @Body() dto: ScheduleChaptersDto,
+    ) {
+        return this.chaptersService.scheduleDraftChapters(storySlug, user.id, user.role, dto);
     }
 
     @Post(':id/buy')
