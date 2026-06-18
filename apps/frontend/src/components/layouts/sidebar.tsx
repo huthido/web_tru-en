@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { OptimizedImage } from '@/components/ui/optimized-image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useLayoutEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
@@ -53,6 +53,7 @@ function NavPill({ link }: { link: NavLink }) {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const { data: settings } = useSettings();
 
@@ -78,7 +79,7 @@ export function Sidebar() {
   const links: NavLink[] = [
     { href: '/', label: 'Trang chủ', icon: Home, active: pathname === '/' },
     { href: '/stories', label: 'Truyện', icon: BookOpen, active: pathname === '/stories' },
-    { href: '/nghe-thuat', label: 'Mày tao', icon: Camera, active: pathname === '/nghe-thuat' },
+    { href: '/stories?tab=nghe-thuat', label: 'Mày tao', icon: Camera, active: pathname === '/stories' && searchParams.get('tab') === 'nghe-thuat' },
     { href: uploadHref, label: 'Đăng truyện', icon: Upload, active: pathname === '/author/stories/create' },
     { href: earnHref, label: 'Kiếm tiền', icon: Wallet, active: pathname === '/author/earnings' },
     { href: '/shop', label: 'Cửa hàng', icon: Store, active: pathname === '/shop' },
