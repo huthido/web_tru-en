@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useLayoutEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, Compass, Library, Clock, Bookmark, Heart, Store, Upload, LayoutDashboard, Wallet, Settings, User, HelpCircle, Plus, Bug, type LucideIcon } from 'lucide-react';
+import { Home, BookOpen, Camera, Library, Store, Upload, LayoutDashboard, Wallet, Settings, User, HelpCircle, Plus, Bug, type LucideIcon } from 'lucide-react';
 import { BrandMark } from '@/components/ui/brand-mark';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
@@ -27,28 +27,26 @@ interface NavLink {
   authOnly?: boolean;
 }
 
-/** A single sidebar row — icon + label, MD3 "Vivid Reader" style. */
-function NavRow({ link }: { link: NavLink }) {
+/** Pill-style nav button — icon + label, bo tròn đầy đủ. */
+function NavPill({ link }: { link: NavLink }) {
   const Icon = link.icon;
   return (
     <Link
       href={link.href}
       aria-label={link.label}
-      // preventDefault trên mousedown ngăn browser gán focus cho link khi click
-      // chuột → không trigger scroll-to-focused-element. Keyboard nav vẫn hoạt động.
       onMouseDown={(e) => e.preventDefault()}
-      className={`flex items-center gap-4 p-3 transition-all duration-200 active:scale-[0.98] ${
+      className={`flex items-center gap-3 px-5 py-2.5 rounded-full transition-all duration-200 active:scale-[0.98] font-semibold text-sm w-full ${
         link.active
-          ? 'text-primary font-bold bg-primary/10 border-r-4 border-primary rounded-l-lg'
-          : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded-lg'
+          ? 'bg-primary text-on-primary shadow-sm shadow-primary/20'
+          : 'bg-primary/10 text-primary hover:bg-primary/20'
       }`}
     >
       <Icon
-        size={22}
+        size={18}
         className="flex-shrink-0"
         fill={link.active && link.fillWhenActive ? 'currentColor' : 'none'}
       />
-      <span className="text-sm">{link.label}</span>
+      <span>{link.label}</span>
     </Link>
   );
 }
@@ -72,31 +70,21 @@ export function Sidebar() {
 
   const canCreateStories = !!user;
 
-  // Chưa đăng nhập → đẩy qua login kèm redirect, để Đăng truyện / Kiếm tiền
-  // luôn hiển thị và thu hút người mới + tác giả.
   const uploadHref = canCreateStories ? '/author/stories/create' : '/login?redirect=/author/stories/create';
   const earnHref = user ? '/author/earnings' : '/login?redirect=/author/earnings';
 
-  // Thứ tự tính năng chính theo docs/Fix vài điểm trên app web.pdf:
-  // 1 Trang chủ · 2 Khám phá · 3 Đăng truyện · 4 Kiếm tiền · 5 Cửa hàng ·
-  // 6 Tài khoản (cài đặt + tính năng phụ nằm trong Tài khoản).
+  // Thứ tự menu mới: Trang chủ · Truyện · Mày tao · Đăng truyện · Kiếm tiền
+  // · Cửa hàng · Kênh tác giả · Thư viện · Tài khoản
   const links: NavLink[] = [
     { href: '/', label: 'Trang chủ', icon: Home, active: pathname === '/' },
-    { href: '/stories', label: 'Khám phá', icon: Compass, active: pathname === '/stories' },
+    { href: '/stories', label: 'Truyện', icon: BookOpen, active: pathname === '/stories' },
+    { href: '/posts', label: 'Mày tao', icon: Camera, active: pathname === '/posts' },
     { href: uploadHref, label: 'Đăng truyện', icon: Upload, active: pathname === '/author/stories/create' },
     { href: earnHref, label: 'Kiếm tiền', icon: Wallet, active: pathname === '/author/earnings' },
     { href: '/shop', label: 'Cửa hàng', icon: Store, active: pathname === '/shop' },
-    { href: '/profile', label: 'Tài khoản', icon: User, active: pathname === '/profile' },
-  ];
-
-  // Tiện ích phụ — desktop hiển thị nhóm riêng dưới primary; mobile truy cập
-  // qua Tài khoản (ProfileScreen / MobileExtraMenu).
-  const extraLinks: NavLink[] = [
-    { href: '/library', label: 'Thư viện', icon: Library, active: pathname === '/library' },
-    { href: '/history', label: 'Lịch sử', icon: Clock, active: pathname === '/history' },
-    { href: '/follows', label: 'Theo dõi', icon: Bookmark, active: pathname === '/follows', fillWhenActive: true },
-    { href: '/favorites', label: 'Yêu thích', icon: Heart, active: pathname === '/favorites', fillWhenActive: true },
     { href: '/author/dashboard', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
+    { href: '/library', label: 'Thư viện', icon: Library, active: pathname === '/library' },
+    { href: '/profile', label: 'Tài khoản', icon: User, active: pathname === '/profile' },
   ];
 
   // Secondary section, pinned to the bottom of the rail.
@@ -106,11 +94,11 @@ export function Sidebar() {
     { href: '/bao-loi', label: 'Báo lỗi', icon: Bug, active: pathname === '/bao-loi' },
   ];
 
-  const visibleExtra = extraLinks.filter((l) => !l.authOnly || canCreateStories);
-  // Mobile bottom bar theo mock PDF: Trang chủ · Khám phá · [FAB Đăng truyện]
-  // · Kiếm tiền · Cửa hàng · Tài khoản = 6 slot.
+  const visibleLinks = links.filter((l) => !l.authOnly || canCreateStories);
+
+  // Mobile bottom nav: Trang chủ · Truyện · [FAB Mày tao] · Thư viện · Tài khoản
   const mobileLeft = [links[0], links[1]];
-  const mobileRight = [links[3], links[4], links[5]];
+  const mobileRight = [links[7], links[8]];
 
   return (
     <>
@@ -131,7 +119,6 @@ export function Sidebar() {
               objectFit="contain"
               placeholder="empty"
               priority
-              // Logo đen-light / trắng-dark theo theme.
               className="w-9 h-9 flex-shrink-0 dark:invert dark:brightness-200"
             />
           ) : (
@@ -140,26 +127,14 @@ export function Sidebar() {
           <span className="font-display text-2xl font-extrabold tracking-tight text-black dark:text-white">YÊU</span>
         </Link>
 
-        {/* Primary navigation — `min-h-0` bắt buộc trong flex parent để overflow
-            con scroll được; không có nó, flex-1 cao bằng nội dung và mục dưới
-            bị crop khi list dài (10+ links với author role). */}
+        {/* Primary navigation */}
         <nav ref={navRef} onScroll={saveScroll} className="flex-1 min-h-0 overflow-y-auto space-y-1.5 px-3">
-          {links.map((l) => (
-            <NavRow key={l.label} link={l} />
-          ))}
-
-          {/* Tiện ích phụ */}
-          <p className="px-3 pt-5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70">
-            Tiện ích
-          </p>
-          {visibleExtra.map((l) => (
-            <NavRow key={l.label} link={l} />
+          {visibleLinks.map((l) => (
+            <NavPill key={l.label} link={l} />
           ))}
         </nav>
 
-        {/* Secondary section + người dùng đăng nhập (đáy sidebar — luôn hiển
-            thị vì nằm ngoài <nav> scroll). Compact: 3 mục gọn một hàng ngang
-            icon + nhãn nhỏ thay vì 3 NavRow xếp dọc. */}
+        {/* Secondary section + user card */}
         <div className="flex-shrink-0 px-3 pt-3 mt-2 border-t border-outline-variant/30 space-y-1.5">
           <div className="flex items-stretch gap-1">
             {bottomLinks.map((l) => {
@@ -215,10 +190,7 @@ export function Sidebar() {
         </div>
       </aside>
 
-      {/* Mobile Bottom Navigation — thứ tự theo mock PDF:
-          Trang chủ · Khám phá · [FAB Đăng truyện] · Kiếm tiền · Cửa hàng ·
-          Tài khoản. Tính năng phụ (Thư viện, Lịch sử, Theo dõi, Yêu thích,
-          Kênh tác giả, Cài đặt, Trợ giúp) nằm trong Tài khoản. */}
+      {/* Mobile Bottom Navigation: Trang chủ · Truyện · [FAB Mày tao] · Thư viện · Tài khoản */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container/80 backdrop-blur-xl border-t border-outline-variant/40 z-50 safe-area-inset-bottom">
         <div className="flex items-stretch justify-around h-16 px-1 py-1 relative">
           {mobileLeft.map((l) => {
@@ -265,9 +237,6 @@ export function Sidebar() {
           })}
         </div>
       </nav>
-
-      {/* Mobile "Khác" drawer — đã xoá. Tất cả mục phụ giờ nằm trong
-          ProfileScreen via <MobileExtraMenu> component (grid 4-col). */}
     </>
   );
 }

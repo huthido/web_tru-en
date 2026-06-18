@@ -12,6 +12,8 @@ import {
     Settings,
     HelpCircle,
     Bug,
+    Upload,
+    Camera,
     type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
@@ -35,6 +37,8 @@ export function MobileExtraMenu() {
     const isAuth = !!user;
 
     const items: MenuItem[] = [
+        { href: '/posts', label: 'Mày tao', icon: Camera },
+        { href: '/author/stories/create', label: 'Đăng truyện', icon: Upload, authOnly: true },
         { href: '/history', label: 'Lịch sử', icon: Clock },
         { href: '/follows', label: 'Theo dõi', icon: Bookmark, fillWhenActive: true },
         { href: '/favorites', label: 'Yêu thích', icon: Heart, fillWhenActive: true },
