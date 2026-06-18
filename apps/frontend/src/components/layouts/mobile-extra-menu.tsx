@@ -37,7 +37,7 @@ export function MobileExtraMenu() {
     const isAuth = !!user;
 
     const items: MenuItem[] = [
-        { href: '/posts', label: 'Mày tao', icon: Camera },
+        { href: '/nghe-thuat', label: 'Mày tao', icon: Camera },
         { href: '/author/stories/create', label: 'Đăng truyện', icon: Upload, authOnly: true },
         { href: '/history', label: 'Lịch sử', icon: Clock },
         { href: '/follows', label: 'Theo dõi', icon: Bookmark, fillWhenActive: true },
