@@ -131,3 +131,14 @@ cũ giữ nguyên.
 
 Xem `docs/LO_TRINH_MOBILE_VA_THANH_TOAN.html` §6.3 trước khi đụng vào
 luồng tiền trên mobile — sai Apple guideline = từ chối thẳng.
+
+
+eas build --platform android --profile preview
+eas build --platform android --profile preview
+
+  Lần này AdMob sẽ bị bỏ qua vì EXPO_PUBLIC_ADMOB_ANDROID_APP_ID không set trong profile preview. App sẽ khởi động được.
+
+  Khi muốn enable AdMob thật, thêm vào eas.json trong profile production:
+  "env": {
+    "EXPO_PUBLIC_ADMOB_ANDROID_APP_ID": "ca-app-pub-XXXX~YYYY"
+  }
