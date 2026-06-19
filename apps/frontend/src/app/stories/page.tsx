@@ -102,6 +102,9 @@ function StoriesContent() {
 
     // Sync state with URL params when they change externally
     useEffect(() => {
+        const urlTab = (searchParams.get('tab') as StoryTab) || 'truyen';
+        if (urlTab !== activeTab) setActiveTab(urlTab);
+
         const urlPage = parseInt(searchParams.get('page') || '1', 10);
         const urlSearch = searchParams.get('search') || '';
         const urlCategory = searchParams.get('category') || '';
