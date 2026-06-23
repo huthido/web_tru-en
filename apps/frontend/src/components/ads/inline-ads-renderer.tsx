@@ -100,13 +100,11 @@ function renderContentOnly(content: string, isHtml: boolean): React.ReactNode[] 
         ];
     }
     const lines = content.split('\n');
-    return lines.map((line, i) =>
-        line.trim().length > 0 ? (
+    return lines
+        .filter((line) => line.trim().length > 0)
+        .map((line, i) => (
             <p key={i} className="mb-4 text-justify">{line}</p>
-        ) : (
-            <br key={`br-${i}`} />
-        ),
-    );
+        ));
 }
 
 function renderContentWithInlineAds(
@@ -193,11 +191,12 @@ function renderContentWithInlineAds(
         // Quyết định chèn ad TRƯỚC khi render, vì insertAd() tăng counter.
         // Tránh gọi shouldInsertAfter 2 lần (mỗi lần check là idempotent nhưng
         // counter trong insertAd làm condition đổi giữa hai lần check).
+        if (!isP) return; // bỏ qua dòng trống, mb-4 trên <p> đã tạo khoảng cách
         const inject = isP && shouldInsertAfter(paragraphCount, paragraphs.length);
         const ad = inject ? ads[adIndex % ads.length] : null;
         result.push(
             <React.Fragment key={index}>
-                {isP ? <p className="mb-4 text-justify">{line}</p> : <br key={`br-${index}`} />}
+                <p className="mb-4 text-justify">{line}</p>
                 {ad && (
                     <div className={adClassName}>
                         <AdBanner
