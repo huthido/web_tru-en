@@ -12,9 +12,10 @@ import { useStories } from '@/lib/api/hooks/use-stories';
 import { useCategories } from '@/lib/api/hooks/use-categories';
 import { Story } from '@/lib/api/stories.service';
 import { ArtTab } from '@/components/art/art-tab';
+import { PaintingTab } from '@/components/paintings/painting-tab';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 
-type StoryTab = 'truyen' | 'nghe-thuat';
+type StoryTab = 'truyen' | 'nghe-thuat' | 'tranh';
 
 function StoriesContent() {
     const searchParams = useSearchParams();
@@ -148,7 +149,7 @@ function StoriesContent() {
                 {/* Tab switcher */}
                 <div className="sticky top-[60px] z-30 bg-background/90 backdrop-blur-md border-b border-outline-variant/20 px-4 md:px-6">
                     <div className="max-w-7xl mx-auto flex">
-                        {(['truyen', 'nghe-thuat'] as StoryTab[]).map((tab) => (
+                        {(['truyen', 'nghe-thuat', 'tranh'] as StoryTab[]).map((tab) => (
                             <button
                                 key={tab}
                                 type="button"
@@ -159,7 +160,7 @@ function StoriesContent() {
                                         : 'border-transparent text-on-surface-variant hover:text-on-surface'
                                 }`}
                             >
-                                {tab === 'truyen' ? '📚 Truyện' : '🎨 Nghệ thuật'}
+                                {tab === 'truyen' ? '📚 Truyện' : tab === 'nghe-thuat' ? '🎨 Nghệ thuật' : '🖼️ Tranh'}
                             </button>
                         ))}
                     </div>
@@ -171,6 +172,11 @@ function StoriesContent() {
                         {/* ── Tab Nghệ thuật ─────────────────────────────────── */}
                         {activeTab === 'nghe-thuat' && (
                             <ArtTab currentUserId={user?.id} isLoggedIn={isAuthenticated} />
+                        )}
+
+                        {/* ── Tab Tranh ───────────────────────────────────────── */}
+                        {activeTab === 'tranh' && (
+                            <PaintingTab currentUserId={user?.id} isLoggedIn={isAuthenticated} />
                         )}
 
                         {/* ── Tab Truyện ─────────────────────────────────────── */}

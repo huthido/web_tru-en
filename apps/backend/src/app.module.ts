@@ -36,6 +36,7 @@ import { EmailModule } from './email/email.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { RedisModule } from './redis/redis.module';
 import { ArtModule } from './art/art.module';
+import { PaintingsModule } from './paintings/paintings.module';
 import { BugReportsModule } from './bug-reports/bug-reports.module';
 
 @Module({
@@ -103,6 +104,7 @@ import { BugReportsModule } from './bug-reports/bug-reports.module';
     MonetizationModule,
     MetricsModule,
     ArtModule,
+    PaintingsModule,
     BugReportsModule,
     MiddlewareModule, // Must be imported to provide MaintenanceMiddleware
   ],

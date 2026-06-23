@@ -6,7 +6,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useLayoutEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, BookOpen, Camera, Library, Store, Upload, LayoutDashboard, Wallet, Settings, User, HelpCircle, Plus, Bug, type LucideIcon } from 'lucide-react';
+import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, User, HelpCircle, Plus, Bug, type LucideIcon } from 'lucide-react';
 import { BrandMark } from '@/components/ui/brand-mark';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
@@ -74,12 +74,14 @@ export function Sidebar() {
   const uploadHref = canCreateStories ? '/author/stories/create' : '/login?redirect=/author/stories/create';
   const earnHref = user ? '/author/earnings' : '/login?redirect=/author/earnings';
 
-  // Thứ tự menu mới: Trang chủ · Truyện · Mày tao · Đăng truyện · Kiếm tiền
+  // Thứ tự menu: Trang chủ · Truyện · Mày tao · Tranh · Đăng truyện · Kiếm tiền
   // · Cửa hàng · Kênh tác giả · Thư viện · Tài khoản
+  const tab = searchParams.get('tab');
   const links: NavLink[] = [
     { href: '/', label: 'Trang chủ', icon: Home, active: pathname === '/' },
-    { href: '/stories', label: 'Truyện', icon: BookOpen, active: pathname === '/stories' && searchParams.get('tab') !== 'nghe-thuat' },
-    { href: '/stories?tab=nghe-thuat', label: 'Mày tao', icon: Camera, active: pathname === '/stories' && searchParams.get('tab') === 'nghe-thuat' },
+    { href: '/stories', label: 'Truyện', icon: BookOpen, active: pathname === '/stories' && tab !== 'nghe-thuat' && tab !== 'tranh' },
+    { href: '/stories?tab=nghe-thuat', label: 'Mày tao', icon: Camera, active: pathname === '/stories' && tab === 'nghe-thuat' },
+    { href: '/stories?tab=tranh', label: 'Tranh', icon: Palette, active: pathname === '/stories' && tab === 'tranh' },
     { href: uploadHref, label: 'Đăng truyện', icon: Upload, active: pathname === '/author/stories/create' },
     { href: earnHref, label: 'Kiếm tiền', icon: Wallet, active: pathname === '/author/earnings' },
     { href: '/shop', label: 'Cửa hàng', icon: Store, active: pathname === '/shop' },

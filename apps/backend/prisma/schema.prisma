@@ -84,6 +84,7 @@ model User {
   // bật kiếm tiền (≥100 followers) + nút "Theo dõi tác giả" ở profile MXH.
   authorFollowsFollowing  AuthorFollow[]           @relation("AuthorFollowFollower")
   authorFollowers         AuthorFollow[]           @relation("AuthorFollowTarget")
+  paintings               Painting[]
 
   @@index([email])
   @@index([username])
@@ -1305,4 +1306,31 @@ model BugReport {
   @@index([platform])
   @@index([createdAt])
   @@map("bug_reports")
+}
+
+// ─── Tranh — Gian hàng tranh nghệ thuật ─────────────────────────────────────
+
+enum PaintingStatus {
+  AVAILABLE
+  SOLD
+}
+
+model Painting {
+  id          String         @id @default(cuid())
+  title       String         @db.VarChar(200)
+  description String?        @db.Text
+  imageUrl    String
+  price       Int?           // VNĐ; null = thương lượng
+  contactInfo Json?          // { phone?, zalo?, facebook? }
+  status      PaintingStatus @default(AVAILABLE)
+  viewCount   Int            @default(0)
+  likeCount   Int            @default(0)
+  authorId    String
+  author      User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([authorId])
+  @@index([status, createdAt])
+  @@map("paintings")
 }
