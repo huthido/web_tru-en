@@ -4,6 +4,9 @@ import { X, Phone, MessageCircle, Facebook, MessageSquare, CheckCheck } from 'lu
 import { Painting } from '@/lib/api/paintings.service';
 import { useMarkPaintingSold } from '@/lib/api/hooks/use-paintings';
 
+const safeUrl = (url: string): string =>
+  /^https?:\/\//i.test(url) ? url : '#';
+
 interface Props {
   painting: Painting;
   currentUserId?: string;
@@ -102,7 +105,7 @@ export function PaintingDetailModal({ painting, currentUserId, onClose }: Props)
                 )}
                 {contactInfo.zalo && (
                   <a
-                    href={contactInfo.zalo.startsWith('http') ? contactInfo.zalo : `https://zalo.me/${contactInfo.zalo}`}
+                    href={safeUrl(/^https?:\/\//i.test(contactInfo.zalo) ? contactInfo.zalo : `https://zalo.me/${contactInfo.zalo}`)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-surface-container hover:bg-surface-variant transition-colors text-sm text-on-surface"
@@ -113,7 +116,7 @@ export function PaintingDetailModal({ painting, currentUserId, onClose }: Props)
                 )}
                 {contactInfo.facebook && (
                   <a
-                    href={contactInfo.facebook}
+                    href={safeUrl(contactInfo.facebook)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-surface-container hover:bg-surface-variant transition-colors text-sm text-on-surface"
