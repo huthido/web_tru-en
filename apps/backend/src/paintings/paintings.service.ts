@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePaintingDto } from './dto/create-painting.dto';
 import { UpdatePaintingDto } from './dto/update-painting.dto';
@@ -80,17 +81,26 @@ export class PaintingsService {
   }
 
   async create(authorId: string, dto: CreatePaintingDto) {
+    const { contactInfo, ...rest } = dto;
     return this.prisma.painting.create({
-      data: { authorId, ...dto },
+      data: {
+        authorId,
+        ...rest,
+        ...(contactInfo !== undefined && { contactInfo: contactInfo as Prisma.InputJsonValue }),
+      },
       select: PAINTING_SELECT,
     });
   }
 
   async update(id: string, authorId: string, dto: UpdatePaintingDto) {
     await this.assertOwner(id, authorId);
+    const { contactInfo, ...rest } = dto;
     return this.prisma.painting.update({
       where: { id },
-      data: dto,
+      data: {
+        ...rest,
+        ...(contactInfo !== undefined && { contactInfo: contactInfo as Prisma.InputJsonValue }),
+      },
       select: PAINTING_SELECT,
     });
   }
