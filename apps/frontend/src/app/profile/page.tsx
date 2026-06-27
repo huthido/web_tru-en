@@ -68,7 +68,17 @@ function ProfileContent() {
   // Update profile mutation
   const updateMutation = useMutation({
     mutationFn: (data: { displayName?: string; avatar?: string }) => usersService.updateProfile(data),
-    onSuccess: () => {
+    onSuccess: (updatedUser: any) => {
+      // Patch cache immediately so all screens (Header, Sidebar…) see the new
+      // name/avatar without waiting for a background refetch to complete.
+      queryClient.setQueryData(['auth', 'me'], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          displayName: updatedUser?.displayName ?? old.displayName,
+          avatar: updatedUser?.avatar ?? old.avatar,
+        };
+      });
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
       queryClient.invalidateQueries({ queryKey: ['users', 'me', 'stats'] });
       setSuccessMessage('Cập nhật hồ sơ thành công!');
