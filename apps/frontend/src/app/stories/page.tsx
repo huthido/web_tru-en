@@ -14,6 +14,7 @@ import { Story } from '@/lib/api/stories.service';
 import { ArtTab } from '@/components/art/art-tab';
 import { PaintingTab } from '@/components/paintings/painting-tab';
 import { useAuth } from '@/lib/api/hooks/use-auth';
+import { usePageLimit } from '@/hooks/use-page-limit';
 
 type StoryTab = 'truyen' | 'nghe-thuat' | 'tranh';
 
@@ -54,15 +55,7 @@ function StoriesContent() {
 
     // Phân trang theo màn hình: xl (lưới 6 cột) 24 truyện/trang = 4 hàng khít,
     // nhỏ hơn (lưới ≤5 cột) 20 truyện/trang.
-    const [limit, setLimit] = useState(() =>
-        typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches ? 24 : 20,
-    );
-    useEffect(() => {
-        const mql = window.matchMedia('(min-width: 1280px)');
-        const onChange = (e: MediaQueryListEvent) => setLimit(e.matches ? 24 : 20);
-        mql.addEventListener('change', onChange);
-        return () => mql.removeEventListener('change', onChange);
-    }, []);
+    const limit = usePageLimit(20, 24);
 
     // Fetch categories
     const { data: categoriesData } = useCategories();

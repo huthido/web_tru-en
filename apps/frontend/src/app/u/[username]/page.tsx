@@ -13,7 +13,8 @@ import { FollowAuthorButton } from '@/components/users/follow-author-button';
 import { VerifiedBadge } from '@/components/users/verified-badge';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useAuthorProfile, useAuthorStories } from '@/lib/api/hooks/use-authors';
-import { HeartHandshake, Eye, Users, BookOpen, UserCircle2 } from 'lucide-react';
+import { usePageLimit } from '@/hooks/use-page-limit';
+import { HeartHandshake, Eye, Users, BookOpen, UserCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 /**
  * Trang cá nhân kiểu MXH /u/[username]
@@ -28,8 +29,13 @@ export default function PublicUserProfilePage() {
   const username = typeof params?.username === 'string' ? params.username : '';
   const { user: me } = useAuth();
   const { data: profile, isLoading } = useAuthorProfile(username);
-  const { data: storiesPage, isLoading: storiesLoading } = useAuthorStories(profile?.id);
+  // Phân trang theo màn hình: xl (lưới 6 cột) 24 truyện/trang, nhỏ hơn 20.
+  const limit = usePageLimit(20, 24);
+  const [page, setPage] = useState(1);
+  const { data: storiesPage, isLoading: storiesLoading } = useAuthorStories(profile?.id, page, limit);
   const [donateOpen, setDonateOpen] = useState(false);
+
+  const totalPages = storiesPage?.meta?.totalPages || 1;
 
   const isMe = !!me && !!profile && me.id === profile.id;
 
@@ -39,7 +45,7 @@ export default function PublicUserProfilePage() {
       <div className="md:ml-60 pb-16 md:pb-0">
         <Header />
         <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             {isLoading || !profile ? (
               <div className="py-20"><Loading /></div>
             ) : (
@@ -124,20 +130,47 @@ export default function PublicUserProfilePage() {
                       Tác giả chưa đăng truyện nào.
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
-                      {storiesPage.data.map((s) => (
-                        <BookCard
-                          key={s.id}
-                          id={s.id}
-                          slug={s.slug}
-                          title={s.title}
-                          viewCount={s.viewCount}
-                          rating={s.rating}
-                          ratingCount={s.ratingCount}
-                          coverImage={s.coverImage}
-                        />
-                      ))}
-                    </div>
+                    <>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
+                        {storiesPage.data.map((s) => (
+                          <BookCard
+                            key={s.id}
+                            id={s.id}
+                            slug={s.slug}
+                            title={s.title}
+                            viewCount={s.viewCount}
+                            rating={s.rating}
+                            ratingCount={s.ratingCount}
+                            coverImage={s.coverImage}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Phân trang */}
+                      {totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 mt-8">
+                          <button
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            className="p-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
+                            aria-label="Trang trước"
+                          >
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+                          <span className="px-4 py-2 text-sm text-on-surface-variant">
+                            Trang <b className="text-on-surface">{page}</b> / {totalPages}
+                          </span>
+                          <button
+                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={page >= totalPages}
+                            className="p-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
+                            aria-label="Trang sau"
+                          >
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </section>
 

@@ -13,6 +13,7 @@ import { useStories } from '@/lib/api/hooks/use-stories';
 import { useCategories } from '@/lib/api/hooks/use-categories';
 import { Story } from '@/lib/api/stories.service';
 import { Search, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { usePageLimit } from '@/hooks/use-page-limit';
 
 function SearchContent() {
     const searchParams = useSearchParams();
@@ -34,7 +35,8 @@ function SearchContent() {
     const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'rating' | 'viewCount'>(initialSortBy);
     const [showFilters, setShowFilters] = useState(false);
 
-    const limit = 20;
+    // Phân trang theo màn hình: xl (lưới 6 cột) 24 truyện/trang, nhỏ hơn 20.
+    const limit = usePageLimit(20, 24);
 
     // Fetch categories
     const { data: categoriesData } = useCategories();
@@ -53,7 +55,7 @@ function SearchContent() {
         if (status) params.status = status;
 
         return params;
-    }, [page, query, selectedCategory, status, sortBy]);
+    }, [page, limit, query, selectedCategory, status, sortBy]);
 
     // Fetch stories
     const { data: storiesData, isLoading } = useStories(queryParams);
