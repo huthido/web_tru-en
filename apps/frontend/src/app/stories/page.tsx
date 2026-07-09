@@ -52,7 +52,17 @@ function StoriesContent() {
     const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'rating' | 'viewCount'>(initialSortBy);
     const [showFilters, setShowFilters] = useState(false);
 
-    const limit = 20;
+    // Phân trang theo màn hình: xl (lưới 6 cột) 24 truyện/trang = 4 hàng khít,
+    // nhỏ hơn (lưới ≤5 cột) 20 truyện/trang.
+    const [limit, setLimit] = useState(() =>
+        typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches ? 24 : 20,
+    );
+    useEffect(() => {
+        const mql = window.matchMedia('(min-width: 1280px)');
+        const onChange = (e: MediaQueryListEvent) => setLimit(e.matches ? 24 : 20);
+        mql.addEventListener('change', onChange);
+        return () => mql.removeEventListener('change', onChange);
+    }, []);
 
     // Fetch categories
     const { data: categoriesData } = useCategories();
@@ -74,7 +84,7 @@ function StoriesContent() {
         // If no status selected, backend will default to showing all published stories (excluding drafts)
 
         return params;
-    }, [page, search, selectedCategory, status, sortBy]);
+    }, [page, limit, search, selectedCategory, status, sortBy]);
 
     // Fetch stories
     const { data: storiesData, isLoading } = useStories(queryParams);
