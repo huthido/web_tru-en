@@ -27,12 +27,9 @@ function StoriesContent() {
     const initialTab = (searchParams.get('tab') as StoryTab) || 'truyen';
     const [activeTab, setActiveTab] = useState<StoryTab>(initialTab);
 
+    // URL do effect "Update URL when filters change" đồng bộ (có giữ tab).
     const handleTabChange = (tab: StoryTab) => {
         setActiveTab(tab);
-        const params = new URLSearchParams(searchParams.toString());
-        if (tab === 'truyen') params.delete('tab');
-        else params.set('tab', tab);
-        router.replace(params.toString() ? `/stories?${params.toString()}` : '/stories', { scroll: false });
     };
 
     // Get initial values from URL params
@@ -87,6 +84,9 @@ function StoriesContent() {
     // Update URL when filters change
     useEffect(() => {
         const params = new URLSearchParams();
+        // Giữ tab đang chọn — không giữ thì replace sẽ xoá ?tab và
+        // effect sync kéo tab về "Truyện" ngay khi vào từ menu Tranh/Mày tao.
+        if (activeTab !== 'truyen') params.set('tab', activeTab);
         if (page > 1) params.set('page', page.toString());
         if (search) params.set('search', search);
         if (selectedCategory) params.set('category', selectedCategory);
@@ -97,7 +97,7 @@ function StoriesContent() {
 
         const newUrl = params.toString() ? `/stories?${params.toString()}` : '/stories';
         router.replace(newUrl, { scroll: false });
-    }, [page, search, selectedCategory, status, sortBy, router]);
+    }, [activeTab, page, search, selectedCategory, status, sortBy, router]);
 
     // Reset to page 1 when filters change (except page itself)
     useEffect(() => {
