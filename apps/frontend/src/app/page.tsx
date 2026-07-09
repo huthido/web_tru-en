@@ -124,6 +124,7 @@ export default function Home() {
                 seeMoreLink={active.seeMore}
                 showLikeButton={false}
                 mobileLimit={12}
+                desktopLimit={15}
               />
             </Suspense>
           )}

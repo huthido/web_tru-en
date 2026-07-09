@@ -27,8 +27,10 @@ interface BookSectionProps {
   onLoadMore?: () => void;
   skeletonCount?: number;
   hideTitle?: boolean;
-  /** Số card tối đa hiển thị (áp dụng cả mobile & desktop). */
+  /** Số card tối đa hiển thị trên màn hình nhỏ/vừa (dưới breakpoint xl). */
   mobileLimit?: number;
+  /** Số card tối đa trên màn hình lớn (xl trở lên, lưới 5 cột). Mặc định bằng mobileLimit. */
+  desktopLimit?: number;
 }
 
 const GRID = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4';
@@ -43,6 +45,7 @@ export function BookSection({
   skeletonCount = 10,
   hideTitle = false,
   mobileLimit = 12,
+  desktopLimit = mobileLimit,
 }: BookSectionProps) {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
@@ -69,7 +72,7 @@ export function BookSection({
     return () => observer.disconnect();
   }, [hasMore, onLoadMore, isLoading]);
 
-  const displayed = books.slice(0, mobileLimit);
+  const displayed = books.slice(0, Math.max(mobileLimit, desktopLimit));
 
   return (
     <section
@@ -107,7 +110,7 @@ export function BookSection({
               {displayed.map((book, index) => (
                 <div
                   key={book.id}
-                  className="transition-all duration-500"
+                  className={`transition-all duration-500 ${index >= mobileLimit ? 'hidden xl:block' : ''}`}
                   style={{
                     opacity: isVisible ? 1 : 0,
                     transform: isVisible ? 'translateY(0)' : 'translateY(16px)',
