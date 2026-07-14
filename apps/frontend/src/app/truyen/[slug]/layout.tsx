@@ -19,6 +19,10 @@ async function getStory(slug: string) {
     }
     return null;
   } catch (error: any) {
+    // Story thật sự không tồn tại (khác với backend không kết nối được)
+    if (error?.response?.status === 404) {
+      return 'not-found' as const;
+    }
     // Only log non-connection errors to reduce noise
     // Connection errors (ECONNREFUSED) are expected when backend is not running
     if (error?.code !== 'ECONNREFUSED' && error?.cause?.code !== 'ECONNREFUSED') {
@@ -30,6 +34,14 @@ async function getStory(slug: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const story = await getStory(params.slug);
+
+  if (story === 'not-found') {
+    return {
+      title: 'Không tìm thấy truyện',
+      description: 'Truyện không tồn tại hoặc đã bị gỡ.',
+      robots: { index: false, follow: false },
+    };
+  }
 
   // If data is not available (e.g., during build or API unavailable),
   // return a generic title instead of error message

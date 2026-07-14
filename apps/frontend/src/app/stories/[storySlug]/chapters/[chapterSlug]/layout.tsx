@@ -24,6 +24,10 @@ async function getStoryAndChapter(storySlug: string, chapterSlug: string) {
 
     return { story, chapter };
   } catch (error: any) {
+    // Truyện/chương thật sự không tồn tại (khác với backend không kết nối được)
+    if (error?.response?.status === 404) {
+      return { story: null, chapter: null, notFound: true };
+    }
     // In production, if API is not available during build, return null
     // Client-side will handle the error display
     // Only log non-connection errors to reduce noise
@@ -39,7 +43,15 @@ async function getStoryAndChapter(storySlug: string, chapterSlug: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { story, chapter } = await getStoryAndChapter(params.storySlug, params.chapterSlug);
+  const { story, chapter, notFound } = await getStoryAndChapter(params.storySlug, params.chapterSlug);
+
+  if (notFound) {
+    return {
+      title: 'Không tìm thấy chương',
+      description: 'Chương không tồn tại hoặc đã bị gỡ.',
+      robots: { index: false, follow: false },
+    };
+  }
 
   // If data is not available (e.g., during build or API unavailable),
   // return a generic title instead of error message

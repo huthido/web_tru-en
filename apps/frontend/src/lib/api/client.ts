@@ -28,13 +28,21 @@ class ApiClient {
     // 🍎 iOS Safari Fix: Use relative path in production to avoid cross-origin cookies
     // In production: Frontend will proxy /api to backend via Next.js rewrites
     // In development: Use full backend URL
+    //
+    // Server-side (SSR/generateMetadata) axios cannot resolve a relative
+    // baseURL — every request would fail and metadata fell back to
+    // "Đang tải...". On the server, call the backend directly:
+    // INTERNAL_API_URL (Docker network) → NEXT_PUBLIC_API_URL, same
+    // priority as server-settings.ts.
     const isDevelopment = process.env.NODE_ENV === 'development';
-    const apiUrl = isDevelopment
-      ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001')
-      : ''; // Use relative path in production
+    const isServer = typeof window === 'undefined';
+    const needsAbsoluteUrl = isDevelopment || isServer;
+    const apiUrl = needsAbsoluteUrl
+      ? (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001')
+      : ''; // Use relative path in production (browser)
 
     // Ensure baseURL ends with /api since backend has global prefix 'api'
-    const baseURL = isDevelopment
+    const baseURL = needsAbsoluteUrl
       ? (apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`)
       : '/api'; // Relative path - will be proxied by Next.js
 
