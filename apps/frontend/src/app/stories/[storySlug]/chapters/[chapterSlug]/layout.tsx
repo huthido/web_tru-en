@@ -28,6 +28,10 @@ async function getStoryAndChapter(storySlug: string, chapterSlug: string) {
     if (error?.response?.status === 404) {
       return { story: null, chapter: null, notFound: true };
     }
+    // Truyện chưa xuất bản (nháp/chờ duyệt)
+    if (error?.response?.status === 403) {
+      return { story: null, chapter: null, unpublished: true };
+    }
     // In production, if API is not available during build, return null
     // Client-side will handle the error display
     // Only log non-connection errors to reduce noise
@@ -43,12 +47,20 @@ async function getStoryAndChapter(storySlug: string, chapterSlug: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { story, chapter, notFound } = await getStoryAndChapter(params.storySlug, params.chapterSlug);
+  const { story, chapter, notFound, unpublished } = await getStoryAndChapter(params.storySlug, params.chapterSlug);
 
   if (notFound) {
     return {
       title: 'Không tìm thấy chương',
       description: 'Chương không tồn tại hoặc đã bị gỡ.',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  if (unpublished) {
+    return {
+      title: 'Chương chưa được xuất bản',
+      description: 'Chương thuộc truyện đang ở chế độ nháp hoặc chờ duyệt.',
       robots: { index: false, follow: false },
     };
   }

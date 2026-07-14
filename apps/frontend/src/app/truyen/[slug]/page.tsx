@@ -29,9 +29,18 @@ export default function BookDetailPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
-  const { data: storyResponse, isLoading } = useStory(slug);
+  const { data: storyResponse, isLoading, error: storyError } = useStory(slug);
   // storyResponse is already the Story object (not wrapped in data)
   const story = storyResponse as Story | undefined;
+  // 403 = truyện tồn tại nhưng chưa xuất bản (nháp/chờ duyệt) — chỉ tác giả
+  // hoặc admin xem được. Tách khỏi 404 để người dùng không tưởng truyện bị mất.
+  // Chốt status vào state vì react-query xoá `error` về null trong lúc refetch.
+  const [storyErrorStatus, setStoryErrorStatus] = useState<number | null>(null);
+  useEffect(() => {
+    const status = (storyError as any)?.response?.status;
+    if (status) setStoryErrorStatus(status);
+  }, [storyError]);
+  const isUnpublished = storyErrorStatus === 403;
 
   // Fetch chapters separately since API doesn't include them in story response
   const { data: chaptersResponse, isLoading: chaptersLoading } = useChapters(slug);
@@ -192,14 +201,46 @@ export default function BookDetailPage() {
         <Sidebar />
         <div className="md:ml-60">
           <Header />
-          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-60px)] gap-4">
-            <h1 className="font-display text-2xl font-bold text-on-surface">Không tìm thấy sách</h1>
-            <Link
-              href="/"
-              className="px-6 py-3 rounded-lg bg-primary hover:bg-primary/90 text-on-primary font-medium transition-all duration-300 hover:scale-105 active:scale-95"
-            >
-              Về trang chủ
-            </Link>
+          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-60px)] gap-4 px-4">
+            {isUnpublished ? (
+              <>
+                <Lock size={40} className="text-on-surface-variant" />
+                <h1 className="font-display text-2xl font-bold text-on-surface text-center">
+                  Truyện chưa được xuất bản
+                </h1>
+                <p className="text-on-surface-variant text-center max-w-md">
+                  Truyện này đang ở chế độ nháp hoặc đang chờ quản trị viên duyệt,
+                  nên chưa hiển thị công khai. Nếu bạn là tác giả, hãy đăng nhập để xem truyện của mình.
+                </p>
+                <div className="flex gap-3">
+                  <Link
+                    href={`/login?redirect=${encodeURIComponent(`/truyen/${slug}`)}`}
+                    className="px-6 py-3 rounded-lg bg-primary hover:bg-primary/90 text-on-primary font-medium transition-all duration-300 hover:scale-105 active:scale-95"
+                  >
+                    Đăng nhập
+                  </Link>
+                  <Link
+                    href="/"
+                    className="px-6 py-3 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-medium transition-all duration-300 hover:scale-105 active:scale-95"
+                  >
+                    Về trang chủ
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 className="font-display text-2xl font-bold text-on-surface">Không tìm thấy sách</h1>
+                <p className="text-on-surface-variant text-center max-w-md">
+                  Truyện không tồn tại hoặc đã bị gỡ khỏi hệ thống.
+                </p>
+                <Link
+                  href="/"
+                  className="px-6 py-3 rounded-lg bg-primary hover:bg-primary/90 text-on-primary font-medium transition-all duration-300 hover:scale-105 active:scale-95"
+                >
+                  Về trang chủ
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

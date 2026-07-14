@@ -37,6 +37,13 @@ export const useStory = (slug: string) => {
         },
         enabled: !!slug,
         staleTime: 5 * 60 * 1000,
+        // 403 (chưa xuất bản) / 404 (không tồn tại) là kết quả chắc chắn —
+        // retry chỉ làm người dùng chờ lâu hơn mới thấy thông báo.
+        retry: (failureCount, error: any) => {
+            const status = error?.response?.status;
+            if (status === 403 || status === 404) return false;
+            return failureCount < 1;
+        },
     });
 };
 

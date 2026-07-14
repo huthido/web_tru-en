@@ -36,6 +36,12 @@ export const useChapter = (storySlug: string, chapterSlug: string) => {
         },
         enabled: !!storySlug && !!chapterSlug,
         staleTime: 10 * 60 * 1000, // 10 minutes (chapter content doesn't change often)
+        // 403 (chưa xuất bản) / 404 (không tồn tại) là kết quả chắc chắn — không retry
+        retry: (failureCount, error: any) => {
+            const status = error?.response?.status;
+            if (status === 403 || status === 404) return false;
+            return failureCount < 1;
+        },
     });
 };
 

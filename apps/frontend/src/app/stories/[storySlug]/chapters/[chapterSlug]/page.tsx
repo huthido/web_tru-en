@@ -43,6 +43,14 @@ export default function ChapterReadingPage() {
     const { data: story } = useStory(storySlug);
     const { user } = useAuth();
 
+    // Chốt status lỗi vào state vì react-query xoá `error` về null trong lúc refetch
+    // (403 = truyện/chương chưa xuất bản, tách khỏi 404 để hiển thị đúng thông báo).
+    const [chapterErrorStatus, setChapterErrorStatus] = useState<number | null>(null);
+    useEffect(() => {
+        const status = (chapterError as any)?.response?.status;
+        if (status) setChapterErrorStatus(status);
+    }, [chapterError]);
+
     const [fontSize, setFontSize] = useState(16);
     // Mặc định danh sách chương luôn được bật (hiển thị) khi vào trang
     const [showChapterList, setShowChapterList] = useState(true);
@@ -589,16 +597,25 @@ export default function ChapterReadingPage() {
     }
 
     if (chapterError || !chapterData) {
+        // 403 = truyện/chương chưa xuất bản (nháp/chờ duyệt) — tách khỏi 404
+        // để người dùng không tưởng nội dung bị mất.
+        const isUnpublished = chapterErrorStatus === 403;
         return (
             <div className="min-h-screen bg-surface">
                 <Sidebar />
                 <div className="md:ml-60">
                     <Header />
-                    <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+                    <div className="flex items-center justify-center min-h-[calc(100vh-200px)] px-4">
                         <div className="text-center">
                             <h1 className="font-display text-2xl font-bold text-on-surface mb-4">
-                                Không tìm thấy chương
+                                {isUnpublished ? 'Chương chưa được xuất bản' : 'Không tìm thấy chương'}
                             </h1>
+                            {isUnpublished && (
+                                <p className="text-on-surface-variant max-w-md mb-4">
+                                    Chương này thuộc truyện đang ở chế độ nháp hoặc chờ duyệt.
+                                    Nếu bạn là tác giả, hãy đăng nhập để xem nội dung của mình.
+                                </p>
+                            )}
                             <Link
                                 href={`/truyen/${storySlug}`}
                                 className="text-primary hover:text-primary/80"

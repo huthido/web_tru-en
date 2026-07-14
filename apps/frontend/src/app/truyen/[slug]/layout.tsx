@@ -23,6 +23,10 @@ async function getStory(slug: string) {
     if (error?.response?.status === 404) {
       return 'not-found' as const;
     }
+    // Story tồn tại nhưng chưa xuất bản (nháp/chờ duyệt)
+    if (error?.response?.status === 403) {
+      return 'unpublished' as const;
+    }
     // Only log non-connection errors to reduce noise
     // Connection errors (ECONNREFUSED) are expected when backend is not running
     if (error?.code !== 'ECONNREFUSED' && error?.cause?.code !== 'ECONNREFUSED') {
@@ -39,6 +43,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: 'Không tìm thấy truyện',
       description: 'Truyện không tồn tại hoặc đã bị gỡ.',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  if (story === 'unpublished') {
+    return {
+      title: 'Truyện chưa được xuất bản',
+      description: 'Truyện đang ở chế độ nháp hoặc chờ duyệt, chưa hiển thị công khai.',
       robots: { index: false, follow: false },
     };
   }
