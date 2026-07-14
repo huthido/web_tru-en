@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { statisticsService, DashboardStats } from '../statistics.service';
+import { statisticsService, DashboardStats, StoryViewsByMonth } from '../statistics.service';
 
 export function useAdminStatistics() {
   return useQuery<DashboardStats>({
@@ -23,6 +23,16 @@ export function useUserGrowth() {
   return useQuery({
     queryKey: ['admin', 'statistics', 'user-growth'],
     queryFn: () => statisticsService.getUserGrowth(),
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useStoryViewsByMonth(storyId: string | null, months: number = 12) {
+  return useQuery<StoryViewsByMonth>({
+    queryKey: ['admin', 'statistics', 'story-views-by-month', storyId, months],
+    queryFn: () => statisticsService.getStoryViewsByMonth(storyId!, months),
+    enabled: !!storyId,
     staleTime: 60000,
     refetchOnWindowFocus: false,
   });

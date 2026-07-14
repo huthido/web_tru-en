@@ -176,6 +176,50 @@ export class StatisticsService {
     return stories;
   }
 
+  /**
+   * Lượt xem theo tháng của một truyện, đếm từ view_logs.
+   * Lưu ý: view_logs chỉ có dữ liệu kể từ khi bật ghi log lượt xem —
+   * các tháng trước thời điểm đó sẽ là 0 dù viewCount tổng vẫn lớn.
+   */
+  async getStoryViewsByMonth(storyId: string, months: number = 12) {
+    const story = await this.prisma.story.findUnique({
+      where: { id: storyId },
+      select: { id: true, title: true, viewCount: true },
+    });
+
+    if (!story) {
+      throw new Error('Story không tồn tại');
+    }
+
+    const now = new Date();
+    const ranges: { start: Date; end: Date }[] = [];
+    for (let i = months - 1; i >= 0; i--) {
+      ranges.push({
+        start: new Date(now.getFullYear(), now.getMonth() - i, 1),
+        end: new Date(now.getFullYear(), now.getMonth() - i + 1, 1),
+      });
+    }
+
+    const counts = await Promise.all(
+      ranges.map((range) =>
+        this.prisma.viewLog.count({
+          where: {
+            storyId,
+            createdAt: { gte: range.start, lt: range.end },
+          },
+        }),
+      ),
+    );
+
+    return {
+      story,
+      labels: ranges.map(
+        (range) => `Tháng ${range.start.getMonth() + 1}/${range.start.getFullYear()}`,
+      ),
+      data: counts,
+    };
+  }
+
   async getAllStats() {
     const [dashboardStats, userGrowth, storyViews, categoryDist, roleDist, topStories] = await Promise.all([
       this.getDashboardStats(),

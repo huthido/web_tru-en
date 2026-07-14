@@ -31,6 +31,16 @@ export class StatisticsController {
   async getStoryViews() {
     return this.statisticsService.getStoryViewsData(7);
   }
+
+  @Get('stories/:storyId/views-by-month')
+  async getStoryViewsByMonth(
+    @Param('storyId') storyId: string,
+    @Query('months') months?: string,
+  ) {
+    const parsed = parseInt(months ?? '', 10);
+    const clamped = Math.min(Math.max(Number.isNaN(parsed) ? 12 : parsed, 1), 24);
+    return this.statisticsService.getStoryViewsByMonth(storyId, clamped);
+  }
 }
 
 @Controller('statistics')

@@ -928,13 +928,20 @@ export class StoriesService {
       whereClause = { slug: slugOrId };
     }
 
-    await this.prisma.story.update({
+    const updated = await this.prisma.story.update({
       where: whereClause,
       data: {
         viewCount: {
           increment: 1,
         },
       },
+      select: { id: true },
+    });
+
+    // Ghi view_logs để thống kê lượt xem theo thời gian (theo tháng...).
+    // Story.viewCount chỉ là tổng dồn, không tách được theo thời điểm.
+    await this.prisma.viewLog.create({
+      data: { storyId: updated.id },
     });
   }
 

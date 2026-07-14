@@ -28,6 +28,16 @@ export interface DashboardStats {
   }>;
 }
 
+export interface StoryViewsByMonth {
+  story: {
+    id: string;
+    title: string;
+    viewCount: number;
+  };
+  labels: string[];
+  data: number[];
+}
+
 export const statisticsService = {
   async getStats(): Promise<DashboardStats> {
     const response = await apiClient.get<{ success: boolean; data: DashboardStats }>('/admin/statistics');
@@ -60,6 +70,16 @@ export const statisticsService = {
       return (response.data as any).data;
     }
     return response.data;
+  },
+
+  async getStoryViewsByMonth(storyId: string, months: number = 12): Promise<StoryViewsByMonth> {
+    const response = await apiClient.get(`/admin/statistics/stories/${storyId}/views-by-month?months=${months}`);
+    // Payload có field `data` (mảng số) nên KHÔNG dùng `response.data.data || response.data`
+    // như các method khác — sẽ trả nhầm mảng thay vì cả object.
+    if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+      return (response.data as any).data as StoryViewsByMonth;
+    }
+    return response.data as StoryViewsByMonth;
   },
 
   // Public statistics

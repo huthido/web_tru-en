@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { BarChart, LineChart, DoughnutChart } from '@/components/admin/charts';
 import { RefreshButton } from '@/components/admin/refresh-button';
+import { StoryViewsModal } from '@/components/admin/story-views-modal';
 import { useAdminStatistics } from '@/lib/api/hooks/use-statistics';
 import { Loading } from '@/components/ui/loading';
 import * as XLSX from 'xlsx';
 
 export default function AdminDashboardPage() {
     const { data: stats, isLoading } = useAdminStatistics();
+    const [viewsStory, setViewsStory] = useState<{ id: string; title: string } | null>(null);
 
     // Use real data or fallback to empty/default values
     const statsData = stats || {
@@ -313,8 +315,15 @@ export default function AdminDashboardPage() {
                                             <td className="px-4 py-4 whitespace-nowrap text-sm text-on-surface-variant">
                                                 {story.authorName}
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-on-surface-variant">
-                                                {story.viewCount.toLocaleString()}
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setViewsStory({ id: story.id, title: story.title })}
+                                                    title="Xem thống kê lượt xem theo tháng"
+                                                    className="text-primary underline decoration-dotted underline-offset-4 hover:decoration-solid transition-all"
+                                                >
+                                                    {story.viewCount.toLocaleString()}
+                                                </button>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap text-sm text-on-surface-variant">
                                                 {new Date(story.createdAt).toLocaleDateString('vi-VN')}
@@ -325,6 +334,14 @@ export default function AdminDashboardPage() {
                             </table>
                         </div>
                     </div>
+                )}
+
+                {viewsStory && (
+                    <StoryViewsModal
+                        storyId={viewsStory.id}
+                        storyTitle={viewsStory.title}
+                        onClose={() => setViewsStory(null)}
+                    />
                 )}
             </div>
         </>

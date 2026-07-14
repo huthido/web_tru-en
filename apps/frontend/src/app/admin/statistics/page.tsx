@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { BarChart, LineChart, DoughnutChart } from '@/components/admin/charts';
 import { RefreshButton } from '@/components/admin/refresh-button';
+import { StoryViewsModal } from '@/components/admin/story-views-modal';
 import { Loading } from '@/components/ui/loading';
 import { useAdminStatistics, useUserGrowth, useStoryViews } from '@/lib/api/hooks/use-statistics';
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +11,7 @@ import { statisticsService } from '@/lib/api/statistics.service';
 
 export default function AdminStatisticsPage() {
     const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStatistics();
+    const [viewsStory, setViewsStory] = useState<{ id: string; title: string } | null>(null);
     const { data: userGrowth, isLoading: userGrowthLoading, refetch: refetchUserGrowth } = useUserGrowth();
     const { data: storyViews, isLoading: storyViewsLoading, refetch: refetchStoryViews } = useStoryViews();
     
@@ -193,7 +196,16 @@ export default function AdminStatisticsPage() {
                                         <tr key={story.id} className="hover:bg-surface-container-high">
                                             <td className="px-4 py-3 font-medium">{story.title}</td>
                                             <td className="px-4 py-3">{story.authorName || 'N/A'}</td>
-                                            <td className="px-4 py-3">{story.viewCount.toLocaleString()}</td>
+                                            <td className="px-4 py-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setViewsStory({ id: story.id, title: story.title })}
+                                                    title="Xem thống kê lượt xem theo tháng"
+                                                    className="text-primary underline decoration-dotted underline-offset-4 hover:decoration-solid transition-all"
+                                                >
+                                                    {story.viewCount.toLocaleString()}
+                                                </button>
+                                            </td>
                                             <td className="px-4 py-3 text-sm text-on-surface-variant">
                                                 {new Date(story.createdAt).toLocaleDateString('vi-VN')}
                                             </td>
@@ -203,6 +215,14 @@ export default function AdminStatisticsPage() {
                             </table>
                         </div>
                     </div>
+                )}
+
+                {viewsStory && (
+                    <StoryViewsModal
+                        storyId={viewsStory.id}
+                        storyTitle={viewsStory.title}
+                        onClose={() => setViewsStory(null)}
+                    />
                 )}
             </div>
         </>
