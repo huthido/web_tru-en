@@ -50,4 +50,21 @@ export class CreateAdSlotDto {
     @IsOptional()
     @IsEnum(AdPlatform)
     platform?: AdPlatform;
+
+    /** Giá thuê (VND/ngày) trên trang bảng giá /quang-cao. 0 = chưa niêm yết. */
+    @IsOptional()
+    @IsInt()
+    @Min(0)
+    pricePerDay?: number;
+
+    /** Cho phép khách tự đặt slot này từ trang /quang-cao. */
+    @IsOptional()
+    @IsBoolean()
+    isPublicForBooking?: boolean;
+
+    /** Mô tả public: kích thước banner đề xuất, vị trí, lưu ý. */
+    @IsOptional()
+    @IsString()
+    @MaxLength(500)
+    bookingNote?: string;
 }

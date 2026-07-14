@@ -36,6 +36,9 @@ export class AdSlotsService {
                 enabled: dto.enabled ?? true,
                 adType: dto.adType,
                 platform: dto.platform,
+                pricePerDay: dto.pricePerDay ?? 0,
+                isPublicForBooking: dto.isPublicForBooking ?? false,
+                bookingNote: dto.bookingNote,
             },
         });
     }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
-import { shouldUnoptimizeImage, ImageSizes } from '@/utils/image-utils';
+import { shouldUnoptimizeAdImage, ImageSizes } from '@/utils/image-utils';
 import { useActiveAds, useTrackAdView, useTrackAdClick } from '@/lib/api/hooks/use-ads';
 import { AdType, AdPosition, Ad } from '@/lib/api/ads.service';
 
@@ -141,7 +141,7 @@ function CardContent({
                         sizes={ImageSizes.sidebar}
                         quality={85}
                         placeholder="blur"
-                        unoptimized={shouldUnoptimizeImage(ad.imageUrl)}
+                        unoptimized={shouldUnoptimizeAdImage(ad.imageUrl)}
                         onError={() => {
                             console.error('Failed to load sidebar ad:', ad.imageUrl);
                             setImageError(true);

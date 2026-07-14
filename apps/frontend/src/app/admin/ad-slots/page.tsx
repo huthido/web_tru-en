@@ -171,6 +171,11 @@ export default function AdminAdSlotsPage() {
                                                     · {slot._count.bindings} ads
                                                 </span>
                                             )}
+                                            {slot.isPublicForBooking && (
+                                                <span className="px-2 py-0.5 text-xs bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded">
+                                                    Mở bán · {(slot.pricePerDay ?? 0).toLocaleString('vi-VN')} đ/ngày
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
 
@@ -260,6 +265,9 @@ function SlotFormModal({
         enabled: slot?.enabled ?? true,
         adType: slot?.adType ?? undefined,
         platform: slot?.platform ?? undefined,
+        pricePerDay: slot?.pricePerDay ?? 0,
+        isPublicForBooking: slot?.isPublicForBooking ?? false,
+        bookingNote: slot?.bookingNote ?? '',
     });
     const [submitting, setSubmitting] = useState(false);
 
@@ -414,6 +422,47 @@ function SlotFormModal({
                             <label htmlFor="slotEnabled" className="text-sm font-medium text-on-surface-variant">
                                 Bật slot
                             </label>
+                        </div>
+
+                        {/* Mở bán self-service trên /quang-cao */}
+                        <div className="border-t border-outline-variant pt-4 space-y-4">
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="slotBookable"
+                                    checked={formData.isPublicForBooking ?? false}
+                                    onChange={(e) => setFormData({ ...formData, isPublicForBooking: e.target.checked })}
+                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                />
+                                <label htmlFor="slotBookable" className="text-sm font-medium text-on-surface-variant">
+                                    Mở bán trên trang /quang-cao (cần giá &gt; 0)
+                                </label>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                                    Giá thuê (VND/ngày)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="1000"
+                                    value={formData.pricePerDay ?? 0}
+                                    onChange={(e) => setFormData({ ...formData, pricePerDay: parseInt(e.target.value) || 0 })}
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                                    Ghi chú public (kích thước banner đề xuất…)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.bookingNote ?? ''}
+                                    onChange={(e) => setFormData({ ...formData, bookingNote: e.target.value })}
+                                    placeholder="Banner ngang 1200×200, PNG/JPG/WebP"
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface placeholder:text-on-surface-variant"
+                                />
+                            </div>
                         </div>
 
                         <div className="flex gap-3 pt-4">

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
-import { shouldUnoptimizeImage, ImageSizes } from '@/utils/image-utils';
+import { shouldUnoptimizeAdImage, ImageSizes } from '@/utils/image-utils';
 
 interface AdPopupProps {
     isOpen: boolean;
@@ -91,7 +91,7 @@ export function AdPopup({ isOpen, onClose, imageUrl, linkUrl, onLinkClick }: AdP
                                     sizes={ImageSizes.adPopup}
                                     quality={85}
                                     placeholder="blur"
-                                    unoptimized={shouldUnoptimizeImage(imageUrl)}
+                                    unoptimized={shouldUnoptimizeAdImage(imageUrl)}
                                     onError={() => {
                                         console.error('Failed to load ad image:', imageUrl);
                                         setImageError(true);
@@ -115,7 +115,7 @@ export function AdPopup({ isOpen, onClose, imageUrl, linkUrl, onLinkClick }: AdP
                                 sizes={ImageSizes.adPopup}
                                 quality={85}
                                 placeholder="blur"
-                                unoptimized={shouldUnoptimizeImage(imageUrl)}
+                                unoptimized={shouldUnoptimizeAdImage(imageUrl)}
                                 onError={() => {
                                     console.error('Failed to load ad image:', imageUrl);
                                     setImageError(true);

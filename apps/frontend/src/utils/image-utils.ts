@@ -53,6 +53,56 @@ export function shouldUnoptimizeImage(src: string): boolean {
 }
 
 /**
+ * Host được phép đi qua next/image optimizer — PHẢI đồng bộ với
+ * `images.domains`/`remotePatterns` trong next.config.js. Host ngoài danh sách
+ * mà đưa vào <Image> không kèm `unoptimized` sẽ THROW runtime làm vỡ cả trang.
+ */
+const OPTIMIZED_IMAGE_HOSTS = [
+  'res.cloudinary.com',
+  'static.truyenfull.vision',
+  'cache.staticscdn.net',
+  'iads.staticscdn.net',
+  'images.unsplash.com',
+  'lh3.googleusercontent.com',
+  'gtvseo.com',
+  'ui-avatars.com',
+  'i.pinimg.com',
+];
+
+/**
+ * Quyết định `unoptimized` cho ảnh QUẢNG CÁO. Khác ảnh nội bộ (cover, avatar —
+ * luôn từ storage mình kiểm soát), creative ads có thể là URL bất kỳ do khách
+ * đặt quảng cáo cung cấp → host lạ phải render unoptimized (thẳng <img>) thay
+ * vì để next/image throw "hostname is not configured under images".
+ */
+export function shouldUnoptimizeAdImage(src: string): boolean {
+  if (!src) return false;
+  const s = src.trim();
+  if (s.startsWith('/')) return false; // path local — backend rewrite đã cấu hình
+
+  let host: string;
+  try {
+    host = new URL(s).hostname;
+  } catch {
+    return true; // không parse được — để <img> tự lo, đừng đưa vào optimizer
+  }
+
+  if (shouldUnoptimizeImage(s)) return true;
+  if (OPTIMIZED_IMAGE_HOSTS.includes(host)) return false;
+
+  // Backend uploads + Garage CDN nằm trong remotePatterns động theo env.
+  try {
+    const api = process.env.NEXT_PUBLIC_API_URL;
+    if (api && new URL(api).hostname === host) return false;
+  } catch {
+    // env sai format — bỏ qua, coi như host lạ
+  }
+  if (process.env.NEXT_PUBLIC_CDN_HOST === host) return false;
+
+  return true;
+}
+
+/**
  * Kiểm tra src có dùng được cho next/image hay không.
  *
  * next/image chỉ nhận: URL tuyệt đối (http/https), đường dẫn gốc (bắt đầu "/"),

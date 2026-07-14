@@ -52,6 +52,8 @@ model User {
   createdCampaigns        Campaign[]               @relation("CampaignCreator")
   adImpressions           AdImpression[]           @relation("AdImpressionUser")
   adClicks                AdClick[]                @relation("AdClickUser")
+  adBookings              AdBooking[]              @relation("AdBookingUser")
+  reviewedAdBookings      AdBooking[]              @relation("AdBookingReviewer")
   oauthCodes              OAuthCode[]
   emailVerificationTokens EmailVerificationToken[]
   passwordResetTokens     PasswordResetToken[]
@@ -587,6 +589,7 @@ model Ad {
   adImpressions  AdImpression[]
   adClicks       AdClick[]
   slotBindings   AdSlotBinding[]
+  booking        AdBooking?
 
   @@index([type])
   @@index([position])
@@ -621,9 +624,16 @@ model AdSlot {
   adType    AdType?
   /// Filter platform: 'web' | 'mobile' | 'all'. Null = all.
   platform  String?
+  /// Giá thuê slot (VND/ngày) niêm yết trên trang /quang-cao. 0 = chưa niêm yết.
+  pricePerDay        Int     @default(0)
+  /// Cho phép khách tự đặt slot này từ trang /quang-cao.
+  isPublicForBooking Boolean @default(false)
+  /// Mô tả public: kích thước banner đề xuất, vị trí hiển thị, lưu ý.
+  bookingNote        String?
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   bindings  AdSlotBinding[]
+  bookings  AdBooking[]
 
   @@index([pageKey, enabled])
   @@index([key])
@@ -646,6 +656,58 @@ model AdSlotBinding {
   @@index([slotId])
   @@index([adId])
   @@map("ad_slot_bindings")
+}
+
+enum AdBookingStatus {
+  PENDING // Khách gửi đơn — chờ admin liên hệ + xác nhận thanh toán
+  APPROVED // Admin xác nhận (đã thanh toán) — Ad được tạo, tự chạy theo ngày đặt
+  REJECTED // Admin từ chối (kèm adminNote lý do)
+  CANCELLED // Khách tự hủy khi đơn còn PENDING
+}
+
+/// Đơn đặt quảng cáo self-service (Phase 1): khách chọn slot + khoảng ngày,
+/// giá chốt tại thời điểm đặt (snapshot pricePerDay). Thanh toán chuyển khoản
+/// thủ công; admin duyệt → hệ thống tự tạo Ad + AdSlotBinding chạy đúng lịch.
+model AdBooking {
+  id           String          @id @default(cuid())
+  userId       String
+  slotId       String
+  startDate    DateTime
+  endDate      DateTime
+  /// Số ngày chạy (denormalized, tính cả 2 đầu).
+  days         Int
+  /// Snapshot đơn giá VND/ngày lúc đặt — admin đổi giá slot không ảnh hưởng đơn cũ.
+  pricePerDay  Int
+  totalPrice   Int
+  status       AdBookingStatus @default(PENDING)
+  // Creative khách gửi — dùng để tạo Ad khi duyệt.
+  title        String?
+  imageUrl     String?
+  linkUrl      String?
+  // Thông tin liên hệ doanh nghiệp/cá nhân.
+  contactName  String
+  contactPhone String
+  contactEmail String?
+  companyName  String?
+  note         String?         @db.Text
+  /// Ghi chú của admin: hướng dẫn thanh toán / lý do từ chối.
+  adminNote    String?         @db.Text
+  /// Ad sinh ra khi APPROVED.
+  adId         String?         @unique
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  user         User            @relation("AdBookingUser", fields: [userId], references: [id], onDelete: Cascade)
+  slot         AdSlot          @relation(fields: [slotId], references: [id], onDelete: Restrict)
+  ad           Ad?             @relation(fields: [adId], references: [id], onDelete: SetNull)
+  reviewedBy   User?           @relation("AdBookingReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([slotId, status])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("ad_bookings")
 }
 
 enum AdSourceType {

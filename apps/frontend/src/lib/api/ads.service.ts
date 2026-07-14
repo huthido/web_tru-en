@@ -139,6 +139,9 @@ export interface AdSlot {
     enabled: boolean;
     adType?: AdType | null;
     platform?: AdPlatform | null;
+    pricePerDay: number;
+    isPublicForBooking: boolean;
+    bookingNote?: string | null;
     createdAt: string;
     updatedAt: string;
     _count?: { bindings: number };
@@ -153,6 +156,9 @@ export interface CreateAdSlotRequest {
     enabled?: boolean;
     adType?: AdType;
     platform?: AdPlatform;
+    pricePerDay?: number;
+    isPublicForBooking?: boolean;
+    bookingNote?: string;
 }
 
 /** Snapshot config từ GET /ads/config — dùng để init network SDK + consent. */
@@ -392,6 +398,124 @@ export const adSlotsService = {
     remove: async (id: string): Promise<ApiResponse> => {
         const response = await apiClient.delete(`/ad-slots/${id}`);
         return response.data;
+    },
+};
+
+// ============================================================================
+// AdBooking service — khách đặt quảng cáo self-service (Phase 1: chuyển khoản
+// thủ công, admin duyệt → Ad tự chạy theo lịch).
+// ============================================================================
+
+export type AdBookingStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+
+/** Slot đang mở bán trên trang /quang-cao + các khoảng ngày đã kín. */
+export interface BookableSlot {
+    id: string;
+    key: string;
+    pageKey: string;
+    position: AdPosition;
+    label: string;
+    maxAds: number;
+    pricePerDay: number;
+    bookingNote?: string | null;
+    bookedRanges: Array<{ startDate: string; endDate: string }>;
+}
+
+export interface AdBooking {
+    id: string;
+    slotId: string;
+    startDate: string;
+    endDate: string;
+    days: number;
+    pricePerDay: number;
+    totalPrice: number;
+    status: AdBookingStatus;
+    title?: string | null;
+    imageUrl?: string | null;
+    linkUrl?: string | null;
+    contactName: string;
+    contactPhone: string;
+    contactEmail?: string | null;
+    companyName?: string | null;
+    note?: string | null;
+    adminNote?: string | null;
+    adId?: string | null;
+    createdAt: string;
+    slot?: { key: string; label: string; pageKey: string; position?: AdPosition; maxAds?: number };
+    user?: { id: string; username: string; email?: string; displayName?: string };
+    ad?: { id: string; isActive?: boolean; viewCount?: number; clickCount?: number; impressions?: number };
+}
+
+export interface CreateAdBookingRequest {
+    slotId: string;
+    startDate: string; // YYYY-MM-DD
+    endDate: string; // YYYY-MM-DD
+    title?: string;
+    imageUrl?: string;
+    linkUrl?: string;
+    contactName: string;
+    contactPhone: string;
+    contactEmail?: string;
+    companyName?: string;
+    note?: string;
+}
+
+/** Bóc payload — apiClient có thể đã unwrap envelope {success,data} hoặc chưa. */
+function unwrap<T>(raw: any, fallback: T): T {
+    if (raw == null) return fallback;
+    if (raw.data !== undefined && raw.success !== undefined) return raw.data as T;
+    return raw as T;
+}
+
+export const adBookingsService = {
+    /** Public: slot đang mở bán + lịch đã kín. */
+    listPublicSlots: async (): Promise<BookableSlot[]> => {
+        const response = await apiClient.get('/ad-bookings/public/slots');
+        return unwrap<BookableSlot[]>(response.data, []);
+    },
+
+    /** Khách gửi đơn đặt (yêu cầu đăng nhập). */
+    create: async (data: CreateAdBookingRequest): Promise<AdBooking> => {
+        const response = await apiClient.post('/ad-bookings', data);
+        return unwrap<AdBooking>(response.data, null as any);
+    },
+
+    /** Đơn của tôi. */
+    my: async (): Promise<AdBooking[]> => {
+        const response = await apiClient.get('/ad-bookings/my');
+        return unwrap<AdBooking[]>(response.data, []);
+    },
+
+    /** Khách hủy đơn PENDING. */
+    cancel: async (id: string): Promise<AdBooking> => {
+        const response = await apiClient.patch(`/ad-bookings/${id}/cancel`);
+        return unwrap<AdBooking>(response.data, null as any);
+    },
+
+    /** Upload ảnh banner cho đơn (user đăng nhập). */
+    uploadImage: async (file: File): Promise<{ imageUrl: string }> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await apiClient.post('/ad-bookings/upload-image', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return unwrap<{ imageUrl: string }>(response.data, { imageUrl: '' });
+    },
+
+    /** Admin: list toàn bộ đơn (lọc theo status). */
+    listAll: async (status?: AdBookingStatus): Promise<AdBooking[]> => {
+        const qs = status ? `?status=${status}` : '';
+        const response = await apiClient.get(`/ad-bookings${qs}`);
+        return unwrap<AdBooking[]>(response.data, []);
+    },
+
+    /** Admin: duyệt (đã nhận thanh toán) / từ chối. */
+    review: async (
+        id: string,
+        data: { status: 'APPROVED' | 'REJECTED'; adminNote?: string },
+    ): Promise<AdBooking> => {
+        const response = await apiClient.patch(`/ad-bookings/${id}/review`, data);
+        return unwrap<AdBooking>(response.data, null as any);
     },
 };
 

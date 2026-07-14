@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
-import { shouldUnoptimizeImage, ImageSizes } from '@/utils/image-utils';
+import { shouldUnoptimizeAdImage, ImageSizes } from '@/utils/image-utils';
 import { useActiveAds, useTrackAdView, useTrackAdClick } from '@/lib/api/hooks/use-ads';
 import { AdType, AdPosition, AdSourceType, type Ad, type AdDisplayConfig } from '@/lib/api/ads.service';
 import { AdsenseUnit } from './adsense-unit';
@@ -164,7 +164,7 @@ function SelfServedBanner({ ad, position, displayConfig }: { ad: Ad; position: A
                 sizes={ImageSizes.banner}
                 quality={85}
                 placeholder="blur"
-                unoptimized={shouldUnoptimizeImage(ad.imageUrl)}
+                unoptimized={shouldUnoptimizeAdImage(ad.imageUrl)}
                 onError={() => setImageError(true)}
             />
         </div>

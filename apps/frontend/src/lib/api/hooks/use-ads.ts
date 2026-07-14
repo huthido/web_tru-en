@@ -2,12 +2,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   adsService,
   adSlotsService,
+  adBookingsService,
   Ad,
   AdType,
   AdPosition,
+  AdBookingStatus,
   CreateAdRequest,
   UpdateAdRequest,
   CreateAdSlotRequest,
+  CreateAdBookingRequest,
 } from '../ads.service';
 
 /**
@@ -182,6 +185,72 @@ export const useUpdateAdSlot = () => {
       adSlotsService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ad-slots'] });
+      queryClient.invalidateQueries({ queryKey: ['ad-slot'] });
+    },
+  });
+};
+
+// ============================================================================
+// AdBooking hooks — trang /quang-cao + admin duyệt đơn.
+// ============================================================================
+
+/** Public: slot đang mở bán + lịch đã kín. */
+export const useBookableSlots = () => {
+  return useQuery({
+    queryKey: ['ad-bookings', 'public-slots'],
+    queryFn: () => adBookingsService.listPublicSlots(),
+    staleTime: 60 * 1000,
+  });
+};
+
+/** Khách gửi đơn đặt quảng cáo. */
+export const useCreateAdBooking = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateAdBookingRequest) => adBookingsService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ad-bookings'] });
+    },
+  });
+};
+
+/** Đơn đặt của tôi. */
+export const useMyAdBookings = (enabled = true) => {
+  return useQuery({
+    queryKey: ['ad-bookings', 'my'],
+    queryFn: () => adBookingsService.my(),
+    enabled,
+  });
+};
+
+/** Khách hủy đơn PENDING. */
+export const useCancelAdBooking = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => adBookingsService.cancel(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ad-bookings'] });
+    },
+  });
+};
+
+/** Admin: list đơn theo status. */
+export const useAdminAdBookings = (status?: AdBookingStatus) => {
+  return useQuery({
+    queryKey: ['ad-bookings', 'admin', status ?? 'all'],
+    queryFn: () => adBookingsService.listAll(status),
+  });
+};
+
+/** Admin: duyệt / từ chối đơn. */
+export const useReviewAdBooking = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { status: 'APPROVED' | 'REJECTED'; adminNote?: string } }) =>
+      adBookingsService.review(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ad-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['ads'] });
       queryClient.invalidateQueries({ queryKey: ['ad-slot'] });
     },
   });

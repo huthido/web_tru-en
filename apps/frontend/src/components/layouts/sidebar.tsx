@@ -87,7 +87,7 @@ export function Sidebar() {
     { href: '/shop', label: 'Cửa hàng', icon: Store, active: pathname === '/shop' },
     { href: '/author/dashboard', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
     { href: '/library', label: 'Thư viện', icon: Library, active: pathname === '/library' },
-    { href: '/lien-he-quang-cao', label: 'Quảng cáo', icon: Megaphone, active: pathname === '/lien-he-quang-cao' },
+    { href: '/quang-cao', label: 'Quảng cáo', icon: Megaphone, active: pathname === '/quang-cao' },
     { href: '/profile', label: 'Tài khoản', icon: User, active: pathname === '/profile' },
   ];
 
