@@ -6,7 +6,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useLayoutEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, User, HelpCircle, Plus, Bug, type LucideIcon } from 'lucide-react';
+import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, User, HelpCircle, Plus, Bug, Megaphone, type LucideIcon } from 'lucide-react';
 import { BrandMark } from '@/components/ui/brand-mark';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
@@ -75,7 +75,7 @@ export function Sidebar() {
   const earnHref = user ? '/author/earnings' : '/login?redirect=/author/earnings';
 
   // Thứ tự menu: Trang chủ · Truyện · Mày tao · Tranh · Đăng truyện · Kiếm tiền
-  // · Cửa hàng · Kênh tác giả · Thư viện · Tài khoản
+  // · Cửa hàng · Kênh tác giả · Thư viện · Quảng cáo · Tài khoản
   const tab = searchParams.get('tab');
   const links: NavLink[] = [
     { href: '/', label: 'Trang chủ', icon: Home, active: pathname === '/' },
@@ -87,6 +87,7 @@ export function Sidebar() {
     { href: '/shop', label: 'Cửa hàng', icon: Store, active: pathname === '/shop' },
     { href: '/author/dashboard', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
     { href: '/library', label: 'Thư viện', icon: Library, active: pathname === '/library' },
+    { href: '/lien-he-quang-cao', label: 'Quảng cáo', icon: Megaphone, active: pathname === '/lien-he-quang-cao' },
     { href: '/profile', label: 'Tài khoản', icon: User, active: pathname === '/profile' },
   ];
 
@@ -100,8 +101,10 @@ export function Sidebar() {
   const visibleLinks = links.filter((l) => !l.authOnly || canCreateStories);
 
   // Mobile bottom nav: Trang chủ · Truyện · [FAB Mày tao] · Thư viện · Tài khoản
-  const mobileLeft = [links[0], links[1]];
-  const mobileRight = [links[7], links[8]];
+  // Tìm theo label để không lệch index khi thêm/bớt mục trong `links`.
+  const byLabel = (label: string) => links.find((l) => l.label === label)!;
+  const mobileLeft = [byLabel('Trang chủ'), byLabel('Truyện')];
+  const mobileRight = [byLabel('Thư viện'), byLabel('Tài khoản')];
 
   return (
     <>
