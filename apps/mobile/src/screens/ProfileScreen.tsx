@@ -114,6 +114,15 @@ export const ProfileScreen: React.FC = () => {
             <View style={styles.legalGroup}>
                 <Pressable
                     style={[styles.legalRow, styles.legalRowDivider]}
+                    onPress={() => rootNav.navigate('EditProfile')}
+                >
+                    <Ionicons name="create-outline" size={20} color={colors.onSurfaceVariant} />
+                    <Text style={styles.legalText}>Sửa hồ sơ</Text>
+                    <View style={{ flex: 1 }} />
+                    <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceVariant} />
+                </Pressable>
+                <Pressable
+                    style={[styles.legalRow, styles.legalRowDivider]}
                     onPress={() => rootNav.navigate('Library')}
                 >
                     <Ionicons name="library-outline" size={20} color={colors.onSurfaceVariant} />
@@ -163,6 +172,18 @@ export const ProfileScreen: React.FC = () => {
                 </View>
                 <Text style={styles.placeholder}>
                     Quản lý truyện, thêm chương, gửi duyệt xuất bản.
+                </Text>
+            </Pressable>
+
+            <Pressable style={styles.card} onPress={() => rootNav.navigate('Followers')}>
+                <View style={styles.cardHeader}>
+                    <Ionicons name="people-outline" size={20} color={colors.primary} />
+                    <Text style={styles.cardTitle}>Người theo dõi</Text>
+                    <View style={{ flex: 1 }} />
+                    <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+                </View>
+                <Text style={styles.placeholder}>
+                    Xem danh sách người đang theo dõi trang cá nhân của bạn.
                 </Text>
             </Pressable>
 

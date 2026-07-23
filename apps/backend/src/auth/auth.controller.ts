@@ -184,6 +184,7 @@ export class AuthController {
           username: user.username,
           displayName: user.displayName,
           avatar: user.avatar,
+          bio: user.bio,
           role: user.role,
           hasPassword,
         },

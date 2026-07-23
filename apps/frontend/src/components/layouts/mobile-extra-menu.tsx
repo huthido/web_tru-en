@@ -15,6 +15,8 @@ import {
     Upload,
     Camera,
     Palette,
+    UserCircle,
+    Users,
     type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
@@ -38,6 +40,7 @@ export function MobileExtraMenu() {
     const isAuth = !!user;
 
     const items: MenuItem[] = [
+        { href: user ? `/u/${user.username}` : '/login', label: 'Trang cá nhân', icon: UserCircle, authOnly: true },
         { href: '/stories?tab=nghe-thuat', label: 'Mày tao', icon: Camera },
         { href: '/stories?tab=tranh', label: 'Tranh', icon: Palette },
         { href: '/author/stories/create', label: 'Đăng truyện', icon: Upload, authOnly: true },
@@ -46,6 +49,7 @@ export function MobileExtraMenu() {
         { href: '/favorites', label: 'Yêu thích', icon: Heart, fillWhenActive: true },
         { href: '/shop', label: 'Cửa hàng', icon: Store },
         { href: '/author/dashboard', label: 'Kênh tác giả', icon: LayoutDashboard, authOnly: true },
+        { href: '/author/followers', label: 'Người theo dõi', icon: Users, authOnly: true },
         { href: '/author/earnings', label: 'Kiếm tiền', icon: Wallet, authOnly: true },
         { href: '/profile', label: 'Cài đặt', icon: Settings },
         { href: '/gioi-thieu', label: 'Trợ giúp', icon: HelpCircle },

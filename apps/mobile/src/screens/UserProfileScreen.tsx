@@ -4,6 +4,7 @@ import {
     Dimensions,
     Pressable,
     ScrollView,
+    Share,
     StyleSheet,
     Text,
     View,
@@ -78,6 +79,20 @@ export const UserProfileScreen: React.FC = () => {
         Alert.alert('Donate', 'Tính năng đang phát triển trên mobile.');
     };
 
+    // Chia sẻ trang cá nhân qua khay chia sẻ hệ điều hành (đã gồm FB/Zalo/
+    // Telegram/copy...). URL trỏ về bản web canonical.
+    const onShare = async () => {
+        const url = `https://yeuyeu.net/u/${encodeURIComponent(username)}`;
+        try {
+            await Share.share({
+                message: `Trang cá nhân của ${profile.displayName || profile.username} trên YÊU: ${url}`,
+                url,
+            });
+        } catch {
+            /* user huỷ — bỏ qua */
+        }
+    };
+
     return (
         <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
             <View style={styles.headerCard}>
@@ -110,10 +125,29 @@ export const UserProfileScreen: React.FC = () => {
                 <View style={styles.statsRow}>
                     <Stat icon="book" label="truyện" value={profile.publishedStoriesCount} />
                     <Stat icon="eye" label="lượt xem" value={profile.totalViews} />
-                    <Stat icon="people" label="followers" value={profile.authorFollowerCount} />
+                    <Stat
+                        icon="people"
+                        label="followers"
+                        value={profile.authorFollowerCount}
+                        onPress={isMe ? () => nav.navigate('Followers') : undefined}
+                    />
                 </View>
 
-                {!isMe && (
+                {isMe ? (
+                    <View style={styles.ctaRow}>
+                        <Pressable
+                            onPress={() => nav.navigate('EditProfile')}
+                            style={[styles.ctaBtn, styles.ctaBtnPrimary]}
+                        >
+                            <Ionicons name="create-outline" size={16} color={colors.onPrimary} />
+                            <Text style={[styles.ctaText, styles.ctaTextPrimary]}>Sửa hồ sơ</Text>
+                        </Pressable>
+                        <Pressable onPress={onShare} style={[styles.ctaBtn, styles.ctaBtnGhost]}>
+                            <Ionicons name="share-social-outline" size={16} color={colors.onSurface} />
+                            <Text style={[styles.ctaText, styles.ctaTextGhost]}>Chia sẻ</Text>
+                        </Pressable>
+                    </View>
+                ) : (
                     <View style={styles.ctaRow}>
                         <Pressable
                             onPress={() => followMut.mutate(profile.id)}
@@ -136,6 +170,11 @@ export const UserProfileScreen: React.FC = () => {
                         >
                             <Ionicons name="heart" size={16} color={colors.onSurface} />
                             <Text style={[styles.ctaText, styles.ctaTextGhost]}>Donate xu</Text>
+                        </Pressable>
+
+                        <Pressable onPress={onShare} style={[styles.ctaBtn, styles.ctaBtnGhost]}>
+                            <Ionicons name="share-social-outline" size={16} color={colors.onSurface} />
+                            <Text style={[styles.ctaText, styles.ctaTextGhost]}>Chia sẻ</Text>
                         </Pressable>
                     </View>
                 )}
@@ -169,15 +208,21 @@ export const UserProfileScreen: React.FC = () => {
     );
 };
 
-function Stat({ icon, label, value }: { icon: any; label: string; value: number }) {
+function Stat({ icon, label, value, onPress }: { icon: any; label: string; value: number; onPress?: () => void }) {
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
-    return (
-        <View style={styles.stat}>
-            <Ionicons name={icon} size={14} color={colors.onSurfaceVariant} />
+    const content = (
+        <>
+            <Ionicons name={icon} size={14} color={onPress ? colors.primary : colors.onSurfaceVariant} />
             <Text style={styles.statValue}>{formatNumber(value)}</Text>
-            <Text style={styles.statLabel}>{label}</Text>
-        </View>
+            <Text style={[styles.statLabel, onPress && { color: colors.primary }]}>{label}</Text>
+            {onPress ? <Ionicons name="chevron-forward" size={12} color={colors.primary} /> : null}
+        </>
+    );
+    return onPress ? (
+        <Pressable style={styles.stat} onPress={onPress}>{content}</Pressable>
+    ) : (
+        <View style={styles.stat}>{content}</View>
     );
 }
 

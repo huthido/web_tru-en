@@ -9,6 +9,7 @@ interface User {
   username: string;
   displayName?: string;
   avatar?: string;
+  bio?: string;
   role: string;
   /** false = tài khoản OAuth (Google) chưa tạo mật khẩu. */
   hasPassword?: boolean;

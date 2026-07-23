@@ -15,6 +15,8 @@ interface AuthContextValue {
     }) => Promise<void>;
     logout: () => Promise<void>;
     deleteAccount: (password?: string) => Promise<void>;
+    /** Tải lại /auth/me để đồng bộ user sau khi sửa hồ sơ. */
+    refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -86,6 +88,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
     }, []);
 
+    const refreshUser = useCallback(async () => {
+        const me = await AuthApi.me();
+        if (me) setUser(me);
+    }, []);
+
     const value = useMemo<AuthContextValue>(
         () => ({
             user,
@@ -96,8 +103,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             signInWithApple,
             logout,
             deleteAccount,
+            refreshUser,
         }),
-        [user, isBooting, login, signInWith, signInWithApple, logout, deleteAccount],
+        [user, isBooting, login, signInWith, signInWithApple, logout, deleteAccount, refreshUser],
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

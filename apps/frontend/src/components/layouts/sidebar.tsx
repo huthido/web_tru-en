@@ -6,7 +6,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useLayoutEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, User, HelpCircle, Plus, Bug, Megaphone, type LucideIcon } from 'lucide-react';
+import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, UserCircle, HelpCircle, Plus, Bug, Megaphone, type LucideIcon } from 'lucide-react';
 import { BrandMark } from '@/components/ui/brand-mark';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
@@ -73,6 +73,9 @@ export function Sidebar() {
 
   const uploadHref = canCreateStories ? '/author/stories/create' : '/login?redirect=/author/stories/create';
   const earnHref = user ? '/author/earnings' : '/login?redirect=/author/earnings';
+  // Trang cá nhân (public) của người đang đăng nhập; khách → login.
+  const myProfileHref = user ? `/u/${user.username}` : '/login?redirect=/';
+  const myProfileActive = !!user && pathname === `/u/${user.username}`;
 
   // Thứ tự menu: Trang chủ · Truyện · Mày tao · Tranh · Đăng truyện · Kiếm tiền
   // · Cửa hàng · Kênh tác giả · Thư viện · Quảng cáo · Tài khoản
@@ -88,7 +91,7 @@ export function Sidebar() {
     { href: '/author/dashboard', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
     { href: '/library', label: 'Thư viện', icon: Library, active: pathname === '/library' },
     { href: '/quang-cao', label: 'Quảng cáo', icon: Megaphone, active: pathname === '/quang-cao' },
-    { href: '/profile', label: 'Tài khoản', icon: User, active: pathname === '/profile' },
+    { href: myProfileHref, label: 'Trang cá nhân', icon: UserCircle, active: myProfileActive },
   ];
 
   // Secondary section, pinned to the bottom of the rail.
@@ -104,7 +107,7 @@ export function Sidebar() {
   // Tìm theo label để không lệch index khi thêm/bớt mục trong `links`.
   const byLabel = (label: string) => links.find((l) => l.label === label)!;
   const mobileLeft = [byLabel('Trang chủ'), byLabel('Truyện')];
-  const mobileRight = [byLabel('Thư viện'), byLabel('Tài khoản')];
+  const mobileRight = [byLabel('Thư viện'), byLabel('Trang cá nhân')];
 
   return (
     <>
@@ -166,7 +169,7 @@ export function Sidebar() {
 
           {user && (
             <Link
-              href="/profile"
+              href={myProfileHref}
               aria-label="Trang cá nhân"
               className="mt-2 flex items-center gap-3 p-2 rounded-lg hover:bg-surface-variant transition-colors"
             >
@@ -224,7 +227,7 @@ export function Sidebar() {
 
           {mobileRight.map((l) => {
             const Icon = l.icon;
-            const isAccount = l.label === 'Tài khoản';
+            const isAccount = l.label === 'Trang cá nhân';
             return (
               <Link key={l.label} href={l.href} aria-label={l.label}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
@@ -237,7 +240,7 @@ export function Sidebar() {
                 ) : (
                   <Icon size={20} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
                 )}
-                <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{l.label}</span>
+                <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{isAccount ? 'Cá nhân' : l.label}</span>
               </Link>
             );
           })}

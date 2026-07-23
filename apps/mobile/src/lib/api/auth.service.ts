@@ -8,6 +8,7 @@ export interface AuthUser {
     username: string;
     displayName: string | null;
     avatar: string | null;
+    bio?: string | null;
     role: UserRole;
     /** false = tài khoản OAuth (Google/Apple) chưa tạo mật khẩu.
      *  Chỉ /auth/me trả về field này — login response không có. */

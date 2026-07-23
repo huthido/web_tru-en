@@ -172,6 +172,22 @@ export class UsersController {
     return this.usersService.isFollowingAuthor(user.id, authorId);
   }
 
+  // Danh sách người theo dõi của tác giả — chỉ chính chủ (kiểm tra trong service).
+  @Get(':userId/author-followers')
+  async listAuthorFollowers(
+    @CurrentUser() user: any,
+    @Param('userId') authorId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.usersService.listAuthorFollowers(
+      authorId,
+      user.id,
+      page ? parseInt(page, 10) : undefined,
+      limit ? parseInt(limit, 10) : undefined,
+    );
+  }
+
   // Public routes - must be after all 'me' routes to avoid route conflicts
   @Public()
   @Get('by-username/:username')

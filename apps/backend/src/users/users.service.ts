@@ -520,5 +520,69 @@ export class UsersService {
     });
     return { following: !!r };
   }
+
+  /**
+   * Danh sách người theo dõi của một tác giả (để tác giả tự theo dõi lượt
+   * follower). Chỉ chính chủ mới xem được danh sách của mình. Tổng số khớp
+   * với `authorFollowerCount` trả về ở public profile (đếm toàn bộ bản ghi).
+   */
+  async listAuthorFollowers(
+    authorId: string,
+    requesterId: string,
+    page = 1,
+    limit = 20,
+  ) {
+    if (requesterId !== authorId) {
+      throw new ForbiddenException(
+        'Chỉ có thể xem danh sách người theo dõi của chính mình',
+      );
+    }
+    const safeLimit = Math.min(50, Math.max(1, limit));
+    const safePage = Math.max(1, page);
+    const skip = (safePage - 1) * safeLimit;
+
+    const [rows, total] = await Promise.all([
+      this.prisma.authorFollow.findMany({
+        where: { authorId },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: safeLimit,
+        select: {
+          createdAt: true,
+          user: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              avatar: true,
+            },
+          },
+        },
+      }),
+      this.prisma.authorFollow.count({ where: { authorId } }),
+    ]);
+
+    const data = rows
+      .filter((r) => !!r.user)
+      .map((r) => ({
+        id: r.user.id,
+        username: r.user.username,
+        displayName: r.user.displayName,
+        avatar: r.user.avatar,
+        followedAt: r.createdAt,
+      }));
+
+    return {
+      data,
+      meta: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+        hasNext: safePage * safeLimit < total,
+        hasPrev: safePage > 1,
+      },
+    };
+  }
 }
 

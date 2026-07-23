@@ -15,11 +15,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { UserStats } from '@/components/users/user-stats';
 import { MobileExtraMenu } from '@/components/layouts/mobile-extra-menu';
+import { ExternalLink } from 'lucide-react';
 
 interface ProfileFormData {
   email: string;
   password: string;
   displayName: string;
+  bio: string;
 }
 
 interface PasswordFormData {
@@ -38,6 +40,7 @@ function ProfileContent() {
     email: '',
     password: '••••••••',
     displayName: '',
+    bio: '',
   });
 
   const [passwordData, setPasswordData] = useState<PasswordFormData>({
@@ -61,22 +64,24 @@ function ProfileContent() {
         email: user.email || '',
         password: '••••••••',
         displayName: user.displayName || '',
+        bio: user.bio || '',
       });
     }
   }, [user]);
 
   // Update profile mutation
   const updateMutation = useMutation({
-    mutationFn: (data: { displayName?: string; avatar?: string }) => usersService.updateProfile(data),
+    mutationFn: (data: { displayName?: string; bio?: string; avatar?: string }) => usersService.updateProfile(data),
     onSuccess: (updatedUser: any) => {
       // Patch cache immediately so all screens (Header, Sidebar…) see the new
-      // name/avatar without waiting for a background refetch to complete.
+      // name/avatar/bio without waiting for a background refetch to complete.
       queryClient.setQueryData(['auth', 'me'], (old: any) => {
         if (!old) return old;
         return {
           ...old,
           displayName: updatedUser?.displayName ?? old.displayName,
           avatar: updatedUser?.avatar ?? old.avatar,
+          bio: updatedUser?.bio ?? old.bio,
         };
       });
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
@@ -212,6 +217,7 @@ function ProfileContent() {
     } else {
       updateMutation.mutate({
         displayName: formData.displayName.trim() || undefined,
+        bio: formData.bio.trim(),
       });
     }
   };
@@ -350,9 +356,25 @@ function ProfileContent() {
               {/* Left Section - Form */}
               <div className="lg:col-span-2 space-y-6">
                 <div className="bg-surface-container rounded-2xl shadow-lg p-6 md:p-8">
-                  <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-6">
-                    Hồ sơ của tôi
-                  </h1>
+                  <div className="flex items-start justify-between gap-3 mb-6">
+                    <div>
+                      <h1 className="text-2xl md:text-3xl font-bold text-on-surface">
+                        Cài đặt tài khoản
+                      </h1>
+                      <p className="text-sm text-on-surface-variant mt-1">
+                        Thông tin đăng nhập & hồ sơ hiển thị công khai
+                      </p>
+                    </div>
+                    {user?.username && (
+                      <Link
+                        href={`/u/${user.username}`}
+                        className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        <span className="hidden sm:inline">Trang cá nhân</span>
+                      </Link>
+                    )}
+                  </div>
 
                   {/* Success Message */}
                   {successMessage && (
@@ -481,6 +503,24 @@ function ProfileContent() {
                       {errors.displayName && (
                         <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.displayName}</p>
                       )}
+                    </div>
+
+                    {/* Bio / Giới thiệu — hiển thị trên trang cá nhân công khai */}
+                    <div className="relative">
+                      <label className="absolute -top-2.5 left-3 px-2 bg-surface-container text-sm font-medium text-on-surface-variant z-10">
+                        Giới thiệu
+                      </label>
+                      <textarea
+                        value={formData.bio}
+                        onChange={(e) => handleInputChange('bio', e.target.value)}
+                        maxLength={500}
+                        rows={4}
+                        placeholder="Vài dòng giới thiệu về bạn — hiển thị trên trang cá nhân công khai của bạn."
+                        className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors resize-none"
+                      />
+                      <p className="mt-1 text-xs text-on-surface-variant text-right">
+                        {formData.bio.length}/500
+                      </p>
                     </div>
 
 

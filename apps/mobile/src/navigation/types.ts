@@ -22,6 +22,8 @@ export type RootStackParamList = {
     Transactions: undefined;
     Notifications: undefined;
     Settings: undefined;
+    EditProfile: undefined;
+    Followers: undefined;
     UserProfile: { username: string };
     // Thư viện rời tab bar (PDF fix nav) — truy cập từ Tài khoản.
     Library: undefined;

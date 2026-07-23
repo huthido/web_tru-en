@@ -43,6 +43,26 @@ export interface PaginatedStories {
   };
 }
 
+export interface AuthorFollowerItem {
+  id: string;
+  username: string;
+  displayName?: string | null;
+  avatar?: string | null;
+  followedAt: string;
+}
+
+export interface PaginatedFollowers {
+  data: AuthorFollowerItem[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
 function unwrap<T>(res: any): T {
   const body = res?.data;
   return (body?.data !== undefined && body?.success !== undefined ? body.data : body) as T;
@@ -87,5 +107,17 @@ export const AuthorsService = {
   isFollowing: async (authorId: string): Promise<{ following: boolean }> => {
     const res = await apiClient.get(`/users/${authorId}/author-followers/me`);
     return unwrap(res);
+  },
+
+  /** Danh sách người theo dõi (chỉ chính chủ mới gọi được — backend chặn). */
+  listFollowers: async (
+    authorId: string,
+    page = 1,
+    limit = 20,
+  ): Promise<PaginatedFollowers> => {
+    const res = await apiClient.get(
+      `/users/${authorId}/author-followers?page=${page}&limit=${limit}`,
+    );
+    return unwrap<PaginatedFollowers>(res);
   },
 };

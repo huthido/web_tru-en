@@ -44,3 +44,18 @@ export function useIsFollowingAuthor(authorId: string | undefined, enabled = tru
     staleTime: 60 * 1000,
   });
 }
+
+/** Danh sách người theo dõi của tác giả (chỉ chính chủ). */
+export function useAuthorFollowers(
+  authorId: string | undefined,
+  page = 1,
+  limit = 20,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ['author', 'followers', authorId, page, limit],
+    queryFn: () => AuthorsService.listFollowers(authorId!, page, limit),
+    enabled: !!authorId && enabled,
+    staleTime: 30 * 1000,
+  });
+}

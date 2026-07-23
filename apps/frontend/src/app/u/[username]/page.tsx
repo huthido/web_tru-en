@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
+import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
@@ -10,11 +11,12 @@ import { Loading } from '@/components/ui/loading';
 import { BookCard } from '@/components/books/book-card';
 import { DonateAuthorModal } from '@/components/stories/donate-author-modal';
 import { FollowAuthorButton } from '@/components/users/follow-author-button';
+import { ShareProfileMenu } from '@/components/users/share-profile-menu';
 import { VerifiedBadge } from '@/components/users/verified-badge';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useAuthorProfile, useAuthorStories } from '@/lib/api/hooks/use-authors';
 import { usePageLimit } from '@/hooks/use-page-limit';
-import { HeartHandshake, Eye, Users, BookOpen, UserCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { HeartHandshake, Eye, Users, BookOpen, UserCircle2, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 
 /**
  * Trang cá nhân kiểu MXH /u/[username]
@@ -38,6 +40,13 @@ export default function PublicUserProfilePage() {
   const totalPages = storiesPage?.meta?.totalPages || 1;
 
   const isMe = !!me && !!profile && me.id === profile.id;
+
+  // URL tuyệt đối của trang cá nhân để chia sẻ ra nền tảng khác.
+  const profileUrl =
+    typeof window !== 'undefined' && username
+      ? `${window.location.origin}/u/${encodeURIComponent(username)}`
+      : undefined;
+  const displayName = profile?.displayName || profile?.username || '';
 
   return (
     <div className="min-h-screen bg-surface transition-colors duration-300">
@@ -90,31 +99,63 @@ export default function PublicUserProfilePage() {
                           <Eye className="w-4 h-4" />
                           <b className="text-on-surface">{profile.totalViews.toLocaleString('vi-VN')}</b> lượt xem
                         </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <Users className="w-4 h-4" />
-                          <b className="text-on-surface">{profile.authorFollowerCount.toLocaleString('vi-VN')}</b> followers
-                        </span>
+                        {isMe ? (
+                          <Link
+                            href="/author/followers"
+                            className="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
+                          >
+                            <Users className="w-4 h-4" />
+                            <b className="text-on-surface">{profile.authorFollowerCount.toLocaleString('vi-VN')}</b> followers
+                          </Link>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Users className="w-4 h-4" />
+                            <b className="text-on-surface">{profile.authorFollowerCount.toLocaleString('vi-VN')}</b> followers
+                          </span>
+                        )}
                       </div>
                     </div>
 
                     {/* CTA cluster */}
-                    {!isMe && (
-                      <div className="flex gap-2 md:flex-col md:items-stretch md:w-44 flex-shrink-0">
-                        <FollowAuthorButton
-                          authorId={profile.id}
-                          initialFollowing={profile.isFollowing}
-                          className="flex-1 md:flex-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setDonateOpen(true)}
-                          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors flex-1 md:flex-none bg-surface-variant hover:bg-surface-container-high text-on-surface"
-                        >
-                          <HeartHandshake className="w-4 h-4" />
-                          Donate xu
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex gap-2 md:flex-col md:items-stretch md:w-44 flex-shrink-0">
+                      {isMe ? (
+                        <>
+                          <Link
+                            href="/profile"
+                            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors flex-1 md:flex-none bg-primary hover:bg-primary/90 text-on-primary"
+                          >
+                            <Pencil className="w-4 h-4" />
+                            Chỉnh sửa hồ sơ
+                          </Link>
+                          <ShareProfileMenu
+                            url={profileUrl}
+                            title={displayName}
+                            className="flex-1 md:flex-none"
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <FollowAuthorButton
+                            authorId={profile.id}
+                            initialFollowing={profile.isFollowing}
+                            className="flex-1 md:flex-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setDonateOpen(true)}
+                            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors flex-1 md:flex-none bg-surface-variant hover:bg-surface-container-high text-on-surface"
+                          >
+                            <HeartHandshake className="w-4 h-4" />
+                            Donate xu
+                          </button>
+                          <ShareProfileMenu
+                            url={profileUrl}
+                            title={displayName}
+                            className="flex-1 md:flex-none"
+                          />
+                        </>
+                      )}
+                    </div>
                   </div>
                 </section>
 
