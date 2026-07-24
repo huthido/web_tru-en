@@ -8,6 +8,7 @@ import { artService, ArtPost } from '../art.service';
 
 export const artKeys = {
   feed: ['art', 'feed'] as const,
+  userFeed: (userId: string) => ['art', 'feed', 'user', userId] as const,
   stories: ['art', 'stories'] as const,
   comments: (postId: string) => ['art', 'comments', postId] as const,
 };
@@ -18,6 +19,21 @@ export function useArtFeed() {
     queryFn: ({ pageParam }) => artService.getFeed(pageParam as string | undefined),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last?.hasMore ? last.nextCursor : undefined,
+  });
+}
+
+/**
+ * Ảnh nghệ thuật của riêng một người — tab "Ảnh nghệ thuật" ở trang cá nhân.
+ * Query key tách khỏi feed chung để không đụng cache của trang chủ.
+ */
+export function useUserArtPosts(userId: string | undefined) {
+  return useInfiniteQuery({
+    queryKey: artKeys.userFeed(userId ?? ''),
+    queryFn: ({ pageParam }) =>
+      artService.getFeed(pageParam as string | undefined, 20, userId),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => (last?.hasMore ? last.nextCursor : undefined),
+    enabled: !!userId,
   });
 }
 

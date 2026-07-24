@@ -38,9 +38,10 @@ export class ArtController {
   async getFeed(
     @Query('cursor') cursor?: string,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number,
+    @Query('userId') userId?: string,
     @CurrentUser() user?: any,
   ) {
-    return this.artService.getFeed(cursor, limit, user?.id);
+    return this.artService.getFeed(cursor, limit, user?.id, userId);
   }
 
   @Post('posts')

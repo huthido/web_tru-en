@@ -32,11 +32,17 @@ export class ArtService {
 
   // ── Posts ─────────────────────────────────────────────────────────────────
 
-  async getFeed(cursor?: string, limit = 20, currentUserId?: string) {
+  /**
+   * Feed ảnh nghệ thuật. `userId` (tuỳ chọn) giới hạn về bài của đúng một
+   * người — dùng cho tab "Ảnh nghệ thuật" ở trang cá nhân /u/[username].
+   * Khác `currentUserId` (người đang xem, chỉ dùng để tính likedByMe).
+   */
+  async getFeed(cursor?: string, limit = 20, currentUserId?: string, userId?: string) {
     const take = Math.min(limit, 50);
     const posts = await this.prisma.artPost.findMany({
       take: take + 1,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      ...(userId ? { where: { userId } } : {}),
       orderBy: { createdAt: 'desc' },
       select: {
         ...POST_SELECT,

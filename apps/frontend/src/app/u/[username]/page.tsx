@@ -13,10 +13,21 @@ import { DonateAuthorModal } from '@/components/stories/donate-author-modal';
 import { FollowAuthorButton } from '@/components/users/follow-author-button';
 import { ShareProfileMenu } from '@/components/users/share-profile-menu';
 import { VerifiedBadge } from '@/components/users/verified-badge';
+import { ProfilePaintingsGrid } from '@/components/users/profile-paintings-grid';
+import { ProfileArtGrid } from '@/components/users/profile-art-grid';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useAuthorProfile, useAuthorStories } from '@/lib/api/hooks/use-authors';
 import { usePageLimit } from '@/hooks/use-page-limit';
-import { HeartHandshake, Eye, Users, BookOpen, UserCircle2, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
+import { HeartHandshake, Eye, Users, BookOpen, UserCircle2, ChevronLeft, ChevronRight, Pencil, Image as ImageIcon, Palette } from 'lucide-react';
+
+/** Các loại tác phẩm hiển thị ở trang cá nhân. */
+type WorkTab = 'stories' | 'paintings' | 'art';
+
+const WORK_TABS: { key: WorkTab; label: string; icon: typeof BookOpen }[] = [
+  { key: 'stories', label: 'Truyện', icon: BookOpen },
+  { key: 'paintings', label: 'Tranh', icon: Palette },
+  { key: 'art', label: 'Ảnh nghệ thuật', icon: ImageIcon },
+];
 
 /**
  * Trang cá nhân kiểu MXH /u/[username]
@@ -36,6 +47,7 @@ export default function PublicUserProfilePage() {
   const [page, setPage] = useState(1);
   const { data: storiesPage, isLoading: storiesLoading } = useAuthorStories(profile?.id, page, limit);
   const [donateOpen, setDonateOpen] = useState(false);
+  const [tab, setTab] = useState<WorkTab>('stories');
 
   const totalPages = storiesPage?.meta?.totalPages || 1;
 
@@ -159,59 +171,106 @@ export default function PublicUserProfilePage() {
                   </div>
                 </section>
 
-                {/* Tab Tác phẩm */}
+                {/* Tác phẩm đã đăng — tách theo loại nội dung (truyện / tranh / ảnh) */}
                 <section>
                   <h2 className="font-display text-lg md:text-xl font-bold text-on-surface mb-4">
                     Tác phẩm đã đăng
                   </h2>
-                  {storiesLoading ? (
-                    <div className="py-10"><Loading /></div>
-                  ) : !storiesPage?.data.length ? (
-                    <div className="text-center py-10 text-on-surface-variant">
-                      Tác giả chưa đăng truyện nào.
-                    </div>
-                  ) : (
-                    <>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
-                        {storiesPage.data.map((s) => (
-                          <BookCard
-                            key={s.id}
-                            id={s.id}
-                            slug={s.slug}
-                            title={s.title}
-                            viewCount={s.viewCount}
-                            rating={s.rating}
-                            ratingCount={s.ratingCount}
-                            coverImage={s.coverImage}
-                          />
-                        ))}
-                      </div>
 
-                      {/* Phân trang */}
-                      {totalPages > 1 && (
-                        <div className="flex items-center justify-center gap-2 mt-8">
-                          <button
-                            onClick={() => setPage((p) => Math.max(1, p - 1))}
-                            disabled={page === 1}
-                            className="p-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
-                            aria-label="Trang trước"
-                          >
-                            <ChevronLeft className="w-5 h-5" />
-                          </button>
-                          <span className="px-4 py-2 text-sm text-on-surface-variant">
-                            Trang <b className="text-on-surface">{page}</b> / {totalPages}
-                          </span>
-                          <button
-                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                            disabled={page >= totalPages}
-                            className="p-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
-                            aria-label="Trang sau"
-                          >
-                            <ChevronRight className="w-5 h-5" />
-                          </button>
+                  {/* Tabs loại tác phẩm */}
+                  <div className="flex flex-wrap gap-2 mb-5 border-b border-outline-variant pb-3">
+                    {WORK_TABS.map((t) => {
+                      const Icon = t.icon;
+                      const active = tab === t.key;
+                      return (
+                        <button
+                          key={t.key}
+                          type="button"
+                          onClick={() => setTab(t.key)}
+                          className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors ${active
+                            ? 'bg-primary text-on-primary'
+                            : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
+                            }`}
+                        >
+                          <Icon className="w-4 h-4" />
+                          {t.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Truyện */}
+                  {tab === 'stories' && (
+                    storiesLoading ? (
+                      <div className="py-10"><Loading /></div>
+                    ) : !storiesPage?.data.length ? (
+                      <div className="py-16 flex flex-col items-center gap-2 text-on-surface-variant">
+                        <span className="text-5xl">📖</span>
+                        <p className="text-base font-medium">
+                          {isMe ? 'Bạn chưa đăng truyện nào.' : 'Tác giả chưa đăng truyện nào.'}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
+                          {storiesPage.data.map((s) => (
+                            <BookCard
+                              key={s.id}
+                              id={s.id}
+                              slug={s.slug}
+                              title={s.title}
+                              viewCount={s.viewCount}
+                              rating={s.rating}
+                              ratingCount={s.ratingCount}
+                              coverImage={s.coverImage}
+                            />
+                          ))}
                         </div>
-                      )}
-                    </>
+
+                        {/* Phân trang */}
+                        {totalPages > 1 && (
+                          <div className="flex items-center justify-center gap-2 mt-8">
+                            <button
+                              onClick={() => setPage((p) => Math.max(1, p - 1))}
+                              disabled={page === 1}
+                              className="p-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
+                              aria-label="Trang trước"
+                            >
+                              <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <span className="px-4 py-2 text-sm text-on-surface-variant">
+                              Trang <b className="text-on-surface">{page}</b> / {totalPages}
+                            </span>
+                            <button
+                              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                              disabled={page >= totalPages}
+                              className="p-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container-high transition-colors"
+                              aria-label="Trang sau"
+                            >
+                              <ChevronRight className="w-5 h-5" />
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )
+                  )}
+
+                  {/* Tranh — gian hàng tranh của tác giả */}
+                  {tab === 'paintings' && (
+                    <ProfilePaintingsGrid
+                      authorId={profile.id}
+                      currentUserId={me?.id}
+                      isMe={isMe}
+                    />
+                  )}
+
+                  {/* Ảnh nghệ thuật — bài đăng ở Cộng đồng nghệ thuật */}
+                  {tab === 'art' && (
+                    <ProfileArtGrid
+                      userId={profile.id}
+                      currentUserId={me?.id}
+                      isMe={isMe}
+                    />
                   )}
                 </section>
 

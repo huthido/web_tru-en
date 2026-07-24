@@ -50,8 +50,11 @@ export interface CommentsResponse {
 }
 
 export const artService = {
-  getFeed: async (cursor?: string, limit = 20): Promise<FeedResponse> => {
-    const r = await apiClient.get<FeedResponse>('/art/posts', { params: { cursor, limit } });
+  /** `userId` (tuỳ chọn) chỉ lấy bài của một người — dùng cho trang cá nhân. */
+  getFeed: async (cursor?: string, limit = 20, userId?: string): Promise<FeedResponse> => {
+    const r = await apiClient.get<FeedResponse>('/art/posts', {
+      params: { cursor, limit, ...(userId ? { userId } : {}) },
+    });
     return r.data as unknown as FeedResponse;
   },
 
