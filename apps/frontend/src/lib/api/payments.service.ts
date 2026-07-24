@@ -148,10 +148,14 @@ export const PaymentsService = {
         return Array.isArray(data) ? data : [];
     },
 
-    /** Xác nhận (cộng xu) hoặc từ chối một yêu cầu chuyển khoản thủ công (admin). */
+    /**
+     * Xử lý một yêu cầu chuyển khoản thủ công (admin).
+     * CONFIRM = cộng xu · REJECT = huỷ đơn đang chờ · REVERT = thu hồi đơn đã
+     * xác nhận nhầm (trừ lại xu).
+     */
     adminProcessManualPayment: async (
         id: string,
-        action: 'CONFIRM' | 'REJECT',
+        action: 'CONFIRM' | 'REJECT' | 'REVERT',
         note?: string,
     ): Promise<AdminManualPayment> => {
         const response = await apiClient.patch<AdminManualPayment>(

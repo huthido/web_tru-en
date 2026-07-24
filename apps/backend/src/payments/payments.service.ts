@@ -554,6 +554,65 @@ export class PaymentsService {
     return updated;
   }
 
+  /**
+   * Admin thu hồi một đơn chuyển khoản ĐÃ xác nhận nhầm (thực tế không nhận
+   * được tiền). Trừ lại xu đã cộng — tối đa phần xu nạp còn lại, không bao giờ
+   * âm; nếu user đã tiêu hết thì nền tảng chịu phần chênh (không truy thu
+   * earnedBalance của họ). Chuyển trạng thái REFUNDED + báo user.
+   */
+  async revertManualPayment(adminId: string, paymentId: string, reason?: string) {
+    const payment = await this.prisma.payment.findUnique({ where: { id: paymentId } });
+    if (!payment) throw new NotFoundException('Không tìm thấy giao dịch');
+    if (payment.provider !== PaymentProvider.MANUAL) {
+      throw new BadRequestException('Giao dịch này không phải chuyển khoản thủ công');
+    }
+    if (payment.status === PaymentStatus.REFUNDED) {
+      throw new BadRequestException('Giao dịch đã được thu hồi trước đó');
+    }
+    if (payment.status !== PaymentStatus.COMPLETED) {
+      throw new BadRequestException(
+        `Chỉ thu hồi được giao dịch đã xác nhận (hiện: ${payment.status})`,
+      );
+    }
+    const trimmed = (reason || '').trim().slice(0, 500);
+
+    const admin = await this.prisma.user.findUnique({
+      where: { id: adminId },
+      select: { username: true, displayName: true },
+    });
+    const adminLabel = admin?.displayName || admin?.username || 'admin';
+
+    await this.clawbackPaymentRow(
+      payment,
+      `Admin ${adminLabel} thu hồi xác nhận nhầm${trimmed ? ' — ' + trimmed : ''}`,
+    );
+
+    const updated = await this.prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        providerData: {
+          ...((payment.providerData as any) || {}),
+          revertedBy: adminId,
+          revertedByLabel: adminLabel,
+          revertedAt: new Date().toISOString(),
+          revertReason: trimmed || null,
+        } as any,
+      },
+    });
+
+    this.notifications
+      .notifyUser(payment.userId, {
+        title: 'Giao dịch nạp xu bị thu hồi',
+        content: `Giao dịch ${payment.txnRef} (${payment.coinAmount.toLocaleString('vi-VN')} xu) đã bị thu hồi do xác nhận nhầm.${trimmed ? ' Lý do: ' + trimmed : ''} Nếu bạn đã chuyển tiền thật, vui lòng liên hệ hỗ trợ.`,
+        type: NotificationType.WARNING,
+        actionUrl: '/wallet',
+      })
+      .catch((e) => this.logger.warn(`notify revert manual failed: ${e?.message}`));
+
+    this.logger.log(`Manual payment ${payment.id} reverted by ${adminLabel}`);
+    return updated;
+  }
+
   // ─── Apple IAP / Google Play redeem flow ──────────────────────────────
   // Mobile clients (iOS / Android) complete a purchase with the local store
   // SDK, then POST the resulting receipt to us. We verify with Apple/Google,
@@ -956,6 +1015,18 @@ export class PaymentsService {
       this.logger.warn(`Clawback: no Payment found for ${opts.provider} txn=${opts.providerTxn}`);
       return;
     }
+    await this.clawbackPaymentRow(payment, opts.reason);
+  }
+
+  /**
+   * Lõi clawback, tách riêng để dùng chung cho cả webhook refund (Apple/Google
+   * tra theo providerTxn) lẫn admin thu hồi đơn chuyển khoản xác nhận nhầm
+   * (tra thẳng theo id — MANUAL không có providerTxn duy nhất).
+   */
+  private async clawbackPaymentRow(
+    payment: { id: string; userId: string; coinAmount: number; status: PaymentStatus },
+    reason: string,
+  ) {
     if (payment.status === PaymentStatus.REFUNDED) {
       this.logger.log(`Clawback: payment ${payment.id} already REFUNDED — skip`);
       return;
@@ -990,7 +1061,7 @@ export class PaymentsService {
               walletId: wallet.id,
               amount: -debit,
               type: TransactionType.REFUND,
-              description: `${opts.reason} (Payment ${payment.id})`,
+              description: `${reason} (Payment ${payment.id})`,
               referenceId: payment.id,
             },
           });
@@ -1006,6 +1077,6 @@ export class PaymentsService {
         data: { status: PaymentStatus.REFUNDED },
       });
     });
-    this.logger.log(`Clawback done: payment ${payment.id} (${opts.reason})`);
+    this.logger.log(`Clawback done: payment ${payment.id} (${reason})`);
   }
 }

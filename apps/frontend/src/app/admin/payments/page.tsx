@@ -4,11 +4,17 @@ import { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { Loading } from '@/components/ui/loading';
 import { useAdminManualPayments, useProcessManualPayment } from '@/lib/api/hooks/use-payments';
+import {
+    ManualPaymentActionModal,
+    type ManualPaymentAction,
+} from '@/components/admin/manual-payment-action-modal';
+import type { AdminManualPayment } from '@/lib/api/payments.service';
 
 const STATUS_TABS: { key: string; label: string }[] = [
     { key: 'PENDING', label: 'Chờ xác nhận' },
     { key: 'COMPLETED', label: 'Đã cộng xu' },
     { key: 'CANCELLED', label: 'Đã huỷ' },
+    { key: 'REFUNDED', label: 'Đã thu hồi' },
     { key: 'ALL', label: 'Tất cả' },
 ];
 
@@ -39,21 +45,18 @@ export default function AdminManualPaymentsPage() {
     );
     const process = useProcessManualPayment();
     const [busyId, setBusyId] = useState<string | null>(null);
+    // Đơn + hành động đang được xác nhận trong modal (null = không mở modal).
+    const [pendingAction, setPendingAction] = useState<
+        { payment: AdminManualPayment; action: ManualPaymentAction } | null
+    >(null);
 
-    const act = async (id: string, action: 'CONFIRM' | 'REJECT') => {
-        let note: string | undefined;
-        if (action === 'REJECT') {
-            const input = window.prompt('Lý do từ chối (gửi tới người dùng):', '');
-            if (input === null) return;
-            note = input;
-        } else if (
-            !window.confirm('Xác nhận ĐÃ NHẬN được tiền chuyển khoản? Xu sẽ được cộng ngay cho người dùng.')
-        ) {
-            return;
-        }
-        setBusyId(id);
+    const runAction = async (note?: string) => {
+        if (!pendingAction) return;
+        const { payment, action } = pendingAction;
+        setBusyId(payment.id);
         try {
-            await process.mutateAsync({ id, action, note });
+            await process.mutateAsync({ id: payment.id, action, note });
+            setPendingAction(null);
         } catch (e: any) {
             alert(e?.response?.data?.error || e?.response?.data?.message || 'Lỗi xử lý');
         } finally {
@@ -142,7 +145,9 @@ export default function AdminManualPaymentsPage() {
                                 </tr>
                             ) : (
                                 rows.map((p) => {
-                                    const reason = p.providerData?.reason as string | undefined;
+                                    // Lý do huỷ (REJECT) hoặc lý do thu hồi (REVERT).
+                                    const reason = (p.providerData?.reason ??
+                                        p.providerData?.revertReason) as string | undefined;
                                     // User đã bấm "Tôi đã chuyển khoản" → cần đối soát gấp.
                                     const claimedAt = p.providerData?.userClaimedPaidAt as string | undefined;
                                     const claimCount = Number(p.providerData?.userClaimCount) || 0;
@@ -203,20 +208,35 @@ export default function AdminManualPaymentsPage() {
                                                 {p.status === 'PENDING' ? (
                                                     <div className="flex gap-2">
                                                         <button
-                                                            onClick={() => act(p.id, 'CONFIRM')}
+                                                            onClick={() =>
+                                                                setPendingAction({ payment: p, action: 'CONFIRM' })
+                                                            }
                                                             disabled={busyId === p.id}
                                                             className="px-3 py-1.5 text-xs bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
                                                         >
                                                             Xác nhận
                                                         </button>
                                                         <button
-                                                            onClick={() => act(p.id, 'REJECT')}
+                                                            onClick={() =>
+                                                                setPendingAction({ payment: p, action: 'REJECT' })
+                                                            }
                                                             disabled={busyId === p.id}
                                                             className="px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 text-white rounded disabled:opacity-50"
                                                         >
                                                             Từ chối
                                                         </button>
                                                     </div>
+                                                ) : p.status === 'COMPLETED' ? (
+                                                    <button
+                                                        onClick={() =>
+                                                            setPendingAction({ payment: p, action: 'REVERT' })
+                                                        }
+                                                        disabled={busyId === p.id}
+                                                        className="px-3 py-1.5 text-xs border border-red-500 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded disabled:opacity-50"
+                                                        title="Thu hồi nếu lỡ xác nhận nhầm"
+                                                    >
+                                                        Thu hồi
+                                                    </button>
                                                 ) : (
                                                     <span className="text-xs text-on-surface-variant">Đã xử lý</span>
                                                 )}
@@ -228,6 +248,16 @@ export default function AdminManualPaymentsPage() {
                         </tbody>
                     </table>
                 </div>
+            )}
+
+            {pendingAction && (
+                <ManualPaymentActionModal
+                    payment={pendingAction.payment}
+                    action={pendingAction.action}
+                    busy={busyId === pendingAction.payment.id}
+                    onClose={() => setPendingAction(null)}
+                    onSubmit={runAction}
+                />
             )}
         </div>
     );

@@ -88,8 +88,15 @@ export function useAdminManualPayments(status?: string, search?: string) {
 export function useProcessManualPayment() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, action, note }: { id: string; action: 'CONFIRM' | 'REJECT'; note?: string }) =>
-            PaymentsService.adminProcessManualPayment(id, action, note),
+        mutationFn: ({
+            id,
+            action,
+            note,
+        }: {
+            id: string;
+            action: 'CONFIRM' | 'REJECT' | 'REVERT';
+            note?: string;
+        }) => PaymentsService.adminProcessManualPayment(id, action, note),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['admin', 'manual-payments'] });
         },

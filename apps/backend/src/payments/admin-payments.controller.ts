@@ -42,22 +42,28 @@ export class AdminPaymentsController {
 
   /**
    * PATCH /api/admin/payments/manual/:id
-   * body: { action: 'CONFIRM' | 'REJECT', note?: string }
-   * CONFIRM = kích hoạt bằng tay (cộng xu). REJECT = hủy yêu cầu.
+   * body: { action: 'CONFIRM' | 'REJECT' | 'REVERT', note?: string }
+   * CONFIRM = kích hoạt bằng tay (cộng xu). REJECT = huỷ yêu cầu đang chờ.
+   * REVERT  = thu hồi đơn ĐÃ xác nhận nhầm (trừ lại xu, chuyển REFUNDED).
    */
   @Patch('manual/:id')
   async process(
     @Request() req: any,
     @Param('id') id: string,
-    @Body() body: { action: 'CONFIRM' | 'REJECT'; note?: string },
+    @Body() body: { action: 'CONFIRM' | 'REJECT' | 'REVERT'; note?: string },
   ) {
-    if (body.action !== 'CONFIRM' && body.action !== 'REJECT') {
-      throw new BadRequestException('action phải là CONFIRM hoặc REJECT');
+    const ACTIONS = ['CONFIRM', 'REJECT', 'REVERT'];
+    if (!ACTIONS.includes(body.action)) {
+      throw new BadRequestException('action phải là CONFIRM, REJECT hoặc REVERT');
     }
-    const data =
-      body.action === 'CONFIRM'
-        ? await this.payments.confirmManualPayment(req.user.id, id)
-        : await this.payments.rejectManualPayment(req.user.id, id, body.note);
+    let data;
+    if (body.action === 'CONFIRM') {
+      data = await this.payments.confirmManualPayment(req.user.id, id);
+    } else if (body.action === 'REJECT') {
+      data = await this.payments.rejectManualPayment(req.user.id, id, body.note);
+    } else {
+      data = await this.payments.revertManualPayment(req.user.id, id, body.note);
+    }
     return { success: true, data };
   }
 }
