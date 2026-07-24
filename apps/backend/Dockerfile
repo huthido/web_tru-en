@@ -49,12 +49,16 @@ COPY apps/backend ./apps/backend
 
 # Cap V8 heap during the TypeScript build. Without this, Node auto-sizes its
 # heap from the HOST's RAM (not the build container's cgroup limit), so on a
-# constrained Coolify VPS `tsc` (nest build) balloons past the available memory
-# and the OOM killer kills it ("Killed", out of memory). 1536MB comfortably fits
-# this backend's build (tsc peaks ~1GB) while staying lean enough for a ~2GB box.
-# Raise via `--build-arg NODE_BUILD_MEMORY=2048` if tsc ever reports "JavaScript
-# heap out of memory"; lower it if the build box is smaller.
-ARG NODE_BUILD_MEMORY=1536
+# constrained Coolify VPS `tsc` (nest build) balloons and the OOM killer kills
+# it ("Killed"). This backend's tsc genuinely needs >1.5GB (Prisma's generated
+# client types are huge, and skipLibCheck can't skip type *instantiation* of
+# types the app actually uses), so 2048MB is the floor that lets it finish.
+# NOTE: the compose build runs this AND the frontend `next build` in PARALLEL,
+# so the box needs headroom for both. The deploy relies on VPS swap to absorb
+# physical-RAM overflow from the two parallel builds; this cap only bounds V8's
+# self-limit (swap can't help a V8 limit) — set generously so tsc never hits it,
+# and let swap catch any overflow. Tune via the build-arg.
+ARG NODE_BUILD_MEMORY=3072
 ENV NODE_OPTIONS="--max-old-space-size=${NODE_BUILD_MEMORY}"
 
 # Generate Prisma client + compile NestJS
