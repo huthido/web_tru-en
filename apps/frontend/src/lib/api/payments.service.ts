@@ -27,6 +27,8 @@ export interface MyPayment {
     providerTxn: string | null;
     paidAt: string | null;
     createdAt: string;
+    /** Metadata thô: chứa userClaimedPaidAt/userClaimCount khi user báo đã CK. */
+    providerData?: any;
     package?: { name: string; coinAmount: number } | null;
 }
 
@@ -112,6 +114,18 @@ export const PaymentsService = {
     /** Lấy trạng thái một giao dịch (để poll xem admin đã xác nhận chưa). */
     getPayment: async (id: string): Promise<MyPayment> => {
         const response = await apiClient.get<MyPayment>(`/payments/${id}`);
+        return unwrap<MyPayment>(response.data);
+    },
+
+    /**
+     * Báo "tôi đã chuyển khoản" — không cộng xu, chỉ đánh dấu để admin đối
+     * soát lại khi họ sót thông báo biến động số dư.
+     */
+    claimManualPaid: async (paymentId: string): Promise<MyPayment> => {
+        const response = await apiClient.post<MyPayment>(
+            `/payments/manual/${paymentId}/claim`,
+            {},
+        );
         return unwrap<MyPayment>(response.data);
     },
 

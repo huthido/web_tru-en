@@ -176,6 +176,17 @@ export class PaymentsController {
     return { success: true, data };
   }
 
+  /**
+   * User bấm "Tôi đã chuyển khoản" — không cộng xu, chỉ đánh dấu + báo admin
+   * đối soát lại (phòng khi admin sót SMS biến động số dư).
+   *   POST /api/payments/manual/:id/claim
+   */
+  @Post('manual/:id/claim')
+  async claimManualPaid(@Param('id') id: string, @CurrentUser() user: any) {
+    const data = await this.payments.claimManualPaymentPaid(user.id, id);
+    return { success: true, data };
+  }
+
   @Get('me')
   async listMine(@CurrentUser() user: any) {
     const data = await this.payments.listMyPayments(user.id);

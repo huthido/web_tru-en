@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
-import { Copy, Check, X, Loader2, CheckCircle2, XCircle, Landmark } from 'lucide-react';
-import { usePaymentStatus } from '@/lib/api/hooks/use-payments';
+import { Copy, Check, X, Loader2, CheckCircle2, XCircle, Landmark, BellRing } from 'lucide-react';
+import { usePaymentStatus, useClaimManualPaid } from '@/lib/api/hooks/use-payments';
 import type { ManualPaymentInstructions } from '@/lib/api/payments.service';
 
 interface Props {
@@ -52,6 +52,24 @@ export function ManualPaymentModal({ data, onClose, onCompleted }: Props) {
     const status = live?.status ?? data.status;
     const isDone = status === 'COMPLETED';
     const isRejected = status === 'CANCELLED' || status === 'FAILED';
+
+    // Người dùng đã bấm "Tôi đã chuyển khoản" chưa (đọc từ vòng poll).
+    const claim = useClaimManualPaid();
+    const claimedAt: string | undefined = live?.providerData?.userClaimedPaidAt;
+    const hasClaimed = !!claimedAt;
+
+    const handleClaim = async () => {
+        try {
+            await claim.mutateAsync(data.paymentId);
+            toast.success('Đã báo quản trị viên. Họ sẽ đối soát và cộng xu sớm nhất.');
+        } catch (e: any) {
+            toast.error(
+                e?.response?.data?.error ||
+                e?.response?.data?.message ||
+                'Không gửi được thông báo.',
+            );
+        }
+    };
 
     // Bắn callback đúng một lần khi vừa chuyển sang COMPLETED (để refetch số dư).
     const firedRef = useRef(false);
@@ -163,6 +181,41 @@ export function ManualPaymentModal({ data, onClose, onCompleted }: Props) {
                                 <p className="text-xs text-on-surface-variant whitespace-pre-line">
                                     {data.bank.instructions}
                                 </p>
+                            )}
+
+                            {/* Báo đã chuyển khoản — để admin chủ động đối soát nếu sót
+                                thông báo biến động số dư từ ngân hàng */}
+                            {hasClaimed ? (
+                                <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/40 px-3 py-2.5">
+                                    <p className="text-xs text-green-800 dark:text-green-300 text-center">
+                                        ✓ Đã báo quản trị viên lúc{' '}
+                                        {new Date(claimedAt!).toLocaleString('vi-VN')}. Họ sẽ đối soát và
+                                        cộng xu sớm nhất.
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={handleClaim}
+                                        disabled={claim.isPending}
+                                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-on-primary font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                                    >
+                                        {claim.isPending ? (
+                                            <>
+                                                <Loader2 size={18} className="animate-spin" /> Đang gửi…
+                                            </>
+                                        ) : (
+                                            <>
+                                                <BellRing size={18} /> Tôi đã chuyển khoản
+                                            </>
+                                        )}
+                                    </button>
+                                    <p className="text-[11px] text-center text-on-surface-variant/70 -mt-2">
+                                        Bấm sau khi đã chuyển tiền để quản trị viên kiểm tra lại — phòng khi
+                                        họ sót thông báo từ ngân hàng.
+                                    </p>
+                                </>
                             )}
 
                             {/* Trạng thái chờ */}

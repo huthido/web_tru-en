@@ -5,7 +5,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { VnpayProvider } from './providers/vnpay.provider';
 import { AppleIapProvider } from './providers/apple-iap.provider';
 import { GooglePlayProvider } from './providers/google-play.provider';
-import { PaymentProvider, PaymentStatus, TransactionType, NotificationType } from '@prisma/client';
+import { PaymentProvider, PaymentStatus, TransactionType, NotificationType, UserRole } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
 @Injectable()
@@ -334,6 +334,82 @@ export class PaymentsService {
     return `NAP${Date.now().toString(36).toUpperCase()}`;
   }
 
+  /**
+   * User bấm "Tôi đã chuyển khoản". Không tự cộng xu — chỉ đánh dấu vào
+   * providerData rồi báo cho toàn bộ admin để họ chủ động đối soát lại, phòng
+   * trường hợp sót SMS/thông báo biến động số dư từ ngân hàng.
+   *
+   * Có cooldown 10 phút giữa 2 lần báo để user sốt ruột bấm liên tục không
+   * spam thông báo của admin.
+   */
+  async claimManualPaymentPaid(userId: string, paymentId: string) {
+    const payment = await this.prisma.payment.findFirst({
+      where: { id: paymentId, userId },
+    });
+    if (!payment) throw new NotFoundException('Không tìm thấy giao dịch');
+    if (payment.provider !== PaymentProvider.MANUAL) {
+      throw new BadRequestException('Giao dịch này không phải chuyển khoản thủ công');
+    }
+    if (payment.status === PaymentStatus.COMPLETED) {
+      throw new BadRequestException('Giao dịch đã được xác nhận, xu đã vào ví của bạn.');
+    }
+    if (payment.status !== PaymentStatus.PENDING) {
+      throw new BadRequestException(`Giao dịch không còn chờ xử lý (hiện: ${payment.status})`);
+    }
+
+    const prev = (payment.providerData as any) || {};
+    const lastAt = prev.userClaimedPaidAt ? new Date(prev.userClaimedPaidAt).getTime() : 0;
+    const COOLDOWN_MS = 10 * 60 * 1000;
+    if (lastAt && Date.now() - lastAt < COOLDOWN_MS) {
+      const waitMin = Math.ceil((COOLDOWN_MS - (Date.now() - lastAt)) / 60000);
+      throw new BadRequestException(
+        `Bạn vừa báo rồi — admin đang kiểm tra. Vui lòng đợi thêm ${waitMin} phút trước khi báo lại.`,
+      );
+    }
+
+    const now = new Date();
+    const claimCount = (Number(prev.userClaimCount) || 0) + 1;
+    const updated = await this.prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        providerData: {
+          ...prev,
+          userClaimedPaidAt: now.toISOString(),
+          userClaimCount: claimCount,
+        } as any,
+      },
+    });
+
+    // Báo cho tất cả admin. Số admin rất ít nên notify từng người là đủ và
+    // dùng lại đường notifyUser (đã có SSE + push) thay vì broadcast theo role.
+    const [user, admins] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { username: true, displayName: true },
+      }),
+      this.prisma.user.findMany({
+        where: { role: UserRole.ADMIN, isActive: true },
+        select: { id: true },
+      }),
+    ]);
+    const who = user?.displayName || user?.username || 'Người dùng';
+    for (const admin of admins) {
+      this.notifications
+        .notifyUser(admin.id, {
+          title: 'Người dùng báo đã chuyển khoản',
+          content: `${who} báo đã chuyển ${payment.amount.toLocaleString('vi-VN')}₫ cho mã ${payment.txnRef}${claimCount > 1 ? ` (lần ${claimCount})` : ''}. Vui lòng đối soát sao kê và xác nhận.`,
+          type: NotificationType.WARNING,
+          actionUrl: '/admin/payments',
+        })
+        .catch((e) => this.logger.warn(`notify admin claim failed: ${e?.message}`));
+    }
+
+    this.logger.log(
+      `Manual payment ${payment.id} (${payment.txnRef}) claimed paid by user ${userId} — notified ${admins.length} admin(s)`,
+    );
+    return updated;
+  }
+
   // ─── Admin: duyệt thanh toán thủ công ─────────────────────────────────
 
   /**
@@ -399,7 +475,9 @@ export class PaymentsService {
           status: PaymentStatus.COMPLETED,
           paidAt: new Date(),
           providerTxn: `manual-${adminId}`,
+          // Merge để không xoá dấu vết user đã bấm "đã chuyển khoản" (audit).
           providerData: {
+            ...((payment.providerData as any) || {}),
             confirmedBy: adminId,
             confirmedByLabel: adminLabel,
             confirmedAt: new Date().toISOString(),
@@ -454,7 +532,9 @@ export class PaymentsService {
       where: { id: payment.id },
       data: {
         status: PaymentStatus.CANCELLED,
+        // Merge — giữ lại userClaimedPaidAt để về sau còn tra cứu khiếu nại.
         providerData: {
+          ...((payment.providerData as any) || {}),
           rejectedBy: adminId,
           reason: trimmed || null,
           rejectedAt: new Date().toISOString(),

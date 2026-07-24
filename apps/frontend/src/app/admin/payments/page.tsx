@@ -143,8 +143,17 @@ export default function AdminManualPaymentsPage() {
                             ) : (
                                 rows.map((p) => {
                                     const reason = p.providerData?.reason as string | undefined;
+                                    // User đã bấm "Tôi đã chuyển khoản" → cần đối soát gấp.
+                                    const claimedAt = p.providerData?.userClaimedPaidAt as string | undefined;
+                                    const claimCount = Number(p.providerData?.userClaimCount) || 0;
                                     return (
-                                        <tr key={p.id} className="hover:bg-surface-container-high/50">
+                                        <tr
+                                            key={p.id}
+                                            className={`hover:bg-surface-container-high/50 ${claimedAt && p.status === 'PENDING'
+                                                ? 'bg-amber-50/60 dark:bg-amber-900/10'
+                                                : ''
+                                                }`}
+                                        >
                                             <td className="px-4 py-3">
                                                 <div className="font-medium text-on-surface">
                                                     {p.user?.displayName || p.user?.username || '—'}
@@ -163,6 +172,17 @@ export default function AdminManualPaymentsPage() {
                                             </td>
                                             <td className="px-4 py-3">
                                                 <span className="font-mono text-sm text-on-surface">{p.txnRef}</span>
+                                                {claimedAt && p.status === 'PENDING' && (
+                                                    <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                                                        🔔 User báo đã CK
+                                                        {claimCount > 1 && ` (${claimCount}×)`}
+                                                    </div>
+                                                )}
+                                                {claimedAt && (
+                                                    <div className="text-[11px] text-on-surface-variant mt-0.5">
+                                                        {new Date(claimedAt).toLocaleString('vi-VN')}
+                                                    </div>
+                                                )}
                                             </td>
                                             <td className="px-4 py-3">
                                                 <span

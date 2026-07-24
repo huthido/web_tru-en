@@ -61,6 +61,20 @@ export function usePaymentStatus(paymentId: string | null) {
     });
 }
 
+/**
+ * Báo "tôi đã chuyển khoản". Invalidate query trạng thái để modal hiện ngay
+ * trạng thái đã báo mà không phải đợi vòng poll kế tiếp.
+ */
+export function useClaimManualPaid() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (paymentId: string) => PaymentsService.claimManualPaid(paymentId),
+        onSuccess: (_data, paymentId) => {
+            qc.invalidateQueries({ queryKey: ['payments', 'status', paymentId] });
+        },
+    });
+}
+
 /** Danh sách yêu cầu chuyển khoản thủ công cho trang duyệt của admin. */
 export function useAdminManualPayments(status?: string, search?: string) {
     return useQuery({
