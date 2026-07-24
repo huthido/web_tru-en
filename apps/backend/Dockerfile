@@ -47,6 +47,16 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* .npmrc tsconfig.json ./
 COPY packages/shared ./packages/shared
 COPY apps/backend ./apps/backend
 
+# Cap V8 heap during the TypeScript build. Without this, Node auto-sizes its
+# heap from the HOST's RAM (not the build container's cgroup limit), so on a
+# constrained Coolify VPS `tsc` (nest build) balloons past the available memory
+# and the OOM killer kills it ("Killed", out of memory). 1536MB comfortably fits
+# this backend's build (tsc peaks ~1GB) while staying lean enough for a ~2GB box.
+# Raise via `--build-arg NODE_BUILD_MEMORY=2048` if tsc ever reports "JavaScript
+# heap out of memory"; lower it if the build box is smaller.
+ARG NODE_BUILD_MEMORY=1536
+ENV NODE_OPTIONS="--max-old-space-size=${NODE_BUILD_MEMORY}"
+
 # Generate Prisma client + compile NestJS
 WORKDIR /repo/apps/backend
 RUN pnpm prisma generate
