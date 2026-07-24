@@ -148,4 +148,29 @@ export class UpdateSettingsDto {
   @IsArray()
   @IsString({ each: true })
   allowedImageDomains?: string[];
+
+  // --- Thanh toán thủ công (chuyển khoản, admin xác nhận tay) ---
+  @IsOptional()
+  @IsBoolean()
+  manualPaymentEnabled?: boolean;
+
+  @IsOptional()
+  @IsString()
+  manualPaymentBankBin?: string;
+
+  @IsOptional()
+  @IsString()
+  manualPaymentBankName?: string;
+
+  @IsOptional()
+  @IsString()
+  manualPaymentAccountNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  manualPaymentAccountHolder?: string;
+
+  @IsOptional()
+  @IsString()
+  manualPaymentInstructions?: string;
 }

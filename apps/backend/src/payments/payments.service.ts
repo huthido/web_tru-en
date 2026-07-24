@@ -1,10 +1,11 @@
 import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { WalletService } from '../wallet/wallet.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { VnpayProvider } from './providers/vnpay.provider';
 import { AppleIapProvider } from './providers/apple-iap.provider';
 import { GooglePlayProvider } from './providers/google-play.provider';
-import { PaymentProvider, PaymentStatus, TransactionType } from '@prisma/client';
+import { PaymentProvider, PaymentStatus, TransactionType, NotificationType } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class PaymentsService {
   constructor(
     private prisma: PrismaService,
     private wallet: WalletService,
+    private notifications: NotificationsService,
     private vnpay: VnpayProvider,
     private appleIap: AppleIapProvider,
     private googlePlay: GooglePlayProvider,
@@ -201,6 +203,275 @@ export class PaymentsService {
       take: limit,
       include: { package: { select: { name: true, coinAmount: true } } },
     });
+  }
+
+  // ─── Thanh toán thủ công (chuyển khoản ngân hàng, admin xác nhận tay) ──
+  // Kênh nạp offline khi chưa có cổng online: user tạo yêu cầu → nhận STK + ảnh
+  // QR VietQR + mã tham chiếu (nội dung CK) → chuyển khoản → admin đối soát và
+  // "kích hoạt bằng tay" ở trang duyệt. Coin vào purchasedBalance (không rút được),
+  // đi qua cùng đường creditPurchasedExternal như VNPay/Apple/Google.
+
+  /**
+   * Đọc + kiểm tra cấu hình chuyển khoản thủ công từ Settings. Ném lỗi rõ ràng
+   * nếu admin bật tính năng nhưng chưa nhập đủ thông tin ngân hàng.
+   */
+  private async getManualConfigOrThrow() {
+    const s = await this.prisma.settings.findFirst({
+      select: {
+        manualPaymentEnabled: true,
+        manualPaymentBankBin: true,
+        manualPaymentBankName: true,
+        manualPaymentAccountNumber: true,
+        manualPaymentAccountHolder: true,
+        manualPaymentInstructions: true,
+      },
+    });
+    if (!s?.manualPaymentEnabled) {
+      throw new BadRequestException('Thanh toán bằng chuyển khoản đang tắt.');
+    }
+    if (!s.manualPaymentBankBin || !s.manualPaymentAccountNumber || !s.manualPaymentAccountHolder) {
+      throw new BadRequestException(
+        'Kênh chuyển khoản chưa được cấu hình đầy đủ. Vui lòng liên hệ quản trị viên.',
+      );
+    }
+    return s;
+  }
+
+  /**
+   * Dựng URL ảnh QR động theo chuẩn VietQR (img.vietqr.io). Template compact2
+   * hiển thị logo ngân hàng + số tiền + nội dung CK đã điền sẵn — người dùng chỉ
+   * cần quét bằng app ngân hàng và xác nhận.
+   */
+  private buildVietQrUrl(opts: {
+    bankBin: string;
+    accountNumber: string;
+    accountHolder: string;
+    amount: number;
+    addInfo: string;
+  }) {
+    const base = `https://img.vietqr.io/image/${encodeURIComponent(opts.bankBin)}-${encodeURIComponent(opts.accountNumber)}-compact2.png`;
+    const qs = new URLSearchParams({
+      amount: String(opts.amount),
+      addInfo: opts.addInfo,
+      accountName: opts.accountHolder,
+    });
+    return `${base}?${qs.toString()}`;
+  }
+
+  /**
+   * Tạo yêu cầu nạp xu qua chuyển khoản thủ công cho một gói. Trả về hướng dẫn
+   * chuyển khoản (STK, số tiền, mã tham chiếu, ảnh QR). Payment ở trạng thái
+   * PENDING cho tới khi admin xác nhận.
+   */
+  async createManualPayment(opts: { userId: string; packageId: string }) {
+    const cfg = await this.getManualConfigOrThrow();
+
+    const pkg = await this.prisma.coinPackage.findUnique({ where: { id: opts.packageId } });
+    if (!pkg || !pkg.isActive) {
+      throw new NotFoundException('Coin package not found or inactive');
+    }
+
+    // Giới hạn số yêu cầu PENDING treo để tránh spam / rác DB. 5 là đủ; user nên
+    // hoàn tất hoặc đợi admin xử lý trước khi tạo thêm.
+    const pending = await this.prisma.payment.count({
+      where: { userId: opts.userId, provider: PaymentProvider.MANUAL, status: PaymentStatus.PENDING },
+    });
+    if (pending >= 5) {
+      throw new BadRequestException(
+        'Bạn đang có quá nhiều yêu cầu chuyển khoản chờ xác nhận. Vui lòng hoàn tất hoặc đợi admin duyệt.',
+      );
+    }
+
+    // Mã tham chiếu ngắn, dễ gõ vào nội dung CK, đồng thời là txnRef (unique).
+    const reference = await this.generateManualReference();
+
+    const payment = await this.prisma.payment.create({
+      data: {
+        userId: opts.userId,
+        packageId: pkg.id,
+        provider: PaymentProvider.MANUAL,
+        amount: pkg.priceVND,
+        coinAmount: pkg.coinAmount,
+        status: PaymentStatus.PENDING,
+        txnRef: reference,
+      },
+    });
+
+    const qrUrl = this.buildVietQrUrl({
+      bankBin: cfg.manualPaymentBankBin!,
+      accountNumber: cfg.manualPaymentAccountNumber!,
+      accountHolder: cfg.manualPaymentAccountHolder!,
+      amount: pkg.priceVND,
+      addInfo: reference,
+    });
+
+    return {
+      paymentId: payment.id,
+      reference,
+      status: payment.status,
+      amount: pkg.priceVND,
+      coinAmount: pkg.coinAmount,
+      packageName: pkg.name,
+      bank: {
+        bankName: cfg.manualPaymentBankName,
+        bankBin: cfg.manualPaymentBankBin,
+        accountNumber: cfg.manualPaymentAccountNumber,
+        accountHolder: cfg.manualPaymentAccountHolder,
+        instructions: cfg.manualPaymentInstructions || null,
+      },
+      qrUrl,
+    };
+  }
+
+  /** Sinh mã tham chiếu duy nhất dạng NAP + 8 hex, retry nếu đụng unique. */
+  private async generateManualReference(): Promise<string> {
+    for (let i = 0; i < 5; i++) {
+      const ref = `NAP${randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+      const exists = await this.prisma.payment.findUnique({ where: { txnRef: ref } });
+      if (!exists) return ref;
+    }
+    // Cực hiếm — fallback thêm timestamp cho chắc chắn unique.
+    return `NAP${Date.now().toString(36).toUpperCase()}`;
+  }
+
+  // ─── Admin: duyệt thanh toán thủ công ─────────────────────────────────
+
+  /**
+   * Danh sách yêu cầu chuyển khoản thủ công cho trang duyệt của admin.
+   * `search` (tuỳ chọn): đối soát nhanh — khớp mã tham chiếu (txnRef, nội dung
+   * CK) hoặc username/tên/email người nạp. Admin dán mã từ sao kê để tìm đúng
+   * đơn cần duyệt.
+   */
+  async listManualPayments(status?: PaymentStatus, search?: string, limit = 100) {
+    const trimmed = search?.trim();
+    return this.prisma.payment.findMany({
+      where: {
+        provider: PaymentProvider.MANUAL,
+        ...(status ? { status } : {}),
+        ...(trimmed
+          ? {
+              OR: [
+                { txnRef: { contains: trimmed, mode: 'insensitive' } },
+                { user: { username: { contains: trimmed, mode: 'insensitive' } } },
+                { user: { displayName: { contains: trimmed, mode: 'insensitive' } } },
+                { user: { email: { contains: trimmed, mode: 'insensitive' } } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: {
+        package: { select: { name: true, coinAmount: true } },
+        user: { select: { id: true, username: true, displayName: true, email: true } },
+      },
+    });
+  }
+
+  /**
+   * Admin "kích hoạt bằng tay" một yêu cầu chuyển khoản: credit ví (purchased)
+   * + đánh dấu COMPLETED + ghi CoinTransaction + báo user. Idempotent: nếu đã
+   * COMPLETED thì trả về nguyên trạng, không cộng xu lần hai.
+   */
+  async confirmManualPayment(adminId: string, paymentId: string) {
+    const payment = await this.prisma.payment.findUnique({ where: { id: paymentId } });
+    if (!payment) throw new NotFoundException('Không tìm thấy giao dịch');
+    if (payment.provider !== PaymentProvider.MANUAL) {
+      throw new BadRequestException('Giao dịch này không phải chuyển khoản thủ công');
+    }
+    if (payment.status === PaymentStatus.COMPLETED) {
+      return payment; // idempotent — tránh cộng xu hai lần khi bấm trùng
+    }
+    if (payment.status !== PaymentStatus.PENDING) {
+      throw new BadRequestException(`Chỉ xác nhận được giao dịch đang chờ (hiện: ${payment.status})`);
+    }
+
+    const admin = await this.prisma.user.findUnique({
+      where: { id: adminId },
+      select: { username: true, displayName: true },
+    });
+    const adminLabel = admin?.displayName || admin?.username || 'admin';
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const p = await tx.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: PaymentStatus.COMPLETED,
+          paidAt: new Date(),
+          providerTxn: `manual-${adminId}`,
+          providerData: {
+            confirmedBy: adminId,
+            confirmedByLabel: adminLabel,
+            confirmedAt: new Date().toISOString(),
+          } as any,
+        },
+      });
+
+      const wallet = await this.wallet.creditPurchasedExternal(tx, payment.userId, payment.coinAmount);
+      await tx.coinTransaction.create({
+        data: {
+          walletId: wallet.id,
+          amount: payment.coinAmount,
+          type: TransactionType.DEPOSIT,
+          description: `Nạp xu qua chuyển khoản (mã ${payment.txnRef}) — xác nhận bởi ${adminLabel}`,
+          referenceId: payment.id,
+        },
+      });
+      return p;
+    });
+
+    this.notifications
+      .notifyUser(payment.userId, {
+        title: 'Nạp xu thành công',
+        content: `Yêu cầu chuyển khoản ${payment.txnRef} đã được xác nhận. ${payment.coinAmount.toLocaleString('vi-VN')} xu đã được cộng vào ví của bạn.`,
+        type: NotificationType.COIN_DEPOSITED,
+        actionUrl: '/wallet',
+      })
+      .catch((e) => this.logger.warn(`notify confirm manual failed: ${e?.message}`));
+
+    this.logger.log(
+      `Manual payment ${payment.id} confirmed by ${adminLabel} (+${payment.coinAmount} coins to user ${payment.userId})`,
+    );
+    return updated;
+  }
+
+  /**
+   * Admin từ chối một yêu cầu chuyển khoản (không nhận được tiền / sai nội dung).
+   * Đánh dấu CANCELLED + lưu lý do + báo user. Không đụng tới ví.
+   */
+  async rejectManualPayment(adminId: string, paymentId: string, reason?: string) {
+    const payment = await this.prisma.payment.findUnique({ where: { id: paymentId } });
+    if (!payment) throw new NotFoundException('Không tìm thấy giao dịch');
+    if (payment.provider !== PaymentProvider.MANUAL) {
+      throw new BadRequestException('Giao dịch này không phải chuyển khoản thủ công');
+    }
+    if (payment.status !== PaymentStatus.PENDING) {
+      throw new BadRequestException(`Chỉ từ chối được giao dịch đang chờ (hiện: ${payment.status})`);
+    }
+    const trimmed = (reason || '').trim().slice(0, 500);
+
+    const updated = await this.prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: PaymentStatus.CANCELLED,
+        providerData: {
+          rejectedBy: adminId,
+          reason: trimmed || null,
+          rejectedAt: new Date().toISOString(),
+        } as any,
+      },
+    });
+
+    this.notifications
+      .notifyUser(payment.userId, {
+        title: 'Yêu cầu nạp xu bị từ chối',
+        content: `Yêu cầu chuyển khoản ${payment.txnRef} đã bị từ chối.${trimmed ? ' Lý do: ' + trimmed : ''} Nếu bạn đã chuyển khoản, vui lòng liên hệ hỗ trợ.`,
+        type: NotificationType.WARNING,
+        actionUrl: '/wallet',
+      })
+      .catch((e) => this.logger.warn(`notify reject manual failed: ${e?.message}`));
+
+    return updated;
   }
 
   // ─── Apple IAP / Google Play redeem flow ──────────────────────────────

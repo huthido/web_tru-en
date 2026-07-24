@@ -161,6 +161,21 @@ export class PaymentsController {
     return { success: true, data };
   }
 
+  /**
+   * Tạo yêu cầu nạp xu qua chuyển khoản thủ công cho một gói. Trả về hướng dẫn
+   * chuyển khoản (STK, số tiền, mã tham chiếu, ảnh QR VietQR). Giao dịch chờ
+   * admin xác nhận (kích hoạt bằng tay).
+   *   POST /api/payments/manual/coin-packages/:packageId
+   */
+  @Post('manual/coin-packages/:packageId')
+  async createManualPayment(
+    @Param('packageId') packageId: string,
+    @CurrentUser() user: any,
+  ) {
+    const data = await this.payments.createManualPayment({ userId: user.id, packageId });
+    return { success: true, data };
+  }
+
   @Get('me')
   async listMine(@CurrentUser() user: any) {
     const data = await this.payments.listMyPayments(user.id);

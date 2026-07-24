@@ -20,6 +20,36 @@ const BUILTIN_DOMAINS = [
     'i.pinimg.com',
 ];
 
+// Ngân hàng VN + mã BIN chuẩn VietQR (dùng cho img.vietqr.io). Danh sách phổ
+// biến; admin chọn để tự điền BIN + tên hiển thị.
+const VN_BANKS: { bin: string; name: string }[] = [
+    { bin: '970436', name: 'Vietcombank (VCB)' },
+    { bin: '970407', name: 'Techcombank (TCB)' },
+    { bin: '970418', name: 'BIDV' },
+    { bin: '970415', name: 'VietinBank (CTG)' },
+    { bin: '970405', name: 'Agribank' },
+    { bin: '970422', name: 'MB Bank (MB)' },
+    { bin: '970416', name: 'ACB' },
+    { bin: '970432', name: 'VPBank' },
+    { bin: '970423', name: 'TPBank' },
+    { bin: '970403', name: 'Sacombank (STB)' },
+    { bin: '970426', name: 'MSB' },
+    { bin: '970443', name: 'SHB' },
+    { bin: '970441', name: 'VIB' },
+    { bin: '970437', name: 'HDBank' },
+    { bin: '970448', name: 'OCB' },
+    { bin: '970440', name: 'SeABank' },
+    { bin: '970431', name: 'Eximbank' },
+    { bin: '970428', name: 'Nam A Bank' },
+    { bin: '970409', name: 'Bac A Bank' },
+    { bin: '970454', name: 'BVBank (Ban Viet)' },
+    { bin: '970429', name: 'SCB' },
+    { bin: '970438', name: 'BaoViet Bank' },
+    { bin: '970406', name: 'DongA Bank' },
+    { bin: '970414', name: 'Ocean Bank' },
+    { bin: '546034', name: 'Cake by VPBank' },
+];
+
 export default function AdminSettingsPage() {
     const { data: settings, isLoading } = useSettings();
     const updateMutation = useUpdateSettings();
@@ -47,6 +77,13 @@ export default function AdminSettingsPage() {
         donationPlatformFeePercent: 2,
         chapterSaleFeePercent: 2,
         allowCoinTransfer: false,
+        // --- Thanh toán thủ công (chuyển khoản) ---
+        manualPaymentEnabled: false,
+        manualPaymentBankBin: '',
+        manualPaymentBankName: '',
+        manualPaymentAccountNumber: '',
+        manualPaymentAccountHolder: '',
+        manualPaymentInstructions: '',
         // --- Quảng cáo ---
         adsEnabled: true,
         consentRequired: true,
@@ -84,6 +121,12 @@ export default function AdminSettingsPage() {
                 donationPlatformFeePercent: settings.donationPlatformFeePercent ?? 2,
                 chapterSaleFeePercent: settings.chapterSaleFeePercent ?? 2,
                 allowCoinTransfer: settings.allowCoinTransfer || false,
+                manualPaymentEnabled: (settings as any).manualPaymentEnabled ?? false,
+                manualPaymentBankBin: (settings as any).manualPaymentBankBin || '',
+                manualPaymentBankName: (settings as any).manualPaymentBankName || '',
+                manualPaymentAccountNumber: (settings as any).manualPaymentAccountNumber || '',
+                manualPaymentAccountHolder: (settings as any).manualPaymentAccountHolder || '',
+                manualPaymentInstructions: (settings as any).manualPaymentInstructions || '',
                 adsEnabled: (settings as any).adsEnabled ?? true,
                 consentRequired: (settings as any).consentRequired ?? true,
                 allowedImageDomains: (settings as any).allowedImageDomains ?? [],
@@ -532,6 +575,134 @@ export default function AdminSettingsPage() {
                                     Giới hạn 0–50%. Người mua không thấy phí — chỉ thấy giá gross.
                                 </p>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* === Thanh toán thủ công (chuyển khoản, admin xác nhận tay) === */}
+                    <div className="bg-surface-container rounded-lg shadow-sm border border-outline-variant p-6 mt-6">
+                        <h2 className="text-xl font-semibold text-on-surface mb-1">
+                            Thanh toán thủ công (chuyển khoản)
+                        </h2>
+                        <p className="text-sm text-on-surface-variant mb-4">
+                            Cho phép người dùng nạp xu bằng chuyển khoản ngân hàng. Hệ thống tạo mã QR VietQR +
+                            mã tham chiếu; sau khi nhận được tiền, admin vào{' '}
+                            <a href="/admin/payments" className="text-primary hover:underline">Duyệt nạp thủ công</a>{' '}
+                            để xác nhận (kích hoạt bằng tay) — xu sẽ được cộng vào ví người dùng.
+                        </p>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <label className="text-sm font-medium text-on-surface-variant">
+                                        Bật thanh toán chuyển khoản
+                                    </label>
+                                    <p className="text-xs text-on-surface-variant">
+                                        Khi bật, trang Cửa hàng sẽ hiện tuỳ chọn &quot;Chuyển khoản ngân hàng&quot;.
+                                        Cần điền đủ thông tin ngân hàng bên dưới.
+                                    </p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.manualPaymentEnabled}
+                                    onChange={(e) => setFormData({ ...formData, manualPaymentEnabled: e.target.checked })}
+                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-outline-variant pt-4">
+                                <div>
+                                    <label className="text-sm font-medium text-on-surface-variant block mb-1">
+                                        Ngân hàng
+                                    </label>
+                                    <select
+                                        value={formData.manualPaymentBankBin}
+                                        onChange={(e) => {
+                                            const bin = e.target.value;
+                                            const bank = VN_BANKS.find((b) => b.bin === bin);
+                                            setFormData({
+                                                ...formData,
+                                                manualPaymentBankBin: bin,
+                                                manualPaymentBankName: bank ? bank.name : formData.manualPaymentBankName,
+                                            });
+                                        }}
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface"
+                                    >
+                                        <option value="">— Chọn ngân hàng —</option>
+                                        {VN_BANKS.map((b) => (
+                                            <option key={b.bin} value={b.bin}>{b.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-on-surface-variant block mb-1">
+                                        Tên hiển thị ngân hàng
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.manualPaymentBankName}
+                                        onChange={(e) => setFormData({ ...formData, manualPaymentBankName: e.target.value })}
+                                        placeholder="Vietcombank"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-on-surface-variant block mb-1">
+                                        Số tài khoản
+                                    </label>
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        value={formData.manualPaymentAccountNumber}
+                                        onChange={(e) => setFormData({ ...formData, manualPaymentAccountNumber: e.target.value.trim() })}
+                                        placeholder="0123456789"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant font-mono"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-on-surface-variant block mb-1">
+                                        Chủ tài khoản
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.manualPaymentAccountHolder}
+                                        onChange={(e) => setFormData({ ...formData, manualPaymentAccountHolder: e.target.value })}
+                                        placeholder="NGUYEN VAN A"
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant uppercase"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-sm font-medium text-on-surface-variant block mb-1">
+                                    Ghi chú / hướng dẫn thêm (tuỳ chọn)
+                                </label>
+                                <textarea
+                                    rows={2}
+                                    value={formData.manualPaymentInstructions}
+                                    onChange={(e) => setFormData({ ...formData, manualPaymentInstructions: e.target.value })}
+                                    placeholder="Ví dụ: Sau khi chuyển khoản, xu sẽ được cộng trong vòng 5-30 phút giờ hành chính."
+                                    className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
+                                />
+                            </div>
+
+                            {/* Xem trước mã QR khi đã đủ thông tin */}
+                            {formData.manualPaymentBankBin && formData.manualPaymentAccountNumber && (
+                                <div className="border-t border-outline-variant pt-4">
+                                    <p className="text-sm font-medium text-on-surface-variant mb-2">Xem trước mã QR</p>
+                                    <div className="flex items-start gap-3">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={`https://img.vietqr.io/image/${encodeURIComponent(formData.manualPaymentBankBin)}-${encodeURIComponent(formData.manualPaymentAccountNumber)}-compact2.png?addInfo=${encodeURIComponent('NAP MAU')}&accountName=${encodeURIComponent(formData.manualPaymentAccountHolder || '')}`}
+                                            alt="QR mẫu"
+                                            className="w-44 h-auto rounded-lg border border-outline-variant bg-white"
+                                            loading="lazy"
+                                        />
+                                        <p className="text-xs text-on-surface-variant max-w-xs">
+                                            Đây là QR mẫu (chưa có số tiền). QR thật cho từng giao dịch sẽ tự điền
+                                            số tiền + mã tham chiếu riêng của người dùng.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

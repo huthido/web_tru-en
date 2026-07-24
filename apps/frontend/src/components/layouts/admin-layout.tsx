@@ -114,6 +114,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             ),
         },
         {
+            title: 'Duyệt nạp thủ công',
+            href: '/admin/payments',
+            icon: (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 10h18M7 15h1m4 0h1m-8 4h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" />
+                </svg>
+            ),
+        },
+        {
             title: 'Duyệt truyện',
             href: '/admin/approvals',
             icon: (

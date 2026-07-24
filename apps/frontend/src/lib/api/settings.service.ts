@@ -28,6 +28,13 @@ export interface Settings {
     allowCoinTransfer?: boolean;
     minWithdrawalCoins?: number;
     allowedImageDomains?: string[];
+    // --- Thanh toán thủ công (chuyển khoản, admin xác nhận tay) ---
+    manualPaymentEnabled?: boolean;
+    manualPaymentBankBin?: string | null;
+    manualPaymentBankName?: string | null;
+    manualPaymentAccountNumber?: string | null;
+    manualPaymentAccountHolder?: string | null;
+    manualPaymentInstructions?: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -57,6 +64,13 @@ export interface UpdateSettingsRequest {
     allowCoinTransfer?: boolean;
     minWithdrawalCoins?: number;
     allowedImageDomains?: string[];
+    // --- Thanh toán thủ công ---
+    manualPaymentEnabled?: boolean;
+    manualPaymentBankBin?: string;
+    manualPaymentBankName?: string;
+    manualPaymentAccountNumber?: string;
+    manualPaymentAccountHolder?: string;
+    manualPaymentInstructions?: string;
 }
 
 export const settingsService = {

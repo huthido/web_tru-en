@@ -831,6 +831,17 @@ model Settings {
   consentRequired            Boolean  @default(true)
   // Danh sách hostname được phép dùng ảnh ngoài (vd: "i.pinimg.com"). Admin quản lý qua UI.
   allowedImageDomains        String[] @default([])
+  // ─── Thanh toán thủ công (chuyển khoản ngân hàng, admin xác nhận tay) ───
+  // Kênh nạp xu offline: user tạo yêu cầu → chuyển khoản theo QR/STK → admin
+  // "kích hoạt bằng tay" ở trang duyệt. Dùng khi chưa có cổng online (VNPay).
+  manualPaymentEnabled       Boolean  @default(false)
+  // Mã BIN ngân hàng theo chuẩn VietQR (vd 970436 = Vietcombank). Dùng dựng URL
+  // ảnh QR động qua img.vietqr.io. Bắt buộc khi bật manualPaymentEnabled.
+  manualPaymentBankBin       String?
+  manualPaymentBankName      String? // Tên ngân hàng hiển thị (vd "Vietcombank")
+  manualPaymentAccountNumber String? // Số tài khoản nhận tiền
+  manualPaymentAccountHolder String? // Tên chủ tài khoản
+  manualPaymentInstructions  String?  @db.Text // Ghi chú/hướng dẫn thêm cho user
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
 

@@ -8,21 +8,38 @@ import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { useWalletBalance } from '@/lib/api/hooks/use-wallet';
-import { useShopCoinPackages, useCreateCoinPackagePayment } from '@/lib/api/hooks/use-payments';
-import { Store, Coins, Loader2, ShoppingCart, History } from 'lucide-react';
+import { useShopCoinPackages, useCreateCoinPackagePayment, useCreateManualPayment } from '@/lib/api/hooks/use-payments';
+import { useSettings } from '@/lib/api/hooks/use-settings';
+import { ManualPaymentModal } from '@/components/wallet/manual-payment-modal';
+import type { ManualPaymentInstructions } from '@/lib/api/payments.service';
+import { Store, Coins, Loader2, ShoppingCart, History, CreditCard, Landmark } from 'lucide-react';
+
+type PayMethod = 'VNPAY' | 'MANUAL';
 
 export default function ShopPage() {
-    const { data: wallet } = useWalletBalance();
+    const { data: wallet, refetch: refetchWallet } = useWalletBalance();
     const { data: packages, isLoading } = useShopCoinPackages();
+    const { data: settings } = useSettings();
     const createPayment = useCreateCoinPackagePayment();
+    const createManual = useCreateManualPayment();
     // Id gói đang được mua — để chỉ disable đúng nút đó.
     const [buyingId, setBuyingId] = useState<string | null>(null);
+    const [method, setMethod] = useState<PayMethod>('VNPAY');
+    const [manualData, setManualData] = useState<ManualPaymentInstructions | null>(null);
+
+    const manualEnabled = !!settings?.manualPaymentEnabled;
 
     const totalBalance = (wallet?.purchasedBalance ?? 0) + (wallet?.earnedBalance ?? 0);
 
     const handleBuy = async (packageId: string) => {
         setBuyingId(packageId);
         try {
+            if (method === 'MANUAL') {
+                const res = await createManual.mutateAsync(packageId);
+                setManualData(res);
+                setBuyingId(null);
+                return;
+            }
             const res = await createPayment.mutateAsync({ packageId });
             if (res?.payUrl) {
                 // Chuyển hướng sang cổng thanh toán VNPay.
@@ -57,7 +74,10 @@ export default function ShopPage() {
                                             <Store className="w-7 h-7 text-primary" /> Cửa hàng
                                         </h1>
                                         <p className="text-on-surface-variant text-sm">
-                                            Chọn gói xu để nạp vào tài khoản. Thanh toán an toàn qua VNPay.
+                                            Chọn gói xu để nạp vào tài khoản.{' '}
+                                            {manualEnabled
+                                                ? 'Thanh toán qua VNPay hoặc chuyển khoản ngân hàng.'
+                                                : 'Thanh toán an toàn qua VNPay.'}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary-container">
@@ -71,6 +91,45 @@ export default function ShopPage() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Bộ chọn hình thức thanh toán — chỉ hiện khi bật CK thủ công */}
+                            {manualEnabled && (
+                                <div className="bg-surface-container rounded-lg p-4 mb-6 shadow-sm border border-outline-variant">
+                                    <p className="text-sm font-medium text-on-surface mb-3">Hình thức thanh toán</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setMethod('VNPAY')}
+                                            className={`flex items-center gap-3 p-3 rounded-lg border transition-colors text-left ${
+                                                method === 'VNPAY'
+                                                    ? 'border-primary bg-primary-container/40 ring-1 ring-primary'
+                                                    : 'border-outline-variant hover:bg-surface-container-high'
+                                            }`}
+                                        >
+                                            <CreditCard className="w-5 h-5 text-primary shrink-0" />
+                                            <div>
+                                                <p className="text-sm font-medium text-on-surface">Cổng VNPay</p>
+                                                <p className="text-xs text-on-surface-variant">Tự động, nhận xu ngay</p>
+                                            </div>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setMethod('MANUAL')}
+                                            className={`flex items-center gap-3 p-3 rounded-lg border transition-colors text-left ${
+                                                method === 'MANUAL'
+                                                    ? 'border-primary bg-primary-container/40 ring-1 ring-primary'
+                                                    : 'border-outline-variant hover:bg-surface-container-high'
+                                            }`}
+                                        >
+                                            <Landmark className="w-5 h-5 text-primary shrink-0" />
+                                            <div>
+                                                <p className="text-sm font-medium text-on-surface">Chuyển khoản ngân hàng</p>
+                                                <p className="text-xs text-on-surface-variant">Quét QR, admin xác nhận</p>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Danh sách gói xu */}
                             {isLoading ? (
@@ -123,6 +182,10 @@ export default function ShopPage() {
                                                         <>
                                                             <Loader2 size={18} className="animate-spin" /> Đang xử lý...
                                                         </>
+                                                    ) : method === 'MANUAL' ? (
+                                                        <>
+                                                            <Landmark size={18} /> Chuyển khoản
+                                                        </>
                                                     ) : (
                                                         <>
                                                             <ShoppingCart size={18} /> Mua
@@ -149,6 +212,14 @@ export default function ShopPage() {
                     <Footer />
                 </div>
             </div>
+
+            {manualData && (
+                <ManualPaymentModal
+                    data={manualData}
+                    onClose={() => setManualData(null)}
+                    onCompleted={() => refetchWallet()}
+                />
+            )}
         </ProtectedRoute>
     );
 }
