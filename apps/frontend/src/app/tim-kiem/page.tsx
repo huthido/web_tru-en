@@ -304,7 +304,7 @@ function SearchContent() {
                                     )}
                                 </div>
                                 <Link
-                                    href="/stories"
+                                    href="/truyen"
                                     className="text-sm text-primary hover:underline font-medium"
                                 >
                                     Xem tất cả truyện →
@@ -325,7 +325,7 @@ function SearchContent() {
                                     Nhập từ khóa vào ô tìm kiếm bên trên để khám phá hàng ngàn truyện hấp dẫn
                                 </p>
                                 <Link
-                                    href="/stories"
+                                    href="/truyen"
                                     className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors shadow-sm"
                                 >
                                     Khám phá tất cả truyện
@@ -367,7 +367,7 @@ function SearchContent() {
                                         Xóa tìm kiếm
                                     </button>
                                     <Link
-                                        href="/stories"
+                                        href="/truyen"
                                         className="px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors shadow-sm"
                                     >
                                         Xem tất cả truyện

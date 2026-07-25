@@ -486,7 +486,7 @@ export default function BookDetailPage() {
                 {/* Primary Action - Đọc truyện */}
                 {chapters && chapters.length > 0 ? (
                   <Link
-                    href={`/stories/${story.slug}/chapters/${chapters[0].slug}`}
+                    href={`/truyen/${story.slug}/chuong/${chapters[0].slug}`}
                     className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
                   >
                     <BookOpen size={20} className="md:w-6 md:h-6" />
@@ -594,7 +594,7 @@ export default function BookDetailPage() {
                         {displayedChapters.map((chapter: any) => (
                           <Link
                             key={chapter.id}
-                            href={`/stories/${story.slug}/chapters/${chapter.slug}`}
+                            href={`/truyen/${story.slug}/chuong/${chapter.slug}`}
                             className="flex items-center justify-between p-4 hover:bg-surface-container-high/50 transition-colors duration-200 group"
                           >
                             <div className="flex items-center gap-4 flex-1 min-w-0">

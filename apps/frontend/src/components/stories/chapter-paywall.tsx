@@ -44,7 +44,7 @@ export function ChapterPaywall({
     // (see WalletService.debitForContent). The UI gate is the combined total.
     const balance = (wallet?.purchasedBalance ?? 0) + (wallet?.earnedBalance ?? 0);
     const insufficient = isAuthenticated && balance < price;
-    const loginHref = `/dang-nhap?redirect=${encodeURIComponent(`/stories/${storySlug}/chapters/${chapterSlug}`)}`;
+    const loginHref = `/dang-nhap?redirect=${encodeURIComponent(`/truyen/${storySlug}/chuong/${chapterSlug}`)}`;
 
     const unlockLabel = isStory ? 'Mở khóa cả truyện' : 'Mở khóa chương';
     const heading = isStory ? 'Truyện VIP — cần mở khóa' : 'Chương này cần mở khóa';

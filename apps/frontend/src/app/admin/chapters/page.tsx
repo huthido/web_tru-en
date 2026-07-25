@@ -291,7 +291,7 @@ export default function AdminChaptersPage() {
                                                     <div className="flex gap-2">
                                                         {chapter.story && (
                                                             <Link
-                                                                href={`/stories/${chapter.story.slug}/chapters/${chapter.slug}`}
+                                                                href={`/truyen/${chapter.story.slug}/chuong/${chapter.slug}`}
                                                                 target="_blank"
                                                                 className="text-primary hover:underline text-sm"
                                                             >

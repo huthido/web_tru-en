@@ -95,7 +95,7 @@ function StoriesContent() {
         if (status && status !== 'DRAFT') params.set('status', status);
         if (sortBy !== 'newest') params.set('sortBy', sortBy);
 
-        const newUrl = params.toString() ? `/stories?${params.toString()}` : '/stories';
+        const newUrl = params.toString() ? `/truyen?${params.toString()}` : '/truyen';
         router.replace(newUrl, { scroll: false });
     }, [activeTab, page, search, selectedCategory, status, sortBy, router]);
 
@@ -127,7 +127,7 @@ function StoriesContent() {
         if (urlStatusParam === 'DRAFT') {
             const params = new URLSearchParams(searchParams.toString());
             params.delete('status');
-            const newUrl = params.toString() ? `/stories?${params.toString()}` : '/stories';
+            const newUrl = params.toString() ? `/truyen?${params.toString()}` : '/truyen';
             router.replace(newUrl, { scroll: false });
         }
     }, [searchParams]);

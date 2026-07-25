@@ -63,9 +63,9 @@ export default function AdPage() {
 
     const handleContinue = () => {
         if (nextChapterSlug && storySlug) {
-            router.push(`/stories/${storySlug}/chapters/${nextChapterSlug}`);
+            router.push(`/truyen/${storySlug}/chuong/${nextChapterSlug}`);
         } else if (prevChapterSlug && storySlug) {
-            router.push(`/stories/${storySlug}/chapters/${prevChapterSlug}`);
+            router.push(`/truyen/${storySlug}/chuong/${prevChapterSlug}`);
         } else {
             router.push(returnUrl);
         }

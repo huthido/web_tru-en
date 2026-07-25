@@ -22,11 +22,11 @@ const BookSection = lazy(() => import('@/components/books/book-section').then(mo
 // Danh mục trang chủ dạng chip (docs/Fix vài điểm trên app web.pdf) —
 // chọn 1 chip hiển thị 1 lưới truyện thay vì 5 section xếp chồng.
 const HOME_TABS = [
-  { key: 'newest', label: 'Mới nhất', seeMore: '/stories?sortBy=newest' },
-  { key: 'bestOfMonth', label: 'Hay nhất tháng', seeMore: '/stories?sortBy=viewCount' },
-  { key: 'topRated', label: 'Đánh giá cao', seeMore: '/stories?sortBy=rating' },
-  { key: 'recommended', label: 'Đề xuất', seeMore: '/stories?sortBy=popular' },
-  { key: 'mostLiked', label: 'Yêu thích', seeMore: '/stories?sortBy=popular' },
+  { key: 'newest', label: 'Mới nhất', seeMore: '/truyen?sortBy=newest' },
+  { key: 'bestOfMonth', label: 'Hay nhất tháng', seeMore: '/truyen?sortBy=viewCount' },
+  { key: 'topRated', label: 'Đánh giá cao', seeMore: '/truyen?sortBy=rating' },
+  { key: 'recommended', label: 'Đề xuất', seeMore: '/truyen?sortBy=popular' },
+  { key: 'mostLiked', label: 'Yêu thích', seeMore: '/truyen?sortBy=popular' },
 ] as const;
 
 type HomeTabKey = (typeof HOME_TABS)[number]['key'];

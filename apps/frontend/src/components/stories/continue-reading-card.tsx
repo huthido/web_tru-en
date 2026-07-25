@@ -17,7 +17,7 @@ export function ContinueReadingCard({ history, className = '' }: ContinueReading
 
   return (
     <Link
-      href={`/stories/${history.story.slug}/chapters/${history.chapter.slug}`}
+      href={`/truyen/${history.story.slug}/chuong/${history.chapter.slug}`}
       className={`group block bg-surface-container rounded-xl p-5 shadow-md hover:shadow-xl border border-outline-variant transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 ${className}`}
     >
       <div className="flex gap-4 items-start">

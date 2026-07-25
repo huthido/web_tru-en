@@ -82,9 +82,9 @@ export function Sidebar() {
   const tab = searchParams.get('tab');
   const links: NavLink[] = [
     { href: '/', label: 'Trang chủ', icon: Home, active: pathname === '/' },
-    { href: '/stories', label: 'Truyện', icon: BookOpen, active: pathname === '/stories' && tab !== 'nghe-thuat' && tab !== 'tranh' },
-    { href: '/stories?tab=nghe-thuat', label: 'Mày tao', icon: Camera, active: pathname === '/stories' && tab === 'nghe-thuat' },
-    { href: '/stories?tab=tranh', label: 'Tranh', icon: Palette, active: pathname === '/stories' && tab === 'tranh' },
+    { href: '/truyen', label: 'Truyện', icon: BookOpen, active: pathname === '/truyen' && tab !== 'nghe-thuat' && tab !== 'tranh' },
+    { href: '/truyen?tab=nghe-thuat', label: 'Mày tao', icon: Camera, active: pathname === '/truyen' && tab === 'nghe-thuat' },
+    { href: '/truyen?tab=tranh', label: 'Tranh', icon: Palette, active: pathname === '/truyen' && tab === 'tranh' },
     { href: uploadHref, label: 'Đăng truyện', icon: Upload, active: pathname === '/author/stories/create' },
     { href: earnHref, label: 'Kiếm tiền', icon: Wallet, active: pathname === '/author/earnings' },
     { href: '/cua-hang', label: 'Cửa hàng', icon: Store, active: pathname === '/cua-hang' },

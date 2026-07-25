@@ -151,7 +151,7 @@ function HistoryContent() {
                     return (
                       <Link
                         key={item.id}
-                        href={`/stories/${item.story.slug}/chapters/${item.chapter.slug}`}
+                        href={`/truyen/${item.story.slug}/chuong/${item.chapter.slug}`}
                         className="group flex gap-4 p-4 bg-surface-container rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-[1.01]"
                       >
                         {/* Story Cover */}
@@ -205,7 +205,7 @@ function HistoryContent() {
                           <button
                             onClick={(e) => {
                               e.preventDefault();
-                              window.location.href = `/stories/${item.story!.slug}/chapters/${item.chapter!.slug}`;
+                              window.location.href = `/truyen/${item.story!.slug}/chuong/${item.chapter!.slug}`;
                             }}
                             className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary text-sm font-medium rounded-lg transition-colors duration-300 whitespace-nowrap"
                           >

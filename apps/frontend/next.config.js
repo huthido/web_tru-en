@@ -246,6 +246,9 @@ const nextConfig = {
       ['/register', '/dang-ky'],
       ['/forgot-password', '/quen-mat-khau'],
       ['/reset-password', '/dat-lai-mat-khau'],
+      // Phase 3 — gộp route đọc truyện về /truyen (đã có /truyen/[slug] chi tiết)
+      ['/stories/:storySlug/chapters/:chapterSlug', '/truyen/:storySlug/chuong/:chapterSlug'],
+      ['/stories', '/truyen'],
     ];
     return map.map(([source, destination]) => ({ source, destination, permanent: true }));
   },

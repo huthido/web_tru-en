@@ -3,7 +3,7 @@ import React from 'react';
 import { apiClient } from '@/lib/api/client';
 
 type Props = {
-  params: { storySlug: string; chapterSlug: string };
+  params: { slug: string; chapterSlug: string };
 };
 
 async function getStoryAndChapter(storySlug: string, chapterSlug: string) {
@@ -47,7 +47,7 @@ async function getStoryAndChapter(storySlug: string, chapterSlug: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { story, chapter, notFound, unpublished } = await getStoryAndChapter(params.storySlug, params.chapterSlug);
+  const { story, chapter, notFound, unpublished } = await getStoryAndChapter(params.slug, params.chapterSlug);
 
   if (notFound) {
     return {
@@ -76,7 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  const chapterUrl = `${siteUrl}/stories/${params.storySlug}/chapters/${params.chapterSlug}`;
+  const chapterUrl = `${siteUrl}/truyen/${params.slug}/chuong/${params.chapterSlug}`;
   const description = chapter.content
     ? (chapter.content.length > 160 ? chapter.content.substring(0, 157) + '...' : chapter.content)
     : `Đọc ${chapter.title} - ${story.title}`;

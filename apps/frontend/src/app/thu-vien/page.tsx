@@ -125,7 +125,7 @@ function LibraryContent() {
                           return (
                             <Link
                               key={follow.id}
-                              href={`/stories/${story.slug}`}
+                              href={`/truyen/${story.slug}`}
                               className="group relative"
                             >
                               <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-surface-variant mb-2">
@@ -185,7 +185,7 @@ function LibraryContent() {
                           return (
                             <Link
                               key={item.id}
-                              href={`/stories/${story.slug}`}
+                              href={`/truyen/${story.slug}`}
                               className="group relative"
                             >
                               <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-surface-variant mb-2">
@@ -244,7 +244,7 @@ function LibraryContent() {
                           return (
                             <Link
                               key={item.id}
-                              href={`/stories/${item.story.slug}/chapters/${item.chapter.slug}`}
+                              href={`/truyen/${item.story.slug}/chuong/${item.chapter.slug}`}
                               className="group flex gap-4 p-4 bg-surface-container rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.01]"
                             >
                               {item.story.coverImage && (
