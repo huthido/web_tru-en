@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
-import { ContentTabsNav } from '@/components/layouts/content-tabs-nav';
 import { AdSlot } from '@/components/ads/ad-slot';
 import { BookCard } from '@/components/books/book-card';
 import { Loading } from '@/components/ui/loading';
@@ -124,8 +123,6 @@ function StoriesContent() {
             <Sidebar />
             <div className="md:ml-60 pb-16 md:pb-0">
                 <Header />
-
-                <ContentTabsNav />
 
                 <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)]">
                     <div className="max-w-7xl mx-auto px-4 md:px-6">
