@@ -244,7 +244,7 @@ export default function ChapterReadingPage() {
                     if (selectedAd && selectedAd.imageUrl) {
                         // Redirect immediately to ad page
                         const returnUrl = `/truyen/${storySlug}/chuong/${chapterSlug}`;
-                        const adUrl = `/ads/${selectedAd.id}?return=${encodeURIComponent(returnUrl)}&story=${storySlug}&chapter=${chapterSlug}`;
+                        const adUrl = `/xem-quang-cao/${selectedAd.id}?return=${encodeURIComponent(returnUrl)}&story=${storySlug}&chapter=${chapterSlug}`;
 
                         console.log('Redirecting to ad page:', { adUrl, visitCount: getVisitCount(), selectedAd });
                         router.push(adUrl);
@@ -823,7 +823,7 @@ export default function ChapterReadingPage() {
                                     {prevChapter ? (
                                         <Link
                                             href={shouldRedirectToAdRef.current && pendingAdRef.current
-                                                ? `/ads/${pendingAdRef.current.id}?return=/truyen/${storySlug}/chuong/${prevChapter.slug}&story=${storySlug}&prev=${prevChapter.slug}${nextChapter ? `&next=${nextChapter.slug}` : ''}`
+                                                ? `/xem-quang-cao/${pendingAdRef.current.id}?return=/truyen/${storySlug}/chuong/${prevChapter.slug}&story=${storySlug}&prev=${prevChapter.slug}${nextChapter ? `&next=${nextChapter.slug}` : ''}`
                                                 : `/truyen/${storySlug}/chuong/${prevChapter.slug}`}
                                             className="group block p-5 bg-surface-container hover:bg-surface-container-high rounded-xl shadow-md hover:shadow-lg border border-outline-variant transition-all duration-300 hover:scale-[1.02]"
                                             onClick={() => {
@@ -861,7 +861,7 @@ export default function ChapterReadingPage() {
                                     {nextChapter ? (
                                         <Link
                                             href={shouldRedirectToAdRef.current && pendingAdRef.current
-                                                ? `/ads/${pendingAdRef.current.id}?return=/truyen/${storySlug}/chuong/${nextChapter.slug}&story=${storySlug}&next=${nextChapter.slug}${prevChapter ? `&prev=${prevChapter.slug}` : ''}`
+                                                ? `/xem-quang-cao/${pendingAdRef.current.id}?return=/truyen/${storySlug}/chuong/${nextChapter.slug}&story=${storySlug}&next=${nextChapter.slug}${prevChapter ? `&prev=${prevChapter.slug}` : ''}`
                                                 : `/truyen/${storySlug}/chuong/${nextChapter.slug}`}
                                             className="group block p-5 bg-surface-container hover:bg-surface-container-high rounded-xl shadow-md hover:shadow-lg border border-outline-variant transition-all duration-300 hover:scale-[1.02] text-right"
                                             onClick={() => {
@@ -953,7 +953,7 @@ export default function ChapterReadingPage() {
                                 {prevChapter ? (
                                     <Link
                                         href={shouldRedirectToAdRef.current && pendingAdRef.current
-                                            ? `/ads/${pendingAdRef.current.id}?return=/truyen/${storySlug}/chuong/${prevChapter.slug}&story=${storySlug}&prev=${prevChapter.slug}${nextChapter ? `&next=${nextChapter.slug}` : ''}`
+                                            ? `/xem-quang-cao/${pendingAdRef.current.id}?return=/truyen/${storySlug}/chuong/${prevChapter.slug}&story=${storySlug}&prev=${prevChapter.slug}${nextChapter ? `&next=${nextChapter.slug}` : ''}`
                                             : `/truyen/${storySlug}/chuong/${prevChapter.slug}`}
                                         onClick={() => {
                                             setShowFloatingMenu(false);
@@ -974,7 +974,7 @@ export default function ChapterReadingPage() {
                                 {nextChapter ? (
                                     <Link
                                         href={shouldRedirectToAdRef.current && pendingAdRef.current
-                                            ? `/ads/${pendingAdRef.current.id}?return=/truyen/${storySlug}/chuong/${nextChapter.slug}&story=${storySlug}&next=${nextChapter.slug}${prevChapter ? `&prev=${prevChapter.slug}` : ''}`
+                                            ? `/xem-quang-cao/${pendingAdRef.current.id}?return=/truyen/${storySlug}/chuong/${nextChapter.slug}&story=${storySlug}&next=${nextChapter.slug}${prevChapter ? `&prev=${prevChapter.slug}` : ''}`
                                             : `/truyen/${storySlug}/chuong/${nextChapter.slug}`}
                                         onClick={() => {
                                             setShowFloatingMenu(false);

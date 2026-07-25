@@ -187,7 +187,7 @@ class ApiClient {
       const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
 
       // Define public routes that don't need auth
-      const publicRoutes = ['/', '/dang-nhap', '/dang-ky', '/maintenance', '/truyen/', '/stories/', '/tim-kiem', '/categories', '/auth/'];
+      const publicRoutes = ['/', '/dang-nhap', '/dang-ky', '/bao-tri', '/truyen/', '/stories/', '/tim-kiem', '/categories', '/auth/'];
       const isPublicRoute = publicRoutes.some(route => currentPath === route || currentPath.startsWith(route));
 
       // 🔥 CRITICAL FIX: Always dispatch logout event to clear state

@@ -80,7 +80,7 @@ const withPWA = require('next-pwa')({
     },
   ],
   fallbacks: {
-    document: '/offline',
+    document: '/ngoai-tuyen',
   },
 });
 
@@ -241,6 +241,13 @@ const nextConfig = {
       ['/search', '/tim-kiem'],
       ['/transfer', '/chuyen-xu'],
       ['/notifications', '/thong-bao'],
+      // Trang hệ thống / pháp lý (client-side; redirect đỡ link ngoài store/PWA cũ)
+      ['/maintenance', '/bao-tri'],
+      ['/privacy', '/quyen-rieng-tu'],
+      ['/terms', '/dieu-khoan'],
+      ['/child-safety', '/an-toan-tre-em'],
+      ['/offline', '/ngoai-tuyen'],
+      ['/ads/:adId', '/xem-quang-cao/:adId'],
       // Phase 2 — đăng nhập/đăng ký (giữ /auth/callback + /auth/verify-email)
       ['/login', '/dang-nhap'],
       ['/register', '/dang-ky'],

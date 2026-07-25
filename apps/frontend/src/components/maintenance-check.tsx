@@ -16,7 +16,7 @@ export function MaintenanceCheck({ children }: { children: React.ReactNode }) {
     if (isLoading) return;
 
     // Skip maintenance check for maintenance page itself and admin routes
-    if (pathname === '/maintenance' || pathname?.startsWith('/quan-tri')) {
+    if (pathname === '/bao-tri' || pathname?.startsWith('/quan-tri')) {
       return;
     }
 
@@ -28,10 +28,10 @@ export function MaintenanceCheck({ children }: { children: React.ReactNode }) {
       }
 
       // Redirect to maintenance page
-      router.push('/maintenance');
+      router.push('/bao-tri');
     } else {
       // If maintenance mode is off but user is on maintenance page, redirect to home
-      if (pathname === '/maintenance') {
+      if (pathname === '/bao-tri') {
         router.push('/');
       }
     }
@@ -46,7 +46,7 @@ export function MaintenanceCheck({ children }: { children: React.ReactNode }) {
   }
 
   // If maintenance mode is on and user is not admin, show loading while redirecting
-  if (settings?.maintenanceMode && user?.role !== 'ADMIN' && pathname !== '/maintenance') {
+  if (settings?.maintenanceMode && user?.role !== 'ADMIN' && pathname !== '/bao-tri') {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
         <Loading />

@@ -131,7 +131,7 @@ export function PaintingDetailModal({ painting, currentUserId, onClose }: Props)
             {/* Nhắn tin */}
             {painting.status === 'AVAILABLE' && (
               <a
-                href={`/users/${painting.author.id}`}
+                href={`/u/${painting.author.username}`}
                 className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-on-surface text-surface text-sm font-semibold hover:opacity-90 transition-opacity"
               >
                 <MessageSquare className="w-4 h-4" />

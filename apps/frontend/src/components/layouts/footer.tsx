@@ -222,19 +222,19 @@ export function Footer() {
                     </p>
                     <div className="flex items-center gap-6 sm:gap-10 flex-wrap justify-center sm:justify-end">
                         <Link
-                            href="/terms"
+                            href="/dieu-khoan"
                             className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                         >
                             Điều khoản & Điều kiện
                         </Link>
                         <Link
-                            href="/privacy"
+                            href="/quyen-rieng-tu"
                             className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                         >
                             Chính sách bảo mật
                         </Link>
                         <Link
-                            href="/child-safety"
+                            href="/an-toan-tre-em"
                             className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300"
                         >
                             An toàn trẻ em
