@@ -334,7 +334,7 @@ export function Header() {
                     </Link>
                     {/* Kênh tác giả — quản lý truyện, chương, doanh thu. */}
                     <Link
-                      href="/tac-gia/dashboard"
+                      href="/tac-gia/bang-dieu-khien"
                       onClick={() => setIsDropdownOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-variant transition-colors duration-200"
                     >
@@ -343,7 +343,7 @@ export function Header() {
                     </Link>
                     {/* Người theo dõi — tác giả theo dõi lượt follower của mình. */}
                     <Link
-                      href="/tac-gia/followers"
+                      href="/tac-gia/nguoi-theo-doi"
                       onClick={() => setIsDropdownOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-variant transition-colors duration-200"
                     >

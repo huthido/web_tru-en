@@ -99,7 +99,7 @@ export default function WalletPage() {
                                     </div>
                                 </Link>
                                 <Link
-                                    href="/tac-gia/withdrawals"
+                                    href="/tac-gia/rut-xu"
                                     className="flex items-center gap-3 p-4 bg-surface-container rounded-lg shadow-sm border border-outline-variant hover:bg-surface-container-high transition-colors"
                                 >
                                     <span className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center">

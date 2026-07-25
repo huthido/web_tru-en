@@ -399,7 +399,7 @@ export class PaymentsService {
           title: 'Người dùng báo đã chuyển khoản',
           content: `${who} báo đã chuyển ${payment.amount.toLocaleString('vi-VN')}₫ cho mã ${payment.txnRef}${claimCount > 1 ? ` (lần ${claimCount})` : ''}. Vui lòng đối soát sao kê và xác nhận.`,
           type: NotificationType.WARNING,
-          actionUrl: '/quan-tri/payments',
+          actionUrl: '/quan-tri/thanh-toan',
         })
         .catch((e) => this.logger.warn(`notify admin claim failed: ${e?.message}`));
     }

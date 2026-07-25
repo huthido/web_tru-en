@@ -560,15 +560,15 @@ export default function ChapterReadingPage() {
         if (typeof window !== 'undefined') {
             const referrer = document.referrer;
             // If coming from author edit context, go back to chapter management
-            if (referrer.includes('/tac-gia/stories/') && referrer.includes('/chapters/') && referrer.includes('/edit')) {
+            if (referrer.includes('/tac-gia/truyen/') && referrer.includes('/chapters/') && referrer.includes('/edit')) {
                 // Extract story slug from referrer
                 const match = referrer.match(/\/tac-gia\/stories\/([^/]+)\/chapters/);
                 if (match && match[1]) {
-                    return `/tac-gia/stories/${match[1]}/chapters`;
+                    return `/tac-gia/truyen/${match[1]}/chuong`;
                 }
             }
             // If coming from chapter management page, go back there
-            if (referrer.includes('/tac-gia/stories/') && referrer.includes('/chapters') && !referrer.includes('/edit') && !referrer.includes('/create')) {
+            if (referrer.includes('/tac-gia/truyen/') && referrer.includes('/chapters') && !referrer.includes('/edit') && !referrer.includes('/create')) {
                 return referrer;
             }
         }

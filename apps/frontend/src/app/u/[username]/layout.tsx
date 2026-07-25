@@ -99,7 +99,7 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
                         </span>
                         {isMe ? (
                           <Link
-                            href="/tac-gia/followers"
+                            href="/tac-gia/nguoi-theo-doi"
                             className="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
                           >
                             <Users className="w-4 h-4" />

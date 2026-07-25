@@ -249,11 +249,42 @@ const nextConfig = {
       // Phase 3 — gộp route đọc truyện về /truyen (đã có /truyen/[slug] chi tiết)
       ['/stories/:storySlug/chapters/:chapterSlug', '/truyen/:storySlug/chuong/:chapterSlug'],
       ['/stories', '/truyen'],
-      // Phase 4 — khu quản trị/tác giả (segment lồng giữ nguyên → dùng wildcard)
-      ['/admin/:path*', '/quan-tri/:path*'],
+      // Phase 4/5 — khu quản trị & tác giả: URL tiếng Anh cũ (từng live) → URL
+      // tiếng Việt đầy đủ. Segment con đổi tên nên map tường minh, không wildcard.
+      // Route cụ thể hơn đặt trước route tổng quát.
       ['/admin', '/quan-tri'],
-      ['/author/:path*', '/tac-gia/:path*'],
-      ['/author', '/tac-gia'],
+      ['/admin/users', '/quan-tri/nguoi-dung'],
+      ['/admin/ads/:id/analytics', '/quan-tri/quang-cao/:id/thong-ke'],
+      ['/admin/ads/:id', '/quan-tri/quang-cao/:id'],
+      ['/admin/ads', '/quan-tri/quang-cao'],
+      ['/admin/ad-slots', '/quan-tri/vi-tri-quang-cao'],
+      ['/admin/ad-bookings', '/quan-tri/dat-quang-cao'],
+      ['/admin/coin-packages', '/quan-tri/goi-xu'],
+      ['/admin/wallets', '/quan-tri/vi'],
+      ['/admin/withdrawals', '/quan-tri/rut-xu'],
+      ['/admin/payments', '/quan-tri/thanh-toan'],
+      ['/admin/approvals', '/quan-tri/duyet-truyen'],
+      ['/admin/stories', '/quan-tri/truyen'],
+      ['/admin/chapters', '/quan-tri/chuong'],
+      ['/admin/categories', '/quan-tri/the-loai'],
+      ['/admin/pages', '/quan-tri/trang-noi-dung'],
+      ['/admin/comments', '/quan-tri/binh-luan'],
+      ['/admin/statistics', '/quan-tri/thong-ke'],
+      ['/admin/notifications/create', '/quan-tri/thong-bao/tao'],
+      ['/admin/notifications', '/quan-tri/thong-bao'],
+      ['/admin/settings', '/quan-tri/cai-dat'],
+      ['/author/dashboard', '/tac-gia/bang-dieu-khien'],
+      ['/author/earnings', '/tac-gia/thu-nhap'],
+      ['/author/eligibility', '/tac-gia/dieu-kien'],
+      ['/author/followers', '/tac-gia/nguoi-theo-doi'],
+      ['/author/withdrawals', '/tac-gia/rut-xu'],
+      ['/author/stories/create', '/tac-gia/truyen/tao'],
+      ['/author/stories/:storyId/chapters/create', '/tac-gia/truyen/:storyId/chuong/tao'],
+      ['/author/stories/:storyId/chapters/:chapterId/edit', '/tac-gia/truyen/:storyId/chuong/:chapterId/sua'],
+      ['/author/stories/:storyId/chapters', '/tac-gia/truyen/:storyId/chuong'],
+      ['/author/stories/:storyId/edit', '/tac-gia/truyen/:storyId/sua'],
+      ['/author/stories/:storyId/analytics', '/tac-gia/truyen/:storyId/thong-ke'],
+      ['/author/stories', '/tac-gia/truyen'],
     ];
     // Tab nội dung cũ (?tab=) nay là trang riêng. Đặt TRƯỚC để khớp trước
     // redirect /stories→/truyen (một hop tới đúng trang).

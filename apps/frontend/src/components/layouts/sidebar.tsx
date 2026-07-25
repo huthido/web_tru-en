@@ -70,8 +70,8 @@ export function Sidebar() {
 
   const canCreateStories = !!user;
 
-  const uploadHref = canCreateStories ? '/tac-gia/stories/create' : '/dang-nhap?redirect=/tac-gia/stories/create';
-  const earnHref = user ? '/tac-gia/earnings' : '/dang-nhap?redirect=/tac-gia/earnings';
+  const uploadHref = canCreateStories ? '/tac-gia/truyen/tao' : '/dang-nhap?redirect=/tac-gia/truyen/tao';
+  const earnHref = user ? '/tac-gia/thu-nhap' : '/dang-nhap?redirect=/tac-gia/thu-nhap';
   // Trang cá nhân (public) của người đang đăng nhập; khách → login.
   const myProfileHref = user ? `/u/${user.username}` : '/dang-nhap?redirect=/';
   const myProfileActive = !!user && pathname === `/u/${user.username}`;
@@ -83,10 +83,10 @@ export function Sidebar() {
     { href: '/truyen', label: 'Truyện', icon: BookOpen, active: pathname === '/truyen' },
     { href: '/nghe-thuat', label: 'Mày tao', icon: Camera, active: pathname === '/nghe-thuat' },
     { href: '/tranh', label: 'Tranh', icon: Palette, active: pathname === '/tranh' },
-    { href: uploadHref, label: 'Đăng truyện', icon: Upload, active: pathname === '/tac-gia/stories/create' },
-    { href: earnHref, label: 'Kiếm tiền', icon: Wallet, active: pathname === '/tac-gia/earnings' },
+    { href: uploadHref, label: 'Đăng truyện', icon: Upload, active: pathname === '/tac-gia/truyen/tao' },
+    { href: earnHref, label: 'Kiếm tiền', icon: Wallet, active: pathname === '/tac-gia/thu-nhap' },
     { href: '/cua-hang', label: 'Cửa hàng', icon: Store, active: pathname === '/cua-hang' },
-    { href: '/tac-gia/dashboard', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/tac-gia/dashboard'), authOnly: true },
+    { href: '/tac-gia/bang-dieu-khien', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/tac-gia/bang-dieu-khien'), authOnly: true },
     { href: '/thu-vien', label: 'Thư viện', icon: Library, active: pathname === '/thu-vien' },
     { href: '/quang-cao', label: 'Quảng cáo', icon: Megaphone, active: pathname === '/quang-cao' },
     { href: myProfileHref, label: 'Trang cá nhân', icon: UserCircle, active: myProfileActive },

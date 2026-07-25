@@ -518,7 +518,7 @@ export class WalletService implements OnModuleInit {
             authorId,
             'Bạn nhận được ủng hộ 🎉',
             `Có người vừa ủng hộ bạn ${amount} xu.`,
-            { type: NotificationType.DONATION_RECEIVED, actionUrl: '/tac-gia/earnings' },
+            { type: NotificationType.DONATION_RECEIVED, actionUrl: '/tac-gia/thu-nhap' },
         );
         return donationResult;
     }
@@ -632,7 +632,7 @@ export class WalletService implements OnModuleInit {
                 authorId,
                 'Có người mua chương 📖',
                 `Chương "${chapter.title}" vừa được mua (${chapter.price} xu).`,
-                { type: NotificationType.CHAPTER_PURCHASED, actionUrl: '/tac-gia/earnings' },
+                { type: NotificationType.CHAPTER_PURCHASED, actionUrl: '/tac-gia/thu-nhap' },
             );
         }
         return chapterResult;
@@ -728,7 +728,7 @@ export class WalletService implements OnModuleInit {
                 authorId,
                 'Có người mua truyện VIP 👑',
                 `Truyện "${story.title}" vừa được mua (${story.price} xu).`,
-                { type: NotificationType.STORY_PURCHASED, actionUrl: '/tac-gia/earnings' },
+                { type: NotificationType.STORY_PURCHASED, actionUrl: '/tac-gia/thu-nhap' },
             );
         }
         return storyResult;

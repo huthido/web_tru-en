@@ -5,7 +5,7 @@ import { Sparkles, Lock, ArrowRight } from 'lucide-react';
 import { useMyMonetizationEligibility } from '@/lib/api/hooks/use-monetization';
 
 /**
- * Banner trên /tac-gia/dashboard mời tác giả mở khoá tính năng nâng cao
+ * Banner trên /tac-gia/bang-dieu-khien mời tác giả mở khoá tính năng nâng cao
  * (ads revenue, paid chapter, VIP story, verified ✓). Tự ẩn khi đã đủ.
  * Donate / bán content đã tạo trước đó vẫn mở tự do — không gate.
  */
@@ -45,7 +45,7 @@ export function MonetizationProgressBanner() {
         </div>
       </div>
       <Link
-        href="/tac-gia/eligibility"
+        href="/tac-gia/dieu-kien"
         className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors flex-shrink-0"
       >
         Xem tiến độ
