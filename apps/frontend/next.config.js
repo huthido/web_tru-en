@@ -255,7 +255,15 @@ const nextConfig = {
       ['/author/:path*', '/tac-gia/:path*'],
       ['/author', '/tac-gia'],
     ];
-    return map.map(([source, destination]) => ({ source, destination, permanent: true }));
+    // Tab nội dung cũ (?tab=) nay là trang riêng. Đặt TRƯỚC để khớp trước
+    // redirect /stories→/truyen (một hop tới đúng trang).
+    const tabRedirects = [
+      { source: '/truyen', has: [{ type: 'query', key: 'tab', value: 'nghe-thuat' }], destination: '/nghe-thuat', permanent: true },
+      { source: '/truyen', has: [{ type: 'query', key: 'tab', value: 'tranh' }], destination: '/tranh', permanent: true },
+      { source: '/stories', has: [{ type: 'query', key: 'tab', value: 'nghe-thuat' }], destination: '/nghe-thuat', permanent: true },
+      { source: '/stories', has: [{ type: 'query', key: 'tab', value: 'tranh' }], destination: '/tranh', permanent: true },
+    ];
+    return [...tabRedirects, ...map.map(([source, destination]) => ({ source, destination, permanent: true }))];
   },
 
   async rewrites() {

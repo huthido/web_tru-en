@@ -41,8 +41,8 @@ export function MobileExtraMenu() {
 
     const items: MenuItem[] = [
         { href: user ? `/u/${user.username}` : '/dang-nhap', label: 'Trang cá nhân', icon: UserCircle, authOnly: true },
-        { href: '/truyen?tab=nghe-thuat', label: 'Mày tao', icon: Camera },
-        { href: '/truyen?tab=tranh', label: 'Tranh', icon: Palette },
+        { href: '/nghe-thuat', label: 'Mày tao', icon: Camera },
+        { href: '/tranh', label: 'Tranh', icon: Palette },
         { href: '/tac-gia/stories/create', label: 'Đăng truyện', icon: Upload, authOnly: true },
         { href: '/lich-su', label: 'Lịch sử', icon: Clock },
         { href: '/dang-theo-doi', label: 'Theo dõi', icon: Bookmark, fillWhenActive: true },

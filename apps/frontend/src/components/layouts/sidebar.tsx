@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { OptimizedImage } from '@/components/ui/optimized-image';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useLayoutEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
@@ -53,7 +53,6 @@ function NavPill({ link }: { link: NavLink }) {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { user } = useAuth();
   const { data: settings } = useSettings();
 
@@ -79,12 +78,11 @@ export function Sidebar() {
 
   // Thứ tự menu: Trang chủ · Truyện · Mày tao · Tranh · Đăng truyện · Kiếm tiền
   // · Cửa hàng · Kênh tác giả · Thư viện · Quảng cáo · Tài khoản
-  const tab = searchParams.get('tab');
   const links: NavLink[] = [
     { href: '/', label: 'Trang chủ', icon: Home, active: pathname === '/' },
-    { href: '/truyen', label: 'Truyện', icon: BookOpen, active: pathname === '/truyen' && tab !== 'nghe-thuat' && tab !== 'tranh' },
-    { href: '/truyen?tab=nghe-thuat', label: 'Mày tao', icon: Camera, active: pathname === '/truyen' && tab === 'nghe-thuat' },
-    { href: '/truyen?tab=tranh', label: 'Tranh', icon: Palette, active: pathname === '/truyen' && tab === 'tranh' },
+    { href: '/truyen', label: 'Truyện', icon: BookOpen, active: pathname === '/truyen' },
+    { href: '/nghe-thuat', label: 'Mày tao', icon: Camera, active: pathname === '/nghe-thuat' },
+    { href: '/tranh', label: 'Tranh', icon: Palette, active: pathname === '/tranh' },
     { href: uploadHref, label: 'Đăng truyện', icon: Upload, active: pathname === '/tac-gia/stories/create' },
     { href: earnHref, label: 'Kiếm tiền', icon: Wallet, active: pathname === '/tac-gia/earnings' },
     { href: '/cua-hang', label: 'Cửa hàng', icon: Store, active: pathname === '/cua-hang' },

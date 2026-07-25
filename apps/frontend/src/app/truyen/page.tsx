@@ -5,32 +5,18 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
+import { ContentTabsNav } from '@/components/layouts/content-tabs-nav';
 import { AdSlot } from '@/components/ads/ad-slot';
 import { BookCard } from '@/components/books/book-card';
 import { Loading } from '@/components/ui/loading';
 import { useStories } from '@/lib/api/hooks/use-stories';
 import { useCategories } from '@/lib/api/hooks/use-categories';
 import { Story } from '@/lib/api/stories.service';
-import { ArtTab } from '@/components/art/art-tab';
-import { PaintingTab } from '@/components/paintings/painting-tab';
-import { useAuth } from '@/lib/api/hooks/use-auth';
 import { usePageLimit } from '@/hooks/use-page-limit';
-
-type StoryTab = 'truyen' | 'nghe-thuat' | 'tranh';
 
 function StoriesContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const { user, isAuthenticated } = useAuth();
-
-    // Tab: truyen | nghe-thuat
-    const initialTab = (searchParams.get('tab') as StoryTab) || 'truyen';
-    const [activeTab, setActiveTab] = useState<StoryTab>(initialTab);
-
-    // URL do effect "Update URL when filters change" đồng bộ (có giữ tab).
-    const handleTabChange = (tab: StoryTab) => {
-        setActiveTab(tab);
-    };
 
     // Get initial values from URL params
     const initialPage = parseInt(searchParams.get('page') || '1', 10);
@@ -69,9 +55,7 @@ function StoriesContent() {
         if (search) params.search = search;
         if (selectedCategory) params.categories = [selectedCategory]; // Backend expects slug, not id
         // Only add status filter if user explicitly selected one and it's not DRAFT
-        // DRAFT status should not be accessible on public page
         if (status && status !== 'DRAFT') params.status = status;
-        // If no status selected, backend will default to showing all published stories (excluding drafts)
 
         return params;
     }, [page, limit, search, selectedCategory, status, sortBy]);
@@ -84,20 +68,15 @@ function StoriesContent() {
     // Update URL when filters change
     useEffect(() => {
         const params = new URLSearchParams();
-        // Giữ tab đang chọn — không giữ thì replace sẽ xoá ?tab và
-        // effect sync kéo tab về "Truyện" ngay khi vào từ menu Tranh/Mày tao.
-        if (activeTab !== 'truyen') params.set('tab', activeTab);
         if (page > 1) params.set('page', page.toString());
         if (search) params.set('search', search);
         if (selectedCategory) params.set('category', selectedCategory);
-        // Only add status to URL if user explicitly selected one and it's not DRAFT
-        // DRAFT status should not be accessible on public page
         if (status && status !== 'DRAFT') params.set('status', status);
         if (sortBy !== 'newest') params.set('sortBy', sortBy);
 
         const newUrl = params.toString() ? `/truyen?${params.toString()}` : '/truyen';
         router.replace(newUrl, { scroll: false });
-    }, [activeTab, page, search, selectedCategory, status, sortBy, router]);
+    }, [page, search, selectedCategory, status, sortBy, router]);
 
     // Reset to page 1 when filters change (except page itself)
     useEffect(() => {
@@ -106,9 +85,6 @@ function StoriesContent() {
 
     // Sync state with URL params when they change externally
     useEffect(() => {
-        const urlTab = (searchParams.get('tab') as StoryTab) || 'truyen';
-        if (urlTab !== activeTab) setActiveTab(urlTab);
-
         const urlPage = parseInt(searchParams.get('page') || '1', 10);
         const urlSearch = searchParams.get('search') || '';
         const urlCategory = searchParams.get('category') || '';
@@ -149,41 +125,10 @@ function StoriesContent() {
             <div className="md:ml-60 pb-16 md:pb-0">
                 <Header />
 
-                {/* Tab switcher */}
-                <div className="sticky top-[60px] z-30 bg-background/90 backdrop-blur-md border-b border-outline-variant/20 px-4 md:px-6">
-                    <div className="max-w-7xl mx-auto flex">
-                        {(['truyen', 'nghe-thuat', 'tranh'] as StoryTab[]).map((tab) => (
-                            <button
-                                key={tab}
-                                type="button"
-                                onClick={() => handleTabChange(tab)}
-                                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
-                                    activeTab === tab
-                                        ? 'border-on-surface text-on-surface'
-                                        : 'border-transparent text-on-surface-variant hover:text-on-surface'
-                                }`}
-                            >
-                                {tab === 'truyen' ? '📚 Truyện' : tab === 'nghe-thuat' ? '🎨 Nghệ thuật' : '🖼️ Tranh'}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                <ContentTabsNav />
 
                 <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)]">
                     <div className="max-w-7xl mx-auto px-4 md:px-6">
-
-                        {/* ── Tab Nghệ thuật ─────────────────────────────────── */}
-                        {activeTab === 'nghe-thuat' && (
-                            <ArtTab currentUserId={user?.id} isLoggedIn={isAuthenticated} />
-                        )}
-
-                        {/* ── Tab Tranh ───────────────────────────────────────── */}
-                        {activeTab === 'tranh' && (
-                            <PaintingTab currentUserId={user?.id} isLoggedIn={isAuthenticated} />
-                        )}
-
-                        {/* ── Tab Truyện ─────────────────────────────────────── */}
-                        {activeTab === 'truyen' && (<>
                         <AdSlot slotKey="stories.list.top" />
                         {/* Page Header */}
                         <div className="mb-6">
@@ -430,8 +375,6 @@ function StoriesContent() {
                         <div className="mt-8">
                             <AdSlot slotKey="stories.list.bottom" />
                         </div>
-                        </>)}
-                        {/* ── End Tab Truyện ──────────────────────────────── */}
                     </div>
                 </main>
 
