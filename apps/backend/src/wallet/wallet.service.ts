@@ -421,7 +421,7 @@ export class WalletService implements OnModuleInit {
             userId,
             'Nạp xu thành công 💰',
             `Tài khoản của bạn vừa được cộng ${amount.toLocaleString('vi-VN')} xu.`,
-            { type: NotificationType.COIN_DEPOSITED, actionUrl: '/wallet/history' },
+            { type: NotificationType.COIN_DEPOSITED, actionUrl: '/vi-xu/giao-dich' },
         );
 
         return wallet;
@@ -518,7 +518,7 @@ export class WalletService implements OnModuleInit {
             authorId,
             'Bạn nhận được ủng hộ 🎉',
             `Có người vừa ủng hộ bạn ${amount} xu.`,
-            { type: NotificationType.DONATION_RECEIVED, actionUrl: '/wallet/earnings' },
+            { type: NotificationType.DONATION_RECEIVED, actionUrl: '/author/earnings' },
         );
         return donationResult;
     }
@@ -632,7 +632,7 @@ export class WalletService implements OnModuleInit {
                 authorId,
                 'Có người mua chương 📖',
                 `Chương "${chapter.title}" vừa được mua (${chapter.price} xu).`,
-                { type: NotificationType.CHAPTER_PURCHASED, actionUrl: '/wallet/earnings' },
+                { type: NotificationType.CHAPTER_PURCHASED, actionUrl: '/author/earnings' },
             );
         }
         return chapterResult;
@@ -728,7 +728,7 @@ export class WalletService implements OnModuleInit {
                 authorId,
                 'Có người mua truyện VIP 👑',
                 `Truyện "${story.title}" vừa được mua (${story.price} xu).`,
-                { type: NotificationType.STORY_PURCHASED, actionUrl: '/wallet/earnings' },
+                { type: NotificationType.STORY_PURCHASED, actionUrl: '/author/earnings' },
             );
         }
         return storyResult;

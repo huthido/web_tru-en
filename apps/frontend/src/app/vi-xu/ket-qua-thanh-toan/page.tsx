@@ -183,7 +183,7 @@ function ResultActions() {
     return (
         <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
             <Link
-                href="/shop"
+                href="/cua-hang"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:opacity-90 text-on-primary rounded-lg font-medium transition-all"
             >
                 <Store size={18} /> Về cửa hàng

@@ -223,6 +223,28 @@ const nextConfig = {
     ];
   },
 
+  async redirects() {
+    // URL tiếng Anh cũ → URL tiếng Việt mới (301). Giữ bookmark / link đã chia
+    // sẻ / SEO không gãy sau khi đổi tên route. Query string được Next tự giữ.
+    // Route con đổi tên (transactions→giao-dich, payment-result→...) khai báo
+    // TRƯỚC route cha để khớp đúng, không dùng wildcard cho /wallet.
+    const map = [
+      ['/shop', '/cua-hang'],
+      ['/wallet/transactions', '/vi-xu/giao-dich'],
+      ['/wallet/payment-result', '/vi-xu/ket-qua-thanh-toan'],
+      ['/wallet', '/vi-xu'],
+      ['/profile', '/tai-khoan'],
+      ['/favorites', '/yeu-thich'],
+      ['/follows', '/dang-theo-doi'],
+      ['/history', '/lich-su'],
+      ['/library', '/thu-vien'],
+      ['/search', '/tim-kiem'],
+      ['/transfer', '/chuyen-xu'],
+      ['/notifications', '/thong-bao'],
+    ];
+    return map.map(([source, destination]) => ({ source, destination, permanent: true }));
+  },
+
   async rewrites() {
     // 🍎 iOS Safari Fix: Proxy API requests to same domain
     // This makes cookies work as first-party cookies!

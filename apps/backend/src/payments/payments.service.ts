@@ -503,7 +503,7 @@ export class PaymentsService {
         title: 'Nạp xu thành công',
         content: `Yêu cầu chuyển khoản ${payment.txnRef} đã được xác nhận. ${payment.coinAmount.toLocaleString('vi-VN')} xu đã được cộng vào ví của bạn.`,
         type: NotificationType.COIN_DEPOSITED,
-        actionUrl: '/wallet',
+        actionUrl: '/vi-xu',
       })
       .catch((e) => this.logger.warn(`notify confirm manual failed: ${e?.message}`));
 
@@ -547,7 +547,7 @@ export class PaymentsService {
         title: 'Yêu cầu nạp xu bị từ chối',
         content: `Yêu cầu chuyển khoản ${payment.txnRef} đã bị từ chối.${trimmed ? ' Lý do: ' + trimmed : ''} Nếu bạn đã chuyển khoản, vui lòng liên hệ hỗ trợ.`,
         type: NotificationType.WARNING,
-        actionUrl: '/wallet',
+        actionUrl: '/vi-xu',
       })
       .catch((e) => this.logger.warn(`notify reject manual failed: ${e?.message}`));
 
@@ -605,7 +605,7 @@ export class PaymentsService {
         title: 'Giao dịch nạp xu bị thu hồi',
         content: `Giao dịch ${payment.txnRef} (${payment.coinAmount.toLocaleString('vi-VN')} xu) đã bị thu hồi do xác nhận nhầm.${trimmed ? ' Lý do: ' + trimmed : ''} Nếu bạn đã chuyển tiền thật, vui lòng liên hệ hỗ trợ.`,
         type: NotificationType.WARNING,
-        actionUrl: '/wallet',
+        actionUrl: '/vi-xu',
       })
       .catch((e) => this.logger.warn(`notify revert manual failed: ${e?.message}`));
 

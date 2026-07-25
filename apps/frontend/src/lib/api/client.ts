@@ -183,11 +183,11 @@ class ApiClient {
       const currentPath = window.location.pathname;
 
       // Define protected routes that require auth
-      const protectedRoutes = ['/library', '/profile', '/history', '/favorites', '/follows', '/author'];
+      const protectedRoutes = ['/thu-vien', '/tai-khoan', '/lich-su', '/yeu-thich', '/dang-theo-doi', '/author'];
       const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
 
       // Define public routes that don't need auth
-      const publicRoutes = ['/', '/login', '/register', '/maintenance', '/truyen/', '/stories/', '/search', '/categories', '/auth/'];
+      const publicRoutes = ['/', '/login', '/register', '/maintenance', '/truyen/', '/stories/', '/tim-kiem', '/categories', '/auth/'];
       const isPublicRoute = publicRoutes.some(route => currentPath === route || currentPath.startsWith(route));
 
       // 🔥 CRITICAL FIX: Always dispatch logout event to clear state

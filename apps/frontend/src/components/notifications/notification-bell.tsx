@@ -155,7 +155,7 @@ export function NotificationBell() {
                                 {notifications.map((notification: any) => (
                                     <Link
                                         key={notification.id}
-                                        href={notification.actionUrl || '/notifications'}
+                                        href={notification.actionUrl || '/thong-bao'}
                                         onClick={() => {
                                             if (!notification.isRead) {
                                                 handleMarkAsRead(notification.recipientId);
@@ -198,7 +198,7 @@ export function NotificationBell() {
                     {notifications.length > 0 && (
                         <div className="w-full px-4 py-3 border-t border-outline-variant">
                             <Link
-                                href="/notifications"
+                                href="/thong-bao"
                                 onClick={() => setIsOpen(false)}
                                 className="block w-full text-center text-sm font-medium text-primary hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                             >

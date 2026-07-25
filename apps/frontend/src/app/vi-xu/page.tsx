@@ -87,7 +87,7 @@ export default function WalletPage() {
                             {/* Quick actions */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <Link
-                                    href="/shop"
+                                    href="/cua-hang"
                                     className="flex items-center gap-3 p-4 bg-surface-container rounded-lg shadow-sm border border-outline-variant hover:bg-surface-container-high transition-colors"
                                 >
                                     <span className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
@@ -111,7 +111,7 @@ export default function WalletPage() {
                                     </div>
                                 </Link>
                                 <Link
-                                    href="/wallet/transactions"
+                                    href="/vi-xu/giao-dich"
                                     className="flex items-center gap-3 p-4 bg-surface-container rounded-lg shadow-sm border border-outline-variant hover:bg-surface-container-high transition-colors"
                                 >
                                     <span className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center">
@@ -129,7 +129,7 @@ export default function WalletPage() {
                                 <div className="flex items-center justify-between mb-2">
                                     <h2 className="text-lg font-bold text-on-surface">Giao dịch gần đây</h2>
                                     <Link
-                                        href="/wallet/transactions"
+                                        href="/vi-xu/giao-dich"
                                         className="text-sm text-primary hover:underline"
                                     >
                                         Xem tất cả →

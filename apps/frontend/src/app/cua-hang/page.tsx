@@ -201,7 +201,7 @@ export default function ShopPage() {
                             {/* Liên kết tới lịch sử giao dịch */}
                             <div className="mt-6 text-center">
                                 <Link
-                                    href="/wallet/payment-result"
+                                    href="/vi-xu/ket-qua-thanh-toan"
                                     className="inline-flex items-center gap-1.5 text-sm text-on-surface-variant hover:text-primary transition-colors"
                                 >
                                     <History size={16} /> Tra cứu kết quả thanh toán

@@ -68,7 +68,7 @@ export default function TransactionsPage() {
                                     </p>
                                 </div>
                                 <Link
-                                    href="/wallet"
+                                    href="/vi-xu"
                                     className="text-sm text-on-surface-variant hover:text-primary"
                                 >
                                     ← Về Ví xu

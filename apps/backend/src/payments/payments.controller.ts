@@ -72,7 +72,7 @@ export class PaymentsController {
       success: String(result.success),
       responseCode: result.responseCode || '',
     });
-    return res.redirect(`${frontend}/wallet/payment-result?${params.toString()}`);
+    return res.redirect(`${frontend}/vi-xu/ket-qua-thanh-toan?${params.toString()}`);
   }
 
   /**

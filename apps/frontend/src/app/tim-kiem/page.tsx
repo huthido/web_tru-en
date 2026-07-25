@@ -71,7 +71,7 @@ function SearchContent() {
         if (status) params.set('status', status);
         if (sortBy !== 'newest') params.set('sortBy', sortBy);
 
-        const newUrl = params.toString() ? `/search?${params.toString()}` : '/search';
+        const newUrl = params.toString() ? `/tim-kiem?${params.toString()}` : '/tim-kiem';
         router.replace(newUrl, { scroll: false });
     }, [page, query, selectedCategory, status, sortBy, router]);
 

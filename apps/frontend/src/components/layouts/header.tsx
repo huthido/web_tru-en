@@ -45,7 +45,7 @@ export function Header() {
     }
 
     // Navigate to search results page with query
-    router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
+    router.push(`/tim-kiem?q=${encodeURIComponent(trimmedQuery)}`);
     setShowSuggestions(false);
   };
 
@@ -235,7 +235,7 @@ export function Header() {
         {/* Badge số dư xu — bấm vào để tới Cửa hàng. Mobile: compact, no border. */}
         {isAuthenticated && user && (
           <Link
-            href="/shop"
+            href="/cua-hang"
             aria-label="Cửa hàng — nạp xu"
             className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 rounded-full md:border-2 transition-all duration-300 hover:scale-105 active:scale-95 hover:bg-surface-container md:bg-surface-container md:border-primary/60 md:shadow-sm md:hover:shadow-md"
           >
@@ -351,7 +351,7 @@ export function Header() {
                       <span>Người theo dõi</span>
                     </Link>
                     <Link
-                      href="/profile"
+                      href="/tai-khoan"
                       onClick={() => setIsDropdownOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-variant transition-colors duration-200"
                     >

@@ -87,16 +87,16 @@ export function Sidebar() {
     { href: '/stories?tab=tranh', label: 'Tranh', icon: Palette, active: pathname === '/stories' && tab === 'tranh' },
     { href: uploadHref, label: 'Đăng truyện', icon: Upload, active: pathname === '/author/stories/create' },
     { href: earnHref, label: 'Kiếm tiền', icon: Wallet, active: pathname === '/author/earnings' },
-    { href: '/shop', label: 'Cửa hàng', icon: Store, active: pathname === '/shop' },
+    { href: '/cua-hang', label: 'Cửa hàng', icon: Store, active: pathname === '/cua-hang' },
     { href: '/author/dashboard', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/author/dashboard'), authOnly: true },
-    { href: '/library', label: 'Thư viện', icon: Library, active: pathname === '/library' },
+    { href: '/thu-vien', label: 'Thư viện', icon: Library, active: pathname === '/thu-vien' },
     { href: '/quang-cao', label: 'Quảng cáo', icon: Megaphone, active: pathname === '/quang-cao' },
     { href: myProfileHref, label: 'Trang cá nhân', icon: UserCircle, active: myProfileActive },
   ];
 
   // Secondary section, pinned to the bottom of the rail.
   const bottomLinks: NavLink[] = [
-    { href: '/profile', label: 'Cài đặt', icon: Settings, active: false },
+    { href: '/tai-khoan', label: 'Cài đặt', icon: Settings, active: false },
     { href: '/gioi-thieu', label: 'Trợ giúp', icon: HelpCircle, active: pathname === '/gioi-thieu' },
     { href: '/bao-loi', label: 'Báo lỗi', icon: Bug, active: pathname === '/bao-loi' },
   ];
