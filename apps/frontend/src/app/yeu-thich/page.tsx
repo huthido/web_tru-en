@@ -68,7 +68,7 @@ export default function FavoritesPage() {
                   Bạn cần đăng nhập để xem danh sách truyện yêu thích của mình.
                 </p>
                 <Link
-                  href="/login"
+                  href="/dang-nhap"
                   className="px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary font-medium rounded-lg transition-colors"
                 >
                   Đăng nhập

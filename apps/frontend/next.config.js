@@ -241,6 +241,11 @@ const nextConfig = {
       ['/search', '/tim-kiem'],
       ['/transfer', '/chuyen-xu'],
       ['/notifications', '/thong-bao'],
+      // Phase 2 — đăng nhập/đăng ký (giữ /auth/callback + /auth/verify-email)
+      ['/login', '/dang-nhap'],
+      ['/register', '/dang-ky'],
+      ['/forgot-password', '/quen-mat-khau'],
+      ['/reset-password', '/dat-lai-mat-khau'],
     ];
     return map.map(([source, destination]) => ({ source, destination, permanent: true }));
   },

@@ -22,7 +22,7 @@ interface QuickFollowAuthorButtonProps {
  * (story detail, donate modal, search result, ...).
  *
  * Ẩn nút khi user đang xem chính mình (không tự follow). Nếu chưa login,
- * tap → redirect `/login?redirect=<current>`.
+ * tap → redirect `/dang-nhap?redirect=<current>`.
  */
 export function QuickFollowAuthorButton({
   authorId,
@@ -43,7 +43,7 @@ export function QuickFollowAuthorButton({
 
   const onClick = async () => {
     if (!isAuthenticated) {
-      router.push('/login?redirect=' + encodeURIComponent(window.location.pathname));
+      router.push('/dang-nhap?redirect=' + encodeURIComponent(window.location.pathname));
       return;
     }
     setOptimistic(!following);

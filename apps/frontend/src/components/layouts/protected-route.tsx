@@ -36,7 +36,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
       // Chỉ redirect khi đã chắc chắn không có auth (sau khi auth check hoàn thành)
       if (!isAuthenticated) {
         hasRedirected.current = true;
-        router.push('/login');
+        router.push('/dang-nhap');
         return;
       }
 

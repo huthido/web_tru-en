@@ -107,7 +107,7 @@ export function CommentSection({ storyId, chapterId, story, page = 1, limit = 5 
             Vui lòng đăng nhập để bình luận
           </p>
           <Link
-            href="/login"
+            href="/dang-nhap"
             className="inline-block px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 
                      text-white rounded-lg hover:from-pink-600 hover:to-purple-700 
                      transition-all shadow-sm hover:shadow-md"

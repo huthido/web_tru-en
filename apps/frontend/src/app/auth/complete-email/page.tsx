@@ -19,7 +19,7 @@ export default function CompleteEmailPage() {
   useEffect(() => {
     const code = searchParams.get('code');
     if (!code) {
-      router.push('/login');
+      router.push('/dang-nhap');
     }
   }, [searchParams, router]);
 
@@ -139,7 +139,7 @@ export default function CompleteEmailPage() {
 
             <div className="mt-4 text-center">
               <Link
-                href="/login"
+                href="/dang-nhap"
                 className="text-sm text-primary hover:underline"
               >
                 Quay lại đăng nhập

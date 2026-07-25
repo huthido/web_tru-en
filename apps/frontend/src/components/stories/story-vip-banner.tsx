@@ -25,7 +25,7 @@ export function StoryVipBanner({ slug }: { slug: string }) {
     // SOFT debit (see WalletService.debitForContent) — gate on combined total.
     const balance = (wallet?.purchasedBalance ?? 0) + (wallet?.earnedBalance ?? 0);
     const insufficient = isAuthenticated && !owned && balance < price;
-    const loginHref = `/login?redirect=${encodeURIComponent(`/truyen/${slug}`)}`;
+    const loginHref = `/dang-nhap?redirect=${encodeURIComponent(`/truyen/${slug}`)}`;
 
     const handleBuy = async () => {
         setError(null);

@@ -71,10 +71,10 @@ export function Sidebar() {
 
   const canCreateStories = !!user;
 
-  const uploadHref = canCreateStories ? '/author/stories/create' : '/login?redirect=/author/stories/create';
-  const earnHref = user ? '/author/earnings' : '/login?redirect=/author/earnings';
+  const uploadHref = canCreateStories ? '/author/stories/create' : '/dang-nhap?redirect=/author/stories/create';
+  const earnHref = user ? '/author/earnings' : '/dang-nhap?redirect=/author/earnings';
   // Trang cá nhân (public) của người đang đăng nhập; khách → login.
-  const myProfileHref = user ? `/u/${user.username}` : '/login?redirect=/';
+  const myProfileHref = user ? `/u/${user.username}` : '/dang-nhap?redirect=/';
   const myProfileActive = !!user && pathname === `/u/${user.username}`;
 
   // Thứ tự menu: Trang chủ · Truyện · Mày tao · Tranh · Đăng truyện · Kiếm tiền

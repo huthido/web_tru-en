@@ -34,7 +34,7 @@ export function FollowAuthorButton({
 
   const onClick = async () => {
     if (!isAuthenticated) {
-      router.push('/login?redirect=' + encodeURIComponent(window.location.pathname));
+      router.push('/dang-nhap?redirect=' + encodeURIComponent(window.location.pathname));
       return;
     }
     setOptimistic(!following);

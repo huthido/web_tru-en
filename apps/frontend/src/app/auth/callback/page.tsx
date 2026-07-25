@@ -19,7 +19,7 @@ export default function AuthCallbackPage() {
       if (!code) {
         // No code provided, redirect immediately
         setStatus('error');
-        router.replace('/login?error=no_code');
+        router.replace('/dang-nhap?error=no_code');
         return;
       }
 
@@ -45,7 +45,7 @@ export default function AuthCallbackPage() {
         console.error('OAuth callback error:', error);
         setStatus('error');
         // 🔥 FIXED: Redirect immediately, no setTimeout
-        router.replace('/login?error=oauth_failed');
+        router.replace('/dang-nhap?error=oauth_failed');
       }
     };
 

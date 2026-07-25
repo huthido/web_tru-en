@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
                 thư (kể cả mục spam). Link có hiệu lực trong 1 giờ.
               </p>
               <Link
-                href="/login"
+                href="/dang-nhap"
                 className="w-full h-12 flex items-center justify-center rounded-[10px] text-on-primary font-medium bg-primary hover:bg-primary/90 transition-all duration-300 shadow-md"
               >
                 Quay lại đăng nhập
@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
               <p className="text-center text-sm text-on-surface">
                 Nhớ mật khẩu rồi?{' '}
                 <Link
-                  href="/login"
+                  href="/dang-nhap"
                   className="font-medium text-primary hover:underline"
                 >
                   Đăng nhập

@@ -66,7 +66,7 @@ function ResetPasswordForm() {
                 Link đặt lại mật khẩu thiếu token hoặc đã hỏng. Vui lòng yêu cầu link mới.
               </p>
               <Link
-                href="/forgot-password"
+                href="/quen-mat-khau"
                 className="w-full h-12 flex items-center justify-center rounded-[10px] text-on-primary font-medium bg-primary hover:bg-primary/90 transition-all duration-300 shadow-md"
               >
                 Yêu cầu link mới
@@ -79,7 +79,7 @@ function ResetPasswordForm() {
                 Mật khẩu đã được đặt lại. Vui lòng đăng nhập bằng mật khẩu mới.
               </p>
               <Link
-                href="/login"
+                href="/dang-nhap"
                 className="w-full h-12 flex items-center justify-center rounded-[10px] text-on-primary font-medium bg-primary hover:bg-primary/90 transition-all duration-300 shadow-md"
               >
                 Đăng nhập
@@ -151,7 +151,7 @@ function ResetPasswordForm() {
 
               <p className="text-center text-sm text-on-surface">
                 <Link
-                  href="/login"
+                  href="/dang-nhap"
                   className="font-medium text-primary hover:underline"
                 >
                   Quay lại đăng nhập

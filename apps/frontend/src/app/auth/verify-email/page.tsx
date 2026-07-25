@@ -106,7 +106,7 @@ export default function VerifyEmailPage() {
             </p>
             <div className="flex flex-col gap-3">
               <Link
-                href="/login"
+                href="/dang-nhap"
                 className="inline-block px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary font-medium rounded-lg transition-colors"
               >
                 Về trang đăng nhập

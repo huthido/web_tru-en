@@ -105,7 +105,7 @@ export const useAuth = () => {
     onSuccess: () => {
       setSessionHint(false);
       queryClient.setQueryData(['auth', 'me'], null);
-      router.push('/login');
+      router.push('/dang-nhap');
     },
   });
 

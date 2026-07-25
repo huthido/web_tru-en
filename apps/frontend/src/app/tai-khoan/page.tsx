@@ -310,7 +310,7 @@ function ProfileContent() {
   const handleLogout = async () => {
     try {
       await logout();
-      router.push('/login');
+      router.push('/dang-nhap');
     } catch (error) {
       console.error('Logout error:', error);
     }

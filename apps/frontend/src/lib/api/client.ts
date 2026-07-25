@@ -187,7 +187,7 @@ class ApiClient {
       const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
 
       // Define public routes that don't need auth
-      const publicRoutes = ['/', '/login', '/register', '/maintenance', '/truyen/', '/stories/', '/tim-kiem', '/categories', '/auth/'];
+      const publicRoutes = ['/', '/dang-nhap', '/dang-ky', '/maintenance', '/truyen/', '/stories/', '/tim-kiem', '/categories', '/auth/'];
       const isPublicRoute = publicRoutes.some(route => currentPath === route || currentPath.startsWith(route));
 
       // 🔥 CRITICAL FIX: Always dispatch logout event to clear state
@@ -195,7 +195,7 @@ class ApiClient {
 
       // Only redirect to login if on protected route
       if (isProtectedRoute && !isPublicRoute) {
-        window.location.href = '/login';
+        window.location.href = '/dang-nhap';
       }
     }
   }

@@ -157,7 +157,7 @@ export function DonateAuthorModal({
                                         Bạn cần đăng nhập để ủng hộ tác giả
                                     </p>
                                     <Link
-                                        href="/login"
+                                        href="/dang-nhap"
                                         className="inline-block px-6 py-2.5 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-medium transition-colors"
                                     >
                                         Đăng nhập

@@ -40,7 +40,7 @@ export function MobileExtraMenu() {
     const isAuth = !!user;
 
     const items: MenuItem[] = [
-        { href: user ? `/u/${user.username}` : '/login', label: 'Trang cá nhân', icon: UserCircle, authOnly: true },
+        { href: user ? `/u/${user.username}` : '/dang-nhap', label: 'Trang cá nhân', icon: UserCircle, authOnly: true },
         { href: '/stories?tab=nghe-thuat', label: 'Mày tao', icon: Camera },
         { href: '/stories?tab=tranh', label: 'Tranh', icon: Palette },
         { href: '/author/stories/create', label: 'Đăng truyện', icon: Upload, authOnly: true },

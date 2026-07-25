@@ -435,7 +435,7 @@ export function Header() {
               </div>
             ) : (
               <Link
-                href="/login"
+                href="/dang-nhap"
                 className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-primary hover:opacity-90 text-on-primary text-xs md:text-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95"
               >
                 <span className="hidden sm:inline">Đăng nhập</span>

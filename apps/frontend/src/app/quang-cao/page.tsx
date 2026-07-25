@@ -426,7 +426,7 @@ function AdvertisingContent() {
                                                             </button>
                                                         ) : (
                                                             <Link
-                                                                href="/login?redirect=/quang-cao"
+                                                                href="/dang-nhap?redirect=/quang-cao"
                                                                 className="mt-3 w-full px-4 py-2 rounded-lg bg-primary text-on-primary text-sm font-semibold text-center hover:opacity-90"
                                                             >
                                                                 Đăng nhập để đặt
@@ -451,7 +451,7 @@ function AdvertisingContent() {
                             ) : (
                                 <div className="bg-surface-container rounded-lg p-12 text-center shadow-sm">
                                     <p className="text-on-surface-variant mb-4">Đăng nhập để xem đơn đặt quảng cáo của bạn.</p>
-                                    <Link href="/login?redirect=/quang-cao" className="inline-block px-5 py-2 rounded-lg bg-primary text-on-primary text-sm font-semibold">
+                                    <Link href="/dang-nhap?redirect=/quang-cao" className="inline-block px-5 py-2 rounded-lg bg-primary text-on-primary text-sm font-semibold">
                                         Đăng nhập
                                     </Link>
                                 </div>

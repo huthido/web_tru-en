@@ -186,7 +186,7 @@ export default function RegistrationSuccessPage() {
           {/* Footer */}
           <div className="px-6 py-4 bg-surface-container-low/50 border-t border-outline-variant rounded-b">
             <Link
-              href="/login"
+              href="/dang-nhap"
               className="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 font-medium inline-flex items-center gap-1 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

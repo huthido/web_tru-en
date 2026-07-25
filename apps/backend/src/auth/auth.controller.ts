@@ -401,7 +401,7 @@ export class AuthController {
       if (isMobile) {
         return res.redirect(this.mobileAppRedirect({ error: 'oauth_failed' }));
       }
-      res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+      res.redirect(`${frontendUrl}/dang-nhap?error=oauth_failed`);
     }
   }
 
@@ -491,7 +491,7 @@ export class AuthController {
       if (isMobile) {
         return res.redirect(this.mobileAppRedirect({ error: 'oauth_failed' }));
       }
-      res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+      res.redirect(`${frontendUrl}/dang-nhap?error=oauth_failed`);
     }
   }
 }

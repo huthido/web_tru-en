@@ -132,7 +132,7 @@ export class EmailService {
      */
     async sendPasswordResetEmail(email: string, token: string, userName: string): Promise<void> {
         const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-        const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+        const resetUrl = `${frontendUrl}/dat-lai-mat-khau?token=${token}`;
 
         const html = `
 <!DOCTYPE html>

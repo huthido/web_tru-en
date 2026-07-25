@@ -214,7 +214,7 @@ export default function BookDetailPage() {
                 </p>
                 <div className="flex gap-3">
                   <Link
-                    href={`/login?redirect=${encodeURIComponent(`/truyen/${slug}`)}`}
+                    href={`/dang-nhap?redirect=${encodeURIComponent(`/truyen/${slug}`)}`}
                     className="px-6 py-3 rounded-lg bg-primary hover:bg-primary/90 text-on-primary font-medium transition-all duration-300 hover:scale-105 active:scale-95"
                   >
                     Đăng nhập
