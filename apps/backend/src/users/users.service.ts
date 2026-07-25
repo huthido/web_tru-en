@@ -138,6 +138,7 @@ export class UsersService {
         id: true,
         email: true,
         username: true,
+        profileSlug: true,
         displayName: true,
         avatar: true,
         bio: true,
@@ -162,18 +163,76 @@ export class UsersService {
     return user;
   }
 
-  async updateProfile(userId: string, data: { displayName?: string; bio?: string; avatar?: string }) {
+  // Slug bị cấm đặt — trùng route hệ thống / dễ gây nhầm.
+  private static readonly RESERVED_SLUGS = new Set([
+    'admin', 'api', 'me', 'u', 'app', 'auth', 'null', 'undefined', 'settings',
+    'tac-gia', 'quan-tri', 'truyen', 'tranh', 'nghe-thuat', 'cua-hang', 'vi-xu',
+  ]);
+
+  /**
+   * Chuẩn hoá + kiểm tra slug tuỳ chỉnh. Trả null nếu rỗng (xoá slug → dùng lại
+   * username). Ném BadRequestException với thông báo rõ khi không hợp lệ / trùng.
+   */
+  private async normalizeProfileSlug(userId: string, raw: string): Promise<string | null> {
+    const slug = (raw || '').trim().toLowerCase();
+    if (!slug) return null;
+    if (slug.length < 3 || slug.length > 30) {
+      throw new BadRequestException('Đường dẫn chia sẻ phải từ 3 đến 30 ký tự');
+    }
+    if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(slug)) {
+      throw new BadRequestException(
+        'Đường dẫn chỉ gồm chữ thường, số và gạch ngang; không bắt đầu/kết thúc bằng gạch ngang',
+      );
+    }
+    if (slug.includes('--')) {
+      throw new BadRequestException('Đường dẫn không được có hai gạch ngang liền nhau');
+    }
+    if (UsersService.RESERVED_SLUGS.has(slug)) {
+      throw new BadRequestException('Đường dẫn này thuộc hệ thống, vui lòng chọn tên khác');
+    }
+    // Không được trùng username hoặc profileSlug của người khác (để /u/[slug]
+    // không mập mờ về người).
+    const clash = await this.prisma.user.findFirst({
+      where: {
+        id: { not: userId },
+        OR: [{ username: slug }, { profileSlug: slug }],
+      },
+      select: { id: true },
+    });
+    if (clash) {
+      throw new BadRequestException('Đường dẫn này đã có người dùng, vui lòng chọn tên khác');
+    }
+    return slug;
+  }
+
+  async updateProfile(
+    userId: string,
+    data: { displayName?: string; bio?: string; avatar?: string; profileSlug?: string },
+  ) {
+    const updateData: {
+      displayName?: string;
+      bio?: string;
+      avatar?: string;
+      profileSlug?: string | null;
+    } = {
+      displayName: data.displayName,
+      bio: data.bio,
+      avatar: data.avatar,
+    };
+
+    // Chỉ đụng tới slug khi client thực sự gửi field (undefined = giữ nguyên).
+    if (data.profileSlug !== undefined) {
+      updateData.profileSlug = await this.normalizeProfileSlug(userId, data.profileSlug);
+    }
+
     return this.prisma.user.update({
       where: { id: userId },
-      data: {
-        displayName: data.displayName,
-        bio: data.bio,
-        avatar: data.avatar,
-      },
+      data: updateData,
       select: {
         id: true,
         email: true,
         username: true,
+        profileSlug: true,
         displayName: true,
         avatar: true,
         bio: true,
@@ -361,8 +420,20 @@ export class UsersService {
     return this._publicProfile({ id: userId }, callerId);
   }
 
-  async getPublicProfileByUsername(username: string, callerId?: string | null) {
-    return this._publicProfile({ username }, callerId);
+  /**
+   * Resolve trang cá nhân /u/[x] theo slug: khớp `username` HOẶC `profileSlug`.
+   * (Khi user đặt profileSlug tuỳ chỉnh, link /u/[slug] vẫn ra đúng người; link
+   * /u/[username] gốc luôn hoạt động vì username không đổi.)
+   */
+  async getPublicProfileByUsername(slug: string, callerId?: string | null) {
+    const found = await this.prisma.user.findFirst({
+      where: { OR: [{ username: slug }, { profileSlug: slug }] },
+      select: { id: true },
+    });
+    if (!found) {
+      throw new NotFoundException('User không tồn tại');
+    }
+    return this._publicProfile({ id: found.id }, callerId);
   }
 
   private async _publicProfile(
@@ -374,6 +445,7 @@ export class UsersService {
       select: {
         id: true,
         username: true,
+        profileSlug: true,
         displayName: true,
         avatar: true,
         bio: true,
@@ -413,6 +485,7 @@ export class UsersService {
     return {
       id: user.id,
       username: user.username,
+      profileSlug: user.profileSlug,
       displayName: user.displayName,
       avatar: user.avatar,
       bio: user.bio,

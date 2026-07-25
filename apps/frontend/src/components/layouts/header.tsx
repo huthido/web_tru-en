@@ -304,7 +304,7 @@ export function Header() {
                   <div className="absolute right-0 mt-2 w-48 bg-surface-container rounded-lg shadow-lg border border-outline-variant/40 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     {/* Trang cá nhân kiểu MXH — link tới /u/{my-username} */}
                     <Link
-                      href={`/u/${user.username}`}
+                      href={`/u/${user.profileSlug || user.username}`}
                       onClick={() => setIsDropdownOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-variant transition-colors duration-200"
                     >

@@ -182,6 +182,7 @@ export class AuthController {
           id: user.id,
           email: user.email,
           username: user.username,
+          profileSlug: user.profileSlug,
           displayName: user.displayName,
           avatar: user.avatar,
           bio: user.bio,

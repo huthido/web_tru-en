@@ -39,10 +39,11 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
 
   const isMe = !!me && !!profile && me.id === profile.id;
 
-  // URL tuyệt đối của trang cá nhân để chia sẻ ra nền tảng khác.
+  // URL tuyệt đối của trang cá nhân để chia sẻ — ưu tiên slug tuỳ chỉnh nếu có.
+  const shareSlug = profile?.profileSlug || username;
   const profileUrl =
-    typeof window !== 'undefined' && username
-      ? `${window.location.origin}/u/${encodeURIComponent(username)}`
+    typeof window !== 'undefined' && shareSlug
+      ? `${window.location.origin}/u/${encodeURIComponent(shareSlug)}`
       : undefined;
   const displayName = profile?.displayName || profile?.username || '';
 

@@ -22,6 +22,7 @@ interface ProfileFormData {
   password: string;
   displayName: string;
   bio: string;
+  profileSlug: string;
 }
 
 interface PasswordFormData {
@@ -41,6 +42,7 @@ function ProfileContent() {
     password: '••••••••',
     displayName: '',
     bio: '',
+    profileSlug: '',
   });
 
   const [passwordData, setPasswordData] = useState<PasswordFormData>({
@@ -65,16 +67,17 @@ function ProfileContent() {
         password: '••••••••',
         displayName: user.displayName || '',
         bio: user.bio || '',
+        profileSlug: user.profileSlug || '',
       });
     }
   }, [user]);
 
   // Update profile mutation
   const updateMutation = useMutation({
-    mutationFn: (data: { displayName?: string; bio?: string; avatar?: string }) => usersService.updateProfile(data),
+    mutationFn: (data: { displayName?: string; bio?: string; avatar?: string; profileSlug?: string }) => usersService.updateProfile(data),
     onSuccess: (updatedUser: any) => {
       // Patch cache immediately so all screens (Header, Sidebar…) see the new
-      // name/avatar/bio without waiting for a background refetch to complete.
+      // name/avatar/bio/slug without waiting for a background refetch to complete.
       queryClient.setQueryData(['auth', 'me'], (old: any) => {
         if (!old) return old;
         return {
@@ -82,6 +85,7 @@ function ProfileContent() {
           displayName: updatedUser?.displayName ?? old.displayName,
           avatar: updatedUser?.avatar ?? old.avatar,
           bio: updatedUser?.bio ?? old.bio,
+          profileSlug: updatedUser?.profileSlug ?? old.profileSlug,
         };
       });
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
@@ -91,7 +95,13 @@ function ProfileContent() {
       setErrors({});
     },
     onError: (error: any) => {
-      setErrors({ submit: error.response?.data?.error || error.message || 'Có lỗi xảy ra khi cập nhật hồ sơ' });
+      const msg = error.response?.data?.error || error.message || 'Có lỗi xảy ra khi cập nhật hồ sơ';
+      // Lỗi slug → hiện ngay dưới ô Đường dẫn chia sẻ.
+      if (typeof msg === 'string' && msg.includes('Đường dẫn')) {
+        setErrors({ profileSlug: msg });
+      } else {
+        setErrors({ submit: msg });
+      }
     },
   });
 
@@ -218,6 +228,7 @@ function ProfileContent() {
       updateMutation.mutate({
         displayName: formData.displayName.trim() || undefined,
         bio: formData.bio.trim(),
+        profileSlug: formData.profileSlug.trim(),
       });
     }
   };
@@ -367,7 +378,7 @@ function ProfileContent() {
                     </div>
                     {user?.username && (
                       <Link
-                        href={`/u/${user.username}`}
+                        href={`/u/${user.profileSlug || user.username}`}
                         className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -521,6 +532,38 @@ function ProfileContent() {
                       <p className="mt-1 text-xs text-on-surface-variant text-right">
                         {formData.bio.length}/500
                       </p>
+                    </div>
+
+                    {/* Đường dẫn chia sẻ (slug tuỳ chỉnh cho /u/[slug]) */}
+                    <div className="relative">
+                      <label className="absolute -top-2.5 left-3 px-2 bg-surface-container text-sm font-medium text-on-surface-variant z-10">
+                        Đường dẫn chia sẻ
+                      </label>
+                      <div className="flex items-center w-full border-2 border-outline-variant rounded-lg bg-surface-container focus-within:border-primary dark:focus-within:border-blue-400 transition-colors overflow-hidden">
+                        <span className="pl-4 pr-0.5 py-3 text-on-surface-variant text-sm select-none whitespace-nowrap">
+                          yeuyeu.net/u/
+                        </span>
+                        <input
+                          type="text"
+                          value={formData.profileSlug}
+                          onChange={(e) =>
+                            handleInputChange(
+                              'profileSlug',
+                              e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+                            )
+                          }
+                          placeholder={user?.username || 'ten-cua-ban'}
+                          maxLength={30}
+                          className="flex-1 min-w-0 pr-4 py-3 bg-transparent text-on-surface focus:outline-none"
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-on-surface-variant">
+                        3–30 ký tự, chỉ chữ thường/số/gạch ngang. Để trống = dùng{' '}
+                        <span className="font-mono">@{user?.username}</span>. Link cũ vẫn hoạt động.
+                      </p>
+                      {errors.profileSlug && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.profileSlug}</p>
+                      )}
                     </div>
 
 

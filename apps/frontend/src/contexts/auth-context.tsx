@@ -7,6 +7,8 @@ interface User {
   id: string;
   email: string;
   username: string;
+  /** Slug tuỳ chỉnh cho URL chia sẻ /u/[slug]; null = dùng username. */
+  profileSlug?: string | null;
   displayName?: string;
   avatar?: string;
   bio?: string;

@@ -3,6 +3,8 @@ import { apiClient } from './client';
 export interface AuthorPublicProfile {
   id: string;
   username: string;
+  /** Slug tuỳ chỉnh cho URL chia sẻ; null = dùng username. */
+  profileSlug?: string | null;
   displayName?: string | null;
   avatar?: string | null;
   bio?: string | null;

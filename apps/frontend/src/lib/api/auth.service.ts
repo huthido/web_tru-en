@@ -68,8 +68,11 @@ export interface AuthResponse {
     id: string;
     email: string;
     username: string;
+    /** Slug tuỳ chỉnh cho URL chia sẻ /u/[slug]; null = dùng username. */
+    profileSlug?: string | null;
     displayName?: string;
     avatar?: string;
+    bio?: string;
     role: string;
     /** false = tài khoản OAuth chưa tạo mật khẩu (chỉ có trong /auth/me). */
     hasPassword?: boolean;
@@ -81,6 +84,7 @@ export interface UserProfile {
   id: string;
   email: string;
   username: string;
+  profileSlug?: string | null;
   displayName?: string;
   avatar?: string;
   bio?: string;

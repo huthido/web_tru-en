@@ -73,8 +73,8 @@ export function Sidebar() {
   const uploadHref = canCreateStories ? '/tac-gia/truyen/tao' : '/dang-nhap?redirect=/tac-gia/truyen/tao';
   const earnHref = user ? '/tac-gia/thu-nhap' : '/dang-nhap?redirect=/tac-gia/thu-nhap';
   // Trang cá nhân (public) của người đang đăng nhập; khách → login.
-  const myProfileHref = user ? `/u/${user.username}` : '/dang-nhap?redirect=/';
-  const myProfileActive = !!user && pathname === `/u/${user.username}`;
+  const myProfileHref = user ? `/u/${user.profileSlug || user.username}` : '/dang-nhap?redirect=/';
+  const myProfileActive = !!user && pathname === `/u/${user.profileSlug || user.username}`;
 
   // Thứ tự menu: Trang chủ · Truyện · Mày tao · Tranh · Đăng truyện · Kiếm tiền
   // · Cửa hàng · Kênh tác giả · Thư viện · Quảng cáo · Tài khoản

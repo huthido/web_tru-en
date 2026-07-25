@@ -5,6 +5,7 @@ export interface User {
   id: string;
   email: string;
   username: string;
+  profileSlug?: string | null;
   displayName?: string;
   avatar?: string;
   role: string;
@@ -112,7 +113,7 @@ export const usersService = {
   /**
    * Update current user profile
    */
-  updateProfile: async (data: { displayName?: string; avatar?: string; bio?: string }): Promise<ApiResponse<User>> => {
+  updateProfile: async (data: { displayName?: string; avatar?: string; bio?: string; profileSlug?: string }): Promise<ApiResponse<User>> => {
     const response = await apiClient.patch<User>('/users/me', data);
     return response.data as any;
   },

@@ -18,6 +18,11 @@ model User {
   id            String    @id @default(cuid())
   email         String    @unique
   username      String    @unique
+  /// Slug tuỳ chỉnh cho URL chia sẻ trang cá nhân /u/[slug]. Người dùng tự đặt
+  /// (chữ thường/số/gạch ngang). NULL = dùng username. Resolve /u/[x] ưu tiên
+  /// khớp username rồi tới profileSlug; đặt slug phải không trùng username /
+  /// profileSlug của người khác.
+  profileSlug   String?   @unique
   password      String? // Nullable cho OAuth users
   avatar        String?
   displayName   String?
