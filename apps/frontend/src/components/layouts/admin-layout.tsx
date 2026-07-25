@@ -28,7 +28,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     const menuItems = [
         {
             title: 'Dashboard',
-            href: '/admin',
+            href: '/quan-tri',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -38,7 +38,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Quản lý người dùng',
-            href: '/admin/users',
+            href: '/quan-tri/users',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -50,7 +50,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Quản lý quảng cáo',
-            href: '/admin/ads',
+            href: '/quan-tri/ads',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -61,7 +61,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Slot quảng cáo',
-            href: '/admin/ad-slots',
+            href: '/quan-tri/ad-slots',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -73,7 +73,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Đơn đặt quảng cáo',
-            href: '/admin/ad-bookings',
+            href: '/quan-tri/ad-bookings',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M3 11l18-5v12L3 14v-3z" />
@@ -83,7 +83,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Quản lý gói xu',
-            href: '/admin/coin-packages',
+            href: '/quan-tri/coin-packages',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" />
@@ -94,7 +94,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Khóa ví',
-            href: '/admin/wallets',
+            href: '/quan-tri/wallets',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" />
@@ -104,7 +104,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Yêu cầu rút xu',
-            href: '/admin/withdrawals',
+            href: '/quan-tri/withdrawals',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="2" y="6" width="20" height="12" rx="2" />
@@ -115,7 +115,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Duyệt nạp thủ công',
-            href: '/admin/payments',
+            href: '/quan-tri/payments',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M3 10h18M7 15h1m4 0h1m-8 4h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" />
@@ -124,7 +124,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Duyệt truyện',
-            href: '/admin/approvals',
+            href: '/quan-tri/approvals',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -134,7 +134,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Quản lý truyện',
-            href: '/admin/stories',
+            href: '/quan-tri/stories',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
@@ -144,7 +144,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Quản lý chương',
-            href: '/admin/chapters',
+            href: '/quan-tri/chapters',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
@@ -154,7 +154,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Quản lý thể loại',
-            href: '/admin/categories',
+            href: '/quan-tri/categories',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 0 1 0 2.828l-7 7a2 2 0 0 1-2.828 0l-7-7A1.994 1.994 0 0 1 3 12V7a4 4 0 0 1 4-4z" />
@@ -163,7 +163,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Quản lý trang nội dung',
-            href: '/admin/pages',
+            href: '/quan-tri/pages',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -176,7 +176,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Quản lý bình luận',
-            href: '/admin/comments',
+            href: '/quan-tri/comments',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -185,7 +185,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Thống kê',
-            href: '/admin/statistics',
+            href: '/quan-tri/statistics',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="18" y1="20" x2="18" y2="10" />
@@ -196,7 +196,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Thông báo hệ thống',
-            href: '/admin/notifications',
+            href: '/quan-tri/notifications',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -206,7 +206,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         },
         {
             title: 'Cài đặt',
-            href: '/admin/settings',
+            href: '/quan-tri/settings',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="3" />
@@ -234,7 +234,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                                     <line x1="3" y1="18" x2="21" y2="18" />
                                 </svg>
                             </button>
-                            <Link href="/admin" className="text-lg sm:text-xl font-bold text-on-surface">
+                            <Link href="/quan-tri" className="text-lg sm:text-xl font-bold text-on-surface">
                                 <span className="hidden sm:inline">Admin Panel</span>
                                 <span className="sm:hidden">Admin</span>
                             </Link>
@@ -314,7 +314,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     >
                         <nav className="p-3 sm:p-4 space-y-2 h-full overflow-y-auto">
                             {menuItems.map((item) => {
-                                const isActive = pathname === item.href || (item.href !== '/admin' && pathname?.startsWith(item.href));
+                                const isActive = pathname === item.href || (item.href !== '/quan-tri' && pathname?.startsWith(item.href));
                                 return (
                                     <Link
                                         key={item.href}

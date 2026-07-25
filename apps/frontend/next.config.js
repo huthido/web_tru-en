@@ -249,6 +249,11 @@ const nextConfig = {
       // Phase 3 — gộp route đọc truyện về /truyen (đã có /truyen/[slug] chi tiết)
       ['/stories/:storySlug/chapters/:chapterSlug', '/truyen/:storySlug/chuong/:chapterSlug'],
       ['/stories', '/truyen'],
+      // Phase 4 — khu quản trị/tác giả (segment lồng giữ nguyên → dùng wildcard)
+      ['/admin/:path*', '/quan-tri/:path*'],
+      ['/admin', '/quan-tri'],
+      ['/author/:path*', '/tac-gia/:path*'],
+      ['/author', '/tac-gia'],
     ];
     return map.map(([source, destination]) => ({ source, destination, permanent: true }));
   },

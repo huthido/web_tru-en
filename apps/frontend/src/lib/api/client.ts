@@ -183,7 +183,7 @@ class ApiClient {
       const currentPath = window.location.pathname;
 
       // Define protected routes that require auth
-      const protectedRoutes = ['/thu-vien', '/tai-khoan', '/lich-su', '/yeu-thich', '/dang-theo-doi', '/author'];
+      const protectedRoutes = ['/thu-vien', '/tai-khoan', '/lich-su', '/yeu-thich', '/dang-theo-doi', '/tac-gia', '/quan-tri'];
       const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
 
       // Define public routes that don't need auth

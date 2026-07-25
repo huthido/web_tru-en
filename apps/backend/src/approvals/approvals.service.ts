@@ -405,7 +405,7 @@ export class ApprovalsService {
      * Bell + push cho author khi yêu cầu được duyệt/từ chối.
      *
      * - APPROVED story → click vào `/story/<slug>` (trang công khai).
-     * - REJECTED story → click vào `/author/stories/<slug>` (trang sửa).
+     * - REJECTED story → click vào `/tac-gia/stories/<slug>` (trang sửa).
      * - APPROVED/REJECTED chapter → trỏ thẳng chapter reader hoặc edit page.
      *
      * Tách helper để giữ `review()` đọc dễ; gọi best-effort ngoài transaction.
@@ -436,7 +436,7 @@ export class ApprovalsService {
             } else {
                 title = 'Truyện bị từ chối';
                 content = `"${story.title}" bị từ chối${reviewDto.adminNote ? `: ${reviewDto.adminNote}` : '.'}`;
-                actionUrl = `/author/stories/${story.slug}`;
+                actionUrl = `/tac-gia/stories/${story.slug}`;
                 type = NotificationType.STORY_REJECTED;
             }
         } else if (chapter) {
@@ -450,7 +450,7 @@ export class ApprovalsService {
             } else {
                 title = 'Chương bị từ chối';
                 content = `Chương "${chapter.title}" bị từ chối${reviewDto.adminNote ? `: ${reviewDto.adminNote}` : '.'}`;
-                actionUrl = storySlug ? `/author/stories/${storySlug}` : undefined;
+                actionUrl = storySlug ? `/tac-gia/stories/${storySlug}` : undefined;
                 type = NotificationType.STORY_REJECTED;
             }
         } else {

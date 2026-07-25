@@ -334,7 +334,7 @@ export function Header() {
                     </Link>
                     {/* Kênh tác giả — quản lý truyện, chương, doanh thu. */}
                     <Link
-                      href="/author/dashboard"
+                      href="/tac-gia/dashboard"
                       onClick={() => setIsDropdownOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-variant transition-colors duration-200"
                     >
@@ -343,7 +343,7 @@ export function Header() {
                     </Link>
                     {/* Người theo dõi — tác giả theo dõi lượt follower của mình. */}
                     <Link
-                      href="/author/followers"
+                      href="/tac-gia/followers"
                       onClick={() => setIsDropdownOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-variant transition-colors duration-200"
                     >
@@ -374,7 +374,7 @@ export function Header() {
                     {/* Link vào khu quản trị — chỉ hiện với tài khoản admin. */}
                     {user?.role === 'ADMIN' && (
                       <Link
-                        href="/admin"
+                        href="/quan-tri"
                         onClick={() => setIsDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-3 text-sm text-tertiary hover:bg-surface-variant transition-colors duration-200"
                       >

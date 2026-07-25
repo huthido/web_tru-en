@@ -16,7 +16,7 @@ export function MaintenanceCheck({ children }: { children: React.ReactNode }) {
     if (isLoading) return;
 
     // Skip maintenance check for maintenance page itself and admin routes
-    if (pathname === '/maintenance' || pathname?.startsWith('/admin')) {
+    if (pathname === '/maintenance' || pathname?.startsWith('/quan-tri')) {
       return;
     }
 

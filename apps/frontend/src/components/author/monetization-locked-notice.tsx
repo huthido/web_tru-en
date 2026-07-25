@@ -18,7 +18,7 @@ const FEATURE_LABEL: Record<MonetizationLockedNoticeProps['feature'], string> = 
 /**
  * Tự ẩn khi tác giả đã đủ điều kiện kiếm tiền. Nếu chưa, hiển thị 1 hộp
  * inline giải thích vì sao tính năng paid/VIP/donate bị disable và link
- * dẫn tới trang tiến độ /author/eligibility.
+ * dẫn tới trang tiến độ /tac-gia/eligibility.
  *
  * Pattern: đặt cạnh / phía trên trường input liên quan, đồng thời disable
  * trường input bằng prop `disabled` thông qua `useMonetizationLocked()`.
@@ -35,7 +35,7 @@ export function MonetizationLockedNotice({ feature }: MonetizationLockedNoticePr
           Bạn cần mở khoá Trung tâm Kiếm tiền để {FEATURE_LABEL[feature]}.
         </p>
         <Link
-          href="/author/eligibility"
+          href="/tac-gia/eligibility"
           className="inline-flex items-center gap-1 mt-1 text-primary font-medium hover:underline"
         >
           Xem điều kiện
