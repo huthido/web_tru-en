@@ -28,6 +28,22 @@ const TAB_META: Record<
     Profile: { label: 'Tài khoản', icon: 'person-outline', iconActive: 'person' },
 };
 
+/** Phần "cứng" của tab bar: barInner paddingTop (4) + height (60). */
+const TAB_BAR_BASE_HEIGHT = 64;
+
+/**
+ * Khoảng trống phải chừa ở đáy ScrollView/FlatList để nội dung không nằm dưới
+ * tab bar (tab bar là `position: absolute`).
+ *
+ * Trước đây các màn hard-code `paddingBottom: 100`, nhưng edge-to-edge làm
+ * `insets.bottom` = chiều cao thanh điều hướng hệ thống (~24dp cử chỉ, ~48dp
+ * 3 nút) — tổng vượt 100 nên item cuối bị che.
+ */
+export function useTabBarSpace() {
+    const insets = useSafeAreaInsets();
+    return TAB_BAR_BASE_HEIGHT + Math.max(insets.bottom, 8);
+}
+
 export function MainTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
     const { isDark, colors } = useAppTheme();
@@ -35,7 +51,17 @@ export function MainTabBar({ state, descriptors, navigation }: BottomTabBarProps
     const styles = useMemo(() => makeStyles(colors, isDark), [colors, isDark]);
 
     return (
-        <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+        <View
+            style={[
+                styles.wrapper,
+                {
+                    paddingBottom: Math.max(insets.bottom, 8),
+                    // Landscape: cutout / thanh điều hướng cử chỉ nằm bên hông.
+                    paddingLeft: insets.left,
+                    paddingRight: insets.right,
+                },
+            ]}
+        >
             <BlurView
                 intensity={isDark ? 90 : 70}
                 tint={isDark ? 'dark' : 'light'}
@@ -129,7 +155,7 @@ function makeStyles(colors: ReturnType<typeof import('@/contexts/theme-context')
             justifyContent: 'space-between',
             paddingHorizontal: spacing.sm,
             paddingTop: spacing.xs,
-            height: 60,
+            height: TAB_BAR_BASE_HEIGHT - spacing.xs,
         },
         tabSlot: {
             flex: 1,

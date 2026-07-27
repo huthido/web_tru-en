@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import {
-    Dimensions,
     FlatList,
     Image,
     Modal,
     Pressable,
     StyleSheet,
     Text,
+    useWindowDimensions,
     View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,7 +25,10 @@ export function ArtStoryRing({ stories, isLoggedIn, onAddStory }: Props) {
     const styles = useMemo(() => makeStyles(colors), [colors]);
     const [viewing, setViewing] = useState<ArtStory | null>(null);
 
-    const { width } = Dimensions.get('window');
+    // Ảnh story tỉ lệ 2:3. Kẹp theo CẢ bề ngang lẫn bề cao cửa sổ, nếu không ở
+    // landscape / màn hình lớn khung ảnh sẽ cao vượt viewport.
+    const { width, height } = useWindowDimensions();
+    const viewerW = Math.min(width - 32, (height - 64) / 1.5);
 
     const renderItem = ({ item }: { item: ArtStory }) => (
         <Pressable onPress={() => setViewing(item)} style={styles.storySlot}>
@@ -70,10 +73,10 @@ export function ArtStoryRing({ stories, isLoggedIn, onAddStory }: Props) {
             <Modal visible={!!viewing} transparent animationType="fade" onRequestClose={() => setViewing(null)}>
                 <Pressable style={styles.overlay} onPress={() => setViewing(null)}>
                     {viewing && (
-                        <View style={[styles.storyViewer, { width: width - 32 }]}>
+                        <View style={[styles.storyViewer, { width: viewerW }]}>
                             <Image
                                 source={{ uri: viewing.imageUrl }}
-                                style={[styles.storyImg, { width: width - 32, height: (width - 32) * 1.5 }]}
+                                style={[styles.storyImg, { width: viewerW, height: viewerW * 1.5 }]}
                                 resizeMode="cover"
                             />
                             <View style={styles.storyInfo}>

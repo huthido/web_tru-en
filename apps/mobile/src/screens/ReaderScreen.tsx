@@ -31,6 +31,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Reader'>;
 
 const MIN_FONT = 14;
 const MAX_FONT = 28;
+/** Bề rộng tối đa của cột chữ khi đọc trên màn hình rộng (px). */
+const READ_MAX_W = 720;
 const SAVE_DEBOUNCE_MS = 1500;
 
 export const ReaderScreen: React.FC<Props> = ({ route, navigation }) => {
@@ -179,7 +181,10 @@ export const ReaderScreen: React.FC<Props> = ({ route, navigation }) => {
     }
 
     const c = chapter.data;
-    const contentWidth = width - spacing.lg * 2;
+    // Màn hình rộng (xoay ngang / tablet): giữ cột chữ ở bề rộng dễ đọc rồi căn
+    // giữa bằng padding, thay vì kéo dòng văn dài hết màn.
+    const sidePad = Math.max(spacing.lg + insets.left, (width - READ_MAX_W) / 2);
+    const contentWidth = width - sidePad * 2;
     const unlocking = buyChapter.isPending || buyStory.isPending;
 
     return (
@@ -190,7 +195,13 @@ export const ReaderScreen: React.FC<Props> = ({ route, navigation }) => {
             <View
                 style={[
                     styles.header,
-                    { paddingTop: insets.top + 6, backgroundColor: theme.bg, borderBottomColor: theme.muted + '33' },
+                    {
+                        paddingTop: insets.top + 6,
+                        paddingLeft: spacing.lg + insets.left,
+                        paddingRight: spacing.lg + insets.right,
+                        backgroundColor: theme.bg,
+                        borderBottomColor: theme.muted + '33',
+                    },
                 ]}
             >
                 <Pressable hitSlop={8} onPress={() => navigation.goBack()}>
@@ -207,7 +218,15 @@ export const ReaderScreen: React.FC<Props> = ({ route, navigation }) => {
             <ScrollView
                 ref={scrollRef}
                 style={styles.fill}
-                contentContainerStyle={styles.content}
+                contentContainerStyle={[
+                    styles.content,
+                    {
+                        paddingLeft: sidePad,
+                        paddingRight: sidePad,
+                        // Edge-to-edge: chừa chỗ cho thanh điều hướng cử chỉ.
+                        paddingBottom: spacing.xxl + insets.bottom,
+                    },
+                ]}
                 scrollEventThrottle={16}
                 onScroll={onScroll}
                 onContentSizeChange={(_w, h) => {

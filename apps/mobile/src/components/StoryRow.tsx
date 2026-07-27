@@ -1,15 +1,15 @@
 import React, { useMemo } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { radius, spacing, type ThemeColors } from '../theme';
 import { useAppTheme } from '@/contexts/theme-context';
 import type { Story } from '../lib/api/types';
 import { SectionHeader } from './ui';
 import { StoryCard } from './StoryCard';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
 const H_PAD = spacing.lg;
 const GAP = spacing.md;
-const CARD_WIDTH = (SCREEN_WIDTH - H_PAD * 2 - GAP) / 2;
+/** Bề rộng card "đẹp nhất" — dùng để suy ra số cột theo bề ngang màn hình. */
+const TARGET_CARD_W = 190;
 
 interface Props {
     title: string;
@@ -21,10 +21,22 @@ interface Props {
     limit?: number;
 }
 
-/** 2-column grid of story cards — matches web mobile BookSection layout. */
+/**
+ * Grid card truyện — 2 cột trên điện thoại dọc, tự tăng cột khi xoay ngang hoặc
+ * chạy trên tablet / cửa sổ chia đôi (Android 16 bỏ qua khoá hướng ở màn lớn).
+ */
 export function StoryRow({ title, stories, loading, onPressStory, onSeeAll, limit = 4 }: Props) {
     const { colors } = useAppTheme();
-    const styles = useMemo(() => makeStyles(colors), [colors]);
+    const { width } = useWindowDimensions();
+
+    const { columns, cardWidth } = useMemo(() => {
+        const available = width - H_PAD * 2;
+        const cols = Math.max(2, Math.floor((available + GAP) / (TARGET_CARD_W + GAP)));
+        return { columns: cols, cardWidth: (available - GAP * (cols - 1)) / cols };
+    }, [width]);
+
+    const styles = useMemo(() => makeStyles(colors, cardWidth), [colors, cardWidth]);
+
     if (!loading && (!stories || stories.length === 0)) return null;
 
     const displayed = stories?.slice(0, limit) ?? [];
@@ -35,14 +47,14 @@ export function StoryRow({ title, stories, loading, onPressStory, onSeeAll, limi
             {title ? <SectionHeader title={title} onSeeAll={onSeeAll} /> : null}
             <View style={styles.grid}>
                 {loading
-                    ? [...Array(4)].map((_, i) => (
+                    ? [...Array(columns)].map((_, i) => (
                           <View key={i} style={styles.skeleton} />
                       ))
                     : displayed.map((item) => (
                           <StoryCard
                               key={item.id}
                               data={item}
-                              width={CARD_WIDTH}
+                              width={cardWidth}
                               onPress={() => onPressStory(item)}
                           />
                       ))}
@@ -51,14 +63,12 @@ export function StoryRow({ title, stories, loading, onPressStory, onSeeAll, limi
     );
 }
 
-const SKELETON_H = Math.round((CARD_WIDTH * 4) / 3) + 56;
-
-const makeStyles = (colors: ThemeColors) => StyleSheet.create({
+const makeStyles = (colors: ThemeColors, cardWidth: number) => StyleSheet.create({
     wrap: { marginBottom: spacing.xl, paddingHorizontal: H_PAD },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
     skeleton: {
-        width: CARD_WIDTH,
-        height: SKELETON_H,
+        width: cardWidth,
+        height: Math.round((cardWidth * 4) / 3) + 56,
         borderRadius: radius.md,
         backgroundColor: colors.surfaceVariant,
     },

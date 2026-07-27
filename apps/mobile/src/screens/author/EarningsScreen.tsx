@@ -19,10 +19,12 @@ import { MonetizationService } from '@/lib/api/monetization.service';
 import { formatNumber } from '@/lib/format';
 import { describeError } from '@/lib/error';
 import type { RootNavigation } from '@/navigation/types';
+import { useTabBarSpace } from '@/components/MainTabBar';
 
 export const EarningsScreen: React.FC = () => {
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
+    const tabBarSpace = useTabBarSpace();
     const nav = useNavigation<RootNavigation>();
 
     // Donate / bán content đã tạo mở tự do cho mọi tác giả. Eligibility chỉ
@@ -89,7 +91,7 @@ export const EarningsScreen: React.FC = () => {
     return (
         <ScrollView
             style={styles.screen}
-            contentContainerStyle={styles.content}
+            contentContainerStyle={[styles.content, { paddingBottom: tabBarSpace }]}
             refreshControl={
                 <RefreshControl
                     refreshing={refreshing}
@@ -235,7 +237,8 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     // PaddingBottom 100 — màn này giờ là tab "Kiếm tiền", cần buffer để không
     // bị MainTabBar floating che.
-    content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
+    // paddingBottom được ghi đè bằng useTabBarSpace() ở chỗ dùng.
+    content: { padding: spacing.lg, gap: spacing.md },
     balanceCard: {
         backgroundColor: colors.primary,
         borderRadius: radius.xl,

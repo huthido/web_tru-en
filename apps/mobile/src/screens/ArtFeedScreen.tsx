@@ -18,6 +18,7 @@ import { ArtCard } from '@/components/art/ArtCard';
 import { ArtStoryRing } from '@/components/art/ArtStoryRing';
 import { ArtCommentModal } from '@/components/art/ArtCommentModal';
 import { ArtUploadModal } from '@/components/art/ArtUploadModal';
+import { useTabBarSpace } from '@/components/MainTabBar';
 
 interface Props {
     currentUserId?: string;
@@ -45,6 +46,8 @@ function SkeletonPost() {
 export function ArtFeedScreen({ currentUserId, isLoggedIn }: Props) {
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
+    // +56 để FAB đăng ảnh cũng không đè lên post cuối.
+    const tabBarSpace = useTabBarSpace() + 56;
 
     const [commentPost, setCommentPost] = useState<ArtPost | null>(null);
     const [showUpload, setShowUpload] = useState(false);
@@ -130,7 +133,7 @@ export function ArtFeedScreen({ currentUserId, isLoggedIn }: Props) {
                             <ActivityIndicator color={colors.primary} style={styles.loadMore} />
                         ) : null
                     }
-                    contentContainerStyle={styles.listContent}
+                    contentContainerStyle={[styles.listContent, { paddingBottom: tabBarSpace }]}
                     showsVerticalScrollIndicator={false}
                 />
             )}
@@ -156,7 +159,8 @@ export function ArtFeedScreen({ currentUserId, isLoggedIn }: Props) {
 const makeStyles = (colors: ThemeColors) =>
     StyleSheet.create({
         container: { flex: 1 },
-        listContent: { paddingBottom: 120 },
+        // paddingBottom được ghi đè bằng useTabBarSpace() ở chỗ dùng.
+        listContent: {},
         storySection: { paddingVertical: spacing.md },
         divider: { height: StyleSheet.hairlineWidth, marginBottom: spacing.xs },
         center: { paddingVertical: spacing.xxl * 2, alignItems: 'center' },

@@ -1,9 +1,19 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
+  <!--
+    Edge-to-edge (Android 15 / SDK 35+): KHÔNG khai báo android:statusBarColor,
+    android:navigationBarColor, android:enforceStatusBarContrast hay
+    android:enforceNavigationBarContrast ở đây — cả 4 attribute đã deprecated
+    từ API 35 và bị Play Console cảnh báo "dùng API/tham số lỗi thời cho chế độ
+    hiển thị tràn viền". Màu + độ tương phản thanh hệ thống nay do
+    WindowInsetsController lo (expo-status-bar ở phía JS), còn việc vẽ tràn
+    viền do gradle.properties → edgeToEdgeEnabled=true bật sẵn.
+
+    Riêng android:statusBarColor=#ffffff còn là bug thị giác: nó ép thanh trạng
+    thái trắng kể cả ở dark mode.
+  -->
   <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-    <item name="android:enforceNavigationBarContrast" tools:targetApi="29">true</item>
     <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     <item name="colorPrimary">@color/colorPrimary</item>
-    <item name="android:statusBarColor">#ffffff</item>
   </style>
   <style name="Theme.App.SplashScreen" parent="AppTheme">
     <item name="android:windowBackground">@drawable/ic_launcher_background</item>

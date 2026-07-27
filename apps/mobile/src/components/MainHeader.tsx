@@ -34,7 +34,14 @@ export function MainHeader() {
     const styles = useMemo(() => makeStyles(colors, isDark), [colors, isDark]);
 
     return (
-        <View style={[styles.wrap, { paddingTop: insets.top }]}>
+        <View
+            style={[
+                styles.wrap,
+                // Edge-to-edge: ở landscape notch/cutout nằm bên hông nên phải
+                // chừa cả inset trái/phải, không chỉ inset trên.
+                { paddingTop: insets.top, paddingLeft: insets.left, paddingRight: insets.right },
+            ]}
+        >
             <BlurView
                 intensity={isDark ? 80 : 60}
                 tint={isDark ? 'dark' : 'light'}

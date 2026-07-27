@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import {
-    Dimensions,
     Image,
     Pressable,
     StyleSheet,
     Text,
+    useWindowDimensions,
     View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,9 +43,13 @@ export function ArtCard({ post, currentUserId, onComment }: Props) {
     const styles = useMemo(() => makeStyles(colors), [colors]);
     const nav = useNavigation<RootNavigation>();
 
-    const screenWidth = Dimensions.get('window').width;
+    // useWindowDimensions (không phải Dimensions.get) để ảnh co lại đúng khi
+    // xoay ngang hoặc app chạy ở cửa sổ chia đôi trên màn hình lớn.
+    const { width: screenWidth, height: screenHeight } = useWindowDimensions();
     const aspectRatio = post.width && post.height ? post.width / post.height : 1;
-    const imgHeight = Math.min(screenWidth / aspectRatio, 500);
+    // Trần 500px hợp lý ở màn dọc, nhưng ở landscape nó cao hơn cả viewport —
+    // kẹp thêm theo 70% chiều cao cửa sổ.
+    const imgHeight = Math.min(screenWidth / aspectRatio, 500, screenHeight * 0.7);
 
     const { mutate: toggleLike } = useToggleArtLike();
     const { mutate: deletePost } = useDeleteArtPost();

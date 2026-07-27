@@ -26,6 +26,7 @@ import {
     walletKeys,
 } from '@/lib/hooks/wallet';
 import { EmptyView, ErrorView, Loading, SectionHeader } from '@/components/ui';
+import { useTabBarSpace } from '@/components/MainTabBar';
 import { PaymentsApi } from '@/lib/api/payments.service';
 import {
     finish as finishIap,
@@ -143,6 +144,7 @@ function PackageCard({
 export const WalletScreen: React.FC = () => {
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
+    const tabBarSpace = useTabBarSpace();
     const qc = useQueryClient();
     const nav = useNavigation<RootNavigation>();
     const balance = useWalletBalance();
@@ -262,7 +264,7 @@ export const WalletScreen: React.FC = () => {
     return (
         <ScrollView
             style={styles.screen}
-            contentContainerStyle={styles.content}
+            contentContainerStyle={[styles.content, { paddingBottom: tabBarSpace }]}
             refreshControl={
                 <RefreshControl
                     refreshing={refreshing}
@@ -384,7 +386,8 @@ export const WalletScreen: React.FC = () => {
 const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     // PaddingBottom 100 chừa MainTabBar floating.
-    content: { paddingBottom: 100 },
+    // paddingBottom được ghi đè bằng useTabBarSpace() ở chỗ dùng.
+    content: {},
     /* balance */
     balanceCard: {
         backgroundColor: colors.primaryContainer,

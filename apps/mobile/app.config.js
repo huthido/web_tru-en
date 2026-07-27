@@ -24,7 +24,10 @@ const config = {
   slug: 'web-truyen-hungyeu',
   owner: 'huthido.dev',
   version: '0.1.0',
-  orientation: 'portrait',
+  // 'default' = không khoá hướng. Android 16 (SDK 36) bỏ qua khoá hướng trên
+  // thiết bị màn hình lớn và Play Console cảnh báo nếu app còn khai báo, nên
+  // mở khoá hẳn thay vì để hệ thống ép ngầm. Layout dùng useWindowDimensions.
+  orientation: 'default',
   scheme: 'webtruyen',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
@@ -52,6 +55,12 @@ const config = {
   android: {
     package: 'com.yeuyeu.webtruyen',
     runtimeVersion: '1.0.0',
+    // Vẽ tràn viền (Android 15+ bật mặc định cho app target SDK 35). Khai báo
+    // tường minh để prebuild luôn ghi edgeToEdgeEnabled=true vào gradle.properties.
+    edgeToEdgeEnabled: true,
+    // Không set `androidStatusBar` / `androidNavigationBar`: các key đó sinh ra
+    // android:statusBarColor + android:enforceNavigationBarContrast trong
+    // styles.xml — đều là attribute đã deprecated từ API 35.
     adaptiveIcon: {
       // Foreground = tim trắng trên nền trong suốt; nền đen ở đây.
       foregroundImage: './assets/adaptive-icon.png',

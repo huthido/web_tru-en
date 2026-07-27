@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import {
     ActivityIndicator,
-    Dimensions,
     Pressable,
     ScrollView,
     Share,
     StyleSheet,
     Text,
+    useWindowDimensions,
     View,
     Alert,
 } from 'react-native';
@@ -23,9 +23,8 @@ import { formatNumber } from '@/lib/format';
 import { useAuth } from '@/contexts/auth-context';
 import type { RootNavigation, RootStackParamList } from '@/navigation/types';
 
-const SCREEN_W = Dimensions.get('window').width;
-// Grid 2 cột, content có padding 16 mỗi bên + gap 16 giữa.
-const ITEM_W = Math.floor((SCREEN_W - spacing.lg * 2 - spacing.md) / 2);
+/** Bề rộng card mong muốn — suy ra số cột theo bề ngang cửa sổ thực tế. */
+const TARGET_ITEM_W = 190;
 
 /**
  * Trang cá nhân /u/[username] phiên bản mobile. Header card kiểu MXH +
@@ -34,6 +33,13 @@ const ITEM_W = Math.floor((SCREEN_W - spacing.lg * 2 - spacing.md) / 2);
 export const UserProfileScreen: React.FC = () => {
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
+    const { width } = useWindowDimensions();
+    // Grid tối thiểu 2 cột (điện thoại dọc), tự nới ra khi xoay ngang / tablet.
+    const itemWidth = useMemo(() => {
+        const available = width - spacing.lg * 2;
+        const cols = Math.max(2, Math.floor((available + spacing.md) / (TARGET_ITEM_W + spacing.md)));
+        return Math.floor((available - spacing.md * (cols - 1)) / cols);
+    }, [width]);
     const route = useRoute<RouteProp<RootStackParamList, 'UserProfile'>>();
     const nav = useNavigation<RootNavigation>();
     const qc = useQueryClient();
@@ -191,10 +197,10 @@ export const UserProfileScreen: React.FC = () => {
                     {storiesQ.data.data.map((s) => (
                         <Pressable
                             key={s.id}
-                            style={[styles.gridItem, { width: ITEM_W }]}
+                            style={[styles.gridItem, { width: itemWidth }]}
                             onPress={() => nav.navigate('StoryDetail', { slug: s.slug })}
                         >
-                            <StoryCover uri={s.coverImage ?? undefined} width={ITEM_W} />
+                            <StoryCover uri={s.coverImage ?? undefined} width={itemWidth} />
                             <Text style={styles.itemTitle} numberOfLines={2}>{s.title}</Text>
                             <View style={styles.itemMeta}>
                                 <Ionicons name="eye-outline" size={12} color={colors.onSurfaceVariant} />

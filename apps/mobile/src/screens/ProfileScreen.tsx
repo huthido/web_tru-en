@@ -18,6 +18,7 @@ import { describeError } from '@/lib/error';
 import type { RootNavigation } from '@/navigation/types';
 import { fontSize, radius, spacing, typography, type ThemeColors } from '@/theme';
 import { useAppTheme } from '@/contexts/theme-context';
+import { useTabBarSpace } from '@/components/MainTabBar';
 
 const ROLE_LABEL: Record<string, string> = {
     USER: 'Độc giả',
@@ -44,6 +45,7 @@ export const ProfileScreen: React.FC = () => {
     const rootNav = useNavigation<RootNavigation>();
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
+    const tabBarSpace = useTabBarSpace();
     const name = user?.displayName || user?.username || 'bạn';
     const initial = name.trim().charAt(0).toUpperCase() || '?';
 
@@ -66,7 +68,10 @@ export const ProfileScreen: React.FC = () => {
     };
 
     return (
-        <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+        <ScrollView
+            style={styles.screen}
+            contentContainerStyle={[styles.content, { paddingBottom: tabBarSpace }]}
+        >
             <Pressable
                 style={styles.profileCard}
                 onPress={() => {
@@ -300,7 +305,8 @@ export const ProfileScreen: React.FC = () => {
 const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     // PaddingBottom 100 để không bị MainTabBar floating che.
-    content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
+    // paddingBottom được ghi đè bằng useTabBarSpace() ở chỗ dùng.
+    content: { padding: spacing.lg, gap: spacing.md },
     profileCard: {
         backgroundColor: colors.surfaceContainerLowest,
         borderRadius: radius.xl,

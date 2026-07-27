@@ -20,6 +20,7 @@ import { ProgressBar, SectionHeader } from '@/components/ui';
 import { StoryCover } from '@/components/StoryCover';
 import { StoryRow } from '@/components/StoryRow';
 import { AdBanner } from '@/components/AdBanner';
+import { useTabBarSpace } from '@/components/MainTabBar';
 
 // Danh mục trang chủ dạng chip (docs/Fix vài điểm trên app web.pdf) —
 // chọn 1 chip hiển thị 1 lưới truyện thay vì 5 section xếp chồng.
@@ -38,6 +39,7 @@ export const HomeScreen: React.FC = () => {
     const qc = useQueryClient();
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
+    const tabBarSpace = useTabBarSpace();
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState<HomeTabKey>('newest');
 
@@ -68,7 +70,7 @@ export const HomeScreen: React.FC = () => {
     return (
         <ScrollView
             style={styles.screen}
-            contentContainerStyle={styles.content}
+            contentContainerStyle={[styles.content, { paddingBottom: tabBarSpace }]}
             refreshControl={
                 <RefreshControl
                     refreshing={refreshing}
@@ -162,7 +164,8 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     // Bottom padding lớn để không bị MainTabBar (~70px absolute) che — tab bar
     // floating phía dưới, content cuối ScrollView cần buffer.
-    content: { paddingTop: spacing.lg, paddingBottom: 100 },
+    // paddingBottom được ghi đè bằng useTabBarSpace() ở chỗ dùng.
+    content: { paddingTop: spacing.lg },
     section: { marginBottom: spacing.lg },
     crList: { paddingHorizontal: spacing.lg, gap: spacing.md },
     crCard: { width: 108 },

@@ -22,6 +22,7 @@ import { formatCount, formatRating } from '@/lib/format';
 import { EmptyView, ErrorView, Loading } from '@/components/ui';
 import { StoryListItem } from '@/components/StoryListItem';
 import { ArtFeedScreen } from '@/screens/ArtFeedScreen';
+import { useTabBarSpace } from '@/components/MainTabBar';
 
 type TabKey = 'truyen' | 'nghe-thuat';
 
@@ -29,6 +30,7 @@ export const SearchScreen: React.FC = () => {
     const nav = useNavigation<RootNavigation>();
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
+    const tabBarSpace = useTabBarSpace();
     const { user, isAuthenticated } = useAuth();
     const [activeTab, setActiveTab] = useState<TabKey>('truyen');
     const [query, setQuery] = useState('');
@@ -170,9 +172,10 @@ export const SearchScreen: React.FC = () => {
                         <ActivityIndicator color={colors.primary} style={styles.footer} />
                     ) : null
                 }
-                contentContainerStyle={
-                    stories.length === 0 ? styles.emptyContent : styles.listContent
-                }
+                contentContainerStyle={[
+                    stories.length === 0 ? styles.emptyContent : styles.listContent,
+                    { paddingBottom: tabBarSpace },
+                ]}
             />
             </>
             )}
@@ -224,7 +227,8 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
     chipText: { fontSize: fontSize.sm, color: colors.onSurfaceVariant, fontFamily: 'DMSans_500Medium' },
     chipTextActive: { color: colors.onPrimary, fontFamily: 'DMSans_700Bold' },
     // PaddingBottom 100 chừa MainTabBar floating.
-    listContent: { paddingVertical: spacing.sm, paddingBottom: 100 },
+    // paddingBottom được ghi đè bằng useTabBarSpace() ở chỗ dùng.
+    listContent: { paddingVertical: spacing.sm },
     emptyContent: { flexGrow: 1 },
     footer: { marginVertical: spacing.lg },
 });
