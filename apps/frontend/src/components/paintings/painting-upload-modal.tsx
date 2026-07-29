@@ -124,7 +124,7 @@ export function PaintingUploadModal({ onClose }: Props) {
               <p className="text-sm text-on-surface-variant text-center">
                 Kéo thả ảnh vào đây hoặc <span className="text-primary font-medium">chọn file</span>
               </p>
-              <p className="text-xs text-on-surface-variant/60">PNG, JPG, WEBP — tối đa 10MB</p>
+              <p className="text-xs text-on-surface-variant/60">PNG, JPG, WEBP, HEIC — tối đa 10MB</p>
             </div>
           )}
           <input

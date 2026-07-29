@@ -23,6 +23,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { imageMulterFilter } from '../common/image/multer-filter';
+import { ImageNormalizePipe } from '../common/pipes/image-normalize.pipe';
 
 @Controller('paintings')
 export class PaintingsController {
@@ -58,7 +59,18 @@ export class PaintingsController {
     }),
   )
   async uploadImage(
-    @UploadedFile() file: Express.Multer.File,
+    // Chuẩn hoá như các endpoint upload khác: ảnh HEIC/HEIF chụp từ iPhone
+    // được chuyển sang WebP (trình duyệt không đọc được HEIC), đồng thời
+    // resize + nén để không phục vụ nguyên file 10MB.
+    @UploadedFile(
+      new ImageNormalizePipe({
+        maxSizeBytes: 10 * 1024 * 1024,
+        maxWidth: 1600,
+        quality: 85,
+        policy: 'force-webp',
+      }),
+    )
+    file: Express.Multer.File,
     @CurrentUser() user: any,
   ) {
     const url = await this.cloudinaryService.uploadImage(file, 'paintings', user.id);

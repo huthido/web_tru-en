@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { extname } from 'path';
 import type { Request } from 'express';
 
@@ -21,8 +22,12 @@ export function imageMulterFilter(
   if (IMAGE_EXT_RE.test(ext)) {
     return cb(null, true);
   }
+  // BadRequestException (không phải Error trần) để Nest trả 400 — file sai
+  // định dạng là lỗi của client, trước đây rơi vào nhánh 500.
   return cb(
-    new Error(`Chỉ chấp nhận file ảnh (nhận được mime="${file.mimetype}" name="${file.originalname}")`),
+    new BadRequestException(
+      `Chỉ chấp nhận file ảnh (nhận được mime="${file.mimetype}" name="${file.originalname}")`,
+    ),
     false,
   );
 }

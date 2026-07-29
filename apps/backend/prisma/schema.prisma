@@ -1210,6 +1210,7 @@ enum UgcReportTargetType {
   CHAPTER
   COMMENT
   USER
+  PAINTING
 }
 
 enum UgcReportStatus {

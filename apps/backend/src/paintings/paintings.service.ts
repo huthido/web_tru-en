@@ -1,5 +1,10 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { Prisma, PaintingStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePaintingDto } from './dto/create-painting.dto';
 import { UpdatePaintingDto } from './dto/update-painting.dto';
@@ -39,8 +44,17 @@ export class PaintingsService {
     const limit = Math.min(params.limit ?? 20, 50);
     const skip = (page - 1) * limit;
 
-    const where: any = {};
-    if (params.status) where.status = params.status;
+    const where: Prisma.PaintingWhereInput = {};
+    if (params.status) {
+      // Không nhét thẳng query string vào Prisma: giá trị lạ làm Prisma ném
+      // lỗi validation và biến thành 500 thay vì 400.
+      if (!(params.status in PaintingStatus)) {
+        throw new BadRequestException(
+          `Trạng thái không hợp lệ (chỉ nhận ${Object.keys(PaintingStatus).join(', ')})`,
+        );
+      }
+      where.status = params.status as PaintingStatus;
+    }
     if (params.authorId) where.authorId = params.authorId;
 
     const [items, total] = await Promise.all([

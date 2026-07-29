@@ -1,6 +1,8 @@
 'use client';
 
-import { X, Phone, MessageCircle, Facebook, MessageSquare, CheckCheck } from 'lucide-react';
+import { useState } from 'react';
+import { X, Phone, MessageCircle, Facebook, MessageSquare, CheckCheck, Flag } from 'lucide-react';
+import { ReportModal } from '@/components/reports/report-modal';
 import { Painting } from '@/lib/api/paintings.service';
 import { useToastContext } from '@/components/providers/toast-provider';
 import { useMarkPaintingSold } from '@/lib/api/hooks/use-paintings';
@@ -16,6 +18,7 @@ interface Props {
 
 export function PaintingDetailModal({ painting, currentUserId, onClose }: Props) {
   const isOwner = currentUserId === painting.author.id;
+  const [showReport, setShowReport] = useState(false);
   const { showToast } = useToastContext();
   const { mutateAsync: markSold, isPending: isMarking } = useMarkPaintingSold();
 
@@ -40,6 +43,7 @@ export function PaintingDetailModal({ painting, currentUserId, onClose }: Props)
   const { contactInfo } = painting;
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/70" />
       <div
@@ -161,9 +165,32 @@ export function PaintingDetailModal({ painting, currentUserId, onClose }: Props)
                 {isMarking ? 'Đang cập nhật...' : 'Đánh dấu đã bán'}
               </button>
             )}
+
+            {/* Báo cáo vi phạm (Apple §1.2) — không tự báo cáo tranh của mình */}
+            {currentUserId && !isOwner && (
+              <button
+                onClick={() => setShowReport(true)}
+                className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium text-on-surface-variant hover:text-destructive transition-colors"
+              >
+                <Flag className="w-3.5 h-3.5" />
+                Báo cáo tranh này
+              </button>
+            )}
           </div>
         </div>
       </div>
     </div>
+
+    {/* Ngoài lớp click-to-close của modal chi tiết: bấm nền của modal báo cáo
+        chỉ đóng chính nó, không đóng luôn modal tranh phía dưới. */}
+    {showReport && (
+      <ReportModal
+        targetType="PAINTING"
+        targetId={painting.id}
+        targetLabel={painting.title}
+        onClose={() => setShowReport(false)}
+      />
+    )}
+    </>
   );
 }
