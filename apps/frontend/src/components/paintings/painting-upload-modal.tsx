@@ -2,11 +2,22 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { X, Upload, ImagePlus } from 'lucide-react';
+import { useToastContext } from '@/components/providers/toast-provider';
 import { useUploadPaintingImage, useCreatePainting } from '@/lib/api/hooks/use-paintings';
 
 interface Props {
   onClose: () => void;
 }
+
+/** Lấy thông điệp lỗi từ envelope { success, error } của backend. */
+const errorMessage = (e: any, fallback: string): string => {
+  const raw = e?.response?.data?.error ?? e?.response?.data?.message;
+  if (Array.isArray(raw)) return raw[0] ?? fallback;
+  return typeof raw === 'string' ? raw : fallback;
+};
+
+/** Backend yêu cầu link Facebook có http/https — tự thêm cho người dùng. */
+const normalizeUrl = (v: string) => (/^https?:\/\//i.test(v) ? v : `https://${v}`);
 
 export function PaintingUploadModal({ onClose }: Props) {
   const [preview, setPreview] = useState<string | null>(null);
@@ -19,6 +30,7 @@ export function PaintingUploadModal({ onClose }: Props) {
   const [facebook, setFacebook] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const { showToast } = useToastContext();
   const { mutateAsync: uploadImage, isPending: isUploading } = useUploadPaintingImage();
   const { mutateAsync: create, isPending: isCreating } = useCreatePainting();
 
@@ -38,22 +50,36 @@ export function PaintingUploadModal({ onClose }: Props) {
     e.preventDefault();
     if (!file || !title.trim()) return;
 
-    const { url } = await uploadImage(file);
+    let url: string;
+    try {
+      ({ url } = await uploadImage(file));
+    } catch (err) {
+      showToast(errorMessage(err, 'Tải ảnh lên thất bại. Thử lại nhé.'), 'error');
+      return;
+    }
 
     const contactInfo = {
       ...(phone.trim() && { phone: phone.trim() }),
       ...(zalo.trim() && { zalo: zalo.trim() }),
-      ...(facebook.trim() && { facebook: facebook.trim() }),
+      ...(facebook.trim() && { facebook: normalizeUrl(facebook.trim()) }),
     };
 
-    await create({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      imageUrl: url,
-      price: price ? parseInt(price.replace(/\D/g, ''), 10) : undefined,
-      contactInfo: Object.keys(contactInfo).length > 0 ? contactInfo : undefined,
-    });
+    const priceNumber = parseInt(price.replace(/\D/g, ''), 10);
 
+    try {
+      await create({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        imageUrl: url,
+        price: Number.isNaN(priceNumber) ? undefined : priceNumber,
+        contactInfo: Object.keys(contactInfo).length > 0 ? contactInfo : undefined,
+      });
+    } catch (err) {
+      showToast(errorMessage(err, 'Đăng tranh thất bại. Thử lại nhé.'), 'error');
+      return;
+    }
+
+    showToast('Đã đăng tranh', 'success');
     onClose();
   };
 

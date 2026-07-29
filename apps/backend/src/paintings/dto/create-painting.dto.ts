@@ -1,4 +1,15 @@
-import { IsString, IsOptional, IsInt, IsObject, IsUrl, MinLength, MaxLength, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  IsObject,
+  IsUrl,
+  MinLength,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 export class ContactInfoDto {
   @IsOptional()
@@ -36,7 +47,12 @@ export class CreatePaintingDto {
   @Min(0)
   price?: number;
 
+  // ValidateNested + Type là bắt buộc: thiếu chúng thì class-validator không
+  // đệ xuống ContactInfoDto — @IsUrl/@MaxLength bên trong sẽ không chạy và
+  // whitelist cũng không lọc key lạ trong object JSON.
   @IsOptional()
   @IsObject()
+  @ValidateNested()
+  @Type(() => ContactInfoDto)
   contactInfo?: ContactInfoDto;
 }

@@ -2,6 +2,7 @@
 
 import { X, Phone, MessageCircle, Facebook, MessageSquare, CheckCheck } from 'lucide-react';
 import { Painting } from '@/lib/api/paintings.service';
+import { useToastContext } from '@/components/providers/toast-provider';
 import { useMarkPaintingSold } from '@/lib/api/hooks/use-paintings';
 
 const safeUrl = (url: string): string =>
@@ -15,6 +16,7 @@ interface Props {
 
 export function PaintingDetailModal({ painting, currentUserId, onClose }: Props) {
   const isOwner = currentUserId === painting.author.id;
+  const { showToast } = useToastContext();
   const { mutateAsync: markSold, isPending: isMarking } = useMarkPaintingSold();
 
   const priceText = painting.price != null
@@ -22,7 +24,16 @@ export function PaintingDetailModal({ painting, currentUserId, onClose }: Props)
     : 'Thương lượng';
 
   const handleMarkSold = async () => {
-    await markSold(painting.id);
+    try {
+      await markSold(painting.id);
+    } catch (e: any) {
+      const raw = e?.response?.data?.error ?? e?.response?.data?.message;
+      showToast(
+        typeof raw === 'string' ? raw : 'Không cập nhật được trạng thái. Thử lại nhé.',
+        'error',
+      );
+      return;
+    }
     onClose();
   };
 
