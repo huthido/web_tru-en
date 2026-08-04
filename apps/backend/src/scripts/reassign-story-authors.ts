@@ -20,9 +20,13 @@
  * trị để còn xử lý cả ví và lịch sử giao dịch.
  *
  * Cách chạy (trong container backend, nhớ copy file CSV vào trước):
- *   docker cp tac-gia-can-gan-lai.csv <backend>:/tmp/tacgia.csv
- *   docker exec <backend> node dist/scripts/reassign-story-authors.js /tmp/tacgia.csv
- *   docker exec <backend> node dist/scripts/reassign-story-authors.js /tmp/tacgia.csv --apply
+ *   docker cp tools/tac-gia-can-gan-lai.csv <backend>:/tmp/tacgia.csv
+ *   docker exec <backend> node dist/scripts/reassign-story-authors.js           # xem trước
+ *   docker exec <backend> node dist/scripts/reassign-story-authors.js --apply   # ghi thật
+ *
+ * Gọi thẳng `node`, ĐỪNG qua `npm run`: npm không chuyển tham số vị trí xuống
+ * script. Không truyền đường dẫn thì script tự đọc /tmp/tacgia.csv (hoặc biến
+ * môi trường AUTHOR_CSV).
  *
  * Không có `--apply` thì chỉ in ra dự định, không ghi gì.
  */
@@ -31,6 +35,9 @@ import { Logger } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { AppModule } from '../app.module';
 import { PrismaService } from '../prisma/prisma.service';
+
+/** Nơi runbook bảo copy file vào — dùng khi không truyền đường dẫn. */
+const DEFAULT_CSV_PATH = '/tmp/tacgia.csv';
 
 /**
  * Bộ tách CSV tối giản theo RFC 4180: hỗ trợ ô bọc nháy kép, dấu phẩy và xuống
@@ -93,19 +100,21 @@ async function bootstrap() {
   const logger = new Logger('ReassignStoryAuthors');
   const args = process.argv.slice(2);
   const apply = args.includes('--apply');
-  const csvPath = args.find((a) => !a.startsWith('--'));
+  // Thứ tự ưu tiên: tham số dòng lệnh → biến môi trường → đường dẫn mặc định.
+  // Có mặc định vì `npm run <script> /tmp/x.csv` KHÔNG chuyển tham số vị trí
+  // xuống script — npm nuốt mất rồi script báo "thiếu file" một cách khó hiểu.
+  const csvPath =
+    args.find((a) => !a.startsWith('--')) || process.env.AUTHOR_CSV || DEFAULT_CSV_PATH;
 
-  if (!csvPath) {
-    logger.error('Thiếu đường dẫn file CSV. Ví dụ: node dist/scripts/reassign-story-authors.js /tmp/tacgia.csv');
-    process.exitCode = 1;
-    return;
-  }
+  logger.log(`Đọc file CSV: ${csvPath}`);
 
   let rows: string[][];
   try {
     rows = parseCsv(readFileSync(csvPath, 'utf8'));
   } catch (error) {
     logger.error(`Không đọc được ${csvPath}: ${(error as Error).message}`);
+    logger.error('Copy file vào container trước:');
+    logger.error(`  docker cp tools/tac-gia-can-gan-lai.csv <backend>:${DEFAULT_CSV_PATH}`);
     process.exitCode = 1;
     return;
   }

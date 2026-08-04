@@ -56,8 +56,12 @@ biết URL đã dời, còn 404 trần thì không.
 
 ```bash
 docker cp apps/frontend/slug-redirects.json <backend>:/tmp/slugs.json
-docker exec <backend> npm run fix:slugs /tmp/slugs.json
+docker exec <backend> node dist/scripts/apply-slug-map.js
 ```
+
+Gọi thẳng `node`, KHÔNG dùng `npm run`: npm không chuyển tham số vị trí xuống
+script, nên `npm run fix:slugs /tmp/slugs.json` chạy như thể không có đường dẫn.
+Script mặc định đọc `/tmp/slugs.json` nên không cần truyền gì thêm.
 
 Dry-run. Script kiểm tra TOÀN BỘ trước khi ghi một dòng nào: mọi slug `from` phải
 tồn tại, không `to` nào trùng nhau, không `to` nào bị một truyện ngoài danh sách
@@ -75,7 +79,7 @@ nhưng đừng hoảng khi thấy 500).
 **3. Ghi DB ngay sau khi frontend lên**
 
 ```bash
-docker exec <backend> npm run fix:slugs:apply /tmp/slugs.json
+docker exec <backend> node dist/scripts/apply-slug-map.js --apply
 ```
 
 Ghi trong một transaction, hai pha: dời hết sang slug tạm rồi mới đặt slug đích.

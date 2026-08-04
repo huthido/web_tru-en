@@ -16,8 +16,12 @@
  *
  * Cách chạy (trong container backend):
  *   docker cp apps/frontend/slug-redirects.json <backend>:/tmp/slugs.json
- *   docker exec <backend> node dist/scripts/apply-slug-map.js /tmp/slugs.json
- *   docker exec <backend> node dist/scripts/apply-slug-map.js /tmp/slugs.json --apply
+ *   docker exec <backend> node dist/scripts/apply-slug-map.js            # xem trước
+ *   docker exec <backend> node dist/scripts/apply-slug-map.js --apply    # ghi thật
+ *
+ * Gọi thẳng `node`, ĐỪNG qua `npm run`: npm không chuyển tham số vị trí xuống
+ * script. Không truyền đường dẫn thì script tự đọc /tmp/slugs.json (hoặc biến
+ * môi trường SLUG_MAP).
  *
  * THỨ TỰ TRIỂN KHAI quan trọng — xem docs/adsense-doi-slug-runbook.md.
  */
@@ -29,17 +33,22 @@ import { PrismaService } from '../prisma/prisma.service';
 
 type SlugMapEntry = { from: string; to: string; title?: string };
 
+/** Nơi runbook bảo copy file vào — dùng khi không truyền đường dẫn. */
+const DEFAULT_MAP_PATH = '/tmp/slugs.json';
+
 async function bootstrap() {
   const logger = new Logger('ApplySlugMap');
   const args = process.argv.slice(2);
   const apply = args.includes('--apply');
-  const mapPath = args.find((a) => !a.startsWith('--'));
+  // Thứ tự ưu tiên: tham số dòng lệnh → biến môi trường → đường dẫn mặc định.
+  //
+  // Có mặc định vì `npm run <script> /tmp/slugs.json` KHÔNG chuyển tham số vị
+  // trí xuống script — npm nuốt mất, script chạy như thể không có đường dẫn rồi
+  // báo "thiếu file" một cách khó hiểu. Với mặc định này thì cả hai cách gọi
+  // đều chạy được, miễn là file đã được copy vào đúng chỗ.
+  const mapPath = args.find((a) => !a.startsWith('--')) || process.env.SLUG_MAP || DEFAULT_MAP_PATH;
 
-  if (!mapPath) {
-    logger.error('Thiếu đường dẫn file JSON. Ví dụ: node dist/scripts/apply-slug-map.js /tmp/slugs.json');
-    process.exitCode = 1;
-    return;
-  }
+  logger.log(`Đọc bảng ánh xạ: ${mapPath}`);
 
   let entries: SlugMapEntry[];
   try {
@@ -47,6 +56,10 @@ async function bootstrap() {
     if (!Array.isArray(entries)) throw new Error('file JSON phải là một mảng');
   } catch (error) {
     logger.error(`Không đọc được ${mapPath}: ${(error as Error).message}`);
+    logger.error('Copy file vào container trước:');
+    logger.error(
+      `  docker cp apps/frontend/slug-redirects.json <backend>:${DEFAULT_MAP_PATH}`
+    );
     process.exitCode = 1;
     return;
   }
