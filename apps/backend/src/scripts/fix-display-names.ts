@@ -18,6 +18,12 @@
  * Cách chạy (trên server, trong container backend):
  *   docker exec <backend-container> node dist/scripts/fix-display-names.js
  *   docker exec <backend-container> node dist/scripts/fix-display-names.js --apply
+ *
+ * Nếu dùng npm thì phải gọi script riêng, ĐỪNG viết `npm run fix:display-names
+ * --apply`: npm hiểu `--apply` là cờ của chính nó và không truyền xuống, nên
+ * script vẫn chạy dry-run trong khi người chạy tưởng đã ghi dữ liệu.
+ *   docker exec <backend-container> npm run fix:display-names          # xem trước
+ *   docker exec <backend-container> npm run fix:display-names:apply    # ghi thật
  */
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';

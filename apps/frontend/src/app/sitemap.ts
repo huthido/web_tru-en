@@ -3,8 +3,24 @@ import { getSiteUrl } from '@/lib/seo/site-url';
 import { serverGet, mapWithConcurrency } from '@/lib/api/server-api';
 import { isIndexableStory, MIN_CHAPTERS_TO_INDEX } from '@/lib/seo/indexing';
 
-// Sitemap được dựng lại mỗi giờ để truyện/chương mới xuất hiện mà không cần build lại.
-export const revalidate = 3600;
+/**
+ * KHÔNG prerender sitemap lúc build.
+ *
+ * Trong `docker build`, container backend chưa chạy nên `serverGet` không gọi
+ * được API và trả về null. Với ISR thường, Next sẽ nướng luôn kết quả rỗng đó
+ * thành file tĩnh: sau khi deploy ngày 04/08/2026 sitemap chỉ còn 13 URL trang
+ * tĩnh, `lastmod` đúng bằng giờ build, và phải chờ hết `revalidate` mới tự
+ * dựng lại. Trong khoảng chờ đó sitemap đang nói dối Google rằng cả site chỉ
+ * có 13 trang — tệ hơn hẳn việc không có sitemap.
+ *
+ * `force-dynamic` khiến route luôn dựng lúc có request. Chi phí không lớn vì
+ * từng lời gọi `serverGet` vẫn qua Data Cache của Next (xem SITEMAP_REVALIDATE),
+ * nên chỉ request đầu mỗi giờ mới thực sự đi hỏi backend.
+ */
+export const dynamic = 'force-dynamic';
+
+/** TTL cache cho dữ liệu sitemap — không phải TTL của bản thân route. */
+const SITEMAP_REVALIDATE = 3600;
 
 type SitemapStory = {
   slug: string;
@@ -27,7 +43,7 @@ async function getAllStories(): Promise<SitemapStory[]> {
   for (let page = 1; page <= 100; page++) {
     const payload = await serverGet<{ data: SitemapStory[]; meta?: { total?: number } }>(
       `/stories?page=${page}&limit=${limit}`,
-      { revalidate }
+      { revalidate: SITEMAP_REVALIDATE }
     );
 
     const stories = Array.isArray(payload?.data) ? payload!.data : [];
@@ -45,7 +61,7 @@ async function getAllStories(): Promise<SitemapStory[]> {
 async function getChapters(storySlug: string): Promise<SitemapChapter[]> {
   const payload = await serverGet<SitemapChapter[] | { data: SitemapChapter[] }>(
     `/stories/${storySlug}/chapters`,
-    { revalidate }
+    { revalidate: SITEMAP_REVALIDATE }
   );
 
   if (Array.isArray(payload)) return payload;
@@ -84,6 +100,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ] as const).map((page) => ({ ...page, lastModified: new Date() }));
 
   const stories = await getAllStories();
+
+  // Backend không trả lời (hoặc trả rỗng) thì THÀ LỖI còn hơn nộp sitemap cụt.
+  // `serverGet` nuốt lỗi mạng và trả null để trang thường vẫn render được ở
+  // client — nhưng với sitemap, im lặng bỏ qua đồng nghĩa với việc khẳng định
+  // với Google rằng site chỉ có mấy trang tĩnh, và Google sẽ rút những URL
+  // không còn được liệt kê ra khỏi chỉ mục. Ném lỗi → Next trả 5xx → Google
+  // giữ nguyên bản sitemap tốt lần trước rồi thử lại sau.
+  if (stories.length === 0) {
+    throw new Error(
+      '[sitemap] Không lấy được truyện nào từ API — không phát sitemap cụt. ' +
+        'Kiểm tra INTERNAL_API_URL và tình trạng backend.'
+    );
+  }
 
   // Số chương công khai phải lấy từ chính endpoint chương, KHÔNG dùng
   // `_count.chapters` của danh sách truyện: `_count` đếm cả chương chưa xuất bản

@@ -22,7 +22,8 @@
     "prisma:studio": "prisma studio",
     "prisma:seed": "ts-node prisma/seed.ts",
     "migrate:cloudinary": "node dist/scripts/migrate-cloudinary-to-garage.js",
-    "fix:display-names": "node dist/scripts/fix-display-names.js"
+    "fix:display-names": "node dist/scripts/fix-display-names.js",
+    "fix:display-names:apply": "node dist/scripts/fix-display-names.js --apply"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
