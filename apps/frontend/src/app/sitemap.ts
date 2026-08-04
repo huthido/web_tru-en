@@ -35,33 +35,60 @@ type SitemapChapter = {
   createdAt?: string;
 };
 
+/**
+ * Gọi API và thử lại vài lần trước khi chịu thua.
+ *
+ * `serverGet` trả `null` cho mọi lỗi mạng — không phân biệt được "hỏng" với
+ * "rỗng". Với sitemap, nhầm hai thứ đó là im lặng xoá URL khỏi chỉ mục, nên ở
+ * đây thất bại phải ném lỗi chứ không được trả giá trị rỗng.
+ */
+async function fetchOrThrow<T>(path: string, attempts = 3): Promise<T> {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    const payload = await serverGet<T>(path, { revalidate: SITEMAP_REVALIDATE });
+    if (payload !== null && payload !== undefined) return payload;
+
+    if (attempt < attempts) {
+      await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+    }
+  }
+
+  throw new Error(`[sitemap] Gọi ${path} thất bại sau ${attempts} lần thử.`);
+}
+
 /** Lấy toàn bộ truyện đã xuất bản (phân trang tới hết). */
 async function getAllStories(): Promise<SitemapStory[]> {
   const all: SitemapStory[] = [];
   const limit = 100;
 
-  for (let page = 1; page <= 100; page++) {
-    const payload = await serverGet<{ data: SitemapStory[]; meta?: { total?: number } }>(
-      `/stories?page=${page}&limit=${limit}`,
-      { revalidate: SITEMAP_REVALIDATE }
-    );
+  // Dừng theo `totalPages` do API trả về, KHÔNG suy đoán từ việc trang trả rỗng.
+  // Bản trước dùng `if (stories.length === 0) break` nên một lần gọi trang 2 hỏng
+  // là vòng lặp thoát êm và sitemap mất luôn 28 truyện — đã xảy ra thật ngày
+  // 04/08/2026: sitemap chỉ còn 1.443 URL thay vì 1.622, toàn bộ 69 truyện có
+  // trong đó đều thuộc trang 1.
+  let totalPages = 1;
 
-    const stories = Array.isArray(payload?.data) ? payload!.data : [];
-    if (stories.length === 0) break;
+  for (let page = 1; page <= totalPages && page <= 100; page++) {
+    const payload = await fetchOrThrow<{
+      data: SitemapStory[];
+      meta?: { total?: number; totalPages?: number };
+    }>(`/stories?page=${page}&limit=${limit}`);
 
+    const stories = Array.isArray(payload?.data) ? payload.data : [];
     all.push(...stories);
 
-    const total = payload?.meta?.total ?? 0;
-    if (stories.length < limit || (total > 0 && all.length >= total)) break;
+    if (page === 1) {
+      totalPages = payload?.meta?.totalPages ?? 1;
+    }
   }
 
   return all;
 }
 
 async function getChapters(storySlug: string): Promise<SitemapChapter[]> {
-  const payload = await serverGet<SitemapChapter[] | { data: SitemapChapter[] }>(
-    `/stories/${storySlug}/chapters`,
-    { revalidate: SITEMAP_REVALIDATE }
+  // Chương hỏng một lần cũng đủ khiến truyện bị coi là "mỏng" rồi rơi khỏi
+  // sitemap, nên ở đây cũng phải thử lại thay vì nuốt lỗi thành mảng rỗng.
+  const payload = await fetchOrThrow<SitemapChapter[] | { data: SitemapChapter[] }>(
+    `/stories/${storySlug}/chapters`
   );
 
   if (Array.isArray(payload)) return payload;
