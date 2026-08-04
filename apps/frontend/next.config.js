@@ -109,6 +109,39 @@ if (cdnHost) {
   cdnImagePatterns.push({ protocol: 'https', hostname: cdnHost });
 }
 
+/**
+ * 301 cho những truyện đã đổi slug.
+ *
+ * `generateSlug` từng xoá luôn nguyên âm có dấu thay vì chuyển thành chữ không
+ * dấu, nên 82/128 truyện công khai mang URL vô nghĩa (`/vt-khu-ca-qu` thay vì
+ * `/vet-khau-cua-quy`). Hàm đã sửa, dữ liệu cũ được đổi bằng
+ * `apply-slug-map.js` — script đó đọc CHÍNH file JSON này, nên DB và bảng
+ * redirect không thể lệch nhau.
+ *
+ * Mỗi truyện sinh hai rule:
+ *   - đúng đường dẫn truyện
+ *   - wildcard `:path*` để mọi URL chương bên dưới đi theo. Nhờ vậy slug chương
+ *     (cũng méo, `chap-1-khi-u`) không cần đổi và không có URL nào gãy.
+ *
+ * File thiếu thì bỏ qua, không làm hỏng build — lần build đầu tiên chưa có nó.
+ */
+function slugRedirects() {
+  let entries = [];
+  try {
+    entries = require('./slug-redirects.json');
+  } catch (e) {
+    return [];
+  }
+
+  return entries.flatMap(({ from, to }) => {
+    if (!from || !to) return [];
+    return [
+      { source: `/truyen/${from}`, destination: `/truyen/${to}`, permanent: true },
+      { source: `/truyen/${from}/:path*`, destination: `/truyen/${to}/:path*`, permanent: true },
+    ];
+  });
+}
+
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone', // Produces a self-contained server in .next/standalone for Docker
@@ -357,7 +390,11 @@ const nextConfig = {
       { source: '/stories', has: [{ type: 'query', key: 'tab', value: 'nghe-thuat' }], destination: '/nghe-thuat', permanent: true },
       { source: '/stories', has: [{ type: 'query', key: 'tab', value: 'tranh' }], destination: '/tranh', permanent: true },
     ];
-    return [...tabRedirects, ...map.map(([source, destination]) => ({ source, destination, permanent: true }))];
+    return [
+      ...tabRedirects,
+      ...map.map(([source, destination]) => ({ source, destination, permanent: true })),
+      ...slugRedirects(),
+    ];
   },
 
   async rewrites() {

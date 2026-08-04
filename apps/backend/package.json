@@ -25,7 +25,9 @@
     "fix:display-names": "node dist/scripts/fix-display-names.js",
     "fix:display-names:apply": "node dist/scripts/fix-display-names.js --apply",
     "fix:story-authors": "node dist/scripts/reassign-story-authors.js",
-    "fix:story-authors:apply": "node dist/scripts/reassign-story-authors.js --apply"
+    "fix:story-authors:apply": "node dist/scripts/reassign-story-authors.js --apply",
+    "fix:slugs": "node dist/scripts/apply-slug-map.js",
+    "fix:slugs:apply": "node dist/scripts/apply-slug-map.js --apply"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

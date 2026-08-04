@@ -73,6 +73,26 @@ export class StoriesController {
         return this.storiesService.getMostLiked(Math.min(limitNum, 20));
     }
 
+    /**
+     * Toàn bộ slug truyện + slug chương công khai, trong MỘT lần gọi.
+     *
+     * Trước đây sitemap tự ghép: gọi /stories phân trang rồi gọi
+     * /stories/:slug/chapters cho từng truyện — 129 request mỗi lần dựng. Hai
+     * hậu quả thật đã xảy ra trên production:
+     *   - Throttler (100 req/phút) đá lại 429, sitemap mất truyện một cách âm
+     *     thầm: có lúc chỉ còn 1.443 URL thay vì 1.622.
+     *   - Mỗi lời gọi /chapters trả về ĐẦY ĐỦ nội dung chương, nên chỉ để lấy
+     *     slug mà phải tải vài MB văn bản của cả site.
+     *
+     * Endpoint này chỉ trả slug và mốc thời gian, không kèm nội dung.
+     * Đặt TRƯỚC @Get(':slug') để không bị route đó nuốt mất.
+     */
+    @Public()
+    @Get('sitemap-data')
+    async getSitemapData() {
+        return this.storiesService.getSitemapData();
+    }
+
     @Get('users/me/liked')
     @UseGuards(JwtAuthGuard)
     async getMyLikedStories(

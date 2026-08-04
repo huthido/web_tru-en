@@ -1039,6 +1039,34 @@ export class StoriesService {
     }
   }
 
+  /**
+   * Dữ liệu tối thiểu để dựng sitemap: slug truyện, slug các chương đã đăng, và
+   * mốc thời gian. KHÔNG kèm nội dung chương.
+   *
+   * Một truy vấn duy nhất thay cho 129 lời gọi HTTP mà sitemap từng phải thực
+   * hiện — vốn vừa dính throttler (429, sitemap mất truyện âm thầm) vừa kéo về
+   * vài MB nội dung chương chỉ để đọc lấy cái slug.
+   *
+   * Đã lọc sẵn theo PUBLIC_STORY_WHERE nên truyện chưa có chương công khai
+   * không lọt vào; phía sitemap còn lọc tiếp theo số chương tối thiểu.
+   */
+  async getSitemapData() {
+    return this.prisma.story.findMany({
+      where: PUBLIC_STORY_WHERE,
+      select: {
+        slug: true,
+        updatedAt: true,
+        lastChapterAt: true,
+        chapters: {
+          where: { isPublished: true },
+          select: { slug: true, updatedAt: true, createdAt: true },
+          orderBy: { order: 'asc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   // Get newest stories (10-20 stories)
   async getNewest(limit: number = 15) {
     try {
