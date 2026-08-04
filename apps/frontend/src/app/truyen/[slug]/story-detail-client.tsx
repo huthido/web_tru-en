@@ -24,6 +24,12 @@ import { DonateAuthorModal } from '@/components/stories/donate-author-modal';
 import { StoryVipBanner } from '@/components/stories/story-vip-banner';
 import { ArrowLeft, BookOpen, HeartHandshake, Share2, Megaphone, Lock } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
+import {
+  BTN_FILLED,
+  BTN_TONAL,
+  BTN_DISABLED,
+  ICON_BTN,
+} from '@/components/ui/action-button-styles';
 
 export default function BookDetailPage() {
   const params = useParams();
@@ -481,56 +487,45 @@ export default function BookDetailPage() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/*
+                Cụm hành động — ba bậc: MỘT nút filled cho hành động chính, các
+                nút phụ dùng tonal, nút icon cùng nền tonal. Class lấy từ
+                components/ui/action-button-styles để ba component không tự chọn
+                token màu khác nhau nữa.
+              */}
               <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-6 md:mb-8">
-                {/* Primary Action - Đọc truyện */}
                 {chapters && chapters.length > 0 ? (
                   <Link
                     href={`/truyen/${story.slug}/chuong/${chapters[0].slug}`}
-                    className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
+                    className={BTN_FILLED}
                   >
                     <BookOpen size={20} className="md:w-6 md:h-6" />
                     <span>Đọc truyện</span>
                   </Link>
                 ) : (
-                  <button
-                    disabled
-                    className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-surface-variant text-on-surface-variant rounded-lg text-sm md:text-base font-medium cursor-not-allowed"
-                  >
+                  <button disabled className={BTN_DISABLED}>
                     <BookOpen size={20} className="md:w-6 md:h-6" />
                     <span>Chưa có chương</span>
                   </button>
                 )}
 
-                {/* Support Buttons */}
-                <button
-                  onClick={() => setShowDonateModal(true)}
-                  className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-tertiary hover:bg-tertiary/90 text-on-tertiary rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
-                >
+                <button onClick={() => setShowDonateModal(true)} className={BTN_TONAL}>
                   <HeartHandshake size={20} className="md:w-6 md:h-6" />
                   <span className="hidden sm:inline">Ủng hộ tác giả</span>
                   <span className="sm:hidden">Ủng hộ</span>
                 </button>
 
-                <Link
-                  href="/lien-he-quang-cao"
-                  className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-primary-container hover:bg-primary-container/80 text-on-primary-container rounded-lg text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 active:scale-95"
-                >
+                <Link href="/lien-he-quang-cao" className={BTN_TONAL}>
                   <Megaphone size={20} className="md:w-6 md:h-6" />
                   <span className="hidden sm:inline">Tài trợ quảng cáo</span>
                   <span className="sm:hidden">Tài trợ</span>
                 </Link>
 
-                {/* Interaction Buttons */}
-                <FollowButton storyId={story.id} showText={false} className="w-[44px] h-[44px] md:w-[48px] md:h-[48px] p-0 flex items-center justify-center" />
+                <FollowButton storyId={story.id} showText={false} />
 
-                <LikeButton storyId={story.id} likeCount={story.likeCount} showCount={false} className="w-[44px] h-[44px] md:w-[48px] md:h-[48px] p-0 flex items-center justify-center" />
+                <LikeButton storyId={story.id} likeCount={story.likeCount} showCount={false} />
 
-                <button
-                  onClick={handleShare}
-                  className="w-[44px] h-[44px] md:w-[48px] md:h-[48px] flex items-center justify-center bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg transition-all duration-300 hover:scale-105 active:scale-95"
-                  aria-label="Chia sẻ"
-                >
+                <button onClick={handleShare} className={ICON_BTN} aria-label="Chia sẻ">
                   <Share2 size={20} className="md:w-6 md:h-6" />
                 </button>
               </div>
