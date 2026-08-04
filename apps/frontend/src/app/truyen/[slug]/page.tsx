@@ -1,4 +1,5 @@
-import { QueryClient, dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { QueryClient, dehydrate } from '@tanstack/react-query';
+import { Hydrate } from '@/components/providers/hydrate';
 import { getStoryServer, getChaptersServer } from '@/lib/api/server-stories';
 import { JsonLd } from '@/components/seo/json-ld';
 import { absoluteUrl } from '@/lib/seo/site-url';
@@ -78,9 +79,9 @@ export default async function StoryPage({ params }: Props) {
     : null;
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
+    <Hydrate state={dehydrate(queryClient)}>
       <JsonLd data={bookLd ? [bookLd, breadcrumb] : breadcrumb} />
       <StoryDetailClient />
-    </HydrationBoundary>
+    </Hydrate>
   );
 }

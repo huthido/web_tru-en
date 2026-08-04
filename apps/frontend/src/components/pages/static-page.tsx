@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { QueryClient, dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { QueryClient, dehydrate } from '@tanstack/react-query';
+import { Hydrate } from '@/components/providers/hydrate';
 import { serverGet } from '@/lib/api/server-api';
 import { absoluteUrl } from '@/lib/seo/site-url';
 import { toPlainText, truncate } from '@/lib/api/server-stories';
@@ -72,8 +73,8 @@ export async function StaticPage({
   if (page) queryClient.setQueryData(['page', slug], page);
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
+    <Hydrate state={dehydrate(queryClient)}>
       <PageContent slug={slug} fallbackTitle={fallbackTitle} />
-    </HydrationBoundary>
+    </Hydrate>
   );
 }

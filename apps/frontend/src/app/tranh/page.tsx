@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { QueryClient, dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { QueryClient, dehydrate } from '@tanstack/react-query';
+import { Hydrate } from '@/components/providers/hydrate';
 import { serverGet } from '@/lib/api/server-api';
 import { JsonLd } from '@/components/seo/json-ld';
 import { absoluteUrl } from '@/lib/seo/site-url';
@@ -50,9 +51,9 @@ export default async function PaintingsPage() {
   };
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
+    <Hydrate state={dehydrate(queryClient)}>
       <JsonLd data={breadcrumb} />
       <PaintingsClient />
-    </HydrationBoundary>
+    </Hydrate>
   );
 }
