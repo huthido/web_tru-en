@@ -211,6 +211,45 @@ const nextConfig = {
       "base-uri 'self'",
     ].join('; ');
 
+    /**
+     * Cache cho trang nội dung công khai.
+     *
+     * Đo trên production 04/08/2026: MỌI trang HTML trả về
+     * `Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate`.
+     * Đó là mặc định của Next cho trang render động, và nó buộc Googlebot tải
+     * lại toàn bộ ~1.600 URL chương ở mỗi lượt crawl — đốt sạch crawl budget
+     * của một site mới, khiến phần lớn URL không bao giờ được index.
+     *
+     * Đặt `revalidate` trong page là chưa đủ: `/truyen` đọc `searchParams` nên
+     * luôn bị đánh dấu động, Next sẽ không tự phát header ISR. Vì vậy khai báo
+     * tường minh ở đây.
+     *
+     * An toàn để cache `public`: các server component chỉ prefetch API KHÔNG
+     * kèm cookie, nên HTML sinh ra luôn là bản dành cho khách, giống hệt nhau
+     * với mọi người dùng. Trạng thái đăng nhập được client tự nạp sau khi
+     * hydrate. Các route cần đăng nhập KHÔNG nằm trong danh sách dưới đây và
+     * vẫn giữ `no-store` mặc định.
+     */
+    const publicContentCache =
+      'public, max-age=0, s-maxage=300, stale-while-revalidate=86400';
+
+    const PUBLIC_CONTENT_ROUTES = [
+      '/',
+      '/truyen',
+      '/truyen/:path*',
+      '/tranh',
+      '/nghe-thuat',
+      '/gioi-thieu',
+      '/dieu-khoan',
+      '/quyen-rieng-tu',
+      '/ban-quyen',
+      '/an-toan-tre-em',
+      '/gop-y-phan-anh',
+      '/lien-he-quang-cao',
+      '/dang-ky-tac-gia',
+      '/doi-tac-hop-tac',
+    ];
+
     return [
       {
         source: '/(.*)',
@@ -218,6 +257,23 @@ const nextConfig = {
           { key: 'Content-Security-Policy', value: csp },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
+        ],
+      },
+      ...PUBLIC_CONTENT_ROUTES.map((source) => ({
+        source,
+        headers: [{ key: 'Cache-Control', value: publicContentCache }],
+      })),
+      {
+        // Sitemap dựng lại mỗi giờ (revalidate 3600) — cache khớp chu kỳ đó.
+        source: '/sitemap.xml',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400' },
+        ],
+      },
+      {
+        source: '/robots.txt',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400' },
         ],
       },
     ];

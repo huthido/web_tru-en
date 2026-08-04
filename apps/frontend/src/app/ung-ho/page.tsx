@@ -1,6 +1,6 @@
 'use client';
 
-import DOMPurify from 'isomorphic-dompurify';
+import { sanitizeContentHtml } from '@/lib/html/sanitize';
 import { Suspense } from 'react';
 import { Loading } from '@/components/ui/loading';
 import { OptimizedImage } from '@/components/ui/optimized-image';
@@ -38,7 +38,7 @@ function SupportContent() {
             )}
             <div
               className="mt-8 space-y-6 text-base text-on-surface-variant leading-relaxed prose prose-lg dark:prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page?.content || '') }}
+              dangerouslySetInnerHTML={{ __html: sanitizeContentHtml(page?.content) }}
             />
             
             {/* QR Code Section */}

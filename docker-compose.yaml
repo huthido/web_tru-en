@@ -226,6 +226,10 @@ services:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
         NEXT_PUBLIC_CDN_HOST: ${NEXT_PUBLIC_CDN_HOST:-}
+        # Domain public (vd https://yeuyeu.net) — canonical, og:url, sitemap,
+        # robots đều lấy từ đây. Thiếu biến này thì code fallback về domain
+        # production thay vì phát ra localhost như trước.
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-}
     container_name: web_truyen_frontend
     restart: unless-stopped
     depends_on:
@@ -239,6 +243,7 @@ services:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
       NEXT_PUBLIC_CDN_HOST: ${NEXT_PUBLIC_CDN_HOST:-}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-}
       # SSR gọi backend qua Docker network nội bộ — tránh self-signed cert /
       # pending Let's Encrypt ở public HTTPS Traefik.
       INTERNAL_API_URL: ${INTERNAL_API_URL:-http://backend:3009}

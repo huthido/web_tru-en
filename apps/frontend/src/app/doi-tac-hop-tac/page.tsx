@@ -1,22 +1,18 @@
-'use client';
+import type { Metadata } from 'next';
+import { StaticPage, buildStaticPageMetadata } from '@/components/pages/static-page';
 
-import { Suspense } from 'react';
-import { PageContent } from '@/components/pages/page-content';
-import { Loading } from '@/components/ui/loading';
+// Nội dung do admin soạn, đổi không thường xuyên — cache 1 giờ.
+export const revalidate = 3600;
 
-function PartnershipContent() {
-  return <PageContent slug="doi-tac-hop-tac" fallbackTitle="Đối tác hợp tác" />;
+export function generateMetadata(): Promise<Metadata> {
+  return buildStaticPageMetadata({
+    slug: 'doi-tac-hop-tac',
+    path: '/doi-tac-hop-tac',
+    fallbackTitle: 'Đối tác & Hợp tác',
+    fallbackDescription: 'Cơ hội hợp tác nội dung và kinh doanh cùng YÊU.',
+  });
 }
 
-export default function PartnershipPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-surface flex items-center justify-center">
-        <Loading />
-      </div>
-    }>
-      <PartnershipContent />
-    </Suspense>
-  );
+export default function Page() {
+  return <StaticPage slug="doi-tac-hop-tac" fallbackTitle="Đối tác & Hợp tác" />;
 }
-

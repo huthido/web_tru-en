@@ -20,6 +20,26 @@ import { SearchIndexerService } from '../search/search-indexer.service';
 import { WalletService } from '../wallet/wallet.service';
 import { MonetizationService } from '../monetization/monetization.service';
 
+/**
+ * Điều kiện "truyện đáng hiển thị cho khách" dùng chung cho trang chủ và danh
+ * sách công khai.
+ *
+ * Ngoài `isPublished` + không phải DRAFT, còn đòi truyện phải có ít nhất MỘT
+ * chương đã đăng. Đo trên production ngày 04/08/2026: 35/163 truyện đã xuất
+ * bản nhưng không có chương công khai nào — thường là truyện mới tạo hoặc có
+ * chương hẹn giờ chưa tới lượt. Khách bấm vào chỉ thấy trang trắng, và Google
+ * đếm chúng vào nhóm "nội dung có giá trị thấp" khiến AdSense từ chối site.
+ *
+ * `some: { isPublished: true }` khớp đúng bộ lọc mà ChaptersService.findAll
+ * dùng cho khách, nên trang danh sách và trang chi tiết không nói khác nhau.
+ * Lưu ý: KHÔNG dùng `_count.chapters` để thay thế — nó đếm cả chương chưa đăng.
+ */
+export const PUBLIC_STORY_WHERE = {
+  isPublished: true,
+  status: { not: StoryStatus.DRAFT },
+  chapters: { some: { isPublished: true } },
+} as const;
+
 @Injectable()
 export class StoriesService {
   constructor(
@@ -255,21 +275,21 @@ export class StoriesService {
       // If user is not authenticated and trying to query DRAFT, ignore it and exclude DRAFT
       if (!userId && query.status === 'DRAFT') {
         // Public users cannot access DRAFT stories - exclude them
-        where.isPublished = true;
-        where.status = {
-          not: StoryStatus.DRAFT,
-        };
+        Object.assign(where, PUBLIC_STORY_WHERE);
       } else {
         // Allow status filter for authenticated users or non-DRAFT status for public
         where.status = query.status as StoryStatus;
+        // Khách vẫn không được thấy truyện chưa có chương nào đăng, dù họ lọc
+        // theo status cụ thể (?status=COMPLETED…).
+        if (!userId) {
+          where.isPublished = true;
+          where.chapters = PUBLIC_STORY_WHERE.chapters;
+        }
       }
     } else {
       // Default: only show published stories (exclude drafts) for non-authors
       if (!userId) {
-        where.isPublished = true;
-        where.status = {
-          not: StoryStatus.DRAFT, // Exclude drafts, allow PUBLISHED, ONGOING, COMPLETED, ARCHIVED
-        };
+        Object.assign(where, PUBLIC_STORY_WHERE);
       }
     }
 
@@ -1024,10 +1044,7 @@ export class StoriesService {
     try {
       return await this.prisma.story.findMany({
         where: {
-          isPublished: true,
-          status: {
-            not: StoryStatus.DRAFT, // Exclude drafts only
-          },
+          ...PUBLIC_STORY_WHERE,
         },
         include: storyInclude,
         orderBy: { createdAt: 'desc' },
@@ -1038,10 +1055,7 @@ export class StoriesService {
       if (error?.message?.includes('isRecommended')) {
         return await this.prisma.story.findMany({
           where: {
-            isPublished: true,
-            status: {
-              not: StoryStatus.DRAFT,
-            },
+            ...PUBLIC_STORY_WHERE,
           },
           select: safeStorySelect,
           orderBy: { createdAt: 'desc' },
@@ -1062,10 +1076,7 @@ export class StoriesService {
       // Get stories with ratings created in current month
       const storiesWithMonthlyRatings = await this.prisma.story.findMany({
         where: {
-          isPublished: true,
-          status: {
-            not: StoryStatus.DRAFT, // Exclude drafts only
-          },
+          ...PUBLIC_STORY_WHERE,
           ratings: {
             some: {
               createdAt: {
@@ -1127,10 +1138,7 @@ export class StoriesService {
     try {
       const stories = await this.prisma.story.findMany({
         where: {
-          isPublished: true,
-          status: {
-            not: StoryStatus.DRAFT, // Exclude drafts only
-          },
+          ...PUBLIC_STORY_WHERE,
         },
         include: storyInclude,
       });
@@ -1212,10 +1220,7 @@ export class StoriesService {
     try {
       return await this.prisma.story.findMany({
         where: {
-          isPublished: true,
-          status: {
-            not: StoryStatus.DRAFT, // Exclude drafts only
-          },
+          ...PUBLIC_STORY_WHERE,
           ratingCount: {
             gte: 5, // At least 5 ratings to be considered
           },
@@ -1232,10 +1237,7 @@ export class StoriesService {
       if (error?.message?.includes('isRecommended')) {
         return await this.prisma.story.findMany({
           where: {
-            isPublished: true,
-            status: {
-              not: StoryStatus.DRAFT, // Exclude drafts only
-            },
+            ...PUBLIC_STORY_WHERE,
             ratingCount: {
               gte: 5,
             },
@@ -1281,10 +1283,7 @@ export class StoriesService {
     try {
       return await this.prisma.story.findMany({
         where: {
-          isPublished: true,
-          status: {
-            not: StoryStatus.DRAFT, // Exclude drafts only
-          },
+          ...PUBLIC_STORY_WHERE,
         },
         include: storyInclude,
         orderBy: [
@@ -1298,10 +1297,7 @@ export class StoriesService {
       if (error?.message?.includes('isRecommended')) {
         return await this.prisma.story.findMany({
           where: {
-            isPublished: true,
-            status: {
-              not: StoryStatus.DRAFT, // Exclude drafts only
-            },
+            ...PUBLIC_STORY_WHERE,
           },
           select: safeStorySelect,
           orderBy: [

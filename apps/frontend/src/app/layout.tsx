@@ -12,6 +12,7 @@ import { getServerSettings } from '@/lib/api/server-settings';
 import { AdsConsentProvider } from '@/lib/ads/consent-context';
 import { ConsentBanner } from '@/components/ads/consent-banner';
 import { AdsenseScript } from '@/components/ads/adsense-script';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 // Body / UI font — Inter (full Vietnamese support).
 const fontBody = Inter({
@@ -34,7 +35,7 @@ const DEFAULT_METADATA = {
   siteName: 'YÊU',
   // Slogan thống nhất toàn dự án (docs/Fix vài điểm trên app web.pdf).
   siteDescription: 'Mạng Xã Hội Giải Trí Nghệ Thuật. Khám phá hàng ngàn câu chuyện hay, đa dạng thể loại từ kiếm hiệp, tiên hiệp, ngôn tình đến khoa học viễn tưởng.',
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://hungyeu.com',
+  siteUrl: getSiteUrl(),
   keywords: ['truyện', 'tiểu thuyết', 'đọc truyện', 'truyện online', 'manga', 'light novel', 'kiếm hiệp', 'tiên hiệp', 'ngôn tình'],
   author: 'YÊU',
 };
@@ -52,6 +53,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const siteFavicon = settings?.siteFavicon;
 
   return {
+    // metadataBase để mọi URL tương đối trong metadata (canonical, og:image…)
+    // được Next resolve thành URL tuyệt đối đúng domain.
+    metadataBase: new URL(siteUrl),
     title: {
       default: siteName,
       template: `%s | ${siteName}`,
@@ -106,11 +110,17 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Đọc settings ngay trên server để <MaintenanceCheck> biết trạng thái bảo trì
+  // từ lần render đầu tiên — nếu không, nó chặn toàn bộ nội dung bằng spinner và
+  // HTML gửi cho crawler sẽ rỗng.
+  const settings = await getServerSettings();
+  const maintenanceMode = Boolean(settings?.maintenanceMode);
+
   return (
     <html lang="vi" suppressHydrationWarning className={`${fontBody.variable} ${fontDisplay.variable}`}>
       <head>
@@ -147,7 +157,7 @@ export default function RootLayout({
               <ThemeProvider defaultTheme="light">
                 <ToastProvider>
                   <AdsConsentProvider>
-                    <MaintenanceCheck>
+                    <MaintenanceCheck initialMaintenanceMode={maintenanceMode}>
                       {children}
                     </MaintenanceCheck>
                     <ConsentBanner />

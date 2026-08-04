@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import DOMPurify from 'isomorphic-dompurify';
+import { sanitizeContentHtml } from '@/lib/html/sanitize';
 import { useSlotAds } from '@/lib/api/hooks/use-ads';
 import { AdBanner } from './ad-banner';
 import { AdPosition, type Ad, type AdInlineRule } from '@/lib/api/ads.service';
@@ -81,12 +81,13 @@ export function InlineAdsRenderer({
     return <>{nodes}</>;
 }
 
+/**
+ * Nội dung chương do tác giả soạn. Allowlist trong sanitizeContentHtml đã loại
+ * sẵn script/style/iframe/object/embed/form và mọi thuộc tính `on*`, nên không
+ * cần khai báo danh sách cấm riêng như bản DOMPurify trước đây.
+ */
 function sanitize(html: string): string {
-    return DOMPurify.sanitize(html, {
-        USE_PROFILES: { html: true },
-        FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form'],
-        FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'],
-    });
+    return sanitizeContentHtml(html);
 }
 
 function renderContentOnly(content: string, isHtml: boolean): React.ReactNode[] {

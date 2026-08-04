@@ -1,22 +1,18 @@
-'use client';
+import type { Metadata } from 'next';
+import { StaticPage, buildStaticPageMetadata } from '@/components/pages/static-page';
 
-import { Suspense } from 'react';
-import { PageContent } from '@/components/pages/page-content';
-import { Loading } from '@/components/ui/loading';
+// Nội dung do admin soạn, đổi không thường xuyên — cache 1 giờ.
+export const revalidate = 3600;
 
-function TermsContent() {
-  return <PageContent slug="terms" fallbackTitle="Điều khoản & Điều kiện" />;
+export function generateMetadata(): Promise<Metadata> {
+  return buildStaticPageMetadata({
+    slug: 'terms',
+    path: '/dieu-khoan',
+    fallbackTitle: 'Điều khoản & Điều kiện',
+    fallbackDescription: 'Điều khoản sử dụng dịch vụ đọc và đăng truyện trên YÊU.',
+  });
 }
 
-export default function TermsPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-surface flex items-center justify-center">
-        <Loading />
-      </div>
-    }>
-      <TermsContent />
-    </Suspense>
-  );
+export default function Page() {
+  return <StaticPage slug="terms" fallbackTitle="Điều khoản & Điều kiện" />;
 }
-

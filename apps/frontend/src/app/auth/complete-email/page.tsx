@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { authService } from '@/lib/api/auth.service';
 import { setSessionHint } from '@/lib/api/session-hint';
 import Link from 'next/link';
 
-export default function CompleteEmailPage() {
+function CompleteEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -173,5 +173,18 @@ export default function CompleteEmailPage() {
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * `useSearchParams()` buộc Next phải có <Suspense> bao quanh, nếu không lượt
+ * prerender tĩnh sẽ ném "should be wrapped in a suspense boundary" và `next
+ * build` thoát với mã lỗi — chặn toàn bộ bản deploy.
+ */
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-surface" />}>
+      <CompleteEmailContent />
+    </Suspense>
   );
 }

@@ -41,9 +41,12 @@ WORKDIR /repo
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_CDN_HOST
+# Domain public dùng cho canonical / og:url / sitemap / robots.
+ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
     NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL} \
-    NEXT_PUBLIC_CDN_HOST=${NEXT_PUBLIC_CDN_HOST}
+    NEXT_PUBLIC_CDN_HOST=${NEXT_PUBLIC_CDN_HOST} \
+    NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 
 COPY --from=deps /repo/node_modules ./node_modules
 COPY --from=deps /repo/apps/frontend/node_modules ./apps/frontend/node_modules

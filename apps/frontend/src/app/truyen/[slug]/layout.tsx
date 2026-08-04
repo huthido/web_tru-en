@@ -1,104 +1,57 @@
 import { Metadata } from 'next';
 import React from 'react';
-import { apiClient } from '@/lib/api/client';
+import { getStoryServer, getChaptersServer, truncate } from '@/lib/api/server-stories';
+import { absoluteUrl } from '@/lib/seo/site-url';
+import { isIndexableStory } from '@/lib/seo/indexing';
 
 type Props = {
   params: { slug: string };
 };
 
-async function getStory(slug: string) {
-  try {
-    const response = await apiClient.get(`/stories/${slug}`);
-    // Handle ApiResponse wrapper
-    if (response.data && response.data.data && typeof response.data.data === 'object') {
-      return response.data.data;
-    }
-    // If direct response
-    if (response.data && typeof response.data === 'object' && 'id' in response.data) {
-      return response.data;
-    }
-    return null;
-  } catch (error: any) {
-    // Story thật sự không tồn tại (khác với backend không kết nối được)
-    if (error?.response?.status === 404) {
-      return 'not-found' as const;
-    }
-    // Story tồn tại nhưng chưa xuất bản (nháp/chờ duyệt)
-    if (error?.response?.status === 403) {
-      return 'unpublished' as const;
-    }
-    // Only log non-connection errors to reduce noise
-    // Connection errors (ECONNREFUSED) are expected when backend is not running
-    if (error?.code !== 'ECONNREFUSED' && error?.cause?.code !== 'ECONNREFUSED') {
-      console.error('Error fetching story for metadata:', error);
-    }
-    return null;
-  }
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const story = await getStory(params.slug);
+  const [story, chapters] = await Promise.all([
+    getStoryServer(params.slug),
+    getChaptersServer(params.slug),
+  ]);
 
-  if (story === 'not-found') {
-    return {
-      title: 'Không tìm thấy truyện',
-      description: 'Truyện không tồn tại hoặc đã bị gỡ.',
-      robots: { index: false, follow: false },
-    };
-  }
-
-  if (story === 'unpublished') {
-    return {
-      title: 'Truyện chưa được xuất bản',
-      description: 'Truyện đang ở chế độ nháp hoặc chờ duyệt, chưa hiển thị công khai.',
-      robots: { index: false, follow: false },
-    };
-  }
-
-  // If data is not available (e.g., during build or API unavailable),
-  // return a generic title instead of error message
-  // Client-side will handle the actual error display
   if (!story) {
     return {
-      title: 'Đang tải...',
-      description: 'Đang tải thông tin truyện...',
+      title: 'Không tìm thấy truyện',
+      description: 'Truyện không tồn tại, đã bị gỡ hoặc chưa được xuất bản.',
+      robots: { index: false, follow: false },
     };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  const storyUrl = `${siteUrl}/truyen/${story.slug}`;
-  const coverImage = story.coverImage || `${siteUrl}/default-cover.jpg`;
+  const storyUrl = absoluteUrl(`/truyen/${story.slug}`);
+  const coverImage = story.coverImage || absoluteUrl('/default-cover.jpg');
+  const authorName = story.authorName || story.author?.displayName || 'Tác giả';
   const description = story.description
-    ? (story.description.length > 160 ? story.description.substring(0, 157) + '...' : story.description)
-    : `Đọc truyện ${story.title} - ${story.authorName || 'Tác giả'}`;
+    ? truncate(story.description, 160)
+    : `Đọc truyện ${story.title} của ${authorName} miễn phí trên YÊU.`;
 
-  const categories = story.storyCategories?.map((sc: any) => sc.category?.name).filter(Boolean).join(', ') || '';
-  const keywords = [
-    story.title,
-    story.authorName,
-    ...(categories ? [categories] : []),
-    ...(story.tags || []),
-  ].filter(Boolean);
+  const categories = (story.storyCategories || [])
+    .map((sc) => sc?.category?.name)
+    .filter(Boolean) as string[];
+
+  // Truyện quá ít chương công khai thì không đáng index (Google xếp vào "thin
+  // content"). Vẫn để `follow` để bot đi tiếp link bên trong, không cắt luồng crawl.
+  const shouldIndex = isIndexableStory(chapters.length);
 
   return {
     title: story.title,
     description,
-    keywords,
-    authors: story.authorName ? [{ name: story.authorName }] : undefined,
+    keywords: [story.title, authorName, ...categories, ...(story.tags || [])].filter(Boolean),
+    authors: [{ name: authorName }],
+    robots: shouldIndex
+      ? { index: true, follow: true }
+      : { index: false, follow: true },
     openGraph: {
       type: 'book',
       title: story.title,
       description,
       url: storyUrl,
       siteName: 'YÊU',
-      images: [
-        {
-          url: coverImage,
-          width: 600,
-          height: 800,
-          alt: story.title,
-        },
-      ],
+      images: [{ url: coverImage, width: 600, height: 800, alt: story.title }],
       locale: 'vi_VN',
     },
     twitter: {
@@ -111,17 +64,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       canonical: storyUrl,
     },
     other: {
-      'book:author': story.authorName || '',
+      'book:author': authorName,
       'book:release_date': story.createdAt ? new Date(story.createdAt).toISOString() : '',
     },
   };
 }
 
-export default function StoryLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function StoryLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
-

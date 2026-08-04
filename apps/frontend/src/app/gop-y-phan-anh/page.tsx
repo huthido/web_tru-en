@@ -1,22 +1,18 @@
-'use client';
+import type { Metadata } from 'next';
+import { StaticPage, buildStaticPageMetadata } from '@/components/pages/static-page';
 
-import { Suspense } from 'react';
-import { PageContent } from '@/components/pages/page-content';
-import { Loading } from '@/components/ui/loading';
+// Nội dung do admin soạn, đổi không thường xuyên — cache 1 giờ.
+export const revalidate = 3600;
 
-function FeedbackContent() {
-  return <PageContent slug="gop-y-phan-anh" fallbackTitle="Góp ý phản ánh" />;
+export function generateMetadata(): Promise<Metadata> {
+  return buildStaticPageMetadata({
+    slug: 'gop-y-phan-anh',
+    path: '/gop-y-phan-anh',
+    fallbackTitle: 'Góp ý & Phản ánh',
+    fallbackDescription: 'Kênh tiếp nhận góp ý, phản ánh và khiếu nại của người dùng YÊU.',
+  });
 }
 
-export default function FeedbackPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-surface flex items-center justify-center">
-        <Loading />
-      </div>
-    }>
-      <FeedbackContent />
-    </Suspense>
-  );
+export default function Page() {
+  return <StaticPage slug="gop-y-phan-anh" fallbackTitle="Góp ý & Phản ánh" />;
 }
-

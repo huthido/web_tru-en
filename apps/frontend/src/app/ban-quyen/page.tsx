@@ -1,22 +1,18 @@
-'use client';
+import type { Metadata } from 'next';
+import { StaticPage, buildStaticPageMetadata } from '@/components/pages/static-page';
 
-import { Suspense } from 'react';
-import { PageContent } from '@/components/pages/page-content';
-import { Loading } from '@/components/ui/loading';
+// Nội dung do admin soạn, đổi không thường xuyên — cache 1 giờ.
+export const revalidate = 3600;
 
-function CopyrightContent() {
-  return <PageContent slug="ban-quyen" fallbackTitle="Bản quyền" />;
+export function generateMetadata(): Promise<Metadata> {
+  return buildStaticPageMetadata({
+    slug: 'ban-quyen',
+    path: '/ban-quyen',
+    fallbackTitle: 'Bản quyền',
+    fallbackDescription: 'Chính sách bản quyền và quy trình xử lý khiếu nại vi phạm nội dung trên YÊU.',
+  });
 }
 
-export default function CopyrightPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-surface flex items-center justify-center">
-        <Loading />
-      </div>
-    }>
-      <CopyrightContent />
-    </Suspense>
-  );
+export default function Page() {
+  return <StaticPage slug="ban-quyen" fallbackTitle="Bản quyền" />;
 }
-

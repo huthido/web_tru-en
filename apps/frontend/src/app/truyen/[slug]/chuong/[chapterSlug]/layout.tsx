@@ -1,108 +1,57 @@
 import { Metadata } from 'next';
 import React from 'react';
-import { apiClient } from '@/lib/api/client';
+import {
+  getStoryServer,
+  getChapterServer,
+  toPlainText,
+  truncate,
+} from '@/lib/api/server-stories';
+import { absoluteUrl } from '@/lib/seo/site-url';
 
 type Props = {
   params: { slug: string; chapterSlug: string };
 };
 
-async function getStoryAndChapter(storySlug: string, chapterSlug: string) {
-  try {
-    // Add timeout for production builds
-    // If API is not available during build, this will timeout gracefully
-    const [storyResponse, chaptersResponse] = await Promise.all([
-      apiClient.get(`/stories/${storySlug}`),
-      apiClient.get(`/stories/${storySlug}/chapters`),
-    ]);
-
-    const story = storyResponse.data?.data || storyResponse.data;
-    const chapters = Array.isArray(chaptersResponse.data?.data)
-      ? chaptersResponse.data.data
-      : (Array.isArray(chaptersResponse.data) ? chaptersResponse.data : []);
-
-    const chapter = chapters.find((ch: any) => ch.slug === chapterSlug);
-
-    return { story, chapter };
-  } catch (error: any) {
-    // Truyện/chương thật sự không tồn tại (khác với backend không kết nối được)
-    if (error?.response?.status === 404) {
-      return { story: null, chapter: null, notFound: true };
-    }
-    // Truyện chưa xuất bản (nháp/chờ duyệt)
-    if (error?.response?.status === 403) {
-      return { story: null, chapter: null, unpublished: true };
-    }
-    // In production, if API is not available during build, return null
-    // Client-side will handle the error display
-    // Only log non-connection errors to reduce noise
-    if (error?.code !== 'ECONNREFUSED' &&
-      error?.cause?.code !== 'ECONNREFUSED' &&
-      error?.name !== 'AbortError' &&
-      error?.code !== 'ETIMEDOUT') {
-      console.error('Error fetching story/chapter for metadata:', error);
-    }
-    // Return null to let client-side handle the error
-    return { story: null, chapter: null };
-  }
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { story, chapter, notFound, unpublished } = await getStoryAndChapter(params.slug, params.chapterSlug);
+  const [story, chapter] = await Promise.all([
+    getStoryServer(params.slug),
+    getChapterServer(params.slug, params.chapterSlug),
+  ]);
 
-  if (notFound) {
-    return {
-      title: 'Không tìm thấy chương',
-      description: 'Chương không tồn tại hoặc đã bị gỡ.',
-      robots: { index: false, follow: false },
-    };
-  }
-
-  if (unpublished) {
-    return {
-      title: 'Chương chưa được xuất bản',
-      description: 'Chương thuộc truyện đang ở chế độ nháp hoặc chờ duyệt.',
-      robots: { index: false, follow: false },
-    };
-  }
-
-  // If data is not available (e.g., during build or API unavailable),
-  // return a generic title instead of error message
-  // Client-side will handle the actual error display
   if (!story || !chapter) {
     return {
-      title: 'Đang tải...',
-      description: 'Đang tải nội dung chương...',
+      title: 'Không tìm thấy chương',
+      description: 'Chương không tồn tại, đã bị gỡ hoặc chưa được xuất bản.',
+      robots: { index: false, follow: false },
     };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  const chapterUrl = `${siteUrl}/truyen/${params.slug}/chuong/${params.chapterSlug}`;
-  const description = chapter.content
-    ? (chapter.content.length > 160 ? chapter.content.substring(0, 157) + '...' : chapter.content)
-    : `Đọc ${chapter.title} - ${story.title}`;
+  const chapterUrl = absoluteUrl(`/truyen/${params.slug}/chuong/${params.chapterSlug}`);
+  const title = `${chapter.title} - ${story.title}`;
+  // content là HTML — phải bỏ thẻ, nếu không description sẽ đầy "<p>", "&nbsp;".
+  const plain = toPlainText(chapter.content);
+  const description = plain
+    ? truncate(plain, 160)
+    : `Đọc ${chapter.title} của truyện ${story.title} miễn phí trên YÊU.`;
 
   return {
-    title: `${chapter.title} - ${story.title}`,
+    title,
     description,
+    robots: { index: true, follow: true },
     openGraph: {
       type: 'article',
-      title: `${chapter.title} - ${story.title}`,
+      title,
       description,
       url: chapterUrl,
       siteName: 'YÊU',
-      images: story.coverImage ? [
-        {
-          url: story.coverImage,
-          width: 600,
-          height: 800,
-          alt: story.title,
-        },
-      ] : undefined,
+      images: story.coverImage
+        ? [{ url: story.coverImage, width: 600, height: 800, alt: story.title }]
+        : undefined,
       locale: 'vi_VN',
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${chapter.title} - ${story.title}`,
+      title,
       description,
       images: story.coverImage ? [story.coverImage] : undefined,
     },
@@ -112,11 +61,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function ChapterLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function ChapterLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
-
