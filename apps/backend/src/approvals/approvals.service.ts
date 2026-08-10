@@ -13,6 +13,16 @@ import { ReviewApprovalDto } from './dto/review-approval.dto';
 import { ApprovalType, ApprovalStatus, UserRole, StoryStatus, NotificationType } from '@prisma/client';
 import { getPaginationParams, createPaginatedResult } from '../common/utils/pagination.util';
 
+/**
+ * Tác giả có từng này truyện được admin duyệt TAY thì thành "tác giả tin cậy":
+ * truyện mới gửi duyệt sẽ được tự động duyệt ngay (hybrid — giảm tải admin mà
+ * vẫn tiền kiểm tác giả mới, giữ an toàn AdSense/app store).
+ */
+const TRUSTED_AUTHOR_MIN_APPROVED = parseInt(
+    process.env.TRUSTED_AUTHOR_MIN_APPROVED ?? '2',
+    10,
+);
+
 @Injectable()
 export class ApprovalsService {
     private readonly logger = new Logger(ApprovalsService.name);
@@ -90,7 +100,7 @@ export class ApprovalsService {
             throw new BadRequestException('Bạn đã có yêu cầu phê duyệt đang chờ xử lý');
         }
 
-        return this.prisma.approvalRequest.create({
+        const created = await this.prisma.approvalRequest.create({
             data: {
                 userId,
                 storyId,
@@ -124,6 +134,101 @@ export class ApprovalsService {
                 },
             },
         });
+
+        // Hybrid: tác giả tin cậy → truyện được tự động duyệt ngay, không chờ
+        // admin. Client không cần đổi gì — đọc status APPROVED trong response.
+        if (
+            createDto.type === ApprovalType.STORY_PUBLISH &&
+            storyId &&
+            (await this.isTrustedAuthor(userId))
+        ) {
+            return this.autoApproveStoryRequest(created.id, storyId);
+        }
+
+        return created;
+    }
+
+    /**
+     * Tác giả tin cậy = có ≥ TRUSTED_AUTHOR_MIN_APPROVED truyện (DISTINCT)
+     * từng được admin duyệt TAY. Request tự động duyệt có reviewedBy = null
+     * nên không được đếm — trust không tự nhân từ auto-approve.
+     */
+    private async isTrustedAuthor(userId: string): Promise<boolean> {
+        const approvedStories = await this.prisma.approvalRequest.findMany({
+            where: {
+                userId,
+                type: ApprovalType.STORY_PUBLISH,
+                status: ApprovalStatus.APPROVED,
+                reviewedBy: { not: null },
+                storyId: { not: null },
+            },
+            select: { storyId: true },
+            distinct: ['storyId'],
+        });
+        return approvedStories.length >= TRUSTED_AUTHOR_MIN_APPROVED;
+    }
+
+    /**
+     * Duyệt ngay request truyện của tác giả tin cậy: cập nhật request
+     * (reviewedBy = null để phân biệt với duyệt tay), publish truyện + cascade
+     * chương chờ, gửi email + notification y như duyệt tay.
+     */
+    private async autoApproveStoryRequest(requestId: string, storyId: string) {
+        const adminNote = `Tự động duyệt — tác giả tin cậy (đã có ${TRUSTED_AUTHOR_MIN_APPROVED}+ truyện được duyệt)`;
+        const updatedRequest = await this.prisma.approvalRequest.update({
+            where: { id: requestId },
+            data: {
+                status: ApprovalStatus.APPROVED,
+                adminNote,
+                reviewedBy: null,
+                reviewedAt: new Date(),
+            },
+            include: {
+                story: true,
+                chapter: {
+                    include: {
+                        story: { select: { slug: true, title: true } },
+                    },
+                },
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        username: true,
+                        displayName: true,
+                    },
+                },
+            },
+        });
+
+        const autoApprovedChapters = await this.publishApprovedStory(storyId, null);
+
+        try {
+            const user = updatedRequest.user;
+            if (user && updatedRequest.story) {
+                await this.emailService.sendApprovalApprovedEmail(
+                    user.email,
+                    user.displayName || user.username,
+                    updatedRequest.story.title,
+                    updatedRequest.story.slug,
+                    adminNote,
+                );
+            }
+        } catch (error) {
+            this.logger.error('Failed to send auto-approval email:', error);
+        }
+
+        this.sendApprovalInAppNotification(updatedRequest, {
+            status: ApprovalStatus.APPROVED,
+            adminNote,
+        } as ReviewApprovalDto).catch((e) =>
+            this.logger.warn(`Notify auto-approval failed: ${e?.message ?? e}`),
+        );
+
+        this.logger.log(
+            `Auto-approved story request ${requestId} (trusted author ${updatedRequest.userId})`,
+        );
+        return { ...updatedRequest, autoApprovedChapters };
     }
 
     async findAll(
@@ -378,26 +483,7 @@ export class ApprovalsService {
         let autoApprovedChapters = 0;
         if (reviewDto.status === ApprovalStatus.APPROVED) {
             if (request.type === ApprovalType.STORY_PUBLISH && request.storyId) {
-                const currentStory = await this.prisma.story.findUnique({
-                    where: { id: request.storyId },
-                    select: { status: true },
-                });
-
-                // Nếu story đang DRAFT thì chuyển sang ONGOING
-                // Nếu đã có status khác (COMPLETED, ONGOING) thì giữ nguyên
-                const newStatus = currentStory?.status === StoryStatus.DRAFT
-                    ? StoryStatus.ONGOING
-                    : currentStory?.status;
-
-                await this.prisma.story.update({
-                    where: { id: request.storyId },
-                    data: {
-                        isPublished: true,
-                        status: newStatus,
-                    },
-                });
-
-                autoApprovedChapters = await this.approvePendingChapters(
+                autoApprovedChapters = await this.publishApprovedStory(
                     request.storyId,
                     adminId,
                 );
@@ -456,6 +542,36 @@ export class ApprovalsService {
     }
 
     /**
+     * Phần "publish truyện" dùng chung cho duyệt tay (review) và tự động duyệt
+     * (tác giả tin cậy): bật isPublished, DRAFT→ONGOING (status khác giữ
+     * nguyên), rồi cascade duyệt các chương đang chờ. Trả về số chương đã
+     * cascade. adminId = null khi tự động duyệt.
+     */
+    private async publishApprovedStory(
+        storyId: string,
+        adminId: string | null,
+    ): Promise<number> {
+        const currentStory = await this.prisma.story.findUnique({
+            where: { id: storyId },
+            select: { status: true },
+        });
+
+        const newStatus = currentStory?.status === StoryStatus.DRAFT
+            ? StoryStatus.ONGOING
+            : currentStory?.status;
+
+        await this.prisma.story.update({
+            where: { id: storyId },
+            data: {
+                isPublished: true,
+                status: newStatus,
+            },
+        });
+
+        return this.approvePendingChapters(storyId, adminId);
+    }
+
+    /**
      * Duyệt truyện = ý định "cho truyện ra mắt", nên kéo theo các chương của
      * truyện đó đang chờ duyệt (CHAPTER_PUBLISH PENDING). Nếu không cascade,
      * truyện được duyệt nhưng chưa có chương công khai sẽ bị PUBLIC_STORY_WHERE
@@ -468,7 +584,7 @@ export class ApprovalsService {
      */
     private async approvePendingChapters(
         storyId: string,
-        adminId: string,
+        adminId: string | null,
     ): Promise<number> {
         // Lưu ý: request duyệt chương được tạo với storyId = null (controller
         // chỉ truyền chapterId), nên PHẢI lần theo quan hệ chapter.storyId.

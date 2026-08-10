@@ -86,12 +86,17 @@ export default function AuthorDashboardPage() {
                     return;
                 }
                 
-                await createApprovalMutation.mutateAsync({
+                const request = await createApprovalMutation.mutateAsync({
                     storyId: id,
                     type: 'STORY_PUBLISH',
                     message: `Yêu cầu xuất bản truyện: ${title}`,
                 });
-                showToast('Đã gửi yêu cầu xuất bản. Vui lòng đợi admin duyệt.', 'success');
+                // Tác giả tin cậy được backend tự động duyệt ngay trong lúc gửi.
+                if (request?.status === 'APPROVED') {
+                    showToast('Truyện đã được tự động duyệt và xuất bản 🎉', 'success');
+                } else {
+                    showToast('Đã gửi yêu cầu xuất bản. Vui lòng đợi admin duyệt.', 'success');
+                }
             }
         } catch (error: any) {
             const errorMessage = error?.response?.data?.error || error?.response?.data?.message || 'Có lỗi xảy ra';
