@@ -2,6 +2,14 @@
   "name": "@web-truyen/frontend",
   "version": "1.0.0",
   "private": true,
+  "browserslist": [
+    "chrome 64",
+    "edge 79",
+    "firefox 67",
+    "opera 51",
+    "safari 12",
+    "ios_saf 12"
+  ],
   "scripts": {
     "dev": "next dev -p 3002",
     "build": "next build",

@@ -145,6 +145,25 @@ function slugRedirects() {
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone', // Produces a self-contained server in .next/standalone for Docker
+  // Safari iOS 12 không parse được cú pháp ES2020+ (?. ?? ??= #private) mà các
+  // package này ship nguyên xi trong node_modules (TanStack Query v5 chính thức
+  // chỉ hỗ trợ Safari 15+). Next chỉ transpile code app theo browserslist, còn
+  // node_modules giữ nguyên → 1 chunk lỗi parse là chết trắng toàn site
+  // ("Application error: a client-side exception has occurred").
+  // Danh sách này được chốt bằng cách build rồi quét chunk (xem browserslist
+  // trong package.json) — thêm package mới có cú pháp hiện đại thì bổ sung.
+  transpilePackages: [
+    '@tanstack/react-query',
+    '@tanstack/query-core',
+    // Cụm sanitize-html (trang đọc chương render HTML phía client)
+    'sanitize-html',
+    'htmlparser2',
+    'entities',
+    'parse5',
+    'domhandler',
+    'domutils',
+    'dom-serializer',
+  ],
   images: {
     domains: ['res.cloudinary.com', 'static.truyenfull.vision', 'cache.staticscdn.net', 'iads.staticscdn.net', 'images.unsplash.com', 'lh3.googleusercontent.com', 'gtvseo.com', 'ui-avatars.com', 'i.pinimg.com'],
     remotePatterns: [

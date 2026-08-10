@@ -17,8 +17,14 @@ export function usePageLimit(small = 20, large = 24): number {
     const mql = window.matchMedia(query);
     const onChange = (e: MediaQueryListEvent) => setLimit(e.matches ? large : small);
     setLimit(mql.matches ? large : small);
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
+    // Safari < 14 chưa có addEventListener trên MediaQueryList — phải dùng
+    // addListener cũ, không thì iOS 12 ném TypeError sập trang.
+    if (typeof mql.addEventListener === 'function') {
+      mql.addEventListener('change', onChange);
+      return () => mql.removeEventListener('change', onChange);
+    }
+    mql.addListener(onChange);
+    return () => mql.removeListener(onChange);
   }, [small, large]);
 
   return limit;
