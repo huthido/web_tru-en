@@ -22,8 +22,8 @@ export interface ApprovalRequest {
     /** Số chương đã công khai — 0 nghĩa là truyện sẽ không hiện ngoài trang chủ */
     publishedChapterCount?: number;
   };
-  /** Số yêu cầu duyệt chương đang chờ của cùng truyện (chỉ có ở STORY_PUBLISH) */
-  pendingChapterApprovals?: number;
+  /** Số chương nháp (không hẹn giờ) sẽ tự được đăng khi duyệt truyện (chỉ có ở STORY_PUBLISH) */
+  draftChapterCount?: number;
   chapter?: {
     id: string;
     title: string;

@@ -65,25 +65,13 @@ export class ApprovalsService {
             }
         }
 
+        // Chương KHÔNG cần duyệt riêng (mô hình từ 10/08/2026): truyện được
+        // duyệt thì mọi chương nháp tự đăng theo; truyện đã publish thì tác
+        // giả tự đăng chương. Chặn tạo request mới; request cũ vẫn review được.
         if (chapterId) {
-            const chapter = await this.prisma.chapter.findUnique({
-                where: { id: chapterId },
-                select: {
-                    id: true,
-                    story: {
-                        select: {
-                            id: true,
-                            authorId: true,
-                        },
-                    },
-                },
-            });
-            if (!chapter) {
-                throw new NotFoundException('Chương không tồn tại');
-            }
-            if (chapter.story.authorId !== userId) {
-                throw new ForbiddenException('Bạn chỉ có thể yêu cầu publish chương của chính mình');
-            }
+            throw new BadRequestException(
+                'Chương không cần duyệt riêng — chương sẽ tự được đăng khi truyện được duyệt, hoặc bạn tự xuất bản khi truyện đã đăng.'
+            );
         }
 
         // Check if there's already a pending request
@@ -353,21 +341,21 @@ export class ApprovalsService {
                     .map((r) => r.storyId as string),
             ),
         ];
-        // Request duyệt chương có storyId = null nên phải đếm qua chapter.storyId
-        // (groupBy không đi qua relation được → đếm bằng JS, mỗi trang ≤100 dòng).
-        const pendingByStory = new Map<string, number>();
+        // Đếm chương nháp (không hẹn giờ) — badge admin báo "duyệt truyện sẽ
+        // tự đăng N chương". Chương hẹn giờ không tính vì giữ lịch riêng.
+        const draftByStory = new Map<string, number>();
         if (storyIds.length > 0) {
-            const pendingChapterReqs = await this.prisma.approvalRequest.findMany({
+            const draftCounts = await this.prisma.chapter.groupBy({
+                by: ['storyId'],
                 where: {
-                    type: ApprovalType.CHAPTER_PUBLISH,
-                    status: ApprovalStatus.PENDING,
-                    chapter: { storyId: { in: storyIds } },
+                    storyId: { in: storyIds },
+                    isPublished: false,
+                    scheduledPublishAt: null,
                 },
-                select: { chapter: { select: { storyId: true } } },
+                _count: { _all: true },
             });
-            for (const req of pendingChapterReqs) {
-                const sid = req.chapter?.storyId;
-                if (sid) pendingByStory.set(sid, (pendingByStory.get(sid) ?? 0) + 1);
+            for (const g of draftCounts) {
+                draftByStory.set(g.storyId, g._count._all);
             }
         }
 
@@ -378,8 +366,8 @@ export class ApprovalsService {
                 story: r.story
                     ? { ...storyRest, publishedChapterCount: _count?.chapters ?? 0 }
                     : r.story,
-                pendingChapterApprovals: r.storyId
-                    ? pendingByStory.get(r.storyId) ?? 0
+                draftChapterCount: r.storyId
+                    ? draftByStory.get(r.storyId) ?? 0
                     : 0,
             };
         });
@@ -544,8 +532,8 @@ export class ApprovalsService {
     /**
      * Phần "publish truyện" dùng chung cho duyệt tay (review) và tự động duyệt
      * (tác giả tin cậy): bật isPublished, DRAFT→ONGOING (status khác giữ
-     * nguyên), rồi cascade duyệt các chương đang chờ. Trả về số chương đã
-     * cascade. adminId = null khi tự động duyệt.
+     * nguyên), rồi đăng toàn bộ chương nháp không hẹn giờ. Trả về số chương
+     * đã đăng kèm. adminId = null khi tự động duyệt.
      */
     private async publishApprovedStory(
         storyId: string,
@@ -553,7 +541,7 @@ export class ApprovalsService {
     ): Promise<number> {
         const currentStory = await this.prisma.story.findUnique({
             where: { id: storyId },
-            select: { status: true },
+            select: { status: true, publishedAt: true },
         });
 
         const newStatus = currentStory?.status === StoryStatus.DRAFT
@@ -565,46 +553,37 @@ export class ApprovalsService {
             data: {
                 isPublished: true,
                 status: newStatus,
+                // Ngày duyệt lần đầu — sort "Mới nhất"; duyệt lại không ghi đè.
+                publishedAt: currentStory?.publishedAt ?? new Date(),
             },
         });
 
-        return this.approvePendingChapters(storyId, adminId);
+        return this.publishStoryChapters(storyId, adminId);
     }
 
     /**
-     * Duyệt truyện = ý định "cho truyện ra mắt", nên kéo theo các chương của
-     * truyện đó đang chờ duyệt (CHAPTER_PUBLISH PENDING). Nếu không cascade,
-     * truyện được duyệt nhưng chưa có chương công khai sẽ bị PUBLIC_STORY_WHERE
-     * (bộ lọc AdSense 04/08/2026) giấu khỏi trang chủ — admin tưởng duyệt xong
-     * mà ngoài trang không thấy.
+     * Duyệt truyện = duyệt luôn nội dung của nó: MỌI chương nháp được đăng
+     * theo, không cần duyệt riêng từng chương. Nếu không, truyện được duyệt
+     * nhưng 0 chương công khai sẽ bị PUBLIC_STORY_WHERE (bộ lọc AdSense
+     * 04/08/2026) giấu khỏi trang chủ — admin tưởng duyệt xong mà không thấy.
      *
-     * Chỉ đụng chương CÓ yêu cầu đang chờ: chương hẹn giờ hoặc nháp chưa gửi
-     * duyệt vẫn giữ nguyên. Không fanout thông báo từng chương — truyện vừa
-     * ra mắt chưa có follower, fanout hàng loạt chỉ tạo spam.
+     * Ngoại lệ: chương ĐÃ HẸN GIỜ (scheduledPublishAt) giữ nguyên lịch, cron
+     * đăng khi tới hạn — không phá luồng ra chương nhỏ giọt. Request duyệt
+     * chương còn treo (di sản luồng cũ) được đóng APPROVED cho sạch queue —
+     * lần theo chapter.storyId vì request chương có storyId = null.
+     * Không fanout thông báo từng chương — truyện vừa ra mắt chưa có follower.
      */
-    private async approvePendingChapters(
+    private async publishStoryChapters(
         storyId: string,
         adminId: string | null,
     ): Promise<number> {
-        // Lưu ý: request duyệt chương được tạo với storyId = null (controller
-        // chỉ truyền chapterId), nên PHẢI lần theo quan hệ chapter.storyId.
-        const pendingChapterRequests = await this.prisma.approvalRequest.findMany({
-            where: {
-                type: ApprovalType.CHAPTER_PUBLISH,
-                status: ApprovalStatus.PENDING,
-                chapter: { storyId },
-            },
-            select: { id: true, chapterId: true },
-        });
-
-        if (pendingChapterRequests.length === 0) return 0;
-
-        const requestIds = pendingChapterRequests.map((r) => r.id);
-        const chapterIds = pendingChapterRequests.map((r) => r.chapterId as string);
-
-        await this.prisma.$transaction([
+        const [, published] = await this.prisma.$transaction([
             this.prisma.approvalRequest.updateMany({
-                where: { id: { in: requestIds } },
+                where: {
+                    type: ApprovalType.CHAPTER_PUBLISH,
+                    status: ApprovalStatus.PENDING,
+                    chapter: { storyId },
+                },
                 data: {
                     status: ApprovalStatus.APPROVED,
                     adminNote: 'Tự động duyệt khi truyện được duyệt',
@@ -613,15 +592,17 @@ export class ApprovalsService {
                 },
             }),
             this.prisma.chapter.updateMany({
-                where: { id: { in: chapterIds } },
+                where: { storyId, isPublished: false, scheduledPublishAt: null },
                 data: { isPublished: true },
             }),
         ]);
 
-        this.logger.log(
-            `Auto-approved ${chapterIds.length} pending chapter(s) of story ${storyId}`,
-        );
-        return chapterIds.length;
+        if (published.count > 0) {
+            this.logger.log(
+                `Auto-published ${published.count} chapter(s) of approved story ${storyId}`,
+            );
+        }
+        return published.count;
     }
 
     /**

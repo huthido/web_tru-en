@@ -102,12 +102,12 @@ export default function AdminApprovalsPage() {
     const renderNoChapterWarning = (request: ApprovalRequest) => {
         if (request.type !== 'STORY_PUBLISH') return null;
         if (request.story?.publishedChapterCount !== 0) return null;
-        const pending = request.pendingChapterApprovals ?? 0;
+        const drafts = request.draftChapterCount ?? 0;
         let detail = '';
-        if (request.status === 'PENDING' && pending > 0) {
-            detail = ` Duyệt truyện sẽ tự đăng ${pending} chương đang chờ.`;
-        } else if (pending === 0) {
-            detail = ' Chương có thể đang hẹn giờ hoặc còn là bản nháp.';
+        if (request.status === 'PENDING' && drafts > 0) {
+            detail = ` Duyệt truyện sẽ tự đăng ${drafts} chương nháp.`;
+        } else if (drafts === 0) {
+            detail = ' Các chương đang hẹn giờ, sẽ tự đăng theo lịch.';
         }
         return (
             <p className="mt-2 px-2 py-1.5 text-xs rounded bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">

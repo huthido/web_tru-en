@@ -421,10 +421,10 @@ export default function AuthorDashboardPage() {
                                                                 className="w-full px-3 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-xs font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
                                                             >
                                                                 <Send className="w-4 h-4" />
-                                                                {(publishMutation.isPending || createApprovalMutation.isPending) 
-                                                                    ? 'Đang xử lý...' 
-                                                                    : user?.role === UserRole.ADMIN 
-                                                                    ? 'Xuất bản' 
+                                                                {(publishMutation.isPending || createApprovalMutation.isPending)
+                                                                    ? 'Đang xử lý...'
+                                                                    : user?.role === UserRole.ADMIN
+                                                                    ? 'Xuất bản'
                                                                     : 'Gửi duyệt'}
                                                             </button>
                                                         )}
@@ -556,10 +556,10 @@ export default function AuthorDashboardPage() {
                                                                     className="px-3 py-1.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-xs font-medium transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
                                                                 >
                                                                     <Send className="w-4 h-4" />
-                                                                    {(publishMutation.isPending || createApprovalMutation.isPending) 
-                                                                        ? 'Đang xử lý...' 
-                                                                        : user?.role === UserRole.ADMIN 
-                                                                        ? 'Xuất bản' 
+                                                                    {(publishMutation.isPending || createApprovalMutation.isPending)
+                                                                        ? 'Đang xử lý...'
+                                                                        : user?.role === UserRole.ADMIN
+                                                                        ? 'Xuất bản'
                                                                         : 'Gửi duyệt'}
                                                                 </button>
                                                             )}

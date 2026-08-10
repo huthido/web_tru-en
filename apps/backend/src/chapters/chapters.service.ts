@@ -476,7 +476,7 @@ export class ChaptersService {
         }
 
         // Non-admin users cannot publish chapters if story is not published
-        throw new BadRequestException('Truyện cần được xuất bản trước khi bạn có thể xuất bản chương. Vui lòng gửi yêu cầu phê duyệt cho truyện từ trang Dashboard.');
+        throw new BadRequestException('Truyện chưa được duyệt. Chương sẽ tự động được đăng khi truyện được duyệt — hãy gửi yêu cầu phê duyệt truyện từ trang Dashboard.');
     }
 
     async unpublish(id: string, userId: string) {

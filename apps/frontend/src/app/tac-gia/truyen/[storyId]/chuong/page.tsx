@@ -40,11 +40,12 @@ export default function ChapterManagementPage() {
     // Check if story has approval request
     const storyApprovalRequest = useMemo(() => {
         if (!story?.id) return null;
-        return approvals.find((approval: any) => 
-            approval.storyId === story.id && 
+        return approvals.find((approval: any) =>
+            approval.storyId === story.id &&
             approval.type === 'STORY_PUBLISH'
         );
     }, [approvals, story?.id]);
+
 
     // Filters and pagination
     const [search, setSearch] = useState('');
@@ -222,11 +223,11 @@ export default function ChapterManagementPage() {
                                             </h3>
                                             <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-3">
                                                 {storyApprovalRequest?.status === 'PENDING' ? (
-                                                    <>Truyện của bạn đang chờ phê duyệt. Sau khi truyện được phê duyệt và xuất bản, bạn có thể xuất bản các chương.</>
+                                                    <>Truyện của bạn đang chờ phê duyệt. Khi admin duyệt truyện, toàn bộ chương nháp sẽ tự động được đăng — bạn không cần thao tác gì thêm.</>
                                                 ) : storyApprovalRequest?.status === 'REJECTED' ? (
                                                     <>Yêu cầu xuất bản truyện đã bị từ chối. Vui lòng chỉnh sửa và gửi lại yêu cầu phê duyệt từ trang Dashboard.</>
                                                 ) : (
-                                                    <>Bạn cần gửi yêu cầu phê duyệt cho truyện trước. Sau khi truyện được phê duyệt và xuất bản, bạn có thể xuất bản các chương. Vui lòng quay lại Dashboard và gửi yêu cầu phê duyệt.</>
+                                                    <>Chương không cần duyệt riêng: khi truyện được admin duyệt, toàn bộ chương nháp sẽ tự động được đăng cùng. Hãy quay lại Dashboard và gửi yêu cầu phê duyệt truyện.</>
                                                 )}
                                             </p>
                                             {!storyApprovalRequest && (
@@ -410,12 +411,21 @@ export default function ChapterManagementPage() {
                                                                         </>
                                                                     )}
                                                                 </button>
+                                                            ) : story && !story.isPublished && !isAdmin ? (
+                                                                <span
+                                                                    className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium flex items-center gap-2 cursor-default"
+                                                                    title="Chương sẽ tự động được đăng khi truyện được admin duyệt — không cần thao tác gì thêm"
+                                                                >
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                    </svg>
+                                                                    Sẽ đăng cùng truyện
+                                                                </span>
                                                             ) : (
                                                                 <button
                                                                     onClick={() => handlePublish(chapter.id)}
-                                                                    disabled={publishMutation.isPending || (story && !story.isPublished && !isAdmin)}
+                                                                    disabled={publishMutation.isPending}
                                                                     className="px-4 py-2 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                                                    title={story && !story.isPublished && !isAdmin ? 'Truyện cần được xuất bản trước' : ''}
                                                                 >
                                                                     {publishMutation.isPending ? (
                                                                         <>
