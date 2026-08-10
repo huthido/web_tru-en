@@ -75,7 +75,7 @@ export default function AdminApprovalsPage() {
     const handleReview = async () => {
         if (reviewingRequest) {
             try {
-                await reviewMutation.mutateAsync({
+                const result = await reviewMutation.mutateAsync({
                     id: reviewingRequest.id,
                     data: {
                         status: reviewStatus,
@@ -86,11 +86,34 @@ export default function AdminApprovalsPage() {
                 setReviewNote('');
                 setSelectedRequests(new Set());
                 const statusText = reviewStatus === 'APPROVED' ? 'phê duyệt' : 'từ chối';
-                showToast(`Đã ${statusText} yêu cầu thành công`, 'success');
+                const autoCount = result?.autoApprovedChapters ?? 0;
+                const extra = reviewStatus === 'APPROVED' && autoCount > 0
+                    ? ` — tự đăng kèm ${autoCount} chương đang chờ duyệt`
+                    : '';
+                showToast(`Đã ${statusText} yêu cầu thành công${extra}`, 'success');
             } catch (error) {
                 showToast('Có lỗi xảy ra khi xử lý yêu cầu', 'error');
             }
         }
+    };
+
+    // Badge cảnh báo cho yêu cầu duyệt TRUYỆN mà truyện chưa có chương công khai:
+    // trang chủ lọc bỏ truyện như vậy nên admin duyệt xong sẽ không thấy nó hiện.
+    const renderNoChapterWarning = (request: ApprovalRequest) => {
+        if (request.type !== 'STORY_PUBLISH') return null;
+        if (request.story?.publishedChapterCount !== 0) return null;
+        const pending = request.pendingChapterApprovals ?? 0;
+        let detail = '';
+        if (request.status === 'PENDING' && pending > 0) {
+            detail = ` Duyệt truyện sẽ tự đăng ${pending} chương đang chờ.`;
+        } else if (pending === 0) {
+            detail = ' Chương có thể đang hẹn giờ hoặc còn là bản nháp.';
+        }
+        return (
+            <p className="mt-2 px-2 py-1.5 text-xs rounded bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                ⚠️ Chưa có chương công khai — truyện sẽ không hiện ngoài trang chủ.{detail}
+            </p>
+        );
     };
 
     const handleBulkReview = async () => {
@@ -447,7 +470,9 @@ export default function AdminApprovalsPage() {
                                                     ? 'Đã duyệt'
                                                     : 'Đã từ chối'}
                                             </span>
-                                            
+
+                                            {renderNoChapterWarning(request)}
+
                                             <p className="text-xs text-on-surface-variant mb-3">
                                                 {new Date(request.createdAt).toLocaleString('vi-VN')}
                                             </p>
@@ -552,6 +577,7 @@ export default function AdminApprovalsPage() {
                                                 <p className="text-sm text-on-surface-variant mb-2">
                                                     Tác giả: {request.user?.displayName || request.user?.username}
                                                 </p>
+                                                {renderNoChapterWarning(request)}
                                                 {request.message && (
                                                     <p className="text-sm text-on-surface-variant mb-2">
                                                         {request.message}
@@ -754,6 +780,7 @@ export default function AdminApprovalsPage() {
                                     <p className="text-sm text-on-surface">
                                         {viewingRequest.story?.title || viewingRequest.chapter?.title}
                                     </p>
+                                    {renderNoChapterWarning(viewingRequest)}
                                 </div>
 
                                 {isUsableImageSrc(viewingRequest.story?.coverImage) && (

@@ -19,7 +19,11 @@ export interface ApprovalRequest {
     title: string;
     slug: string;
     coverImage?: string;
+    /** Số chương đã công khai — 0 nghĩa là truyện sẽ không hiện ngoài trang chủ */
+    publishedChapterCount?: number;
   };
+  /** Số yêu cầu duyệt chương đang chờ của cùng truyện (chỉ có ở STORY_PUBLISH) */
+  pendingChapterApprovals?: number;
   chapter?: {
     id: string;
     title: string;
@@ -121,10 +125,12 @@ export const approvalsService = {
 
   /**
    * Review approval request (admin only)
+   * Trả về request đã cập nhật + `autoApprovedChapters` (số chương được
+   * tự động duyệt kèm khi duyệt truyện).
    */
   review: async (id: string, data: ReviewApprovalRequest): Promise<any> => {
     const response = await apiClient.patch(`/approvals/${id}/review`, data);
-    return response.data;
+    return (response.data as any)?.data ?? response.data;
   },
 };
 

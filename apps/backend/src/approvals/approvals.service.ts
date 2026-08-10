@@ -201,6 +201,14 @@ export class ApprovalsService {
                         title: true,
                         slug: true,
                         coverImage: true,
+                        // Cho admin biết truyện đã có chương công khai chưa —
+                        // chưa có thì PUBLIC_STORY_WHERE sẽ giấu truyện khỏi
+                        // trang chủ dù đã duyệt.
+                        _count: {
+                            select: {
+                                chapters: { where: { isPublished: true } },
+                            },
+                        },
                     },
                 },
                 chapter: {
@@ -231,7 +239,47 @@ export class ApprovalsService {
             take: limitNum,
         });
 
-        return createPaginatedResult(requests, total, pageNum, limitNum);
+        // Đếm số chương đang chờ duyệt của các truyện trong trang — badge admin
+        // dùng để báo "duyệt truyện sẽ tự đăng N chương".
+        const storyIds = [
+            ...new Set(
+                requests
+                    .filter((r) => r.type === ApprovalType.STORY_PUBLISH && r.storyId)
+                    .map((r) => r.storyId as string),
+            ),
+        ];
+        // Request duyệt chương có storyId = null nên phải đếm qua chapter.storyId
+        // (groupBy không đi qua relation được → đếm bằng JS, mỗi trang ≤100 dòng).
+        const pendingByStory = new Map<string, number>();
+        if (storyIds.length > 0) {
+            const pendingChapterReqs = await this.prisma.approvalRequest.findMany({
+                where: {
+                    type: ApprovalType.CHAPTER_PUBLISH,
+                    status: ApprovalStatus.PENDING,
+                    chapter: { storyId: { in: storyIds } },
+                },
+                select: { chapter: { select: { storyId: true } } },
+            });
+            for (const req of pendingChapterReqs) {
+                const sid = req.chapter?.storyId;
+                if (sid) pendingByStory.set(sid, (pendingByStory.get(sid) ?? 0) + 1);
+            }
+        }
+
+        const enriched = requests.map((r) => {
+            const { _count, ...storyRest } = (r.story ?? {}) as any;
+            return {
+                ...r,
+                story: r.story
+                    ? { ...storyRest, publishedChapterCount: _count?.chapters ?? 0 }
+                    : r.story,
+                pendingChapterApprovals: r.storyId
+                    ? pendingByStory.get(r.storyId) ?? 0
+                    : 0,
+            };
+        });
+
+        return createPaginatedResult(enriched, total, pageNum, limitNum);
     }
 
     async findMyRequests(userId: string, page?: number, limit?: number) {
@@ -327,6 +375,7 @@ export class ApprovalsService {
         });
 
         // If approved, publish the story/chapter
+        let autoApprovedChapters = 0;
         if (reviewDto.status === ApprovalStatus.APPROVED) {
             if (request.type === ApprovalType.STORY_PUBLISH && request.storyId) {
                 const currentStory = await this.prisma.story.findUnique({
@@ -347,6 +396,11 @@ export class ApprovalsService {
                         status: newStatus,
                     },
                 });
+
+                autoApprovedChapters = await this.approvePendingChapters(
+                    request.storyId,
+                    adminId,
+                );
             } else if (request.type === ApprovalType.CHAPTER_PUBLISH && request.chapterId) {
                 const publishedChapter = await this.prisma.chapter.update({
                     where: { id: request.chapterId },
@@ -398,7 +452,60 @@ export class ApprovalsService {
             this.logger.warn(`Notify approval failed: ${e?.message ?? e}`),
         );
 
-        return updatedRequest;
+        return { ...updatedRequest, autoApprovedChapters };
+    }
+
+    /**
+     * Duyệt truyện = ý định "cho truyện ra mắt", nên kéo theo các chương của
+     * truyện đó đang chờ duyệt (CHAPTER_PUBLISH PENDING). Nếu không cascade,
+     * truyện được duyệt nhưng chưa có chương công khai sẽ bị PUBLIC_STORY_WHERE
+     * (bộ lọc AdSense 04/08/2026) giấu khỏi trang chủ — admin tưởng duyệt xong
+     * mà ngoài trang không thấy.
+     *
+     * Chỉ đụng chương CÓ yêu cầu đang chờ: chương hẹn giờ hoặc nháp chưa gửi
+     * duyệt vẫn giữ nguyên. Không fanout thông báo từng chương — truyện vừa
+     * ra mắt chưa có follower, fanout hàng loạt chỉ tạo spam.
+     */
+    private async approvePendingChapters(
+        storyId: string,
+        adminId: string,
+    ): Promise<number> {
+        // Lưu ý: request duyệt chương được tạo với storyId = null (controller
+        // chỉ truyền chapterId), nên PHẢI lần theo quan hệ chapter.storyId.
+        const pendingChapterRequests = await this.prisma.approvalRequest.findMany({
+            where: {
+                type: ApprovalType.CHAPTER_PUBLISH,
+                status: ApprovalStatus.PENDING,
+                chapter: { storyId },
+            },
+            select: { id: true, chapterId: true },
+        });
+
+        if (pendingChapterRequests.length === 0) return 0;
+
+        const requestIds = pendingChapterRequests.map((r) => r.id);
+        const chapterIds = pendingChapterRequests.map((r) => r.chapterId as string);
+
+        await this.prisma.$transaction([
+            this.prisma.approvalRequest.updateMany({
+                where: { id: { in: requestIds } },
+                data: {
+                    status: ApprovalStatus.APPROVED,
+                    adminNote: 'Tự động duyệt khi truyện được duyệt',
+                    reviewedBy: adminId,
+                    reviewedAt: new Date(),
+                },
+            }),
+            this.prisma.chapter.updateMany({
+                where: { id: { in: chapterIds } },
+                data: { isPublished: true },
+            }),
+        ]);
+
+        this.logger.log(
+            `Auto-approved ${chapterIds.length} pending chapter(s) of story ${storyId}`,
+        );
+        return chapterIds.length;
     }
 
     /**
