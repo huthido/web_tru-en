@@ -312,7 +312,13 @@ export class StoriesService {
         break;
       case 'newest':
       default:
-        orderBy = { createdAt: 'desc' };
+        // "Mới nhất" theo ngày duyệt (đồng bộ với chip trang chủ); truyện
+        // chưa publish (danh sách admin/tác giả) không có publishedAt → rơi
+        // xuống cuối, tie-break createdAt.
+        orderBy = [
+          { publishedAt: { sort: 'desc', nulls: 'last' } },
+          { createdAt: 'desc' },
+        ];
         break;
     }
 
@@ -607,6 +613,7 @@ export class StoriesService {
         slug: true,
         accessType: true,
         price: true,
+        publishedAt: true,
         storyCategories: {
           select: {
             categoryId: true,
@@ -661,6 +668,10 @@ export class StoriesService {
         );
       }
       updateData.isPublished = updateStoryDto.isPublished;
+      if (updateStoryDto.isPublished) {
+        // Ngày duyệt lần đầu — sort "Mới nhất"; bật lại không ghi đè.
+        updateData.publishedAt = story.publishedAt ?? new Date();
+      }
       if (updateStoryDto.isPublished && updateStoryDto.status === undefined) {
         updateData.status = StoryStatus.PUBLISHED;
       }
@@ -881,6 +892,7 @@ export class StoriesService {
         authorId: true,
         isPublished: true,
         status: true,
+        publishedAt: true,
         chapters: {
           select: { id: true },
         },
@@ -906,13 +918,17 @@ export class StoriesService {
       throw new BadRequestException('Truyện phải có ít nhất 1 chương trước khi xuất bản');
     }
 
+    // Ngày duyệt lần đầu — sort "Mới nhất"; publish lại không ghi đè.
+    const publishData = {
+      isPublished: true,
+      status: story.status === StoryStatus.DRAFT ? StoryStatus.ONGOING : story.status,
+      publishedAt: story.publishedAt ?? new Date(),
+    };
+
     try {
       const published = await this.prisma.story.update({
         where: { id },
-        data: {
-          isPublished: true,
-          status: story.status === StoryStatus.DRAFT ? StoryStatus.ONGOING : story.status,
-        },
+        data: publishData,
         include: storyInclude,
       });
       this.searchIndexer.syncStory(id);
@@ -922,10 +938,7 @@ export class StoriesService {
       if (error?.message?.includes('isRecommended')) {
         const published = await this.prisma.story.update({
           where: { id },
-          data: {
-            isPublished: true,
-            status: story.status === StoryStatus.DRAFT ? StoryStatus.ONGOING : story.status,
-          },
+          data: publishData,
           select: safeStorySelect,
         });
         this.searchIndexer.syncStory(id);
@@ -996,20 +1009,19 @@ export class StoriesService {
 
     const total = await this.prisma.story.count({ where });
 
+    let stories: any[];
     try {
-      const stories = await this.prisma.story.findMany({
+      stories = await this.prisma.story.findMany({
         where,
         include: storyInclude,
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
       });
-
-      return createPaginatedResult(stories, total, page, limit);
     } catch (error: any) {
       // If column doesn't exist, use select instead
       if (error?.message?.includes('isRecommended')) {
-        const stories = await this.prisma.story.findMany({
+        stories = await this.prisma.story.findMany({
           where,
           select: {
             id: true,
@@ -1040,11 +1052,12 @@ export class StoriesService {
           skip,
           take: limit,
         });
-
-        return createPaginatedResult(stories, total, page, limit);
+      } else {
+        throw error;
       }
-      throw error;
     }
+
+    return createPaginatedResult(stories, total, page, limit);
   }
 
   /**
@@ -1076,14 +1089,21 @@ export class StoriesService {
   }
 
   // Get newest stories (10-20 stories)
+  // "Mới nhất" = mới ĐƯỢC DUYỆT, không phải mới tạo — truyện viết lâu nhưng
+  // vừa duyệt vẫn lên đầu. publishedAt null (dữ liệu cũ chưa backfill) rơi
+  // xuống cuối, tie-break bằng createdAt.
   async getNewest(limit: number = 15) {
+    const orderBy: any = [
+      { publishedAt: { sort: 'desc', nulls: 'last' } },
+      { createdAt: 'desc' },
+    ];
     try {
       return await this.prisma.story.findMany({
         where: {
           ...PUBLIC_STORY_WHERE,
         },
         include: storyInclude,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         take: limit,
       });
     } catch (error: any) {
@@ -1094,7 +1114,7 @@ export class StoriesService {
             ...PUBLIC_STORY_WHERE,
           },
           select: safeStorySelect,
-          orderBy: { createdAt: 'desc' },
+          orderBy,
           take: limit,
         });
       }
