@@ -652,6 +652,14 @@ export class StoriesService {
     }
 
     if (updateStoryDto.isPublished !== undefined) {
+      // Chặn bypass kiểm duyệt: DTO lộ trường này qua PATCH nhưng không UI
+      // hợp lệ nào gửi nó (web/mobile/MCP publish đều đi endpoint riêng hoặc
+      // approval). Tác giả tự set isPublished=true sẽ qua mặt admin.
+      if (userRole !== UserRole.ADMIN) {
+        throw new ForbiddenException(
+          'Chỉ admin mới đổi được trạng thái xuất bản. Vui lòng gửi yêu cầu phê duyệt để xuất bản truyện.'
+        );
+      }
       updateData.isPublished = updateStoryDto.isPublished;
       if (updateStoryDto.isPublished && updateStoryDto.status === undefined) {
         updateData.status = StoryStatus.PUBLISHED;

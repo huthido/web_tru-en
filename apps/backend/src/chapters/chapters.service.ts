@@ -348,6 +348,14 @@ export class ChaptersService {
         }
 
         if (updateChapterDto.isPublished !== undefined) {
+            // Chặn bypass kiểm duyệt: tác giả sửa isPublished qua PATCH sẽ né
+            // được cả điều kiện "truyện phải publish trước" của publish().
+            // Mọi UI hợp lệ đều dùng POST .../publish|unpublish.
+            if (userRole !== UserRole.ADMIN) {
+                throw new ForbiddenException(
+                    'Chỉ admin mới đổi được trạng thái xuất bản qua chỉnh sửa. Vui lòng dùng chức năng xuất bản/ẩn chương.'
+                );
+            }
             updateData.isPublished = updateChapterDto.isPublished;
         }
 
