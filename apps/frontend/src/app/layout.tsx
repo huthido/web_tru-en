@@ -12,6 +12,7 @@ import { getServerSettings } from '@/lib/api/server-settings';
 import { AdsConsentProvider } from '@/lib/ads/consent-context';
 import { ConsentBanner } from '@/components/ads/consent-banner';
 import { AdsenseScript } from '@/components/ads/adsense-script';
+import { WebpFallback } from '@/components/compat/webp-fallback';
 import { getSiteUrl } from '@/lib/seo/site-url';
 
 // Body / UI font — Inter (full Vietnamese support).
@@ -169,6 +170,7 @@ export default async function RootLayout({
           </QueryProvider>
         </ErrorBoundary>
         <InstallPrompt />
+        <WebpFallback />
       </body>
     </html>
   );
