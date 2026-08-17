@@ -1402,21 +1402,77 @@ export class StoriesService {
     });
   }
 
+  // Get premium/paid stories (FREEMIUM hoặc VIP — truyện có nội dung trả phí)
+  async getPremiumStories(limit: number = 15) {
+    return this.prisma.story.findMany({
+      where: {
+        ...PUBLIC_STORY_WHERE,
+        accessType: { in: ['FREEMIUM', 'VIP'] },
+      },
+      include: storyInclude,
+      orderBy: { viewCount: 'desc' },
+      take: limit,
+    });
+  }
+
+  // Get best of week (rating cao nhất trong 7 ngày qua)
+  async getBestOfWeek(limit: number = 15) {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const storiesWithWeeklyRatings = await this.prisma.story.findMany({
+      where: {
+        ...PUBLIC_STORY_WHERE,
+        ratings: {
+          some: {
+            createdAt: { gte: oneWeekAgo },
+          },
+        },
+      },
+      include: {
+        ...storyInclude,
+        ratings: {
+          where: { createdAt: { gte: oneWeekAgo } },
+        },
+      },
+    });
+
+    const scored = storiesWithWeeklyRatings.map((story) => {
+      const weeklyRatings = story.ratings;
+      const avgRating = weeklyRatings.length > 0
+        ? weeklyRatings.reduce((sum, r) => sum + r.rating, 0) / weeklyRatings.length
+        : 0;
+      return { ...story, weeklyRating: avgRating, weeklyRatingCount: weeklyRatings.length };
+    });
+
+    const sorted = scored
+      .sort((a, b) => {
+        if (b.weeklyRating !== a.weeklyRating) return b.weeklyRating - a.weeklyRating;
+        return b.weeklyRatingCount - a.weeklyRatingCount;
+      })
+      .slice(0, limit)
+      .map(({ weeklyRating, weeklyRatingCount, ratings, ...story }) => story);
+
+    return sorted;
+  }
+
   /**
    * Dispatch dynamic algorithm — gọi từ endpoint /stories/homepage/section/:sectionId.
    * Admin tạo section auto, chọn algorithm → frontend gọi endpoint này.
    */
   async getByAlgorithm(algorithm: string, limit: number = 15) {
     switch (algorithm) {
-      case 'newest':        return this.getNewest(limit);
-      case 'best-of-month': return this.getBestOfMonth(limit);
-      case 'top-rated':     return this.getTopRated(limit);
-      case 'recommended':   return this.getRecommended(limit);
-      case 'most-liked':    return this.getMostLiked(limit);
-      case 'most-followed': return this.getMostFollowed(limit);
-      case 'most-viewed':   return this.getMostViewed(limit);
-      case 'random':        return this.getRandom(limit);
-      default:              return this.getNewest(limit);
+      case 'newest':          return this.getNewest(limit);
+      case 'best-of-month':   return this.getBestOfMonth(limit);
+      case 'best-of-week':    return this.getBestOfWeek(limit);
+      case 'top-rated':       return this.getTopRated(limit);
+      case 'recommended':     return this.getRecommended(limit);
+      case 'most-liked':      return this.getMostLiked(limit);
+      case 'most-followed':   return this.getMostFollowed(limit);
+      case 'most-viewed':     return this.getMostViewed(limit);
+      case 'premium-stories': return this.getPremiumStories(limit);
+      case 'random':          return this.getRandom(limit);
+      default:                return this.getNewest(limit);
     }
   }
 

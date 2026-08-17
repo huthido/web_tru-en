@@ -23,11 +23,13 @@ import {
 const ALGORITHM_OPTIONS = [
     { value: 'newest', label: 'Mới nhất' },
     { value: 'best-of-month', label: 'Hay nhất tháng' },
+    { value: 'best-of-week', label: 'Hay nhất tuần' },
     { value: 'top-rated', label: 'Đánh giá cao' },
     { value: 'recommended', label: 'Đề xuất' },
     { value: 'most-liked', label: 'Yêu thích' },
     { value: 'most-followed', label: 'Nhiều lượt theo dõi' },
     { value: 'most-viewed', label: 'Nhiều lượt xem' },
+    { value: 'premium-stories', label: 'Truyện mất phí' },
     { value: 'random', label: 'Ngẫu nhiên' },
 ];
 

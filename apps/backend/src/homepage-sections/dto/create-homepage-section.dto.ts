@@ -1,6 +1,6 @@
 import { IsString, IsInt, IsBoolean, IsOptional, IsIn, Min, Max } from 'class-validator';
 
-const ALGORITHMS = ['newest', 'best-of-month', 'top-rated', 'recommended', 'most-liked', 'most-followed', 'most-viewed', 'random'] as const;
+const ALGORITHMS = ['newest', 'best-of-month', 'best-of-week', 'top-rated', 'recommended', 'most-liked', 'most-followed', 'most-viewed', 'premium-stories', 'random'] as const;
 
 export class CreateHomepageSectionDto {
   @IsString()
