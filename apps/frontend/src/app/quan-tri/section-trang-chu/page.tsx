@@ -20,12 +20,15 @@ import {
     HomepageSectionStory,
 } from '@/lib/api/hooks/use-homepage-sections';
 
-const SORT_PATH_OPTIONS = [
+const ALGORITHM_OPTIONS = [
     { value: 'newest', label: 'Mới nhất' },
     { value: 'best-of-month', label: 'Hay nhất tháng' },
     { value: 'top-rated', label: 'Đánh giá cao' },
     { value: 'recommended', label: 'Đề xuất' },
     { value: 'most-liked', label: 'Yêu thích' },
+    { value: 'most-followed', label: 'Nhiều lượt theo dõi' },
+    { value: 'most-viewed', label: 'Nhiều lượt xem' },
+    { value: 'random', label: 'Ngẫu nhiên' },
 ];
 
 const SORT_BY_OPTIONS = [
@@ -49,7 +52,7 @@ export default function AdminHomepageSectionsPage() {
     const [managingStories, setManagingStories] = useState<HomepageSection | null>(null);
     const [isCreating, setIsCreating] = useState(false);
     const [formData, setFormData] = useState({
-        key: '', label: '', sortPath: 'newest', limit: 15,
+        key: '', label: '', algorithm: 'newest', sortPath: 'newest', limit: 15,
         seeMorePath: '/truyen', sortBy: 'newest', mode: 'auto' as 'auto' | 'manual',
         isActive: true, order: 0,
     });
@@ -128,12 +131,12 @@ export default function AdminHomepageSectionsPage() {
         catch (error: any) { showToast(error?.response?.data?.message || 'Có lỗi', 'error'); }
     };
 
-    const resetForm = () => setFormData({ key: '', label: '', sortPath: 'newest', limit: 15, seeMorePath: '/truyen', sortBy: 'newest', mode: 'auto', isActive: true, order: 0 });
+    const resetForm = () => setFormData({ key: '', label: '', algorithm: 'newest', sortPath: 'newest', limit: 15, seeMorePath: '/truyen', sortBy: 'newest', mode: 'auto', isActive: true, order: 0 });
 
     const startEdit = (section: HomepageSection) => {
         setEditingSection(section); setIsCreating(false);
         setFormData({
-            key: section.key, label: section.label, sortPath: section.sortPath,
+            key: section.key, label: section.label, algorithm: section.algorithm || 'newest', sortPath: section.sortPath,
             limit: section.limit, seeMorePath: section.seeMorePath || '/truyen',
             sortBy: section.sortBy || 'newest', mode: section.mode || 'auto',
             isActive: section.isActive, order: section.order,
@@ -142,7 +145,7 @@ export default function AdminHomepageSectionsPage() {
 
     const startCreate = () => {
         setIsCreating(true); setEditingSection(null);
-        setFormData({ key: '', label: '', sortPath: 'newest', limit: 15, seeMorePath: '/truyen', sortBy: 'newest', mode: 'auto', isActive: true, order: (sections?.length || 0) });
+        setFormData({ key: '', label: '', algorithm: 'newest', sortPath: 'newest', limit: 15, seeMorePath: '/truyen', sortBy: 'newest', mode: 'auto', isActive: true, order: (sections?.length || 0) });
     };
 
     if (isLoading) return <Loading />;
@@ -217,11 +220,19 @@ export default function AdminHomepageSectionsPage() {
                                 </p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-on-surface-variant mb-2">Backend path <span className="text-red-500">*</span></label>
-                                <select value={formData.sortPath} onChange={(e) => setFormData({ ...formData, sortPath: e.target.value })}
-                                    className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface">
-                                    {SORT_PATH_OPTIONS.map((opt) => (<option key={opt.value} value={opt.value}>{opt.label} ({opt.value})</option>))}
-                                </select>
+                                <label className="block text-sm font-medium text-on-surface-variant mb-2">Thuật toán (chế độ tự động)</label>
+                                {formData.mode === 'auto' ? (
+                                    <select value={formData.algorithm} onChange={(e) => setFormData({ ...formData, algorithm: e.target.value })}
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface">
+                                        {ALGORITHM_OPTIONS.map((opt) => (<option key={opt.value} value={opt.value}>{opt.label}</option>))}
+                                    </select>
+                                ) : (
+                                    <input type="text" value="Chỉ dùng ở chế độ thủ công" disabled
+                                        className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant opacity-50" />
+                                )}
+                                <p className="text-xs text-on-surface-variant mt-1">
+                                    {formData.mode === 'auto' ? 'Truyện hiển thị theo thuật toán đã chọn' : 'Chế độ thủ công không dùng thuật toán'}
+                                </p>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-on-surface-variant mb-2">Số lượng truyện</label>

@@ -1,5 +1,7 @@
 import { IsString, IsInt, IsBoolean, IsOptional, IsIn, Min, Max } from 'class-validator';
 
+const ALGORITHMS = ['newest', 'best-of-month', 'top-rated', 'recommended', 'most-liked', 'most-followed', 'most-viewed', 'random'] as const;
+
 export class CreateHomepageSectionDto {
   @IsString()
   key: string;
@@ -8,7 +10,12 @@ export class CreateHomepageSectionDto {
   label: string;
 
   @IsString()
-  sortPath: string;
+  sortPath: string = 'newest';
+
+  @IsString()
+  @IsIn(ALGORITHMS as unknown as string[])
+  @IsOptional()
+  algorithm?: string = 'newest';
 
   @IsInt()
   @Min(1)

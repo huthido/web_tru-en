@@ -862,7 +862,8 @@ model HomepageSection {
   id          String   @id @default(cuid())
   key         String   @unique // e.g. 'newest', 'best-of-month', 'top-rated', 'recommended', 'most-liked'
   label       String   // Display label for the chip/tab
-  sortPath    String   // Backend path: 'newest', 'best-of-month', 'top-rated', 'recommended', 'most-liked'
+  sortPath    String   // Legacy field — kept for backward compat, not used for auto dispatch
+  algorithm   String   @default("newest") // Algorithm: newest|best-of-month|top-rated|recommended|most-liked|most-followed|most-viewed|random
   limit       Int      @default(15) // Number of stories to fetch
   seeMorePath String?  @default("/truyen") // "Xem tất cả" link
   sortBy      String?  // e.g. 'newest', 'popular', 'rating', 'viewCount' — for seeMore link query param

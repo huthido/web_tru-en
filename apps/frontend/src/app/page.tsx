@@ -12,12 +12,12 @@ export const metadata: Metadata = {
   alternates: { canonical: absoluteUrl('/') },
 };
 
-const DEFAULT_SECTIONS: Array<{ key: string; label: string; sortPath: string; limit: number; seeMorePath: string; sortBy: string; mode: 'auto' | 'manual'; order: number; isActive: boolean; stories: any[] }> = [
-  { key: 'newest', label: 'Mới nhất', sortPath: 'newest', limit: 15, seeMorePath: '/truyen', sortBy: 'newest', mode: 'auto', order: 0, isActive: true, stories: [] },
-  { key: 'bestOfMonth', label: 'Hay nhất tháng', sortPath: 'best-of-month', limit: 15, seeMorePath: '/truyen', sortBy: 'viewCount', mode: 'auto', order: 1, isActive: true, stories: [] },
-  { key: 'topRated', label: 'Đánh giá cao', sortPath: 'top-rated', limit: 20, seeMorePath: '/truyen', sortBy: 'rating', mode: 'auto', order: 2, isActive: true, stories: [] },
-  { key: 'recommended', label: 'Đề xuất', sortPath: 'recommended', limit: 15, seeMorePath: '/truyen', sortBy: 'popular', mode: 'auto', order: 3, isActive: true, stories: [] },
-  { key: 'mostLiked', label: 'Yêu thích', sortPath: 'most-liked', limit: 15, seeMorePath: '/truyen', sortBy: 'popular', mode: 'auto', order: 4, isActive: true, stories: [] },
+const DEFAULT_SECTIONS: Array<{ id: string; key: string; label: string; algorithm: string; sortPath: string; limit: number; seeMorePath: string; sortBy: string; mode: 'auto' | 'manual'; order: number; isActive: boolean; stories: any[] }> = [
+  { id: '', key: 'newest', label: 'Mới nhất', algorithm: 'newest', sortPath: 'newest', limit: 15, seeMorePath: '/truyen', sortBy: 'newest', mode: 'auto', order: 0, isActive: true, stories: [] },
+  { id: '', key: 'bestOfMonth', label: 'Hay nhất tháng', algorithm: 'best-of-month', sortPath: 'best-of-month', limit: 15, seeMorePath: '/truyen', sortBy: 'viewCount', mode: 'auto', order: 1, isActive: true, stories: [] },
+  { id: '', key: 'topRated', label: 'Đánh giá cao', algorithm: 'top-rated', sortPath: 'top-rated', limit: 20, seeMorePath: '/truyen', sortBy: 'rating', mode: 'auto', order: 2, isActive: true, stories: [] },
+  { id: '', key: 'recommended', label: 'Đề xuất', algorithm: 'recommended', sortPath: 'recommended', limit: 15, seeMorePath: '/truyen', sortBy: 'popular', mode: 'auto', order: 3, isActive: true, stories: [] },
+  { id: '', key: 'mostLiked', label: 'Yêu thích', algorithm: 'most-liked', sortPath: 'most-liked', limit: 15, seeMorePath: '/truyen', sortBy: 'popular', mode: 'auto', order: 4, isActive: true, stories: [] },
 ];
 
 export default async function HomePage() {
@@ -32,18 +32,18 @@ export default async function HomePage() {
     sections = DEFAULT_SECTIONS;
   }
 
-  // Pre-fetch stories for AUTO-mode sections (SSR)
+  // Pre-fetch stories for AUTO-mode sections via dynamic endpoint
   await Promise.all(
     sections
-      .filter((s) => s.mode === 'auto')
+      .filter((s) => s.mode === 'auto' && s.id)
       .map(async (section) => {
         try {
           const stories = await serverGet<any[]>(
-            `/stories/homepage/${section.sortPath}?limit=${section.limit}`,
+            `/stories/homepage/section/${section.id}?limit=${section.limit}`,
             { revalidate }
           );
           if (Array.isArray(stories)) {
-            queryClient.setQueryData(['stories', 'homepage', section.key, section.limit], stories);
+            queryClient.setQueryData(['stories', 'homepage', 'section', section.id, section.limit], stories);
           }
         } catch {
           // Skip failed sections

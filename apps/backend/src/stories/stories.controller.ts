@@ -24,12 +24,14 @@ import { Public } from '../auth/decorators/public.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ImageNormalizePipe } from '../common/pipes/image-normalize.pipe';
 import { imageMulterFilter } from '../common/image/multer-filter';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Controller('stories')
 export class StoriesController {
     constructor(
         private readonly storiesService: StoriesService,
-        private readonly cloudinaryService: CloudinaryService
+        private readonly cloudinaryService: CloudinaryService,
+        private readonly prisma: PrismaService,
     ) { }
 
     @Public()
@@ -71,6 +73,21 @@ export class StoriesController {
     async getMostLiked(@Query('limit') limit?: number) {
         const limitNum = limit ? parseInt(limit.toString(), 10) : 15;
         return this.storiesService.getMostLiked(Math.min(limitNum, 20));
+    }
+
+    /**
+     * Dynamic endpoint: frontend gọi /stories/homepage/section/:sectionId
+     * → backend đọc section config từ DB, dispatch đúng algorithm.
+     */
+    @Public()
+    @Get('homepage/section/:sectionId')
+    async getBySectionId(@Param('sectionId') sectionId: string, @Query('limit') limit?: number) {
+        const section = await this.prisma.homepageSection.findUnique({ where: { id: sectionId } });
+        if (!section || section.mode !== 'auto') {
+            return [];
+        }
+        const limitNum = limit ? parseInt(limit.toString(), 10) : section.limit;
+        return this.storiesService.getByAlgorithm(section.algorithm, Math.min(limitNum, 50));
     }
 
     /**

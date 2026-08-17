@@ -16,6 +16,7 @@ export interface HomepageSection {
   key: string;
   label: string;
   sortPath: string;
+  algorithm: string;
   limit: number;
   seeMorePath: string | null;
   sortBy: string | null;
@@ -30,7 +31,8 @@ export interface HomepageSection {
 export interface CreateHomepageSectionData {
   key: string;
   label: string;
-  sortPath: string;
+  sortPath?: string;
+  algorithm?: string;
   limit?: number;
   seeMorePath?: string;
   sortBy?: string;
@@ -42,6 +44,7 @@ export interface CreateHomepageSectionData {
 export interface UpdateHomepageSectionData {
   label?: string;
   sortPath?: string;
+  algorithm?: string;
   limit?: number;
   seeMorePath?: string;
   sortBy?: string;

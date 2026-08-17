@@ -24,8 +24,10 @@ interface SectionStory {
 }
 
 interface SectionConfig {
+  id: string;
   key: string;
   label: string;
+  algorithm: string;
   sortPath: string;
   limit: number;
   seeMorePath: string | null;
@@ -40,12 +42,12 @@ interface HomeClientProps {
   initialSections?: SectionConfig[];
 }
 
-/** Fetch stories for auto-mode sections. */
-function useSectionStories(sortPath: string, limit: number, enabled: boolean) {
+/** Fetch stories for auto-mode sections by sectionId (dynamic algorithm dispatch). */
+function useSectionStories(sectionId: string, limit: number, enabled: boolean) {
   return useQuery<Story[]>({
-    queryKey: ['stories', 'homepage', sortPath, limit],
+    queryKey: ['stories', 'homepage', 'section', sectionId, limit],
     queryFn: async () => {
-      const response = await apiClient.get<Story[]>(`/stories/homepage/${sortPath}?limit=${limit}`);
+      const response = await apiClient.get<Story[]>(`/stories/homepage/section/${sectionId}?limit=${limit}`);
       return Array.isArray(response.data) ? response.data : [];
     },
     enabled,
@@ -118,7 +120,7 @@ export default function HomeClient({ initialSections }: HomeClientProps) {
             activeSection.mode === 'manual' ? (
               <ManualSectionContent section={activeSection} seeMoreLink={seeMoreUrl} />
             ) : (
-              <AutoSectionContent sortPath={activeSection.sortPath} limit={activeSection.limit} label={activeSection.label} seeMoreLink={seeMoreUrl} />
+              <AutoSectionContent sectionId={activeSection.id} limit={activeSection.limit} label={activeSection.label} seeMoreLink={seeMoreUrl} />
             )
           ) : (
             <BookSectionSkeleton />
@@ -136,9 +138,9 @@ export default function HomeClient({ initialSections }: HomeClientProps) {
   );
 }
 
-/** Auto mode: fetch stories from backend API by sortPath. */
-function AutoSectionContent({ sortPath, limit, label, seeMoreLink }: { sortPath: string; limit: number; label: string; seeMoreLink: string }) {
-  const { data: stories = [], isLoading } = useSectionStories(sortPath, limit, true);
+/** Auto mode: fetch stories from backend API by sectionId (dynamic algorithm). */
+function AutoSectionContent({ sectionId, limit, label, seeMoreLink }: { sectionId: string; limit: number; label: string; seeMoreLink: string }) {
+  const { data: stories = [], isLoading } = useSectionStories(sectionId, limit, true);
 
   const books = useMemo(
     () => stories.map((story: Story) => ({

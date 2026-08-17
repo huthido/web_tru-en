@@ -1367,6 +1367,59 @@ export class StoriesService {
     }
   }
 
+  // Get most followed stories
+  async getMostFollowed(limit: number = 15) {
+    return this.prisma.story.findMany({
+      where: { ...PUBLIC_STORY_WHERE },
+      include: storyInclude,
+      orderBy: { followCount: 'desc' },
+      take: limit,
+    });
+  }
+
+  // Get most viewed stories
+  async getMostViewed(limit: number = 15) {
+    return this.prisma.story.findMany({
+      where: { ...PUBLIC_STORY_WHERE },
+      include: storyInclude,
+      orderBy: { viewCount: 'desc' },
+      take: limit,
+    });
+  }
+
+  // Get random stories
+  async getRandom(limit: number = 15) {
+    const all = await this.prisma.story.findMany({
+      where: { ...PUBLIC_STORY_WHERE },
+      select: { id: true },
+    });
+    const shuffled = all.sort(() => 0.5 - Math.random());
+    const ids = shuffled.slice(0, limit).map((s) => s.id);
+    if (ids.length === 0) return [];
+    return this.prisma.story.findMany({
+      where: { id: { in: ids } },
+      include: storyInclude,
+    });
+  }
+
+  /**
+   * Dispatch dynamic algorithm — gọi từ endpoint /stories/homepage/section/:sectionId.
+   * Admin tạo section auto, chọn algorithm → frontend gọi endpoint này.
+   */
+  async getByAlgorithm(algorithm: string, limit: number = 15) {
+    switch (algorithm) {
+      case 'newest':        return this.getNewest(limit);
+      case 'best-of-month': return this.getBestOfMonth(limit);
+      case 'top-rated':     return this.getTopRated(limit);
+      case 'recommended':   return this.getRecommended(limit);
+      case 'most-liked':    return this.getMostLiked(limit);
+      case 'most-followed': return this.getMostFollowed(limit);
+      case 'most-viewed':   return this.getMostViewed(limit);
+      case 'random':        return this.getRandom(limit);
+      default:              return this.getNewest(limit);
+    }
+  }
+
   async likeStory(userId: string, storyId: string) {
     // Check if story exists
     const story = await this.prisma.story.findUnique({

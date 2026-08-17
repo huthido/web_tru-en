@@ -195,11 +195,11 @@ export class HomepageSectionsService {
     if (count > 0) return;
 
     const defaults = [
-      { key: 'newest', label: 'Mới nhất', sortPath: 'newest', limit: 15, seeMorePath: '/truyen', sortBy: 'newest', order: 0 },
-      { key: 'bestOfMonth', label: 'Hay nhất tháng', sortPath: 'best-of-month', limit: 15, seeMorePath: '/truyen', sortBy: 'viewCount', order: 1 },
-      { key: 'topRated', label: 'Đánh giá cao', sortPath: 'top-rated', limit: 20, seeMorePath: '/truyen', sortBy: 'rating', order: 2 },
-      { key: 'recommended', label: 'Đề xuất', sortPath: 'recommended', limit: 15, seeMorePath: '/truyen', sortBy: 'popular', order: 3 },
-      { key: 'mostLiked', label: 'Yêu thích', sortPath: 'most-liked', limit: 15, seeMorePath: '/truyen', sortBy: 'popular', order: 4 },
+      { key: 'newest', label: 'Mới nhất', sortPath: 'newest', algorithm: 'newest', limit: 15, seeMorePath: '/truyen', sortBy: 'newest', order: 0 },
+      { key: 'bestOfMonth', label: 'Hay nhất tháng', sortPath: 'best-of-month', algorithm: 'best-of-month', limit: 15, seeMorePath: '/truyen', sortBy: 'viewCount', order: 1 },
+      { key: 'topRated', label: 'Đánh giá cao', sortPath: 'top-rated', algorithm: 'top-rated', limit: 20, seeMorePath: '/truyen', sortBy: 'rating', order: 2 },
+      { key: 'recommended', label: 'Đề xuất', sortPath: 'recommended', algorithm: 'recommended', limit: 15, seeMorePath: '/truyen', sortBy: 'popular', order: 3 },
+      { key: 'mostLiked', label: 'Yêu thích', sortPath: 'most-liked', algorithm: 'most-liked', limit: 15, seeMorePath: '/truyen', sortBy: 'popular', order: 4 },
     ];
 
     for (const section of defaults) {
