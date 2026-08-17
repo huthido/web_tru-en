@@ -38,6 +38,7 @@ import { RedisModule } from './redis/redis.module';
 import { ArtModule } from './art/art.module';
 import { PaintingsModule } from './paintings/paintings.module';
 import { BugReportsModule } from './bug-reports/bug-reports.module';
+import { HomepageSectionsModule } from './homepage-sections/homepage-sections.module';
 
 @Module({
   imports: [
@@ -106,6 +107,7 @@ import { BugReportsModule } from './bug-reports/bug-reports.module';
     ArtModule,
     PaintingsModule,
     BugReportsModule,
+    HomepageSectionsModule,
     MiddlewareModule, // Must be imported to provide MaintenanceMiddleware
   ],
   controllers: [HealthController],

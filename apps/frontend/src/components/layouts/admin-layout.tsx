@@ -162,6 +162,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             ),
         },
         {
+            title: 'Section trang chủ',
+            href: '/quan-tri/section-trang-chu',
+            icon: (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <path d="M3 9h18" />
+                    <path d="M9 21V9" />
+                </svg>
+            ),
+        },
+        {
             title: 'Quản lý trang nội dung',
             href: '/quan-tri/trang-noi-dung',
             icon: (

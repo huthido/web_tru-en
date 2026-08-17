@@ -11,6 +11,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { ResponseInterceptor } from './auth/interceptors/response.interceptor';
 import { validateEnvironmentVariables } from './common/utils/env-validation';
 import { AppLoggerService } from './common/logger/logger.service';
+import { HomepageSectionsService } from './homepage-sections/homepage-sections.service';
 
 // Validate environment variables before starting
 validateEnvironmentVariables();
@@ -97,6 +98,14 @@ async function bootstrap() {
   // Global exception filter
   const loggerService = app.get(AppLoggerService);
   app.useGlobalFilters(new AllExceptionsFilter(loggerService));
+
+  // Seed default homepage sections if DB table is empty
+  try {
+    const homepageSectionsService = app.get(HomepageSectionsService);
+    await homepageSectionsService.seedDefaults();
+  } catch {
+    // Table may not exist yet during first migration — ignore gracefully
+  }
 
   const port = configService.get('PORT') || 3001;
   const host = '0.0.0.0'; // 🔥 Required for Render/Docker to detect the open port
