@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { HomepageSectionsService } from './homepage-sections.service';
@@ -75,5 +76,43 @@ export class HomepageSectionsController {
   @Roles(UserRole.ADMIN)
   remove(@Param('id') id: string) {
     return this.service.remove(id);
+  }
+
+  // ─── Manual stories endpoints ────────────────────────────────
+
+  /** Admin: tìm kiếm truyện để thêm vào section. */
+  @Get('admin/:id/search-stories')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  searchStories(
+    @Param('id') id: string,
+    @Query('q') query: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.service.searchStories(query || '', id, limit ? parseInt(limit) : 20);
+  }
+
+  /** Admin: thêm truyện vào section. */
+  @Post('admin/:id/stories')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  addStory(@Param('id') id: string, @Body() body: { storyId: string }) {
+    return this.service.addStory(id, body.storyId);
+  }
+
+  /** Admin: xoá truyện khỏi section. */
+  @Delete('admin/:sectionId/stories/:storyId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  removeStory(@Param('sectionId') sectionId: string, @Param('storyId') storyId: string) {
+    return this.service.removeStory(sectionId, storyId);
+  }
+
+  /** Admin: sắp xếp lại thứ tự truyện trong section. */
+  @Post('admin/:id/reorder-stories')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  reorderStories(@Param('id') id: string, @Body() dto: { items: { id: string; order: number }[] }) {
+    return this.service.reorderStories(id, dto.items);
   }
 }

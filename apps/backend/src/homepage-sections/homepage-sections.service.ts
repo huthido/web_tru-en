@@ -10,10 +10,24 @@ export class HomepageSectionsService {
 
   constructor(private prisma: PrismaService) {}
 
-  /** Lấy tất cả sections (admin: kèm cả inactive). */
+  /** Lấy tất cả sections (admin: kèm cả inactive, kèm manual stories). */
   async findAll() {
     return this.prisma.homepageSection.findMany({
       orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+      include: {
+        stories: {
+          include: {
+            story: {
+              select: {
+                id: true, title: true, slug: true, coverImage: true,
+                authorName: true, viewCount: true, rating: true,
+                ratingCount: true, likeCount: true,
+              },
+            },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
     });
   }
 
@@ -22,12 +36,42 @@ export class HomepageSectionsService {
     return this.prisma.homepageSection.findMany({
       where: { isActive: true },
       orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+      include: {
+        stories: {
+          include: {
+            story: {
+              select: {
+                id: true, title: true, slug: true, coverImage: true,
+                authorName: true, viewCount: true, rating: true,
+                ratingCount: true, likeCount: true,
+              },
+            },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
     });
   }
 
   /** Lấy 1 section theo id. */
   async findOne(id: string) {
-    const section = await this.prisma.homepageSection.findUnique({ where: { id } });
+    const section = await this.prisma.homepageSection.findUnique({
+      where: { id },
+      include: {
+        stories: {
+          include: {
+            story: {
+              select: {
+                id: true, title: true, slug: true, coverImage: true,
+                authorName: true, viewCount: true, rating: true,
+                ratingCount: true, likeCount: true,
+              },
+            },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
     if (!section) throw new NotFoundException('Homepage section không tồn tại');
     return section;
   }
@@ -39,13 +83,9 @@ export class HomepageSectionsService {
 
   /** Tạo section mới. */
   async create(dto: CreateHomepageSectionDto) {
-    // Check unique key
     const existing = await this.prisma.homepageSection.findUnique({ where: { key: dto.key } });
-    if (existing) {
-      throw new Error(`Key "${dto.key}" đã tồn tại`);
-    }
+    if (existing) throw new Error(`Key "${dto.key}" đã tồn tại`);
 
-    // Auto-assign order if not specified
     if (dto.order === undefined || dto.order === null) {
       const maxOrder = await this.prisma.homepageSection.aggregate({ _max: { order: true } });
       dto.order = (maxOrder._max.order ?? -1) + 1;
@@ -56,11 +96,11 @@ export class HomepageSectionsService {
 
   /** Cập nhật section. */
   async update(id: string, dto: UpdateHomepageSectionDto) {
-    await this.findOne(id); // ensure exists
+    await this.findOne(id);
     return this.prisma.homepageSection.update({ where: { id }, data: dto });
   }
 
-  /** Xoá section. */
+  /** Xoá section (cascade xoá manual stories). */
   async remove(id: string) {
     await this.findOne(id);
     return this.prisma.homepageSection.delete({ where: { id } });
@@ -76,6 +116,77 @@ export class HomepageSectionsService {
     );
     await this.prisma.$transaction(updates);
     return this.findAll();
+  }
+
+  // ─── Manual stories management ────────────────────────────────
+
+  /** Thêm truyện vào section (mode=manual). */
+  async addStory(sectionId: string, storyId: string) {
+    const section = await this.findOne(sectionId);
+    if (section.mode !== 'manual') {
+      throw new Error('Section này đang ở chế độ auto. Chuyển sang manual trước.');
+    }
+
+    // Auto-assign order
+    const maxOrder = await this.prisma.homepageSectionStory.aggregate({
+      _max: { order: true },
+      where: { sectionId },
+    });
+
+    const existing = await this.prisma.homepageSectionStory.findUnique({
+      where: { sectionId_storyId: { sectionId, storyId } },
+    });
+    if (existing) throw new Error('Truyện đã có trong section này');
+
+    return this.prisma.homepageSectionStory.create({
+      data: {
+        sectionId,
+        storyId,
+        order: (maxOrder._max.order ?? -1) + 1,
+      },
+    });
+  }
+
+  /** Xoá truyện khỏi section. */
+  async removeStory(sectionId: string, storyId: string) {
+    return this.prisma.homepageSectionStory.delete({
+      where: { sectionId_storyId: { sectionId, storyId } },
+    });
+  }
+
+  /** Sắp xếp lại thứ tự truyện trong section. */
+  async reorderStories(sectionId: string, items: { id: string; order: number }[]) {
+    const updates = items.map((item) =>
+      this.prisma.homepageSectionStory.update({
+        where: { id: item.id },
+        data: { order: item.order },
+      }),
+    );
+    await this.prisma.$transaction(updates);
+    return this.findOne(sectionId);
+  }
+
+  /** Tìm kiếm truyện để thêm vào section (search theo title/slug). */
+  async searchStories(query: string, sectionId: string, limit: number = 20) {
+    const section = await this.findOne(sectionId);
+    const existingStoryIds = section.stories.map((s) => s.storyId);
+
+    return this.prisma.story.findMany({
+      where: {
+        isPublished: true,
+        id: { notIn: existingStoryIds },
+        OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { slug: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true, title: true, slug: true, coverImage: true,
+        authorName: true, viewCount: true, rating: true,
+      },
+      take: limit,
+      orderBy: { viewCount: 'desc' },
+    });
   }
 
   /** Seed default sections nếu DB trống. */

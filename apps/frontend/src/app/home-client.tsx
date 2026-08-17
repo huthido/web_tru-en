@@ -9,8 +9,19 @@ import { AdSlot } from '@/components/ads/ad-slot';
 import { BookSectionSkeleton } from '@/components/ui/loading';
 import { BookSection } from '@/components/books/book-section';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient, ApiResponse } from '@/lib/api/client';
+import { apiClient } from '@/lib/api/client';
 import { Story } from '@/lib/api/stories.service';
+
+interface SectionStory {
+  id: string;
+  storyId: string;
+  order: number;
+  story: {
+    id: string; title: string; slug: string; coverImage: string | null;
+    authorName: string | null; viewCount: number; rating: number;
+    ratingCount: number; likeCount: number;
+  };
+}
 
 interface SectionConfig {
   key: string;
@@ -19,14 +30,17 @@ interface SectionConfig {
   limit: number;
   seeMorePath: string | null;
   sortBy: string | null;
+  mode: 'auto' | 'manual';
   order: number;
   isActive: boolean;
+  stories?: SectionStory[];
 }
 
 interface HomeClientProps {
   initialSections?: SectionConfig[];
 }
 
+/** Fetch stories for auto-mode sections. */
 function useSectionStories(sortPath: string, limit: number, enabled: boolean) {
   return useQuery<Story[]>({
     queryKey: ['stories', 'homepage', sortPath, limit],
@@ -40,7 +54,6 @@ function useSectionStories(sortPath: string, limit: number, enabled: boolean) {
 }
 
 export default function HomeClient({ initialSections }: HomeClientProps) {
-  // Fetch sections from API (client-side navigation fallback)
   const { data: apiSections } = useQuery<SectionConfig[]>({
     queryKey: ['homepage-sections'],
     queryFn: async () => {
@@ -72,7 +85,6 @@ export default function HomeClient({ initialSections }: HomeClientProps) {
   return (
     <div className="min-h-screen bg-background text-on-surface transition-colors duration-300">
       <Sidebar />
-
       <div className="md:ml-60 pb-16 md:pb-0">
         <Header />
 
@@ -82,57 +94,40 @@ export default function HomeClient({ initialSections }: HomeClientProps) {
             {sections.map((section) => {
               const isActive = section.key === activeSection?.key;
               return (
-                <button
-                  key={section.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  onClick={() => setActiveTab(section.key)}
+                <button key={section.key} type="button" role="tab" aria-selected={isActive} onClick={() => setActiveTab(section.key)}
                   className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 active:scale-95 border ${
                     isActive
                       ? 'bg-on-surface text-surface border-transparent shadow-sm'
                       : 'bg-surface-container text-on-surface-variant border-outline-variant/60 hover:bg-surface-variant hover:text-on-surface'
-                  }`}
-                >
+                  }`}>
                   {section.label}
                 </button>
               );
             })}
           </div>
-          <Link
-            href={seeMoreUrl}
-            className="hidden sm:block flex-shrink-0 text-xs md:text-sm font-semibold text-primary hover:underline whitespace-nowrap"
-          >
+          <Link href={seeMoreUrl} className="hidden sm:block flex-shrink-0 text-xs md:text-sm font-semibold text-primary hover:underline whitespace-nowrap">
             Xem tất cả →
           </Link>
         </div>
 
         {/* Page Content */}
         <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)]">
-          <div className="px-4 md:px-6">
-            <AdSlot slotKey="home.top" />
-          </div>
+          <div className="px-4 md:px-6"><AdSlot slotKey="home.top" /></div>
 
           {activeSection ? (
-            <SectionContent
-              sortPath={activeSection.sortPath}
-              limit={activeSection.limit}
-              label={activeSection.label}
-              seeMoreLink={seeMoreUrl}
-            />
+            activeSection.mode === 'manual' ? (
+              <ManualSectionContent section={activeSection} seeMoreLink={seeMoreUrl} />
+            ) : (
+              <AutoSectionContent sortPath={activeSection.sortPath} limit={activeSection.limit} label={activeSection.label} seeMoreLink={seeMoreUrl} />
+            )
           ) : (
             <BookSectionSkeleton />
           )}
 
           <div className="sm:hidden px-4 -mt-6 mb-6 text-right">
-            <Link href={seeMoreUrl} className="text-xs font-semibold text-primary hover:underline">
-              Xem tất cả →
-            </Link>
+            <Link href={seeMoreUrl} className="text-xs font-semibold text-primary hover:underline">Xem tất cả →</Link>
           </div>
-
-          <div className="px-4 md:px-6 mt-8">
-            <AdSlot slotKey="home.bottom" />
-          </div>
+          <div className="px-4 md:px-6 mt-8"><AdSlot slotKey="home.bottom" /></div>
         </main>
 
         <Footer />
@@ -141,46 +136,51 @@ export default function HomeClient({ initialSections }: HomeClientProps) {
   );
 }
 
-function SectionContent({
-  sortPath,
-  limit,
-  label,
-  seeMoreLink,
-}: {
-  sortPath: string;
-  limit: number;
-  label: string;
-  seeMoreLink: string;
-}) {
+/** Auto mode: fetch stories from backend API by sortPath. */
+function AutoSectionContent({ sortPath, limit, label, seeMoreLink }: { sortPath: string; limit: number; label: string; seeMoreLink: string }) {
   const { data: stories = [], isLoading } = useSectionStories(sortPath, limit, true);
 
   const books = useMemo(
-    () =>
-      stories.map((story: Story) => ({
-        id: story.id,
-        title: story.title,
-        author: story.authorName || story.author?.displayName || story.author?.username || 'N/A',
-        viewCount: story.viewCount || 0,
-        rating: story.rating || 0,
-        ratingCount: story.ratingCount || 0,
-        coverImage: story.coverImage,
-        slug: story.slug,
-        storyId: story.id,
-      })),
+    () => stories.map((story: Story) => ({
+      id: story.id, title: story.title,
+      author: story.authorName || story.author?.displayName || story.author?.username || 'N/A',
+      viewCount: story.viewCount || 0, rating: story.rating || 0, ratingCount: story.ratingCount || 0,
+      coverImage: story.coverImage, slug: story.slug, storyId: story.id,
+    })),
     [stories]
   );
 
   if (isLoading) return <BookSectionSkeleton />;
+  return (
+    <BookSection title={label} hideTitle books={books} seeMoreLink={seeMoreLink} showLikeButton={false} mobileLimit={12} desktopLimit={15} />
+  );
+}
+
+/** Manual mode: display pre-selected stories from DB. */
+function ManualSectionContent({ section, seeMoreLink }: { section: SectionConfig; seeMoreLink: string }) {
+  const sectionStories = section.stories || [];
+
+  const books = useMemo(
+    () => sectionStories
+      .sort((a, b) => a.order - b.order)
+      .map((item) => ({
+        id: item.story.id, title: item.story.title,
+        author: item.story.authorName || 'N/A',
+        viewCount: item.story.viewCount || 0, rating: item.story.rating || 0, ratingCount: item.story.ratingCount || 0,
+        coverImage: item.story.coverImage, slug: item.story.slug, storyId: item.story.id,
+      })),
+    [sectionStories]
+  );
+
+  if (books.length === 0) {
+    return (
+      <div className="px-4 md:px-6 py-12 text-center text-on-surface-variant">
+        Section này chưa có truyện nào. Vui lòng thêm truyện trong trang quản trị.
+      </div>
+    );
+  }
 
   return (
-    <BookSection
-      title={label}
-      hideTitle
-      books={books}
-      seeMoreLink={seeMoreLink}
-      showLikeButton={false}
-      mobileLimit={12}
-      desktopLimit={15}
-    />
+    <BookSection title={section.label} hideTitle books={books} seeMoreLink={seeMoreLink} showLikeButton={false} mobileLimit={12} desktopLimit={15} />
   );
 }

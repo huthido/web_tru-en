@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsBoolean, IsOptional, Min, Max } from 'class-validator';
+import { IsString, IsInt, IsBoolean, IsOptional, IsIn, Min, Max } from 'class-validator';
 
 export class UpdateHomepageSectionDto {
   @IsString()
@@ -22,6 +22,11 @@ export class UpdateHomepageSectionDto {
   @IsString()
   @IsOptional()
   sortBy?: string;
+
+  @IsString()
+  @IsIn(['auto', 'manual'])
+  @IsOptional()
+  mode?: string;
 
   @IsBoolean()
   @IsOptional()

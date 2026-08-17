@@ -143,6 +143,7 @@ model Story {
   approvalRequests ApprovalRequest[] @relation("StoryApprovals")
   readingHistory   ReadingHistory[]
   storyPurchases   StoryPurchase[]
+  homepageSectionStories HomepageSectionStory[]
 
   @@index([slug])
   @@index([authorId])
@@ -865,14 +866,33 @@ model HomepageSection {
   limit       Int      @default(15) // Number of stories to fetch
   seeMorePath String?  @default("/truyen") // "Xem tất cả" link
   sortBy      String?  // e.g. 'newest', 'popular', 'rating', 'viewCount' — for seeMore link query param
+  mode        String   @default("auto") // 'auto' = algorithm, 'manual' = admin picks stories
   isActive    Boolean  @default(true)
   order       Int      @default(0) // Display order (lower = first)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  stories     HomepageSectionStory[]
+
   @@index([isActive])
   @@index([order])
   @@map("homepage_sections")
+}
+
+model HomepageSectionStory {
+  id        String   @id @default(cuid())
+  sectionId String
+  storyId   String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  section HomepageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  story   Story          @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId, storyId])
+  @@index([sectionId])
+  @@index([storyId])
+  @@map("homepage_section_stories")
 }
 
 model OAuthCode {

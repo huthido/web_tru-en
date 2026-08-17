@@ -1,5 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../client';
+import { Story } from '../stories.service';
+
+export interface HomepageSectionStory {
+  id: string;
+  sectionId: string;
+  storyId: string;
+  order: number;
+  createdAt: string;
+  story: Pick<Story, 'id' | 'title' | 'slug' | 'coverImage' | 'authorName' | 'viewCount' | 'rating' | 'ratingCount' | 'likeCount'>;
+}
 
 export interface HomepageSection {
   id: string;
@@ -9,10 +19,12 @@ export interface HomepageSection {
   limit: number;
   seeMorePath: string | null;
   sortBy: string | null;
+  mode: 'auto' | 'manual';
   isActive: boolean;
   order: number;
   createdAt: string;
   updatedAt: string;
+  stories?: HomepageSectionStory[];
 }
 
 export interface CreateHomepageSectionData {
@@ -22,6 +34,7 @@ export interface CreateHomepageSectionData {
   limit?: number;
   seeMorePath?: string;
   sortBy?: string;
+  mode?: 'auto' | 'manual';
   isActive?: boolean;
   order?: number;
 }
@@ -32,6 +45,7 @@ export interface UpdateHomepageSectionData {
   limit?: number;
   seeMorePath?: string;
   sortBy?: string;
+  mode?: 'auto' | 'manual';
   isActive?: boolean;
   order?: number;
 }
@@ -107,6 +121,56 @@ export const useSeedHomepageSections = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => apiClient.post('/homepage-sections/admin/seed'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['homepage-sections'] });
+    },
+  });
+};
+
+// ─── Manual stories hooks ────────────────────────────────
+
+export const useSearchStoriesForSection = (sectionId: string, query: string) => {
+  return useQuery<any[]>({
+    queryKey: ['homepage-section-stories', 'search', sectionId, query],
+    queryFn: async () => {
+      if (!query.trim()) return [];
+      const response = await apiClient.get<any[]>(
+        `/homepage-sections/admin/${sectionId}/search-stories?q=${encodeURIComponent(query)}&limit=15`
+      );
+      return Array.isArray(response.data) ? response.data : [];
+    },
+    enabled: !!sectionId && query.trim().length >= 1,
+    staleTime: 10 * 1000,
+  });
+};
+
+export const useAddStoryToSection = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sectionId, storyId }: { sectionId: string; storyId: string }) =>
+      apiClient.post(`/homepage-sections/admin/${sectionId}/stories`, { storyId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['homepage-sections'] });
+    },
+  });
+};
+
+export const useRemoveStoryFromSection = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sectionId, storyId }: { sectionId: string; storyId: string }) =>
+      apiClient.delete(`/homepage-sections/admin/${sectionId}/stories/${storyId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['homepage-sections'] });
+    },
+  });
+};
+
+export const useReorderSectionStories = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sectionId, items }: { sectionId: string; items: { id: string; order: number }[] }) =>
+      apiClient.post(`/homepage-sections/admin/${sectionId}/reorder-stories`, { items }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homepage-sections'] });
     },
