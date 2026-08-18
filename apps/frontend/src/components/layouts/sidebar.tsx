@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useLayoutEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, UserCircle, HelpCircle, Plus, Bug, Megaphone, type LucideIcon } from 'lucide-react';
+import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, UserCircle, HelpCircle, Plus, Bug, Megaphone, PanelLeftClose, PanelLeftOpen, type LucideIcon } from 'lucide-react';
 import { BrandMark } from '@/components/ui/brand-mark';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
@@ -34,8 +34,9 @@ function NavPill({ link }: { link: NavLink }) {
     <Link
       href={link.href}
       aria-label={link.label}
+      title={link.label}
       onMouseDown={(e) => e.preventDefault()}
-      className={`flex items-center gap-3 px-5 py-2.5 rounded-full transition-all duration-200 active:scale-[0.98] font-semibold text-sm w-full ${
+      className={`sidebar-center flex items-center gap-3 px-5 py-2.5 rounded-full transition-all duration-200 active:scale-[0.98] font-semibold text-sm w-full ${
         link.active
           ? 'bg-primary text-on-primary shadow-sm shadow-primary/20'
           : 'bg-primary/10 text-primary hover:bg-primary/20'
@@ -46,7 +47,7 @@ function NavPill({ link }: { link: NavLink }) {
         className="flex-shrink-0"
         fill={link.active && link.fillWhenActive ? 'currentColor' : 'none'}
       />
-      <span>{link.label}</span>
+      <span className="sidebar-label">{link.label}</span>
     </Link>
   );
 }
@@ -66,6 +67,19 @@ export function Sidebar() {
 
   const saveScroll = useCallback(() => {
     if (navRef.current) sessionStorage.setItem('sidebar-scroll', String(navRef.current.scrollTop));
+  }, []);
+
+  // Thu gọn/mở rộng: trạng thái sống ở html[data-sidebar] để CSS toàn cục
+  // (globals.css) điều khiển cả rail lẫn offset `md:ml-60` của mọi trang —
+  // không cần React state nên SSR/hydration không lệch.
+  const toggleCollapsed = useCallback(() => {
+    const root = document.documentElement;
+    const next = root.dataset.sidebar === 'collapsed' ? 'expanded' : 'collapsed';
+    if (next === 'collapsed') root.dataset.sidebar = 'collapsed';
+    else delete root.dataset.sidebar;
+    try {
+      localStorage.setItem('sidebar', next);
+    } catch {}
   }, []);
 
   const canCreateStories = !!user;
@@ -110,12 +124,12 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop Sidebar — Vivid Reader expanded rail */}
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col py-8 bg-surface-container border-r border-outline-variant/40 transition-colors duration-300 z-40">
+      <aside className="sidebar-rail hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col py-8 bg-surface-container border-r border-outline-variant/40 transition-colors duration-300 z-40">
         {/* Logo / wordmark */}
         <Link
           href="/"
           aria-label="YÊU — Trang chủ"
-          className="px-6 mb-10 flex items-center gap-3 transition-transform duration-300 hover:scale-[1.03] active:scale-95"
+          className="sidebar-center px-6 mb-10 flex items-center gap-3 transition-transform duration-300 hover:scale-[1.03] active:scale-95"
         >
           {settings?.siteLogo ? (
             <OptimizedImage
@@ -131,7 +145,7 @@ export function Sidebar() {
           ) : (
             <BrandMark size={30} className="flex-shrink-0" />
           )}
-          <span className="font-display text-2xl font-extrabold tracking-tight text-black dark:text-white">YÊU</span>
+          <span className="sidebar-label font-display text-2xl font-extrabold tracking-tight text-black dark:text-white">YÊU</span>
         </Link>
 
         {/* Primary navigation */}
@@ -143,7 +157,19 @@ export function Sidebar() {
 
         {/* Secondary section + user card */}
         <div className="flex-shrink-0 px-3 pt-3 mt-2 border-t border-outline-variant/30 space-y-1.5">
-          <div className="flex items-stretch gap-1">
+          {/* Nút thu gọn/mở rộng sidebar (hữu ích trên iPad/tablet) */}
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-label="Thu gọn hoặc mở rộng menu"
+            className="sidebar-center flex items-center gap-3 w-full px-5 py-2 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors duration-200 active:scale-[0.98] font-semibold text-sm"
+          >
+            <PanelLeftClose size={18} className="sidebar-when-expanded flex-shrink-0" />
+            <PanelLeftOpen size={18} className="sidebar-when-collapsed flex-shrink-0" />
+            <span className="sidebar-label">Thu gọn</span>
+          </button>
+
+          <div className="sidebar-bottom-row flex items-stretch gap-1">
             {bottomLinks.map((l) => {
               const Icon = l.icon;
               return (
@@ -151,6 +177,7 @@ export function Sidebar() {
                   key={l.label}
                   href={l.href}
                   aria-label={l.label}
+                  title={l.label}
                   onMouseDown={(e) => e.preventDefault()}
                   className={`flex-1 flex flex-col items-center gap-1 py-2 rounded-lg transition-colors duration-200 active:scale-95 ${
                     l.active
@@ -159,7 +186,7 @@ export function Sidebar() {
                   }`}
                 >
                   <Icon size={18} className="flex-shrink-0" />
-                  <span className="text-[10px] font-medium leading-none">{l.label}</span>
+                  <span className="sidebar-label text-[10px] font-medium leading-none">{l.label}</span>
                 </Link>
               );
             })}
@@ -169,7 +196,8 @@ export function Sidebar() {
             <Link
               href={myProfileHref}
               aria-label="Trang cá nhân"
-              className="mt-2 flex items-center gap-3 p-2 rounded-lg hover:bg-surface-variant transition-colors"
+              title="Trang cá nhân"
+              className="sidebar-center mt-2 flex items-center gap-3 p-2 rounded-lg hover:bg-surface-variant transition-colors"
             >
               <span className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden flex-shrink-0">
                 {user.avatar ? (
@@ -184,7 +212,7 @@ export function Sidebar() {
                   </span>
                 )}
               </span>
-              <span className="min-w-0 flex-1">
+              <span className="sidebar-label min-w-0 flex-1">
                 <span className="block text-sm font-semibold text-on-surface truncate">
                   {user.displayName || user.username}
                 </span>

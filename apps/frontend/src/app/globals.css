@@ -524,3 +524,54 @@ textarea::placeholder {
 .ql-editor {
   min-height: 400px;
 }
+
+/* === Sidebar thu gọn (tablet/iPad) ===
+   Trạng thái nằm ở html[data-sidebar='collapsed'] — inline script trong
+   app/layout.tsx đặt trước khi paint (đọc localStorage 'sidebar'; chưa có
+   lựa chọn thì mặc định thu gọn ở viewport 768–1279px = iPad).
+   Nội dung các trang offset bằng utility `md:ml-60` — override tập trung
+   tại đây để không phải sửa từng trang. Các class sidebar-* dùng trong
+   components/layouts/sidebar.tsx. */
+.sidebar-when-collapsed {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .sidebar-rail {
+    transition: width 0.25s ease;
+  }
+
+  .md\:ml-60 {
+    transition: margin-left 0.25s ease;
+  }
+
+  html[data-sidebar='collapsed'] .md\:ml-60 {
+    margin-left: 5rem;
+  }
+
+  html[data-sidebar='collapsed'] .sidebar-rail {
+    width: 5rem;
+  }
+
+  html[data-sidebar='collapsed'] .sidebar-rail .sidebar-label {
+    display: none;
+  }
+
+  html[data-sidebar='collapsed'] .sidebar-rail .sidebar-center {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  html[data-sidebar='collapsed'] .sidebar-rail .sidebar-bottom-row {
+    flex-direction: column;
+  }
+
+  html[data-sidebar='collapsed'] .sidebar-when-collapsed {
+    display: block;
+  }
+
+  html[data-sidebar='collapsed'] .sidebar-when-expanded {
+    display: none;
+  }
+}

@@ -143,13 +143,14 @@ export default async function RootLayout({
         */}
       </head>
       <body className={fontBody.className}>
-        {/* Áp theme đã lưu TRƯỚC khi <body> paint để tránh nháy sáng (FOUC).
+        {/* Áp theme + trạng thái sidebar (data-sidebar) đã lưu TRƯỚC khi <body>
+            paint để tránh nháy sáng (FOUC).
             Đặt làm con đầu của <body> (không phải <head>): trình duyệt chạy
             ngay khi parse tới, và React reconcile <script> trong body bình
             thường nên không gây hydration mismatch như khi đặt trong <head>. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme')||'light';var d=t==='dark';if(d)document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#0b1326':'#fff8f7');}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('theme')||'light';var d=t==='dark';if(d)document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#0b1326':'#fff8f7');var s=localStorage.getItem('sidebar');if(s==='collapsed'||(!s&&window.matchMedia('(min-width:768px) and (max-width:1279px)').matches))document.documentElement.setAttribute('data-sidebar','collapsed');}catch(e){}})();`,
           }}
         />
         <ErrorBoundary>
