@@ -18,6 +18,9 @@ export interface Chapter {
     /** True when the chapter is paid and the current user hasn't unlocked it.
      *  When locked, `content` only contains a short teaser. */
     isLocked?: boolean;
+    /** URL file audio tác giả tải lên (nghe thay vì đọc). null khi không có
+     *  hoặc khi chương bị khoá. */
+    audioUrl?: string | null;
     uploaderId?: string;
     createdAt: string;
     updatedAt: string;
@@ -42,6 +45,8 @@ export interface CreateChapterRequest {
     images?: string[];
     /** Coin price to unlock. 0 (default) = free. */
     price?: number;
+    /** URL audio từ uploadAudio(). */
+    audioUrl?: string;
 }
 
 export interface UpdateChapterRequest {
@@ -52,6 +57,8 @@ export interface UpdateChapterRequest {
     isPublished?: boolean;
     /** Coin price to unlock. 0 = free. */
     price?: number;
+    /** URL audio từ uploadAudio(). null = gỡ audio đã gắn. */
+    audioUrl?: string | null;
 }
 
 export interface BuyChapterResponse {
@@ -137,6 +144,22 @@ export const chaptersService = {
     unpublish: async (storySlug: string, id: string): Promise<ApiResponse<Chapter>> => {
         const response = await apiClient.post<Chapter>(`/stories/${storySlug}/chapters/${id}/unpublish`);
         return response.data;
+    },
+
+    /** Upload file audio chương (tác giả). Trả về URL để gắn vào audioUrl. */
+    uploadAudio: async (file: File): Promise<{ url: string }> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await apiClient.post<{ url: string } | ApiResponse<{ url: string }>>(
+            '/chapters/upload-audio',
+            formData,
+            {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            }
+        );
+        const data = response.data as any;
+        // Client có thể đã bóc envelope hoặc chưa — chấp nhận cả hai dạng.
+        return (data?.data ?? data) as { url: string };
     },
 
     buy: async (storySlug: string, id: string): Promise<BuyChapterResponse> => {

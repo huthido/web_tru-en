@@ -7,6 +7,8 @@ import {
     Min,
     IsArray,
     IsBoolean,
+    IsUrl,
+    ValidateIf,
 } from 'class-validator';
 
 export class UpdateChapterDto {
@@ -40,5 +42,12 @@ export class UpdateChapterDto {
     @IsInt()
     @Min(0)
     price?: number;
+
+    // URL audio (từ /chapters/upload-audio). null = gỡ audio đã gắn.
+    @IsOptional()
+    @ValidateIf((_, value) => value !== null)
+    @IsUrl({ require_tld: false }, { message: 'audioUrl không hợp lệ' })
+    @MaxLength(1000)
+    audioUrl?: string | null;
 }
 

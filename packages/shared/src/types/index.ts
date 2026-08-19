@@ -60,6 +60,8 @@ export interface Chapter {
   slug: string;
   content: string;
   images: string[];
+  /** URL file audio tác giả tải lên (nghe thay vì đọc). */
+  audioUrl?: string | null;
   order: number;
   isPublished: boolean;
   viewCount: number;

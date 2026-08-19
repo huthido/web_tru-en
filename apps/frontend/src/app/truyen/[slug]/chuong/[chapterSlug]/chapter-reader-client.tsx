@@ -29,6 +29,7 @@ import {
 } from '@/utils/reading-tracker';
 import { useSaveProgress, useChapterProgress } from '@/lib/api/hooks/use-reading-history';
 import { ChapterPaywall } from '@/components/stories/chapter-paywall';
+import { ChapterAudioPlayer, countryToTtsLang } from '@/components/stories/chapter-audio-player';
 import { BookOpen, Search, Menu, Type, ChevronLeft, ChevronRight, X, Lock } from 'lucide-react';
 
 export default function ChapterReadingPage() {
@@ -768,6 +769,18 @@ export default function ChapterReadingPage() {
 
                                 {/* Chapter Content - Full Width */}
                                 <div className="flex-1 min-w-0">
+                                    {/* Nghe chương: file audio tác giả tải lên, hoặc TTS đọc nội dung.
+                                        Chương khoá thì ẩn (audioUrl đã bị server ẩn, content chỉ là teaser). */}
+                                    {!chapterData.isLocked && (
+                                        <ChapterAudioPlayer
+                                            key={chapterData.id}
+                                            audioUrl={chapterData.audioUrl}
+                                            content={chapterData.content}
+                                            preferredLang={countryToTtsLang(
+                                                (story as any)?.data?.country || (story as any)?.country
+                                            )}
+                                        />
+                                    )}
                                     <div
                                         ref={contentRef}
                                         className="bg-surface-container rounded-lg p-6 md:p-8 lg:p-12 shadow-sm"

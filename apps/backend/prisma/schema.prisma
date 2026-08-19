@@ -171,6 +171,9 @@ model Chapter {
   slug           String
   content        String
   images         String[]
+  /// URL file audio do tác giả tải lên (nghe thay vì đọc). null = không có,
+  /// reader sẽ fallback sang text-to-speech trên client.
+  audioUrl       String?
   order          Int
   isPublished    Boolean          @default(false)
   /// Lịch tự xuất bản: khi != null và đã tới giờ, cron ChaptersCron sẽ tự

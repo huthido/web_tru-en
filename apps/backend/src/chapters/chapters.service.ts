@@ -193,6 +193,8 @@ export class ChaptersService {
                 .trim();
             const preview = plain.slice(0, 300);
             chapter.content = preview + (plain.length > 300 ? '…' : '');
+            // Audio cũng là nội dung trả phí — không lộ URL khi chưa mở khoá.
+            chapter.audioUrl = null;
         }
 
         return {
@@ -272,6 +274,7 @@ export class ChaptersService {
                 wordCount,
                 readingTime,
                 price: createChapterDto.price ?? 0,
+                audioUrl: createChapterDto.audioUrl || null,
                 isPublished: false,
             },
             include: chapterWithStoryInclude,
@@ -345,6 +348,10 @@ export class ChaptersService {
 
         if (updateChapterDto.images !== undefined) {
             updateData.images = updateChapterDto.images;
+        }
+
+        if (updateChapterDto.audioUrl !== undefined) {
+            updateData.audioUrl = updateChapterDto.audioUrl || null;
         }
 
         if (updateChapterDto.isPublished !== undefined) {

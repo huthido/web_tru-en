@@ -12,6 +12,7 @@ import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Loading } from '@/components/ui/loading';
 import { RichTextEditor } from '@/components/editor/rich-text-editor';
 import { MonetizationLockedNotice, useMonetizationLocked } from '@/components/author/monetization-locked-notice';
+import { ChapterAudioUpload } from '@/components/author/chapter-audio-upload';
 
 export default function CreateChapterPage() {
     const params = useParams();
@@ -27,6 +28,7 @@ export default function CreateChapterPage() {
         title: '',
         content: '',
         price: 0,
+        audioUrl: null as string | null,
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -56,6 +58,7 @@ export default function CreateChapterPage() {
                 title: formData.title.trim(),
                 content: formData.content.trim(),
                 price: Math.max(0, Math.floor(formData.price) || 0),
+                ...(formData.audioUrl ? { audioUrl: formData.audioUrl } : {}),
             });
 
             // Wait a bit to ensure cache is updated before navigation
@@ -164,6 +167,12 @@ export default function CreateChapterPage() {
                                         <p className="mt-2 text-sm text-red-500">{errors.content}</p>
                                     )}
                                 </div>
+
+                                {/* Audio */}
+                                <ChapterAudioUpload
+                                    value={formData.audioUrl}
+                                    onChange={(url) => setFormData({ ...formData, audioUrl: url })}
+                                />
 
                                 {/* Price */}
                                 <div>

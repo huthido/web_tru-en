@@ -6,6 +6,7 @@ import {
     IsInt,
     Min,
     IsArray,
+    IsUrl,
 } from 'class-validator';
 
 export class CreateChapterDto {
@@ -33,5 +34,11 @@ export class CreateChapterDto {
     @IsInt()
     @Min(0)
     price?: number;
+
+    // URL audio (từ /chapters/upload-audio) — nghe thay vì đọc.
+    @IsOptional()
+    @IsUrl({ require_tld: false }, { message: 'audioUrl không hợp lệ' })
+    @MaxLength(1000)
+    audioUrl?: string;
 }
 

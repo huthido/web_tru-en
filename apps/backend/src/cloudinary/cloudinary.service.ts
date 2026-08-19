@@ -135,6 +135,72 @@ export class CloudinaryService {
     return imageUrl;
   }
 
+  /**
+   * Upload file audio (chương truyện). Ưu tiên Garage > Cloudinary > local như
+   * ảnh; với Cloudinary phải dùng resource_type 'video' (cách Cloudinary xử lý
+   * audio). Lưu record vào userImage (bảng generic url/folder) để tác giả có
+   * thể liệt kê/xoá sau này.
+   */
+  async uploadAudio(
+    file: Express.Multer.File,
+    folder: string = 'chapter-audio',
+    userId?: string,
+  ): Promise<string> {
+    let audioUrl: string;
+
+    if (this.useGarage) {
+      audioUrl = await this.uploadToGarage(
+        file.buffer,
+        folder,
+        file.originalname || 'audio.mp3',
+        file.mimetype || 'audio/mpeg',
+      );
+    } else if (this.useCloudinary) {
+      audioUrl = await this.uploadAudioToCloudinary(file.buffer, folder);
+    } else {
+      audioUrl = this.saveToLocal(file.buffer, folder, file.originalname || 'audio.mp3');
+    }
+
+    if (userId) {
+      try {
+        await this.prisma.userImage.create({
+          data: {
+            userId,
+            url: audioUrl,
+            folder,
+            filename: file.originalname,
+            size: file.size,
+          },
+        });
+      } catch (err) {
+        this.logger.warn(`Failed to save audio record: ${err}`);
+      }
+    }
+
+    return audioUrl;
+  }
+
+  private uploadAudioToCloudinary(buffer: Buffer, folder: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder,
+          resource_type: 'video', // Cloudinary xếp audio vào resource_type video
+        },
+        (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
+          if (error) {
+            reject(new Error(`Cloudinary audio upload failed: ${error.message}`));
+          } else if (result) {
+            resolve(result.secure_url);
+          } else {
+            reject(new Error('Cloudinary audio upload failed: Unknown error'));
+          }
+        },
+      );
+      uploadStream.end(buffer);
+    });
+  }
+
   async uploadImageFromBuffer(
     buffer: Buffer,
     folder: string = 'avatars'

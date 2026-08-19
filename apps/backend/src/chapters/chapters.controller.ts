@@ -11,6 +11,7 @@ import {
     UseInterceptors,
     UploadedFile,
     NotFoundException,
+    BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -28,6 +29,7 @@ import { UserRole } from '@prisma/client';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ImageNormalizePipe } from '../common/pipes/image-normalize.pipe';
 import { imageMulterFilter } from '../common/image/multer-filter';
+import { audioMulterFilter } from '../common/audio/multer-filter';
 
 @Controller('stories/:storySlug/chapters')
 export class ChaptersController {
@@ -202,6 +204,38 @@ export class ChapterUploadController {
             success: true,
             data: { url: imageUrl },
             message: 'Image uploaded successfully',
+            timestamp: new Date().toISOString(),
+        };
+    }
+
+    /**
+     * Tác giả tải file audio cho chương (nghe thay vì đọc). Trả về URL để gắn
+     * vào field `audioUrl` khi tạo/sửa chương. Giới hạn 100MB.
+     */
+    @Post('upload-audio')
+    @UseGuards(JwtAuthGuard)
+    @UseInterceptors(
+        FileInterceptor('file', {
+            storage: memoryStorage(),
+            limits: {
+                fileSize: 100 * 1024 * 1024, // 100MB
+            },
+            fileFilter: audioMulterFilter,
+        })
+    )
+    async uploadAudio(
+        @UploadedFile() file: Express.Multer.File,
+        @CurrentUser() user: any,
+    ) {
+        if (!file) {
+            throw new BadRequestException('Không nhận được file audio');
+        }
+        const audioUrl = await this.cloudinaryService.uploadAudio(file, 'chapter-audio', user.id);
+
+        return {
+            success: true,
+            data: { url: audioUrl },
+            message: 'Audio uploaded successfully',
             timestamp: new Date().toISOString(),
         };
     }
