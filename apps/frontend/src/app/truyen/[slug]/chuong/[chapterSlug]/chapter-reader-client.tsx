@@ -843,7 +843,6 @@ export default function ChapterReadingPage() {
                                         className={`bg-surface-container rounded-lg p-6 md:p-8 lg:p-12 shadow-sm`}
                                         style={{
                                             fontSize: `${fontSize}px`,
-                                            lineHeight: '2',
                                             // Chống chọn text: áp dụng cả CSS lẫn inline để đúng trên mọi trình duyệt.
                                             ...(copyProtected ? {
                                                 userSelect: 'none' as const,
