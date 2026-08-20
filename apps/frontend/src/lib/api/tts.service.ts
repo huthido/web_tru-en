@@ -22,6 +22,16 @@ export interface TtsPreviewResult {
     mime: string;
 }
 
+/** Tiến độ audio AI toàn truyện (đếm chương đã xuất bản theo trạng thái). */
+export interface StoryTtsStatus {
+    total: number;
+    ready: number;
+    pending: number;
+    processing: number;
+    failed: number;
+    none: number;
+}
+
 const unwrap = <T>(data: any): T => (data?.data ?? data) as T;
 
 /** API giọng đọc AI (VieNeu-TTS) — mẫu giọng tác giả + danh sách giọng preset. */
@@ -56,6 +66,22 @@ export const ttsService = {
     /** Gỡ clip mẫu giọng. */
     deleteVoice: async (): Promise<void> => {
         await apiClient.delete('/tts/voice');
+    },
+
+    /**
+     * Xếp hàng sinh audio AI cho MỌI chương đủ điều kiện của truyện (đã
+     * xuất bản, miễn phí, chưa có audio). Chỉ tác giả/admin. Chương READY
+     * không bị sinh lại hàng loạt.
+     */
+    requestStoryTts: async (storyIdOrSlug: string): Promise<{ queued: number } & StoryTtsStatus> => {
+        const response = await apiClient.post<any>(`/stories/${storyIdOrSlug}/tts`);
+        return unwrap<{ queued: number } & StoryTtsStatus>(response.data);
+    },
+
+    /** Tiến độ audio AI của truyện — poll khi còn pending/processing. */
+    getStoryTtsStatus: async (storyIdOrSlug: string): Promise<StoryTtsStatus> => {
+        const response = await apiClient.get<any>(`/stories/${storyIdOrSlug}/tts`);
+        return unwrap<StoryTtsStatus>(response.data);
     },
 
     /**

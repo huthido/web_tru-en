@@ -43,6 +43,27 @@ export class TtsController {
 }
 
 /**
+ * Audio AI cấp TRUYỆN: xếp hàng sinh cho mọi chương đủ điều kiện + xem
+ * tiến độ. Chỉ tác giả truyện/admin (check trong service).
+ */
+@Controller('stories')
+export class TtsStoryController {
+    constructor(private readonly ttsService: TtsService) { }
+
+    @Get(':id/tts')
+    @UseGuards(JwtAuthGuard)
+    getStoryStatus(@Param('id') id: string, @CurrentUser() user: any) {
+        return this.ttsService.getStoryStatus(id, { id: user.id, role: user.role });
+    }
+
+    @Post(':id/tts')
+    @UseGuards(JwtAuthGuard)
+    requestStory(@Param('id') id: string, @CurrentUser() user: any) {
+        return this.ttsService.requestStoryGeneration(id, { id: user.id, role: user.role });
+    }
+}
+
+/**
  * Mẫu giọng đọc của tác giả (voice cloning VieNeu-TTS): tải clip 3–10s,
  * audio AI của các chương thuộc truyện của họ sẽ đọc bằng giọng này.
  */

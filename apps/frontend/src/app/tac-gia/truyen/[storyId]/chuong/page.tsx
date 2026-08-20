@@ -1,8 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { Loader2, Sparkles } from 'lucide-react';
+import { chaptersService } from '@/lib/api/chapters.service';
+import { ttsService } from '@/lib/api/tts.service';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Footer } from '@/components/layouts/footer';
@@ -53,6 +57,14 @@ export default function ChapterManagementPage() {
     const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
     const [page, setPage] = useState(1);
     const itemsPerPage = 10;
+
+    // --- Giọng đọc AI ---
+    // Override trạng thái tại chỗ sau khi bấm nút (đỡ chờ refetch).
+    const [ttsOverrides, setTtsOverrides] = useState<Record<string, string>>({});
+    const [ttsRequesting, setTtsRequesting] = useState<Record<string, boolean>>({});
+    const [bulkTtsModal, setBulkTtsModal] = useState(false);
+    const [bulkTtsRequesting, setBulkTtsRequesting] = useState(false);
+    const queryClient = useQueryClient();
 
     // Delete modal state
     const [deleteModal, setDeleteModal] = useState<{
@@ -120,6 +132,84 @@ export default function ChapterManagementPage() {
     const endIndex = startIndex + itemsPerPage;
     const paginatedChapters = filteredAndSortedChapters.slice(startIndex, endIndex);
 
+    // Trạng thái TTS hiện tại của chương (override sau khi bấm > data từ API).
+    const ttsStatusOf = (chapter: any): string | null =>
+        ttsOverrides[chapter.id] ?? chapter.ttsAudioStatus ?? null;
+
+    // Chương đủ điều kiện tạo giọng AI: đã xuất bản, không có audio tác giả,
+    // không thuộc diện trả phí (VIP trả phí / FREEMIUM chương có giá).
+    const canTts = (chapter: any): boolean =>
+        chapter.isPublished &&
+        !chapter.audioUrl &&
+        !((story as any)?.accessType === 'VIP' && ((story as any)?.price ?? 0) > 0) &&
+        !((story as any)?.accessType === 'FREEMIUM' && (chapter.price ?? 0) > 0);
+
+    const anyTtsInProgress = allChapters.some((ch: any) => {
+        const s = ttsStatusOf(ch);
+        return s === 'PENDING' || s === 'PROCESSING';
+    });
+
+    // Đang có chương sinh audio → refetch danh sách mỗi 20s để badge tự cập
+    // nhật (job chạy nền nhiều phút mỗi chương).
+    useEffect(() => {
+        if (!anyTtsInProgress) return;
+        const interval = setInterval(() => {
+            // Refetch làm mới ttsAudioStatus thật → xoá override đã cũ.
+            setTtsOverrides({});
+            queryClient.invalidateQueries({ queryKey: ['chapters', storySlug] });
+        }, 20_000);
+        return () => clearInterval(interval);
+    }, [anyTtsInProgress, storySlug, queryClient]);
+
+    const handleTts = async (chapter: any) => {
+        setTtsRequesting((m) => ({ ...m, [chapter.id]: true }));
+        try {
+            const res = await chaptersService.requestTts(chapter.id);
+            setTtsOverrides((m) => ({ ...m, [chapter.id]: res.status || 'PENDING' }));
+            showToast(
+                ttsStatusOf(chapter) === 'READY'
+                    ? 'Đã xếp hàng tạo lại audio bằng giọng hiện tại'
+                    : 'Đã xếp hàng tạo giọng đọc AI — vài phút nữa audio sẽ sẵn sàng',
+                'success',
+            );
+        } catch (error: any) {
+            showToast(
+                error?.response?.data?.message || 'Không tạo được giọng đọc AI, thử lại sau',
+                'error',
+            );
+        } finally {
+            setTtsRequesting((m) => ({ ...m, [chapter.id]: false }));
+        }
+    };
+
+    const confirmBulkTts = async () => {
+        setBulkTtsRequesting(true);
+        try {
+            const res = await ttsService.requestStoryTts(storySlug);
+            setBulkTtsModal(false);
+            if (res.queued === 0) {
+                showToast(
+                    'Không có chương nào cần tạo (đã có audio hoặc đang tạo)',
+                    'success',
+                );
+            } else {
+                showToast(
+                    `Đã xếp hàng ${res.queued} chương — hệ thống tạo lần lượt, mỗi chương vài phút`,
+                    'success',
+                );
+            }
+            setTtsOverrides({});
+            queryClient.invalidateQueries({ queryKey: ['chapters', storySlug] });
+        } catch (error: any) {
+            showToast(
+                error?.response?.data?.message || 'Không xếp hàng được, thử lại sau',
+                'error',
+            );
+        } finally {
+            setBulkTtsRequesting(false);
+        }
+    };
+
     const handleDelete = (id: string, title: string) => {
         setDeleteModal({
             isOpen: true,
@@ -181,13 +271,21 @@ export default function ChapterManagementPage() {
                                             </p>
                                         )}
                                     </div>
-                                    <div className="flex gap-3 mt-4 md:mt-0">
+                                    <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
                                         <Link
                                             href="/tac-gia/bang-dieu-khien"
                                             className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg font-medium transition-colors"
                                         >
                                             Quay lại
                                         </Link>
+                                        <button
+                                            onClick={() => setBulkTtsModal(true)}
+                                            className="px-4 py-2 border border-outline-variant text-primary hover:bg-surface-container-high rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
+                                            title="Tạo audio AI cho mọi chương miễn phí đã xuất bản chưa có audio"
+                                        >
+                                            <Sparkles size={18} />
+                                            Tạo giọng AI cả truyện
+                                        </button>
                                         <Link
                                             href={`/tac-gia/truyen/${storySlug}/chuong/tao`}
                                             className="px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
@@ -371,6 +469,22 @@ export default function ChapterManagementPage() {
                                                                     }`}>
                                                                     {chapter.isPublished ? 'Đã xuất bản' : 'Bản nháp'}
                                                                 </span>
+                                                                {ttsStatusOf(chapter) === 'READY' && (
+                                                                    <>
+                                                                        <span>•</span>
+                                                                        <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
+                                                                            🔊 Audio AI
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                                {chapter.audioUrl && (
+                                                                    <>
+                                                                        <span>•</span>
+                                                                        <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
+                                                                            🎵 Audio tác giả
+                                                                        </span>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         </div>
 
@@ -388,6 +502,40 @@ export default function ChapterManagementPage() {
                                                             >
                                                                 Chỉnh sửa
                                                             </Link>
+                                                            {/* Giọng đọc AI cho từng chương (chương miễn phí đã đăng,
+                                                                không có audio tác giả). Job chạy nền vài phút. */}
+                                                            {canTts(chapter) && (() => {
+                                                                const s = ttsStatusOf(chapter);
+                                                                const busy = s === 'PENDING' || s === 'PROCESSING';
+                                                                return (
+                                                                    <button
+                                                                        onClick={() => handleTts(chapter)}
+                                                                        disabled={busy || ttsRequesting[chapter.id]}
+                                                                        title={
+                                                                            s === 'READY'
+                                                                                ? 'Đã có audio AI — bấm để tạo lại bằng giọng hiện tại của bạn'
+                                                                                : 'Tạo audio AI đọc chương này'
+                                                                        }
+                                                                        className="px-4 py-2 border border-outline-variant text-primary hover:bg-surface-container-high rounded-lg text-sm font-medium transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                                                                    >
+                                                                        {busy || ttsRequesting[chapter.id] ? (
+                                                                            <>
+                                                                                <Loader2 size={14} className="animate-spin" />
+                                                                                Đang tạo giọng…
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <Sparkles size={14} />
+                                                                                {s === 'READY'
+                                                                                    ? 'Tạo lại giọng AI'
+                                                                                    : s === 'FAILED'
+                                                                                        ? 'Tạo giọng AI (lỗi, thử lại)'
+                                                                                        : 'Tạo giọng AI'}
+                                                                            </>
+                                                                        )}
+                                                                    </button>
+                                                                );
+                                                            })()}
                                                             {chapter.isPublished ? (
                                                                 <button
                                                                     onClick={() => handleUnpublish(chapter.id)}
@@ -523,6 +671,22 @@ export default function ChapterManagementPage() {
                     confirmColor="red"
                     onConfirm={confirmDelete}
                     onClose={() => setDeleteModal({ isOpen: false, chapterId: '', chapterTitle: '' })}
+                />
+
+                {/* Bulk TTS Confirmation Modal */}
+                <ConfirmModal
+                    isOpen={bulkTtsModal}
+                    title="Tạo giọng đọc AI cho cả truyện"
+                    message={
+                        'Hệ thống sẽ xếp hàng tạo audio AI cho MỌI chương miễn phí đã xuất bản ' +
+                        'chưa có audio (chương đã có audio AI hoặc audio tác giả sẽ được giữ nguyên). ' +
+                        'Audio tạo lần lượt từng chương, mỗi chương mất vài phút — truyện dài có thể ' +
+                        'chạy nền nhiều giờ, bạn không cần giữ trang này mở.'
+                    }
+                    confirmText={bulkTtsRequesting ? 'Đang xếp hàng…' : 'Bắt đầu tạo'}
+                    cancelText="Hủy"
+                    onConfirm={confirmBulkTts}
+                    onClose={() => setBulkTtsModal(false)}
                 />
 
                 {/* Toast Notifications */}

@@ -19,6 +19,17 @@ export interface TtsJobData {
     chapterId: string;
 }
 
+/** Tiến độ audio AI toàn truyện — đếm chương ĐÃ XUẤT BẢN theo trạng thái. */
+export interface StoryTtsStatus {
+    total: number;
+    ready: number;
+    pending: number;
+    processing: number;
+    failed: number;
+    /** Chưa ai yêu cầu sinh. */
+    none: number;
+}
+
 export interface TtsStatusResult {
     /** Tính năng có bật trên server không (TTS_WORKER_URL đã set). */
     enabled: boolean;
@@ -175,6 +186,111 @@ export class TtsService {
         }
 
         return this.getStatus(chapterId);
+    }
+
+    /**
+     * Sinh audio AI cho CẢ TRUYỆN — xếp hàng mọi chương đủ điều kiện (đã
+     * xuất bản, miễn phí, chưa có audio tác giả, chưa/lỗi sinh). Chương đã
+     * READY KHÔNG bị sinh lại hàng loạt (tránh đốt hàng giờ CPU — muốn đổi
+     * giọng chương nào thì tạo lại từng chương). Chỉ tác giả truyện/admin.
+     */
+    async requestStoryGeneration(
+        storyIdOrSlug: string,
+        user: { id: string; role?: string },
+    ): Promise<{ queued: number } & StoryTtsStatus> {
+        if (!this.enabled) {
+            throw new ServiceUnavailableException(
+                'Tính năng giọng đọc AI chưa được bật trên máy chủ',
+            );
+        }
+        const story = await this.findStoryForTts(storyIdOrSlug, user);
+        if (story.accessType === 'VIP' && story.price > 0) {
+            throw new BadRequestException('Truyện VIP trả phí không hỗ trợ giọng đọc AI');
+        }
+
+        const eligible = await this.prisma.chapter.findMany({
+            where: {
+                storyId: story.id,
+                isPublished: true,
+                audioUrl: null,
+                OR: [{ ttsAudioStatus: null }, { ttsAudioStatus: TtsAudioStatus.FAILED }],
+                // FREEMIUM: bỏ qua chương trả phí; FREE: price bị bỏ qua theo spec.
+                ...(story.accessType === 'FREEMIUM' ? { price: 0 } : {}),
+            },
+            select: { id: true },
+            orderBy: { order: 'asc' },
+        });
+
+        let queued = 0;
+        for (const ch of eligible) {
+            // Claim atomic từng chương — chương nào đó có thể đã được xếp
+            // hàng riêng lẻ giữa chừng.
+            const claimed = await this.prisma.chapter.updateMany({
+                where: {
+                    id: ch.id,
+                    OR: [{ ttsAudioStatus: null }, { ttsAudioStatus: TtsAudioStatus.FAILED }],
+                },
+                data: { ttsAudioStatus: TtsAudioStatus.PENDING },
+            });
+            if (claimed.count === 0) continue;
+            if (this.queueEnabled && this.ttsQueue) {
+                await this.ttsQueue.add(
+                    'generate',
+                    { chapterId: ch.id } satisfies TtsJobData,
+                    { jobId: `tts-${ch.id}-${Date.now()}` },
+                );
+            } else {
+                this.runInline(ch.id);
+            }
+            queued++;
+        }
+
+        const status = await this.computeStoryStatus(story.id);
+        return { queued, ...status };
+    }
+
+    /** Tiến độ audio AI của truyện (đếm theo trạng thái) — tác giả/admin. */
+    async getStoryStatus(
+        storyIdOrSlug: string,
+        user: { id: string; role?: string },
+    ): Promise<StoryTtsStatus> {
+        const story = await this.findStoryForTts(storyIdOrSlug, user);
+        return this.computeStoryStatus(story.id);
+    }
+
+    private async findStoryForTts(
+        storyIdOrSlug: string,
+        user: { id: string; role?: string },
+    ) {
+        const story = await this.prisma.story.findFirst({
+            where: { OR: [{ id: storyIdOrSlug }, { slug: storyIdOrSlug }] },
+            select: { id: true, authorId: true, accessType: true, price: true },
+        });
+        if (!story) throw new NotFoundException('Truyện không tồn tại');
+        const isOwner = user.id === story.authorId || user.role === 'ADMIN';
+        if (!isOwner) {
+            throw new ForbiddenException('Chỉ tác giả truyện mới dùng được chức năng này');
+        }
+        return story;
+    }
+
+    private async computeStoryStatus(storyId: string): Promise<StoryTtsStatus> {
+        const groups = await this.prisma.chapter.groupBy({
+            by: ['ttsAudioStatus'],
+            where: { storyId, isPublished: true },
+            _count: { _all: true },
+        });
+        const count = (s: TtsAudioStatus | null) =>
+            groups.find((g) => g.ttsAudioStatus === s)?._count._all ?? 0;
+        const total = groups.reduce((sum, g) => sum + g._count._all, 0);
+        return {
+            total,
+            ready: count(TtsAudioStatus.READY),
+            pending: count(TtsAudioStatus.PENDING),
+            processing: count(TtsAudioStatus.PROCESSING),
+            failed: count(TtsAudioStatus.FAILED),
+            none: count(null),
+        };
     }
 
     private runInline(chapterId: string) {
