@@ -256,6 +256,10 @@ const nextConfig = {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.googletagservices.com https://*.facebook.com https://*.fbcdn.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https: http:", // ads serve images từ nhiều CDN
+      // Audio chương (tác giả upload / TTS AI) từ cdn Garage + preview giọng
+      // dạng data: base64. Thiếu media-src thì rơi về default-src 'self' —
+      // <audio> load từ cdn.yeuyeu.net bị chặn (player hiện 0:00, play im lặng).
+      "media-src 'self' data: blob: https:",
       "font-src 'self' data: https://fonts.gstatic.com",
       connectSrc,
       "frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://*.facebook.com",

@@ -29,6 +29,10 @@ export function VoiceSettings() {
     const [uploading, setUploading] = useState(false);
     // Đang nghe thử giọng nào: id preset, 'mine' (giọng clone), '' = không.
     const [previewing, setPreviewing] = useState('');
+    // data: URI audio nghe thử — render <audio controls> thay vì chỉ play()
+    // programmatic: chờ server sinh xong (10-30s) thì user-gesture đã hết
+    // hạn, Chrome chặn autoplay im lặng.
+    const [previewSrc, setPreviewSrc] = useState('');
     const [error, setError] = useState('');
     const [notice, setNotice] = useState('');
 
@@ -59,13 +63,18 @@ export function VoiceSettings() {
 
     const playBase64 = (b64: string, mime: string) => {
         audioRef.current?.pause();
-        const audio = new Audio(`data:${mime};base64,${b64}`);
+        const src = `data:${mime};base64,${b64}`;
+        setPreviewSrc(src);
+        // Thử phát luôn — bị autoplay policy chặn thì user bấm play trên
+        // player vừa hiện ra.
+        const audio = new Audio(src);
         audioRef.current = audio;
         audio.play().catch(() => { });
     };
 
     const handlePreview = async (voice?: string) => {
         setError('');
+        setPreviewSrc('');
         setPreviewing(voice || 'mine');
         try {
             const res = await ttsService.preview(voice ? { voice } : {});
@@ -277,6 +286,15 @@ export function VoiceSettings() {
                     </p>
                 </div>
             </details>
+
+            {previewSrc && (
+                <div className="mt-3">
+                    <p className="text-xs text-on-surface-variant mb-1">Bản nghe thử:</p>
+                    <audio controls src={previewSrc} className="w-full h-9">
+                        Trình duyệt không hỗ trợ phát audio.
+                    </audio>
+                </div>
+            )}
 
             {(error || notice) && (
                 <p className={`mt-3 text-xs ${error ? 'text-red-500' : 'text-primary'}`}>
