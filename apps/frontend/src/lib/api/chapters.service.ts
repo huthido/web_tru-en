@@ -21,6 +21,10 @@ export interface Chapter {
     /** URL file audio tác giả tải lên (nghe thay vì đọc). null khi không có
      *  hoặc khi chương bị khoá. */
     audioUrl?: string | null;
+    /** URL audio AI (VieNeu-TTS) server đã sinh. null = chưa sinh / chương khoá. */
+    ttsAudioUrl?: string | null;
+    /** Trạng thái job sinh audio AI. null = chưa ai yêu cầu. */
+    ttsAudioStatus?: TtsAudioStatus | null;
     uploaderId?: string;
     createdAt: string;
     updatedAt: string;
@@ -59,6 +63,15 @@ export interface UpdateChapterRequest {
     price?: number;
     /** URL audio từ uploadAudio(). null = gỡ audio đã gắn. */
     audioUrl?: string | null;
+}
+
+export type TtsAudioStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'FAILED';
+
+export interface TtsStatusResponse {
+    /** Server có bật tính năng giọng đọc AI không. */
+    enabled: boolean;
+    status: TtsAudioStatus | null;
+    url: string | null;
 }
 
 export interface BuyChapterResponse {
@@ -160,6 +173,24 @@ export const chaptersService = {
         const data = response.data as any;
         // Client có thể đã bóc envelope hoặc chưa — chấp nhận cả hai dạng.
         return (data?.data ?? data) as { url: string };
+    },
+
+    /** Yêu cầu server sinh audio AI (VieNeu-TTS) cho chương. Cần đăng nhập. */
+    requestTts: async (chapterId: string): Promise<TtsStatusResponse> => {
+        const response = await apiClient.post<TtsStatusResponse | ApiResponse<TtsStatusResponse>>(
+            `/chapters/${chapterId}/tts`
+        );
+        const data = response.data as any;
+        return (data?.data ?? data) as TtsStatusResponse;
+    },
+
+    /** Trạng thái audio AI — poll trong lúc PENDING/PROCESSING. */
+    getTtsStatus: async (chapterId: string): Promise<TtsStatusResponse> => {
+        const response = await apiClient.get<TtsStatusResponse | ApiResponse<TtsStatusResponse>>(
+            `/chapters/${chapterId}/tts`
+        );
+        const data = response.data as any;
+        return (data?.data ?? data) as TtsStatusResponse;
     },
 
     buy: async (storySlug: string, id: string): Promise<BuyChapterResponse> => {

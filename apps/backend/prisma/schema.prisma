@@ -174,6 +174,11 @@ model Chapter {
   /// URL file audio do tác giả tải lên (nghe thay vì đọc). null = không có,
   /// reader sẽ fallback sang text-to-speech trên client.
   audioUrl       String?
+  /// URL audio AI (VieNeu-TTS) do server sinh từ nội dung chương. Chỉ sinh cho
+  /// chương miễn phí đã xuất bản; sinh 1 lần rồi cache vĩnh viễn trên Garage.
+  ttsAudioUrl    String?
+  /// Trạng thái job sinh audio AI. null = chưa ai yêu cầu.
+  ttsAudioStatus TtsAudioStatus?
   order          Int
   isPublished    Boolean          @default(false)
   /// Lịch tự xuất bản: khi != null và đã tới giờ, cron ChaptersCron sẽ tự
@@ -204,6 +209,14 @@ model Chapter {
   // Cron quét chương tới hạn đăng: lọc isPublished=false + scheduledPublishAt<=now.
   @@index([isPublished, scheduledPublishAt])
   @@map("chapters")
+}
+
+/// Vòng đời job sinh audio AI cho chương (VieNeu-TTS worker).
+enum TtsAudioStatus {
+  PENDING // đã xếp hàng, chờ worker
+  PROCESSING // worker đang sinh audio
+  READY // đã có file, ttsAudioUrl != null
+  FAILED // sinh lỗi — cho phép yêu cầu lại
 }
 
 model Comment {

@@ -195,6 +195,8 @@ export class ChaptersService {
             chapter.content = preview + (plain.length > 300 ? '…' : '');
             // Audio cũng là nội dung trả phí — không lộ URL khi chưa mở khoá.
             chapter.audioUrl = null;
+            chapter.ttsAudioUrl = null;
+            chapter.ttsAudioStatus = null;
         }
 
         return {

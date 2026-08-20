@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 
 export const EMAIL_QUEUE = 'email';
+export const TTS_QUEUE = 'tts';
 
 /**
  * Global queue infrastructure backed by Redis (BullMQ).
@@ -27,6 +28,18 @@ export const EMAIL_QUEUE = 'email';
           };
         }
         return { connection: { url } };
+      },
+    }),
+    // Sinh audio AI cho chương (VieNeu-TTS worker). Job chạy dài (nhiều phút)
+    // nên concurrency giới hạn ở processor; retry 1 lần là đủ (lỗi thường do
+    // worker down — user bấm lại được).
+    BullModule.registerQueue({
+      name: TTS_QUEUE,
+      defaultJobOptions: {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 30_000 },
+        removeOnComplete: { age: 24 * 3600, count: 500 },
+        removeOnFail: { age: 7 * 24 * 3600 },
       },
     }),
     BullModule.registerQueue({

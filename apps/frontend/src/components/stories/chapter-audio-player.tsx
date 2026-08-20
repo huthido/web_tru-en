@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Headphones, Pause, Play, Square } from 'lucide-react';
+import { Headphones, Loader2, Pause, Play, Sparkles, Square } from 'lucide-react';
+import { chaptersService, type TtsAudioStatus } from '@/lib/api/chapters.service';
 
 interface ChapterAudioPlayerProps {
     /** URL file audio tác giả tải lên; null/undefined = dùng text-to-speech. */
@@ -11,6 +12,14 @@ interface ChapterAudioPlayerProps {
     /** Ngôn ngữ của truyện (BCP-47, vd 'vi-VN') — lọc danh sách giọng theo
      *  ngôn ngữ này. null/undefined = không lọc. Xem countryToTtsLang(). */
     preferredLang?: string | null;
+    /** Id chương — cần cho tính năng giọng đọc AI (yêu cầu sinh + poll). */
+    chapterId?: string;
+    /** URL audio AI (VieNeu-TTS) server đã sinh sẵn. */
+    ttsAudioUrl?: string | null;
+    /** Trạng thái job sinh audio AI lúc load trang. */
+    ttsAudioStatus?: TtsAudioStatus | null;
+    /** Chương miễn phí, không khoá → cho phép bấm "Tạo giọng đọc AI". */
+    canRequestTts?: boolean;
 }
 
 /**
@@ -103,8 +112,21 @@ function voiceLabel(v: SpeechSynthesisVoice): string {
  * - Không có audio → đọc nội dung chương bằng Web Speech API (giọng vi-VN
  *   nếu thiết bị có). Trình duyệt không hỗ trợ TTS thì ẩn hẳn khối này.
  */
-export function ChapterAudioPlayer({ audioUrl, content, preferredLang }: ChapterAudioPlayerProps) {
+export function ChapterAudioPlayer({
+    audioUrl,
+    content,
+    preferredLang,
+    chapterId,
+    ttsAudioUrl,
+    ttsAudioStatus,
+    canRequestTts,
+}: ChapterAudioPlayerProps) {
     const [ttsSupported, setTtsSupported] = useState(false);
+    // Giọng đọc AI (VieNeu-TTS) — sinh trên server, cache theo chương.
+    const [aiUrl, setAiUrl] = useState<string | null>(ttsAudioUrl ?? null);
+    const [aiStatus, setAiStatus] = useState<TtsAudioStatus | null>(ttsAudioStatus ?? null);
+    const [aiRequesting, setAiRequesting] = useState(false);
+    const [aiError, setAiError] = useState('');
     const [ttsState, setTtsState] = useState<TtsState>('idle');
     const [rate, setRate] = useState(1);
     const [progress, setProgress] = useState(0); // 0-100 theo số đoạn đã đọc
@@ -313,6 +335,70 @@ export function ChapterAudioPlayer({ audioUrl, content, preferredLang }: Chapter
         applySettingsChange();
     }, [applySettingsChange]);
 
+    // Đang PENDING/PROCESSING → poll trạng thái mỗi 8s tới khi xong/lỗi.
+    useEffect(() => {
+        if (!chapterId || aiUrl) return;
+        if (aiStatus !== 'PENDING' && aiStatus !== 'PROCESSING') return;
+        let cancelled = false;
+        const interval = setInterval(async () => {
+            try {
+                const res = await chaptersService.getTtsStatus(chapterId);
+                if (cancelled) return;
+                if (res.url) {
+                    setAiUrl(res.url);
+                    setAiStatus('READY');
+                } else if (res.status && res.status !== aiStatus) {
+                    setAiStatus(res.status);
+                }
+            } catch {
+                /* mạng chập chờn — lần poll sau thử lại */
+            }
+        }, 8000);
+        return () => {
+            cancelled = true;
+            clearInterval(interval);
+        };
+    }, [chapterId, aiStatus, aiUrl]);
+
+    // Audio AI xuất hiện giữa lúc Web Speech đang đọc → dừng đọc (UI chuyển
+    // sang player audio, không còn nút dừng của Web Speech).
+    useEffect(() => {
+        if (aiUrl && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+    }, [aiUrl]);
+
+    const requestAi = useCallback(async () => {
+        if (!chapterId) return;
+        setAiRequesting(true);
+        setAiError('');
+        try {
+            const res = await chaptersService.requestTts(chapterId);
+            if (res.url) {
+                setAiUrl(res.url);
+                setAiStatus('READY');
+            } else {
+                setAiStatus(res.status || 'PENDING');
+            }
+        } catch (err: any) {
+            const status = err?.response?.status;
+            const message = err?.response?.data?.message;
+            if (status === 401) {
+                setAiError('Đăng nhập để tạo giọng đọc AI.');
+            } else if (status === 503) {
+                setAiError('Tính năng giọng đọc AI chưa được bật trên máy chủ.');
+            } else {
+                setAiError(
+                    typeof message === 'string' && message
+                        ? message
+                        : 'Không tạo được giọng đọc AI, vui lòng thử lại sau.'
+                );
+            }
+        } finally {
+            setAiRequesting(false);
+        }
+    }, [chapterId]);
+
     // --- Trường hợp 1: có file audio của tác giả ---
     if (audioUrl) {
         return (
@@ -329,8 +415,26 @@ export function ChapterAudioPlayer({ audioUrl, content, preferredLang }: Chapter
         );
     }
 
-    // --- Trường hợp 2: text-to-speech ---
-    if (!ttsSupported) return null;
+    // --- Trường hợp 2: audio AI (VieNeu-TTS) đã sinh xong ---
+    if (aiUrl) {
+        return (
+            <div className="mb-6 p-4 bg-surface-container rounded-lg shadow-sm">
+                <div className="flex items-center gap-2 mb-3 text-sm font-medium text-on-surface">
+                    <Headphones size={18} className="text-primary" />
+                    <span>Nghe chương này</span>
+                    <span className="text-xs font-normal text-on-surface-variant">(giọng đọc AI)</span>
+                </div>
+                <audio controls preload="metadata" src={aiUrl} className="w-full">
+                    Trình duyệt không hỗ trợ phát audio.
+                </audio>
+            </div>
+        );
+    }
+
+    // --- Trường hợp 3: Web Speech API + nút tạo giọng đọc AI ---
+    const showAiRequest = !!chapterId && !!canRequestTts;
+    const aiInProgress = aiStatus === 'PENDING' || aiStatus === 'PROCESSING';
+    if (!ttsSupported && !showAiRequest) return null;
 
     return (
         <div className="mb-6 p-4 bg-surface-container rounded-lg shadow-sm">
@@ -340,6 +444,7 @@ export function ChapterAudioPlayer({ audioUrl, content, preferredLang }: Chapter
                     <span>Nghe chương này</span>
                 </div>
 
+                {ttsSupported && (
                 <div className="flex items-center gap-2 ml-auto">
                     {ttsState === 'idle' && (
                         <button
@@ -403,6 +508,7 @@ export function ChapterAudioPlayer({ audioUrl, content, preferredLang }: Chapter
                         ))}
                     </select>
                 </div>
+                )}
             </div>
 
             {ttsState !== 'idle' && (
@@ -414,20 +520,56 @@ export function ChapterAudioPlayer({ audioUrl, content, preferredLang }: Chapter
                 </div>
             )}
 
-            <p className="mt-2 text-xs text-on-surface-variant">
-                {hasHiddenVoices && !showAllVoices
-                    ? 'Giọng đọc được lọc theo ngôn ngữ của truyện.'
-                    : 'Đọc bằng giọng đọc của thiết bị (danh sách giọng phụ thuộc thiết bị/trình duyệt).'}
-                {hasHiddenVoices && (
-                    <button
-                        type="button"
-                        onClick={() => setShowAllVoices((s) => !s)}
-                        className="ml-1.5 text-primary hover:underline"
-                    >
-                        {showAllVoices ? 'Chỉ hiện giọng phù hợp' : 'Hiện tất cả giọng'}
-                    </button>
-                )}
-            </p>
+            {ttsSupported && (
+                <p className="mt-2 text-xs text-on-surface-variant">
+                    {hasHiddenVoices && !showAllVoices
+                        ? 'Giọng đọc được lọc theo ngôn ngữ của truyện.'
+                        : 'Đọc bằng giọng đọc của thiết bị (danh sách giọng phụ thuộc thiết bị/trình duyệt).'}
+                    {hasHiddenVoices && (
+                        <button
+                            type="button"
+                            onClick={() => setShowAllVoices((s) => !s)}
+                            className="ml-1.5 text-primary hover:underline"
+                        >
+                            {showAllVoices ? 'Chỉ hiện giọng phù hợp' : 'Hiện tất cả giọng'}
+                        </button>
+                    )}
+                </p>
+            )}
+
+            {/* Giọng đọc AI: sinh 1 lần trên server (VieNeu-TTS), mọi người
+                dùng chung. Đang sinh thì poll (useEffect) tới khi có URL. */}
+            {showAiRequest && (
+                <div className="mt-3 pt-3 border-t border-outline-variant/50 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                    {aiInProgress ? (
+                        <span className="inline-flex items-center gap-2 text-sm text-on-surface-variant">
+                            <Loader2 size={15} className="animate-spin text-primary" />
+                            Đang tạo giọng đọc AI… có thể mất vài phút. Audio sẽ tự xuất hiện tại đây.
+                        </span>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={requestAi}
+                            disabled={aiRequesting}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-outline-variant text-primary hover:bg-surface-container-high transition-colors disabled:opacity-60"
+                        >
+                            <Sparkles size={15} />
+                            {aiStatus === 'FAILED' ? 'Tạo lại giọng đọc AI' : 'Tạo giọng đọc AI'}
+                        </button>
+                    )}
+                    {aiError ? (
+                        <span className="text-xs text-error">{aiError}</span>
+                    ) : aiStatus === 'FAILED' ? (
+                        <span className="text-xs text-on-surface-variant">
+                            Lần tạo trước gặp lỗi — bạn có thể thử lại.
+                        </span>
+                    ) : !aiInProgress ? (
+                        <span className="text-xs text-on-surface-variant">
+                            Giọng tiếng Việt tự nhiên, tạo một lần rồi dùng cho mọi người.
+                        </span>
+                    ) : null}
+                </div>
+            )}
         </div>
     );
 }

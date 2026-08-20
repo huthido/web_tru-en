@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { StoriesModule } from './stories/stories.module';
 import { ChaptersModule } from './chapters/chapters.module';
+import { TtsModule } from './tts/tts.module';
 import { CommentsModule } from './comments/comments.module';
 import { FollowsModule } from './follows/follows.module';
 import { ReadingHistoryModule } from './reading-history/reading-history.module';
@@ -86,6 +87,8 @@ import { HomepageSectionsModule } from './homepage-sections/homepage-sections.mo
     UsersModule,
     StoriesModule,
     ChaptersModule,
+    // Giọng đọc AI (VieNeu-TTS) — cần TTS_WORKER_URL, không thì tự tắt.
+    TtsModule,
     CommentsModule,
     FollowsModule,
     ReadingHistoryModule,

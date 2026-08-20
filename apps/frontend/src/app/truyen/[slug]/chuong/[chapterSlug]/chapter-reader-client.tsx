@@ -779,6 +779,16 @@ export default function ChapterReadingPage() {
                                             preferredLang={countryToTtsLang(
                                                 (story as any)?.data?.country || (story as any)?.country
                                             )}
+                                            chapterId={chapterData.id}
+                                            ttsAudioUrl={chapterData.ttsAudioUrl}
+                                            ttsAudioStatus={chapterData.ttsAudioStatus}
+                                            // Giọng AI chỉ cho chương miễn phí không paywall
+                                            // (lockType null = không thuộc truyện/chương trả phí).
+                                            canRequestTts={
+                                                !chapterData.audioUrl &&
+                                                (chapterData.price ?? 0) === 0 &&
+                                                !(chapterData as any).lockType
+                                            }
                                         />
                                     )}
                                     <div

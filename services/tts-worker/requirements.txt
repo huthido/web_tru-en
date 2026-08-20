@@ -1,0 +1,4 @@
+# VieNeu-TTS (https://github.com/pnnbao97/VieNeu-TTS) — SDK pip chính chủ.
+vieneu
+fastapi
+uvicorn[standard]
