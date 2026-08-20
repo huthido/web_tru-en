@@ -78,6 +78,7 @@ export default function AdminSettingsPage() {
         chapterSaleFeePercent: 2,
         allowCoinTransfer: false,
         chapterAudioDownloadEnabled: false,
+        copyProtectionEnabled: true,
         // --- Thanh toán thủ công (chuyển khoản) ---
         manualPaymentEnabled: false,
         manualPaymentBankBin: '',
@@ -123,6 +124,7 @@ export default function AdminSettingsPage() {
                 chapterSaleFeePercent: settings.chapterSaleFeePercent ?? 2,
                 allowCoinTransfer: settings.allowCoinTransfer || false,
                 chapterAudioDownloadEnabled: (settings as any).chapterAudioDownloadEnabled ?? false,
+                copyProtectionEnabled: (settings as any).copyProtectionEnabled ?? true,
                 manualPaymentEnabled: (settings as any).manualPaymentEnabled ?? false,
                 manualPaymentBankBin: (settings as any).manualPaymentBankBin || '',
                 manualPaymentBankName: (settings as any).manualPaymentBankName || '',
@@ -521,6 +523,25 @@ export default function AdminSettingsPage() {
                                     type="checkbox"
                                     checked={formData.chapterAudioDownloadEnabled}
                                     onChange={(e) => setFormData({ ...formData, chapterAudioDownloadEnabled: e.target.checked })}
+                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between border-t border-outline-variant pt-4">
+                                <div>
+                                    <label className="text-sm font-medium text-on-surface-variant">
+                                        Chống copy nội dung truyện
+                                    </label>
+                                    <p className="text-xs text-on-surface-variant">
+                                        Khi bật: Trang đọc chặn bôi đen, copy, chuột phải, kéo thả trên nội dung chương
+                                        (tác giả truyện và admin không bị chặn)<br />
+                                        Khi tắt: Độc giả copy nội dung bình thường
+                                    </p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.copyProtectionEnabled}
+                                    onChange={(e) => setFormData({ ...formData, copyProtectionEnabled: e.target.checked })}
                                     className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                 />
                             </div>

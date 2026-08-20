@@ -54,6 +54,19 @@ export default function ChapterReadingPage() {
         (user.id === ((story as any)?.data?.authorId || (story as any)?.authorId) ||
             (user as any).role === 'ADMIN');
 
+    // Chống copy nội dung chương (chặn mềm client): bật theo settings admin
+    // (mặc định bật kể cả khi settings chưa load), miễn cho tác giả/admin.
+    const copyProtected =
+        ((siteSettings as any)?.copyProtectionEnabled ?? true) && !isStoryOwner;
+    const copyGuardProps = copyProtected
+        ? {
+            onCopy: (e: React.ClipboardEvent) => e.preventDefault(),
+            onCut: (e: React.ClipboardEvent) => e.preventDefault(),
+            onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+            onDragStart: (e: React.DragEvent) => e.preventDefault(),
+        }
+        : {};
+
     // Chốt status lỗi vào state vì react-query xoá `error` về null trong lúc refetch
     // (403 = truyện/chương chưa xuất bản, tách khỏi 404 để hiển thị đúng thông báo).
     const [chapterErrorStatus, setChapterErrorStatus] = useState<number | null>(null);
@@ -809,8 +822,14 @@ export default function ChapterReadingPage() {
                                     )}
                                     <div
                                         ref={contentRef}
-                                        className="bg-surface-container rounded-lg p-6 md:p-8 lg:p-12 shadow-sm"
-                                        style={{ fontSize: `${fontSize}px`, lineHeight: '2' }}
+                                        className={`bg-surface-container rounded-lg p-6 md:p-8 lg:p-12 shadow-sm${copyProtected ? ' select-none' : ''}`}
+                                        style={{
+                                            fontSize: `${fontSize}px`,
+                                            lineHeight: '2',
+                                            // iOS: chặn menu copy khi nhấn giữ vào text.
+                                            ...(copyProtected ? { WebkitTouchCallout: 'none' as const } : {}),
+                                        }}
+                                        {...copyGuardProps}
                                     >
                                         <div
                                             className="text-on-surface whitespace-pre-wrap leading-relaxed"

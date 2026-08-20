@@ -28,6 +28,8 @@ export interface Settings {
     allowCoinTransfer?: boolean;
     /** Cho phép độc giả tải xuống file audio chương (audio tác giả + AI). */
     chapterAudioDownloadEnabled?: boolean;
+    /** Chống copy nội dung chương trên trang đọc (mặc định bật). */
+    copyProtectionEnabled?: boolean;
     minWithdrawalCoins?: number;
     allowedImageDomains?: string[];
     // --- Thanh toán thủ công (chuyển khoản, admin xác nhận tay) ---
@@ -65,6 +67,7 @@ export interface UpdateSettingsRequest {
     chapterSaleFeePercent?: number;
     allowCoinTransfer?: boolean;
     chapterAudioDownloadEnabled?: boolean;
+    copyProtectionEnabled?: boolean;
     minWithdrawalCoins?: number;
     allowedImageDomains?: string[];
     // --- Thanh toán thủ công ---

@@ -114,6 +114,11 @@ export class UpdateSettingsDto {
   @IsBoolean()
   chapterAudioDownloadEnabled?: boolean;
 
+  // Chống copy nội dung chương trên trang đọc (chặn mềm phía client).
+  @IsOptional()
+  @IsBoolean()
+  copyProtectionEnabled?: boolean;
+
   // Spec mục 17 — số xu tối thiểu được rút.
   @IsOptional()
   @IsInt()

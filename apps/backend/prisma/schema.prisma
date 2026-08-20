@@ -856,6 +856,9 @@ model Settings {
   // Mặc định tắt: player ẩn nút download (controlsList=nodownload — chặn mềm,
   // URL vẫn public trên CDN).
   chapterAudioDownloadEnabled Boolean @default(false)
+  // Chống copy nội dung chương trên trang đọc (chặn bôi đen/copy/chuột phải —
+  // chặn mềm phía client; tác giả truyện + admin được miễn). Mặc định bật.
+  copyProtectionEnabled       Boolean @default(true)
   // Quảng cáo — global kill switch + cấu hình network ID. Client gọi
   // GET /ads/config để lấy snapshot dạng JSON.
   adsEnabled                 Boolean  @default(true)
