@@ -822,15 +822,9 @@ export default function ChapterReadingPage() {
                                             chapterId={chapterData.id}
                                             ttsAudioUrl={chapterData.ttsAudioUrl}
                                             ttsAudioStatus={chapterData.ttsAudioStatus}
-                                            // Nút tạo giọng AI CHỈ cho tác giả truyện/admin
-                                            // (isStoryOwner), với chương miễn phí không paywall.
-                                            canRequestTts={
-                                                isStoryOwner &&
-                                                !chapterData.audioUrl &&
-                                                (chapterData.price ?? 0) === 0 &&
-                                                !(chapterData as any).lockType
-                                            }
-                                            canRegenerateTts={isStoryOwner}
+                                            // Tắt tạo giọng AI trên trang đọc — chỉ nghe audio đã có.
+                                            canRequestTts={false}
+                                            canRegenerateTts={false}
                                             // Admin bật mới cho tải xuống audio.
                                             allowDownload={
                                                 (siteSettings as any)?.chapterAudioDownloadEnabled === true
