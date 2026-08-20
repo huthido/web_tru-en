@@ -8,6 +8,7 @@ import { WalletModule } from '../wallet/wallet.module';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { MonetizationModule } from '../monetization/monetization.module';
+import { TtsModule } from '../tts/tts.module';
 
 @Module({
   imports: [
@@ -17,6 +18,8 @@ import { MonetizationModule } from '../monetization/monetization.module';
     WalletModule,
     NotificationsModule,
     MonetizationModule,
+    // Tự sinh audio AI khi chương được xuất bản.
+    TtsModule,
   ],
   controllers: [ChaptersController, AdminChaptersController, ChapterUploadController],
   providers: [ChaptersService, ChaptersCron],

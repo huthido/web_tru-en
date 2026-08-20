@@ -56,6 +56,8 @@ export class TtsService {
     private readonly workerVoice: string;
     private readonly workerTimeoutMs: number;
     private readonly queueEnabled: boolean;
+    /** Tự sinh audio khi chương xuất bản (mặc định bật khi có worker). */
+    private readonly autoGenerateEnabled: boolean;
     /** Chống double-run khi queue tắt (inline fallback). */
     private readonly inlineRunning = new Set<string>();
     /** Cache danh sách giọng preset từ worker (đổi khi đổi model → cache 1h). */
@@ -77,6 +79,8 @@ export class TtsService {
             10,
         ) || 20 * 60_000;
         this.queueEnabled = !!this.configService.get<string>('REDIS_URL') && !!this.ttsQueue;
+        this.autoGenerateEnabled =
+            this.enabled && this.configService.get<string>('TTS_AUTO_GENERATE') !== '0';
 
         if (this.enabled) {
             this.logger.log(`VieNeu-TTS worker configured at ${this.workerUrl}`);
@@ -221,13 +225,21 @@ export class TtsService {
             orderBy: { order: 'asc' },
         });
 
+        const queued = await this.claimAndEnqueue(eligible.map((c) => c.id));
+        const status = await this.computeStoryStatus(story.id);
+        return { queued, ...status };
+    }
+
+    /**
+     * Claim atomic từng chương (null/FAILED → PENDING) rồi đẩy job — chương
+     * đã được xếp hàng ở nơi khác giữa chừng sẽ bị bỏ qua. Trả số job đã tạo.
+     */
+    private async claimAndEnqueue(chapterIds: string[]): Promise<number> {
         let queued = 0;
-        for (const ch of eligible) {
-            // Claim atomic từng chương — chương nào đó có thể đã được xếp
-            // hàng riêng lẻ giữa chừng.
+        for (const id of chapterIds) {
             const claimed = await this.prisma.chapter.updateMany({
                 where: {
-                    id: ch.id,
+                    id,
                     OR: [{ ttsAudioStatus: null }, { ttsAudioStatus: TtsAudioStatus.FAILED }],
                 },
                 data: { ttsAudioStatus: TtsAudioStatus.PENDING },
@@ -236,17 +248,64 @@ export class TtsService {
             if (this.queueEnabled && this.ttsQueue) {
                 await this.ttsQueue.add(
                     'generate',
-                    { chapterId: ch.id } satisfies TtsJobData,
-                    { jobId: `tts-${ch.id}-${Date.now()}` },
+                    { chapterId: id } satisfies TtsJobData,
+                    { jobId: `tts-${id}-${Date.now()}` },
                 );
             } else {
-                this.runInline(ch.id);
+                this.runInline(id);
             }
             queued++;
         }
+        return queued;
+    }
 
-        const status = await this.computeStoryStatus(story.id);
-        return { queued, ...status };
+    // ------------------------------------------------------------------
+    // Tự động sinh khi chương được XUẤT BẢN — độc giả không phải đợi.
+    // Hook từ ChaptersService (publish/update/cron hẹn giờ) và
+    // ApprovalsService (duyệt truyện auto-publish chương). Fire-and-forget:
+    // lỗi chỉ log, không chặn luồng publish. Tắt bằng TTS_AUTO_GENERATE=0.
+    // ------------------------------------------------------------------
+
+    autoGenerateForChapter(chapterId: string): void {
+        if (!this.autoGenerateEnabled) return;
+        this.autoGenerate({ id: chapterId }).catch((err) =>
+            this.logger.warn(`Auto TTS for chapter ${chapterId} failed: ${err.message}`),
+        );
+    }
+
+    autoGenerateForStory(storyId: string): void {
+        if (!this.autoGenerateEnabled) return;
+        this.autoGenerate({ storyId }).catch((err) =>
+            this.logger.warn(`Auto TTS for story ${storyId} failed: ${err.message}`),
+        );
+    }
+
+    private async autoGenerate(target: { id?: string; storyId?: string }): Promise<void> {
+        const eligible = await this.prisma.chapter.findMany({
+            where: {
+                ...target,
+                isPublished: true,
+                audioUrl: null,
+                // Auto chỉ sinh LẦN ĐẦU (status null). FAILED không tự retry —
+                // tránh vòng lặp đốt CPU khi một chương lỗi hệ thống; tác giả
+                // bấm thử lại thủ công ở trang quản lý chương.
+                ttsAudioStatus: null,
+                // Chỉ chương miễn phí (audio là URL public).
+                OR: [
+                    { story: { accessType: 'FREE' } },
+                    { story: { accessType: 'VIP', price: { lte: 0 } } },
+                    { price: 0, story: { accessType: 'FREEMIUM' } },
+                ],
+            },
+            select: { id: true },
+            orderBy: { order: 'asc' },
+            take: 500, // trần an toàn khi import truyện cực dài
+        });
+        if (eligible.length === 0) return;
+        const queued = await this.claimAndEnqueue(eligible.map((c) => c.id));
+        if (queued > 0) {
+            this.logger.log(`Auto-queued TTS for ${queued} freshly published chapter(s)`);
+        }
     }
 
     /** Tiến độ audio AI của truyện (đếm theo trạng thái) — tác giả/admin. */

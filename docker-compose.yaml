@@ -209,6 +209,8 @@ services:
       TTS_WORKER_URL: ${TTS_WORKER_URL:-}
       TTS_WORKER_API_KEY: ${TTS_WORKER_API_KEY:-}
       TTS_WORKER_VOICE: ${TTS_WORKER_VOICE:-}
+      # Tự sinh audio khi chương xuất bản (mặc định bật; đặt "0" để tắt).
+      TTS_AUTO_GENERATE: ${TTS_AUTO_GENERATE:-}
     ports:
       - "${BACKEND_PORT:-3009}:3009"
     volumes:

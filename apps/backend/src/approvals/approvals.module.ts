@@ -4,9 +4,11 @@ import { ApprovalsService } from './approvals.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { EmailModule } from '../email/email.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { TtsModule } from '../tts/tts.module';
 
 @Module({
-  imports: [PrismaModule, EmailModule, NotificationsModule],
+  // TtsModule: tự sinh audio AI cho chương được auto-publish khi duyệt truyện.
+  imports: [PrismaModule, EmailModule, NotificationsModule, TtsModule],
   controllers: [ApprovalsController],
   providers: [ApprovalsService],
   exports: [ApprovalsService],

@@ -3,6 +3,7 @@ import {
     NotFoundException,
     ForbiddenException,
     BadRequestException,
+    Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateChapterDto } from './dto/create-chapter.dto';
@@ -16,6 +17,7 @@ import { getPaginationParams, createPaginatedResult } from '../common/utils/pagi
 
 import { WalletService } from '../wallet/wallet.service';
 import { MonetizationService } from '../monetization/monetization.service';
+import { TtsService } from '../tts/tts.service';
 
 @Injectable()
 export class ChaptersService {
@@ -25,6 +27,8 @@ export class ChaptersService {
         private walletService: WalletService,
         private notificationsService: NotificationsService,
         private monetization: MonetizationService,
+        // Optional: thiếu TtsModule (test cũ) thì publish vẫn chạy bình thường.
+        @Optional() private ttsService?: TtsService,
     ) { }
 
     /**
@@ -377,11 +381,16 @@ export class ChaptersService {
             updateData.price = updateChapterDto.price;
         }
 
-        return this.prisma.chapter.update({
+        const updated = await this.prisma.chapter.update({
             where: { id },
             data: updateData,
             include: chapterWithStoryInclude,
         });
+        // Admin bật isPublished qua PATCH → cũng tự sinh audio AI như publish().
+        if (updateData.isPublished === true) {
+            this.ttsService?.autoGenerateForChapter(id);
+        }
+        return updated;
     }
 
     async remove(id: string, userId: string, userRole: UserRole) {
@@ -469,6 +478,8 @@ export class ChaptersService {
                     slug: chapter.story.slug,
                 },
             });
+            // Tự sinh audio AI nền — độc giả vào là có sẵn, không phải đợi.
+            this.ttsService?.autoGenerateForChapter(chapter.id);
             return updated;
         };
 
@@ -844,6 +855,8 @@ export class ChaptersService {
                     slug: ch.slug,
                     story: { id: ch.story.id, title: ch.story.title, slug: ch.story.slug },
                 });
+                // Chương hẹn giờ vừa đăng → tự sinh audio AI nền.
+                this.ttsService?.autoGenerateForChapter(ch.id);
                 published++;
             } catch {
                 // Lỗi 1 chương không chặn các chương còn lại; cron sau thử lại.

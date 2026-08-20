@@ -4,6 +4,7 @@ import {
     ForbiddenException,
     BadRequestException,
     Logger,
+    Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
@@ -12,6 +13,7 @@ import { CreateApprovalRequestDto } from './dto/create-approval-request.dto';
 import { ReviewApprovalDto } from './dto/review-approval.dto';
 import { ApprovalType, ApprovalStatus, UserRole, StoryStatus, NotificationType } from '@prisma/client';
 import { getPaginationParams, createPaginatedResult } from '../common/utils/pagination.util';
+import { TtsService } from '../tts/tts.service';
 
 /**
  * Tác giả có từng này truyện được admin duyệt TAY thì thành "tác giả tin cậy":
@@ -31,6 +33,8 @@ export class ApprovalsService {
         private prisma: PrismaService,
         private emailService: EmailService,
         private notificationsService: NotificationsService,
+        // Optional: thiếu TtsModule thì duyệt truyện vẫn chạy bình thường.
+        @Optional() private ttsService?: TtsService,
     ) { }
 
     async createRequest(
@@ -601,6 +605,8 @@ export class ApprovalsService {
             this.logger.log(
                 `Auto-published ${published.count} chapter(s) of approved story ${storyId}`,
             );
+            // Tự sinh audio AI nền cho toàn bộ chương vừa đăng kèm truyện.
+            this.ttsService?.autoGenerateForStory(storyId);
         }
         return published.count;
     }
