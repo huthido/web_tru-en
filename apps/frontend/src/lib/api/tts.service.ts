@@ -13,6 +13,8 @@ export interface TtsVoiceInfo {
 export interface TtsPresetVoice {
     label: string;
     id: string;
+    /** Nhóm phong cách (backend sort sẵn): Đọc truyện | Kể chuyện | Tự nhiên | Khác | Tin tức. */
+    group?: string;
 }
 
 export interface TtsPreviewResult {

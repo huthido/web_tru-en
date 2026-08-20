@@ -48,7 +48,7 @@ export class TtsService {
     /** Chống double-run khi queue tắt (inline fallback). */
     private readonly inlineRunning = new Set<string>();
     /** Cache danh sách giọng preset từ worker (đổi khi đổi model → cache 1h). */
-    private voicesCache: { label: string; id: string }[] | null = null;
+    private voicesCache: { label: string; id: string; group: string }[] | null = null;
     private voicesCacheAt = 0;
 
     constructor(
@@ -313,8 +313,10 @@ export class TtsService {
     /**
      * Danh sách giọng preset của model (từ worker GET /voices), cache 1h —
      * danh sách chỉ đổi khi đổi model. Worker chưa sẵn sàng thì trả rỗng.
+     * Đã sort + gắn `group` theo phong cách: giọng hợp đọc truyện lên đầu,
+     * giọng tin tức (khô, không hợp văn truyện) xuống cuối.
      */
-    async listVoices(): Promise<{ voices: { label: string; id: string }[] }> {
+    async listVoices(): Promise<{ voices: { label: string; id: string; group: string }[] }> {
         if (!this.enabled) return { voices: [] };
         const now = Date.now();
         if (this.voicesCache && now - this.voicesCacheAt < 60 * 60_000) {
@@ -327,7 +329,7 @@ export class TtsService {
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = (await res.json()) as { voices?: { label: string; id: string }[] };
-            this.voicesCache = data.voices || [];
+            this.voicesCache = groupAndSortVoices(data.voices || []);
             this.voicesCacheAt = now;
         } catch (err: any) {
             this.logger.warn(`Cannot fetch voice list from worker: ${err.message}`);
@@ -417,6 +419,28 @@ export class TtsService {
         const audio = await this.callWorker(sample, { ...opts, timeoutMs: 3 * 60_000 });
         return { audioBase64: audio.toString('base64'), mime: 'audio/mpeg' };
     }
+}
+
+/**
+ * Phân nhóm giọng theo phong cách trong label worker trả về
+ * ("Quỳnh Anh — Nữ · Bắc · Phong cách đọc truyện") và sort ổn định:
+ * Đọc truyện → Kể chuyện → Tự nhiên → Khác → Tin tức (cuối — không hợp truyện).
+ */
+export function groupAndSortVoices(
+    voices: { label: string; id: string }[],
+): { label: string; id: string; group: string }[] {
+    const classify = (label: string): { group: string; rank: number } => {
+        const l = label.toLowerCase();
+        if (l.includes('đọc truyện')) return { group: 'Đọc truyện', rank: 0 };
+        if (l.includes('kể chuyện')) return { group: 'Kể chuyện', rank: 1 };
+        if (l.includes('tự nhiên')) return { group: 'Tự nhiên', rank: 2 };
+        if (l.includes('tin tức')) return { group: 'Tin tức', rank: 4 };
+        return { group: 'Khác', rank: 3 };
+    };
+    return voices
+        .map((v, i) => ({ v, i, ...classify(v.label) }))
+        .sort((a, b) => a.rank - b.rank || a.i - b.i)
+        .map(({ v, group }) => ({ ...v, group }));
 }
 
 /** Bóc HTML chương thành text thuần cho TTS (bản server của toPlainText client). */

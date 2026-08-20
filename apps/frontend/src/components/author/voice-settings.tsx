@@ -8,6 +8,34 @@ import { TTS_EMOTION_TAGS } from '@/utils/tts-emotion';
 const MAX_VOICE_SIZE = 10 * 1024 * 1024; // 10MB — khớp giới hạn backend
 const ACCEPT = '.mp3,.m4a,.aac,.ogg,.opus,.wav,.flac,audio/*';
 
+/** Gom giọng theo group, giữ thứ tự mảng (backend đã sort nhóm phù hợp lên đầu). */
+function groupVoices(voices: TtsPresetVoice[]): [string, TtsPresetVoice[]][] {
+    const groups: [string, TtsPresetVoice[]][] = [];
+    for (const v of voices) {
+        const g = v.group || 'Khác';
+        const last = groups[groups.length - 1];
+        if (last && last[0] === g) {
+            last[1].push(v);
+        } else {
+            groups.push([g, [v]]);
+        }
+    }
+    return groups;
+}
+
+function groupLabel(group: string): string {
+    if (group === 'Đọc truyện') return 'Giọng đọc truyện (khuyên dùng)';
+    if (group === 'Kể chuyện') return 'Giọng kể chuyện';
+    if (group === 'Tự nhiên') return 'Giọng tự nhiên';
+    if (group === 'Tin tức') return 'Giọng tin tức (ít hợp văn truyện)';
+    return group;
+}
+
+/** Bỏ phần phong cách cuối label (trùng tên nhóm): "Quỳnh Anh — Nữ · Bắc". */
+function shortVoiceLabel(label: string): string {
+    return label.replace(/\s*·\s*(Phong cách|Giọng đọc)[^·]*$/i, '');
+}
+
 /**
  * Card "Giọng đọc AI" trong bảng điều khiển tác giả:
  * - Chọn giọng preset của VieNeu (Minh Đức, Trúc Ly, Adam...) cho truyện.
@@ -169,8 +197,15 @@ export function VoiceSettings() {
                         aria-label="Giọng đọc AI"
                     >
                         <option value="">Giọng mặc định hệ thống</option>
-                        {voices.map((v) => (
-                            <option key={v.id} value={v.id}>{v.label}</option>
+                        {/* Backend đã sort: Đọc truyện → Kể chuyện → Tự nhiên → Tin tức.
+                            Gom optgroup theo thứ tự mảng; label option bỏ phần phong
+                            cách (trùng tên nhóm). */}
+                        {groupVoices(voices).map(([group, items]) => (
+                            <optgroup key={group} label={groupLabel(group)}>
+                                {items.map((v) => (
+                                    <option key={v.id} value={v.id}>{shortVoiceLabel(v.label)}</option>
+                                ))}
+                            </optgroup>
                         ))}
                     </select>
                     <button
