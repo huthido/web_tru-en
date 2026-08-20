@@ -43,6 +43,7 @@ uvicorn main:app --port 8000
 | `TTS_CHUNK_CHARS` | `400` | Độ dài mỗi đoạn khi cắt câu |
 | `TTS_MAX_CHARS` | `200000` | Chặn text quá dài |
 | `TTS_MP3_BITRATE` | `64k` | Bitrate MP3 đầu ra (mono) |
+| `TTS_ALLOW_PRIVATE_REF_URLS` | (tắt) | `1` = cho phép `ref_audio_url` trỏ host private/localhost (chỉ dùng khi dev native — mặc định chặn để chống SSRF) |
 
 ## Cấu hình backend
 

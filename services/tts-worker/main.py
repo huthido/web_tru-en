@@ -13,15 +13,18 @@ progress log rõ ràng khi chương dài.
 """
 
 import hashlib
+import ipaddress
 import logging
 import os
 import re
+import socket
 import subprocess
 import tempfile
 import threading
 import urllib.request
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import Response
@@ -45,6 +48,45 @@ _infer_lock = threading.Lock()
 REF_CACHE = Path(os.environ.get("HF_HOME", tempfile.gettempdir())) / "ref-cache"
 REF_MAX_BYTES = 20 * 1024 * 1024
 _ref_voice_names: dict[str, str | None] = {}
+
+# Chống SSRF: ref_audio_url chỉ được là http/https tới host PUBLIC (URL Garage
+# CDN do backend đưa sang). Dev native dùng http://localhost/uploads/... thì
+# bật TTS_ALLOW_PRIVATE_REF_URLS=1.
+ALLOW_PRIVATE_REF = os.environ.get("TTS_ALLOW_PRIVATE_REF_URLS", "") == "1"
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Không theo redirect — tránh URL public trả 302 trỏ vào host nội bộ."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+_ref_opener = urllib.request.build_opener(_NoRedirect)
+
+
+def validate_ref_url(url: str) -> None:
+    """Chặn scheme khác http/https và host phân giải ra IP private/loopback.
+
+    Lưu ý: check lúc resolve, không chống được DNS rebinding hoàn toàn —
+    lớp bảo vệ chính vẫn là TTS_API_KEY + không expose port ra ngoài.
+    """
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        raise HTTPException(status_code=400, detail="Invalid reference clip URL")
+    if ALLOW_PRIVATE_REF:
+        return
+    try:
+        infos = socket.getaddrinfo(parsed.hostname, None)
+    except socket.gaierror:
+        raise HTTPException(status_code=400, detail="Invalid reference clip URL")
+    for info in infos:
+        ip = ipaddress.ip_address(info[4][0])
+        if (
+            ip.is_private or ip.is_loopback or ip.is_link_local
+            or ip.is_reserved or ip.is_multicast or ip.is_unspecified
+        ):
+            raise HTTPException(status_code=400, detail="Invalid reference clip URL")
 
 
 def _load_model():
@@ -106,12 +148,18 @@ def get_ref_wav(url: str) -> tuple[Path, str]:
     if wav.exists():
         return wav, key
 
+    validate_ref_url(url)
     raw = REF_CACHE / f"{key}.src"
     try:
-        with urllib.request.urlopen(url, timeout=30) as resp:
+        with _ref_opener.open(url, timeout=30) as resp:
             data = resp.read(REF_MAX_BYTES + 1)
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Cannot download reference clip: {e}")
+        # Log chi tiết server-side; response chỉ trả lỗi chung (không echo
+        # exception — tránh lộ thông tin nội bộ qua thông báo lỗi).
+        log.warning("Cannot download reference clip: %s", e)
+        raise HTTPException(status_code=400, detail="Cannot download reference clip")
     if len(data) > REF_MAX_BYTES:
         raise HTTPException(status_code=400, detail="Reference clip too large (>20MB)")
     raw.write_bytes(data)
