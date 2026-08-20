@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
-import { useLayoutEffect, useRef, useCallback } from 'react';
+import { useEffect as useClientEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
 import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, UserCircle, HelpCircle, Plus, Bug, Megaphone, PanelLeftClose, PanelLeftOpen, type LucideIcon } from 'lucide-react';
@@ -60,7 +60,7 @@ export function Sidebar() {
   const navRef = useRef<HTMLElement>(null);
 
   // Khôi phục vị trí scroll trước khi paint (tránh nhảy)
-  useLayoutEffect(() => {
+  useClientEffect(() => {
     const saved = sessionStorage.getItem('sidebar-scroll');
     if (saved && navRef.current) navRef.current.scrollTop = Number(saved);
   }, []);

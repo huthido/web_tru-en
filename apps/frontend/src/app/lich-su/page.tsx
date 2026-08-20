@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { ImageSizes } from '@/utils/image-utils';
@@ -14,9 +14,14 @@ import { useReadingHistory, useClearHistory } from '@/lib/api/hooks/use-reading-
 import { useToast } from '@/components/ui/toast';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 
-function formatDate(dateString: string): string {
+function useNow() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { setNow(new Date()); }, []);
+  return now;
+}
+
+function formatDate(dateString: string, now: Date): string {
   const date = new Date(dateString);
-  const now = new Date();
   const diffInMs = now.getTime() - date.getTime();
   const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
@@ -43,6 +48,7 @@ function HistoryContent() {
   const [limit, setLimit] = useState(20);
   const [showClearModal, setShowClearModal] = useState(false);
   const { showToast } = useToast();
+  const now = useNow();
 
   const { data: historyData, isLoading } = useReadingHistory({ page, limit });
   const clearHistoryMutation = useClearHistory();
@@ -185,7 +191,7 @@ function HistoryContent() {
                           <div className="space-y-2">
                             <div className="flex items-center justify-between text-xs md:text-sm">
                               <span className="text-on-surface-variant">Tiến độ đọc</span>
-                              <span className="text-on-surface-variant">{formatDate(item.lastRead)}</span>
+                              <span className="text-on-surface-variant">{formatDate(item.lastRead, now)}</span>
                             </div>
                             {/* Progress Bar */}
                             <div className="w-full bg-surface-variant rounded-full h-2">

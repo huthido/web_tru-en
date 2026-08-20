@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useMemo } from 'react';
+import { memo, useState, useMemo, useEffect } from 'react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { ImageSizes } from '@/utils/image-utils';
 import { Comment } from '@/lib/api/comments.service';
@@ -19,6 +19,9 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showReplies, setShowReplies] = useState(true);
+
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { setNow(new Date()); }, []);
 
   const replyMutation = useReplyToComment();
   const updateMutation = useUpdateComment();
@@ -64,7 +67,6 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
     const diff = now.getTime() - date.getTime();
     const seconds = Math.floor(diff / 1000);
     const minutes = Math.floor(seconds / 60);

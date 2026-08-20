@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
@@ -41,10 +41,12 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
 
   // URL tuyệt đối của trang cá nhân để chia sẻ — ưu tiên slug tuỳ chỉnh nếu có.
   const shareSlug = profile?.profileSlug || username;
-  const profileUrl =
-    typeof window !== 'undefined' && shareSlug
-      ? `${window.location.origin}/u/${encodeURIComponent(shareSlug)}`
-      : undefined;
+  const [profileUrl, setProfileUrl] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    if (shareSlug) {
+      setProfileUrl(`${window.location.origin}/u/${encodeURIComponent(shareSlug)}`);
+    }
+  }, [shareSlug]);
   const displayName = profile?.displayName || profile?.username || '';
 
   return (

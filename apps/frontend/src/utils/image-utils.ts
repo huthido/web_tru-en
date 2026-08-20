@@ -266,11 +266,10 @@ export function supportsAVIF(): boolean {
 }
 
 /**
- * Get best image format based on browser support
+ * Get best image format based on browser support.
+ * Always returns 'auto' on server to avoid hydration mismatch.
+ * Client should call detectImageFormat() in useEffect for accurate detection.
  */
 export function getBestImageFormat(): 'webp' | 'avif' | 'auto' {
-  if (typeof window === 'undefined') return 'auto';
-  if (supportsAVIF()) return 'avif';
-  if (supportsWebP()) return 'webp';
   return 'auto';
 }

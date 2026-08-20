@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -10,14 +10,11 @@ export default function RegistrationSuccessPage() {
   const [isResending, setIsResending] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Get email from URL query params if available
-  if (typeof window !== 'undefined') {
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
-    if (emailParam && !email) {
-      setEmail(emailParam);
-    }
-  }
+    if (emailParam) setEmail(emailParam);
+  }, []);
 
   const handleResendEmail = async () => {
     if (!email) {

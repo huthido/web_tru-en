@@ -416,6 +416,7 @@ const nextConfig = {
     return [
       ...tabRedirects,
       ...map.map(([source, destination]) => ({ source, destination, permanent: true })),
+      { source: '/favicon.ico', destination: '/favicon-heart.svg', permanent: true },
       ...slugRedirects(),
     ];
   },

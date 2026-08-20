@@ -83,6 +83,21 @@ export function OptimizedImage({
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
 
+  const [imageFormat, setImageFormat] = useState<'webp' | 'avif' | 'auto'>('auto');
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      if (canvas.toDataURL('image/avif').indexOf('data:image/avif') === 0) {
+        setImageFormat('avif');
+      } else if (canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0) {
+        setImageFormat('webp');
+      }
+    } catch {}
+  }, []);
+
   // Optimize image URL with CDN parameters if supported
   const optimizedSrc = useMemo(() => {
     if (unoptimized || shouldUnoptimizeImage(src)) {
@@ -90,14 +105,13 @@ export function OptimizedImage({
     }
 
     // Try to optimize the URL if CDN supports it
-    const format = getBestImageFormat();
     return optimizeImageUrl(src, {
       width: width,
       height: height,
       quality,
-      format,
+      format: imageFormat,
     });
-  }, [src, width, height, quality, unoptimized]);
+  }, [src, width, height, quality, unoptimized, imageFormat]);
 
   // Generate blur placeholder
   const blurPlaceholder = useMemo(() => {

@@ -9,9 +9,7 @@ import { useEffect, useState } from 'react';
  */
 export function usePageLimit(small = 20, large = 24): number {
   const query = '(min-width: 1280px)';
-  const [limit, setLimit] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia(query).matches ? large : small,
-  );
+  const [limit, setLimit] = useState(small);
 
   useEffect(() => {
     const mql = window.matchMedia(query);

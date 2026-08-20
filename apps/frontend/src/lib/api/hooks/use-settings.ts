@@ -22,8 +22,8 @@ export const useSettings = () => {
                     siteFavicon: null,
                     siteUrl: null,
                     maintenanceMessage: null,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
+                    createdAt: new Date(0),
+                    updatedAt: new Date(0),
                 } as unknown as Settings;
             }
         },

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { ImageSizes } from '@/utils/image-utils';
 import { Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
@@ -10,7 +11,8 @@ import { useSettings } from '@/lib/api/hooks/use-settings';
 import { BrandMark } from '@/components/ui/brand-mark';
 
 export function Footer() {
-    const currentYear = new Date().getFullYear();
+    const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
+    useEffect(() => { setCurrentYear(new Date().getFullYear()); }, []);
     const { data: settings } = useSettings();
 
     return (
