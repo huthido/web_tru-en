@@ -36,6 +36,7 @@ export default function ChapterManagementPage() {
     const { toasts, showToast, removeToast } = useToast();
     
     const isAdmin = user?.role === 'ADMIN';
+    const isStoryOwner = !!user && (user.id === (story as any)?.authorId || isAdmin);
 
     // Get approval requests to check story approval status
     const { data: approvalsResponse } = useMyApprovals({ limit: 1000 });
@@ -136,9 +137,10 @@ export default function ChapterManagementPage() {
     const ttsStatusOf = (chapter: any): string | null =>
         ttsOverrides[chapter.id] ?? chapter.ttsAudioStatus ?? null;
 
-    // Chương đủ điều kiện tạo giọng AI: đã xuất bản, không có audio tác giả,
+    // Chương đủ điều kiện tạo giọng AI: chủ truyện/admin, đã xuất bản, không có audio tác giả,
     // không thuộc diện trả phí (VIP trả phí / FREEMIUM chương có giá).
     const canTts = (chapter: any): boolean =>
+        isStoryOwner &&
         chapter.isPublished &&
         !chapter.audioUrl &&
         !((story as any)?.accessType === 'VIP' && ((story as any)?.price ?? 0) > 0) &&
@@ -278,14 +280,16 @@ export default function ChapterManagementPage() {
                                         >
                                             Quay lại
                                         </Link>
-                                        <button
-                                            onClick={() => setBulkTtsModal(true)}
-                                            className="px-4 py-2 border border-outline-variant text-primary hover:bg-surface-container-high rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
-                                            title="Tạo audio AI cho mọi chương miễn phí đã xuất bản chưa có audio"
-                                        >
-                                            <Sparkles size={18} />
-                                            Tạo giọng AI cả truyện
-                                        </button>
+                                        {isStoryOwner && (
+                                            <button
+                                                onClick={() => setBulkTtsModal(true)}
+                                                className="px-4 py-2 border border-outline-variant text-primary hover:bg-surface-container-high rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
+                                                title="Tạo audio AI cho mọi chương miễn phí đã xuất bản chưa có audio"
+                                            >
+                                                <Sparkles size={18} />
+                                                Tạo giọng AI cả truyện
+                                            </button>
+                                        )}
                                         <Link
                                             href={`/tac-gia/truyen/${storySlug}/chuong/tao`}
                                             className="px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
