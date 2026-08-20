@@ -1,5 +1,6 @@
 import {
     BadRequestException,
+    ForbiddenException,
     Injectable,
     Logger,
     NotFoundException,
@@ -92,10 +93,11 @@ export class TtsService {
     }
 
     /**
-     * User yêu cầu sinh audio AI cho chương. Idempotent: đang chờ/đang chạy/
-     * đã xong thì trả trạng thái hiện tại thay vì tạo job mới. Riêng tác giả
-     * truyện (hoặc admin) được yêu cầu SINH LẠI audio đã READY — dùng khi họ
-     * vừa đổi mẫu giọng (voice cloning) và muốn chương đọc bằng giọng mới.
+     * Yêu cầu sinh audio AI cho chương — CHỈ tác giả truyện hoặc admin
+     * (audio dùng chung cho mọi độc giả nên quyền tạo/tạo lại thuộc về chủ
+     * truyện; mỗi job cũng chiếm CPU worker nhiều phút). Idempotent: đang
+     * chờ/đang chạy thì trả trạng thái hiện tại; đã READY thì sinh LẠI
+     * (dùng khi tác giả vừa đổi giọng).
      */
     async requestGeneration(
         chapterId: string,
@@ -122,6 +124,13 @@ export class TtsService {
         if (!chapter || !chapter.isPublished) {
             throw new NotFoundException('Chương không tồn tại');
         }
+        const isOwner =
+            !!user && (user.id === chapter.story.authorId || user.role === 'ADMIN');
+        if (!isOwner) {
+            throw new ForbiddenException(
+                'Chỉ tác giả truyện mới tạo được giọng đọc AI cho chương',
+            );
+        }
         if (chapter.audioUrl) {
             throw new BadRequestException('Chương đã có audio do tác giả tải lên');
         }
@@ -133,14 +142,14 @@ export class TtsService {
             throw new BadRequestException('Chương trả phí không hỗ trợ giọng đọc AI');
         }
 
-        // Atomic claim: chỉ chuyển sang PENDING khi đang null hoặc FAILED —
-        // 2 user bấm cùng lúc thì chỉ 1 job được tạo. Tác giả/admin được claim
-        // thêm cả READY (sinh lại bằng giọng mới); PROCESSING thì không ai
-        // chen được.
-        const isOwner =
-            !!user && (user.id === chapter.story.authorId || user.role === 'ADMIN');
-        const claimableStatuses: (TtsAudioStatus | null)[] = [null, TtsAudioStatus.FAILED];
-        if (isOwner) claimableStatuses.push(TtsAudioStatus.READY);
+        // Atomic claim: 2 request cùng lúc thì chỉ 1 job được tạo. READY cũng
+        // claim được (sinh lại bằng giọng mới — caller đã là tác giả/admin);
+        // PENDING/PROCESSING thì không ai chen được.
+        const claimableStatuses: (TtsAudioStatus | null)[] = [
+            null,
+            TtsAudioStatus.FAILED,
+            TtsAudioStatus.READY,
+        ];
         const claimed = await this.prisma.chapter.updateMany({
             where: {
                 id: chapterId,

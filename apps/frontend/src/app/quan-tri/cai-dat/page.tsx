@@ -77,6 +77,7 @@ export default function AdminSettingsPage() {
         donationPlatformFeePercent: 2,
         chapterSaleFeePercent: 2,
         allowCoinTransfer: false,
+        chapterAudioDownloadEnabled: false,
         // --- Thanh toán thủ công (chuyển khoản) ---
         manualPaymentEnabled: false,
         manualPaymentBankBin: '',
@@ -121,6 +122,7 @@ export default function AdminSettingsPage() {
                 donationPlatformFeePercent: settings.donationPlatformFeePercent ?? 2,
                 chapterSaleFeePercent: settings.chapterSaleFeePercent ?? 2,
                 allowCoinTransfer: settings.allowCoinTransfer || false,
+                chapterAudioDownloadEnabled: (settings as any).chapterAudioDownloadEnabled ?? false,
                 manualPaymentEnabled: (settings as any).manualPaymentEnabled ?? false,
                 manualPaymentBankBin: (settings as any).manualPaymentBankBin || '',
                 manualPaymentBankName: (settings as any).manualPaymentBankName || '',
@@ -501,6 +503,24 @@ export default function AdminSettingsPage() {
                                     type="checkbox"
                                     checked={formData.allowCoinTransfer}
                                     onChange={(e) => setFormData({ ...formData, allowCoinTransfer: e.target.checked })}
+                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between border-t border-outline-variant pt-4">
+                                <div>
+                                    <label className="text-sm font-medium text-on-surface-variant">
+                                        Cho phép tải xuống audio chương
+                                    </label>
+                                    <p className="text-xs text-on-surface-variant">
+                                        Khi bật: Player audio (tác giả tải lên / giọng đọc AI) hiện nút tải xuống<br />
+                                        Khi tắt: Ẩn nút tải xuống và menu chuột phải trên player (chặn mềm)
+                                    </p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.chapterAudioDownloadEnabled}
+                                    onChange={(e) => setFormData({ ...formData, chapterAudioDownloadEnabled: e.target.checked })}
                                     className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                 />
                             </div>

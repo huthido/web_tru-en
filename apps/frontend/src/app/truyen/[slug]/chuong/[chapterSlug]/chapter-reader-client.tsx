@@ -31,6 +31,7 @@ import { useSaveProgress, useChapterProgress } from '@/lib/api/hooks/use-reading
 import { ChapterPaywall } from '@/components/stories/chapter-paywall';
 import { ChapterAudioPlayer, countryToTtsLang } from '@/components/stories/chapter-audio-player';
 import { stripTtsEmotionTags } from '@/utils/tts-emotion';
+import { useSettings } from '@/lib/api/hooks/use-settings';
 import { BookOpen, Search, Menu, Type, ChevronLeft, ChevronRight, X, Lock } from 'lucide-react';
 
 export default function ChapterReadingPage() {
@@ -44,6 +45,14 @@ export default function ChapterReadingPage() {
     const { data: chaptersResponse, isLoading: chaptersLoading } = useChapters(storySlug);
     const { data: story } = useStory(storySlug);
     const { user } = useAuth();
+    // Settings public (cache react-query) — lấy cờ cho phép tải xuống audio.
+    const { data: siteSettings } = useSettings();
+
+    // Tác giả truyện hoặc admin — quyền tạo/tạo lại giọng đọc AI.
+    const isStoryOwner =
+        !!user &&
+        (user.id === ((story as any)?.data?.authorId || (story as any)?.authorId) ||
+            (user as any).role === 'ADMIN');
 
     // Chốt status lỗi vào state vì react-query xoá `error` về null trong lúc refetch
     // (403 = truyện/chương chưa xuất bản, tách khỏi 404 để hiển thị đúng thông báo).
@@ -783,20 +792,18 @@ export default function ChapterReadingPage() {
                                             chapterId={chapterData.id}
                                             ttsAudioUrl={chapterData.ttsAudioUrl}
                                             ttsAudioStatus={chapterData.ttsAudioStatus}
-                                            // Giọng AI chỉ cho chương miễn phí không paywall
-                                            // (lockType null = không thuộc truyện/chương trả phí).
+                                            // Nút tạo giọng AI CHỈ cho tác giả truyện/admin
+                                            // (isStoryOwner), với chương miễn phí không paywall.
                                             canRequestTts={
+                                                isStoryOwner &&
                                                 !chapterData.audioUrl &&
                                                 (chapterData.price ?? 0) === 0 &&
                                                 !(chapterData as any).lockType
                                             }
-                                            // Tác giả truyện/admin được sinh lại audio (đổi giọng AI).
-                                            canRegenerateTts={
-                                                !!user &&
-                                                (user.id ===
-                                                    ((story as any)?.data?.authorId ||
-                                                        (story as any)?.authorId) ||
-                                                    (user as any).role === 'ADMIN')
+                                            canRegenerateTts={isStoryOwner}
+                                            // Admin bật mới cho tải xuống audio.
+                                            allowDownload={
+                                                (siteSettings as any)?.chapterAudioDownloadEnabled === true
                                             }
                                         />
                                     )}

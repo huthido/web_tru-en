@@ -19,10 +19,15 @@ interface ChapterAudioPlayerProps {
     ttsAudioUrl?: string | null;
     /** Trạng thái job sinh audio AI lúc load trang. */
     ttsAudioStatus?: TtsAudioStatus | null;
-    /** Chương miễn phí, không khoá → cho phép bấm "Tạo giọng đọc AI". */
+    /** User là TÁC GIẢ truyện/admin + chương miễn phí không khoá → hiện nút
+     *  "Tạo giọng đọc AI". Độc giả thường không có nút này (audio dùng chung,
+     *  quyền tạo thuộc chủ truyện). */
     canRequestTts?: boolean;
     /** User là tác giả truyện/admin → được sinh LẠI audio AI (đổi giọng). */
     canRegenerateTts?: boolean;
+    /** Admin bật cho phép tải xuống audio (Settings.chapterAudioDownloadEnabled).
+     *  false = ẩn nút download của player (chặn mềm). */
+    allowDownload?: boolean;
 }
 
 /**
@@ -124,7 +129,15 @@ export function ChapterAudioPlayer({
     ttsAudioStatus,
     canRequestTts,
     canRegenerateTts,
+    allowDownload,
 }: ChapterAudioPlayerProps) {
+    // Chặn mềm tải xuống khi admin chưa bật (ẩn nút download + menu chuột phải).
+    const audioGuardProps = allowDownload
+        ? {}
+        : {
+            controlsList: 'nodownload' as const,
+            onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+        };
     const [ttsSupported, setTtsSupported] = useState(false);
     // Giọng đọc AI (VieNeu-TTS) — sinh trên server, cache theo chương.
     const [aiUrl, setAiUrl] = useState<string | null>(ttsAudioUrl ?? null);
@@ -420,7 +433,7 @@ export function ChapterAudioPlayer({
                     <span>Nghe chương này</span>
                     <span className="text-xs font-normal text-on-surface-variant">(audio do tác giả tải lên)</span>
                 </div>
-                <audio controls preload="metadata" src={audioUrl} className="w-full">
+                <audio controls preload="metadata" src={audioUrl} className="w-full" {...audioGuardProps}>
                     Trình duyệt không hỗ trợ phát audio.
                 </audio>
             </div>
@@ -453,7 +466,7 @@ export function ChapterAudioPlayer({
                         </button>
                     )}
                 </div>
-                <audio controls preload="metadata" src={aiUrl} className="w-full">
+                <audio controls preload="metadata" src={aiUrl} className="w-full" {...audioGuardProps}>
                     Trình duyệt không hỗ trợ phát audio.
                 </audio>
                 {aiError && <p className="mt-2 text-xs text-error">{aiError}</p>}
@@ -461,10 +474,13 @@ export function ChapterAudioPlayer({
         );
     }
 
-    // --- Trường hợp 3: Web Speech API + nút tạo giọng đọc AI ---
+    // --- Trường hợp 3: Web Speech API + khu giọng đọc AI ---
+    // Nút tạo chỉ dành cho tác giả; độc giả vẫn thấy tiến trình khi đang sinh
+    // (audio tự hiện khi xong nhờ poll).
     const showAiRequest = !!chapterId && !!canRequestTts;
     const aiInProgress = aiStatus === 'PENDING' || aiStatus === 'PROCESSING';
-    if (!ttsSupported && !showAiRequest) return null;
+    const showAiSection = showAiRequest || (!!chapterId && aiInProgress);
+    if (!ttsSupported && !showAiSection) return null;
 
     return (
         <div className="mb-6 p-4 bg-surface-container rounded-lg shadow-sm">
@@ -568,15 +584,16 @@ export function ChapterAudioPlayer({
             )}
 
             {/* Giọng đọc AI: sinh 1 lần trên server (VieNeu-TTS), mọi người
-                dùng chung. Đang sinh thì poll (useEffect) tới khi có URL. */}
-            {showAiRequest && (
+                dùng chung. Đang sinh thì poll (useEffect) tới khi có URL.
+                Nút tạo chỉ hiện cho tác giả (showAiRequest). */}
+            {showAiSection && (
                 <div className="mt-3 pt-3 border-t border-outline-variant/50 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                     {aiInProgress ? (
                         <span className="inline-flex items-center gap-2 text-sm text-on-surface-variant">
                             <Loader2 size={15} className="animate-spin text-primary" />
                             Đang tạo giọng đọc AI… có thể mất vài phút. Audio sẽ tự xuất hiện tại đây.
                         </span>
-                    ) : (
+                    ) : showAiRequest ? (
                         <button
                             type="button"
                             onClick={requestAi}
@@ -586,18 +603,20 @@ export function ChapterAudioPlayer({
                             <Sparkles size={15} />
                             {aiStatus === 'FAILED' ? 'Tạo lại giọng đọc AI' : 'Tạo giọng đọc AI'}
                         </button>
-                    )}
-                    {aiError ? (
-                        <span className="text-xs text-error">{aiError}</span>
-                    ) : aiStatus === 'FAILED' ? (
-                        <span className="text-xs text-on-surface-variant">
-                            Lần tạo trước gặp lỗi — bạn có thể thử lại.
-                        </span>
-                    ) : !aiInProgress ? (
-                        <span className="text-xs text-on-surface-variant">
-                            Giọng tiếng Việt tự nhiên, tạo một lần rồi dùng cho mọi người.
-                        </span>
                     ) : null}
+                    {showAiRequest && (
+                        aiError ? (
+                            <span className="text-xs text-error">{aiError}</span>
+                        ) : aiStatus === 'FAILED' ? (
+                            <span className="text-xs text-on-surface-variant">
+                                Lần tạo trước gặp lỗi — bạn có thể thử lại.
+                            </span>
+                        ) : !aiInProgress ? (
+                            <span className="text-xs text-on-surface-variant">
+                                Đọc bằng giọng AI bạn đã cài — tạo một lần, mọi độc giả dùng chung.
+                            </span>
+                        ) : null
+                    )}
                 </div>
             )}
         </div>

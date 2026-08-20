@@ -109,6 +109,11 @@ export class UpdateSettingsDto {
   @IsBoolean()
   allowCoinTransfer?: boolean;
 
+  // Cho phép độc giả tải xuống file audio chương (audio tác giả + audio AI).
+  @IsOptional()
+  @IsBoolean()
+  chapterAudioDownloadEnabled?: boolean;
+
   // Spec mục 17 — số xu tối thiểu được rút.
   @IsOptional()
   @IsInt()

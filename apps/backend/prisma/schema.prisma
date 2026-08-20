@@ -852,6 +852,10 @@ model Settings {
   minWithdrawalCoins         Int      @default(1000)
   // Spec mục 2 — cho phép chuyển xu giữa user ("nếu cho phép"). Mặc định tắt.
   allowCoinTransfer          Boolean  @default(false)
+  // Cho phép độc giả TẢI XUỐNG file audio chương (audio tác giả + audio AI).
+  // Mặc định tắt: player ẩn nút download (controlsList=nodownload — chặn mềm,
+  // URL vẫn public trên CDN).
+  chapterAudioDownloadEnabled Boolean @default(false)
   // Quảng cáo — global kill switch + cấu hình network ID. Client gọi
   // GET /ads/config để lấy snapshot dạng JSON.
   adsEnabled                 Boolean  @default(true)

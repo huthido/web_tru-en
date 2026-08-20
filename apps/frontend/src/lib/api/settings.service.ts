@@ -26,6 +26,8 @@ export interface Settings {
     /** Phí % platform giữ khi tác giả bán chương / truyện VIP. */
     chapterSaleFeePercent: number;
     allowCoinTransfer?: boolean;
+    /** Cho phép độc giả tải xuống file audio chương (audio tác giả + AI). */
+    chapterAudioDownloadEnabled?: boolean;
     minWithdrawalCoins?: number;
     allowedImageDomains?: string[];
     // --- Thanh toán thủ công (chuyển khoản, admin xác nhận tay) ---
@@ -62,6 +64,7 @@ export interface UpdateSettingsRequest {
     donationPlatformFeePercent?: number;
     chapterSaleFeePercent?: number;
     allowCoinTransfer?: boolean;
+    chapterAudioDownloadEnabled?: boolean;
     minWithdrawalCoins?: number;
     allowedImageDomains?: string[];
     // --- Thanh toán thủ công ---
