@@ -47,6 +47,9 @@ function shortVoiceLabel(label: string): string {
 export function VoiceSettings() {
     const inputRef = useRef<HTMLInputElement>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    // Cache nghe thử trong phiên: bấm lại giọng đã nghe → phát ngay, không
+    // gọi server (server cũng có cache Redis, nhưng đỡ cả round-trip).
+    const previewCacheRef = useRef<Map<string, string>>(new Map());
 
     const [loading, setLoading] = useState(true);
     const [enabled, setEnabled] = useState(false);
@@ -102,10 +105,23 @@ export function VoiceSettings() {
 
     const handlePreview = async (voice?: string) => {
         setError('');
+        // Key "giọng của tôi" gồm cả clip + preset đã lưu → đổi cài đặt là
+        // key mới, không phát nhầm bản cũ.
+        const cacheKey = voice || `mine:${cloneUrl || ''}:${preset || ''}`;
+        const cached = previewCacheRef.current.get(cacheKey);
+        if (cached) {
+            setPreviewSrc(cached);
+            audioRef.current?.pause();
+            const audio = new Audio(cached);
+            audioRef.current = audio;
+            audio.play().catch(() => { });
+            return;
+        }
         setPreviewSrc('');
         setPreviewing(voice || 'mine');
         try {
             const res = await ttsService.preview(voice ? { voice } : {});
+            previewCacheRef.current.set(cacheKey, `data:${res.mime};base64,${res.audioBase64}`);
             playBase64(res.audioBase64, res.mime);
         } catch (err: any) {
             setError(err?.response?.data?.message || 'Không nghe thử được, thử lại sau.');

@@ -10,9 +10,11 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { createHash } from 'crypto';
 import { TtsAudioStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { RedisService } from '../redis/redis.service';
 import { TTS_QUEUE } from '../queue/queue.module';
 
 export interface TtsJobData {
@@ -63,12 +65,21 @@ export class TtsService {
     /** Cache danh sách giọng preset từ worker (đổi khi đổi model → cache 1h). */
     private voicesCache: { label: string; id: string; group: string }[] | null = null;
     private voicesCacheAt = 0;
+    /**
+     * Cache audio nghe thử trong RAM process (tầng 1, trên Redis): câu mẫu
+     * mặc định + 20 giọng preset là dùng chung cho MỌI user — không sinh lại.
+     * Cap số entry vì mỗi bản ~100KB base64.
+     */
+    private readonly previewCache = new Map<string, string>();
+    private static readonly PREVIEW_CACHE_MAX = 40;
+    private static readonly PREVIEW_REDIS_TTL_SEC = 30 * 24 * 3600;
 
     constructor(
         private readonly configService: ConfigService,
         private readonly prisma: PrismaService,
         private readonly cloudinaryService: CloudinaryService,
         @Optional() @InjectQueue(TTS_QUEUE) private readonly ttsQueue?: Queue,
+        @Optional() private readonly redis?: RedisService,
     ) {
         this.workerUrl = (this.configService.get<string>('TTS_WORKER_URL') || '').replace(/\/$/, '');
         this.workerApiKey = this.configService.get<string>('TTS_WORKER_API_KEY') || '';
@@ -590,9 +601,43 @@ export class TtsService {
             }
             opts = { refAudioUrl: user.ttsVoiceUrl, voice: user.ttsVoicePreset };
         }
+
+        // Cache theo (text, giọng, clip): câu mẫu mặc định + giọng preset là
+        // chung cho mọi user; clip clone đổi URL khi upload mới → key mới.
+        const cacheKey =
+            'tts:preview:' +
+            createHash('sha256')
+                .update(JSON.stringify({
+                    t: sample,
+                    v: opts.voice || this.workerVoice || '',
+                    r: opts.refAudioUrl || '',
+                }))
+                .digest('hex');
+
+        const memHit = this.previewCache.get(cacheKey);
+        if (memHit) return { audioBase64: memHit, mime: 'audio/mpeg' };
+
+        const redisHit = await this.redis?.get(cacheKey);
+        if (redisHit) {
+            this.rememberPreview(cacheKey, redisHit);
+            return { audioBase64: redisHit, mime: 'audio/mpeg' };
+        }
+
         // Câu ngắn — 3 phút là quá đủ, tránh giữ request treo 20 phút.
         const audio = await this.callWorker(sample, { ...opts, timeoutMs: 3 * 60_000 });
-        return { audioBase64: audio.toString('base64'), mime: 'audio/mpeg' };
+        const audioBase64 = audio.toString('base64');
+        this.rememberPreview(cacheKey, audioBase64);
+        await this.redis?.set(cacheKey, audioBase64, TtsService.PREVIEW_REDIS_TTL_SEC);
+        return { audioBase64, mime: 'audio/mpeg' };
+    }
+
+    private rememberPreview(key: string, audioBase64: string): void {
+        // Cap đơn giản: đầy thì bỏ entry cũ nhất (Map giữ thứ tự insert).
+        if (this.previewCache.size >= TtsService.PREVIEW_CACHE_MAX) {
+            const oldest = this.previewCache.keys().next().value;
+            if (oldest) this.previewCache.delete(oldest);
+        }
+        this.previewCache.set(key, audioBase64);
     }
 }
 
