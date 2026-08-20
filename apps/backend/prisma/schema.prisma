@@ -28,6 +28,13 @@ model User {
   displayName   String?
   bio           String?   @db.Text
   role          UserRole  @default(USER)
+  /// Mẫu giọng đọc của tác giả (clip 3–10s, lưu Garage) — VieNeu-TTS clone
+  /// giọng này khi sinh audio AI cho chương thuộc truyện của họ. Ưu tiên hơn
+  /// ttsVoicePreset. NULL = không clone.
+  ttsVoiceUrl   String?
+  /// Giọng preset VieNeu tác giả chọn (id từ GET /tts/voices, vd 'Adam').
+  /// Chỉ dùng khi không có ttsVoiceUrl. NULL = giọng mặc định server.
+  ttsVoicePreset String?
   isActive      Boolean   @default(true)
   emailVerified Boolean   @default(false)
   /// Soft-delete timestamp. Khi user tự xoá tài khoản trong app (Apple

@@ -61,5 +61,12 @@ frontend tự ẩn nút "Tạo giọng đọc AI".
 ## API
 
 - `GET /health` → `{"status":"ok","model_loaded":true}`
-- `POST /synthesize` body `{"text":"...","voice":"Adam"}` → binary `audio/mpeg`.
-  Với chương ~10 phút audio, CPU mất cỡ 4–6 phút (RTF < 1).
+- `GET /voices` → `{"voices":[{"label":"Adam (Nam Bộ)","id":"Adam"},...]}` —
+  danh sách giọng preset của model (backend cache 1h cho tác giả chọn).
+- `POST /synthesize` body `{"text":"...","voice":"Adam","ref_audio_url":null}`
+  → binary `audio/mpeg`. Với chương ~10 phút audio, CPU mất cỡ 4–6 phút (RTF < 1).
+  - `ref_audio_url`: URL clip mẫu giọng tác giả (3–10s) — worker tải về,
+    chuẩn hoá wav mono 24kHz (cache theo sha256 URL trong `$HF_HOME/ref-cache`)
+    và **clone giọng** đó, bỏ qua `voice`.
+  - Tag biểu cảm trong text (v3 Turbo, experimental): `[cười]`, `[thở dài]`,
+    `[hắng giọng]` — giữ nguyên khi gửi sang, model tự diễn.

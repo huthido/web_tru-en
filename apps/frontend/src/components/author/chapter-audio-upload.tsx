@@ -93,9 +93,30 @@ export function ChapterAudioUpload({ value, onChange }: ChapterAudioUploadProps)
             />
 
             <p className="mt-2 text-xs text-on-surface-variant">
-                Nếu có audio, độc giả sẽ nghe file bạn tải lên. Nếu không, hệ thống tự đọc
-                nội dung chương bằng giọng đọc của thiết bị.
+                Nếu có audio, độc giả sẽ nghe file bạn tải lên. Nếu không, độc giả có thể
+                tạo giọng đọc AI (đọc bằng giọng bạn cài trong Bảng điều khiển) hoặc nghe
+                giọng đọc của thiết bị.
             </p>
+
+            {/* Hướng dẫn biểu cảm giọng AI — tag chèn trong nội dung chương */}
+            <details className="mt-2 text-sm">
+                <summary className="cursor-pointer text-primary text-xs font-medium">
+                    Thêm biểu cảm cho giọng đọc AI trong lời truyện
+                </summary>
+                <div className="mt-1.5 text-xs text-on-surface-variant space-y-1">
+                    <p>
+                        Chèn <code className="px-1 py-0.5 bg-surface-container-high rounded">[cười]</code>,{' '}
+                        <code className="px-1 py-0.5 bg-surface-container-high rounded">[thở dài]</code>,{' '}
+                        <code className="px-1 py-0.5 bg-surface-container-high rounded">[hắng giọng]</code>{' '}
+                        vào bất kỳ chỗ nào trong nội dung — giọng AI sẽ diễn biểu cảm tại đó.
+                        Tag không hiển thị với độc giả khi đọc chữ.
+                    </p>
+                    <p>
+                        Ví dụ: <em>&quot;Nghe hay quá đi [cười]. Để mình kể tiếp [hắng giọng].&quot;</em>{' '}
+                        Dấu chấm/ba chấm/chấm than cũng ảnh hưởng nhịp và ngữ điệu đọc.
+                    </p>
+                </div>
+            </details>
             {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
         </div>
     );

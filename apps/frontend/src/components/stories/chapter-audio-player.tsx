@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Headphones, Loader2, Pause, Play, Sparkles, Square } from 'lucide-react';
 import { chaptersService, type TtsAudioStatus } from '@/lib/api/chapters.service';
+import { stripTtsEmotionTags } from '@/utils/tts-emotion';
 
 interface ChapterAudioPlayerProps {
     /** URL file audio tác giả tải lên; null/undefined = dùng text-to-speech. */
@@ -20,6 +21,8 @@ interface ChapterAudioPlayerProps {
     ttsAudioStatus?: TtsAudioStatus | null;
     /** Chương miễn phí, không khoá → cho phép bấm "Tạo giọng đọc AI". */
     canRequestTts?: boolean;
+    /** User là tác giả truyện/admin → được sinh LẠI audio AI (đổi giọng). */
+    canRegenerateTts?: boolean;
 }
 
 /**
@@ -120,6 +123,7 @@ export function ChapterAudioPlayer({
     ttsAudioUrl,
     ttsAudioStatus,
     canRequestTts,
+    canRegenerateTts,
 }: ChapterAudioPlayerProps) {
     const [ttsSupported, setTtsSupported] = useState(false);
     // Giọng đọc AI (VieNeu-TTS) — sinh trên server, cache theo chương.
@@ -258,7 +262,8 @@ export function ChapterAudioPlayer({
     }, [pickVoice, stopTts]);
 
     const startTts = useCallback(() => {
-        const text = toPlainText(content);
+        // Bỏ tag biểu cảm AI ([cười]...) — giọng thiết bị sẽ đọc thành lời.
+        const text = stripTtsEmotionTags(toPlainText(content));
         if (!text) return;
 
         window.speechSynthesis.cancel();
@@ -344,7 +349,9 @@ export function ChapterAudioPlayer({
             try {
                 const res = await chaptersService.getTtsStatus(chapterId);
                 if (cancelled) return;
-                if (res.url) {
+                // Chỉ nhận url khi status READY — lúc sinh LẠI, url cũ vẫn còn
+                // trong DB nhưng status là PENDING/PROCESSING.
+                if (res.status === 'READY' && res.url) {
                     setAiUrl(res.url);
                     setAiStatus('READY');
                 } else if (res.status && res.status !== aiStatus) {
@@ -374,7 +381,12 @@ export function ChapterAudioPlayer({
         setAiError('');
         try {
             const res = await chaptersService.requestTts(chapterId);
-            if (res.url) {
+            // Sinh lại: status quay về PENDING dù url cũ vẫn còn → ẩn player
+            // cũ, hiện tiến trình và poll tới khi có audio mới.
+            if (res.status === 'PENDING' || res.status === 'PROCESSING') {
+                setAiUrl(null);
+                setAiStatus(res.status);
+            } else if (res.url) {
                 setAiUrl(res.url);
                 setAiStatus('READY');
             } else {
@@ -419,14 +431,32 @@ export function ChapterAudioPlayer({
     if (aiUrl) {
         return (
             <div className="mb-6 p-4 bg-surface-container rounded-lg shadow-sm">
-                <div className="flex items-center gap-2 mb-3 text-sm font-medium text-on-surface">
+                <div className="flex flex-wrap items-center gap-2 mb-3 text-sm font-medium text-on-surface">
                     <Headphones size={18} className="text-primary" />
                     <span>Nghe chương này</span>
                     <span className="text-xs font-normal text-on-surface-variant">(giọng đọc AI)</span>
+                    {/* Tác giả/admin: sinh lại audio sau khi đổi giọng đọc AI. */}
+                    {canRegenerateTts && chapterId && (
+                        <button
+                            type="button"
+                            onClick={requestAi}
+                            disabled={aiRequesting}
+                            title="Sinh lại audio bằng giọng đọc AI hiện tại của bạn"
+                            className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-outline-variant text-primary hover:bg-surface-container-high transition-colors disabled:opacity-50"
+                        >
+                            {aiRequesting ? (
+                                <Loader2 size={13} className="animate-spin" />
+                            ) : (
+                                <Sparkles size={13} />
+                            )}
+                            Tạo lại với giọng mới
+                        </button>
+                    )}
                 </div>
                 <audio controls preload="metadata" src={aiUrl} className="w-full">
                     Trình duyệt không hỗ trợ phát audio.
                 </audio>
+                {aiError && <p className="mt-2 text-xs text-error">{aiError}</p>}
             </div>
         );
     }

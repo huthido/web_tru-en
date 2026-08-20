@@ -16,6 +16,7 @@ import { UserRole } from '@shared/types';
 import { Story } from '@/lib/api/stories.service';
 import { useToastContext } from '@/components/providers/toast-provider';
 import { MonetizationProgressBanner } from '@/components/author/monetization-progress-banner';
+import { VoiceSettings } from '@/components/author/voice-settings';
 import { BookOpen, Eye, Star, Edit, Trash2, Send, LayoutGrid, List, BarChart3 } from 'lucide-react';
 
 export default function AuthorDashboardPage() {
@@ -118,6 +119,9 @@ export default function AuthorDashboardPage() {
                     <div className="max-w-7xl mx-auto">
                         {/* Banner tiến độ mở khoá Trung tâm Kiếm tiền — tự ẩn khi đủ điều kiện */}
                         <MonetizationProgressBanner />
+
+                        {/* Giọng đọc AI: chọn preset / clone giọng + hướng dẫn biểu cảm */}
+                        <VoiceSettings />
                         {/* Header */}
                         <div className="bg-surface-container rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-outline-variant">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between">

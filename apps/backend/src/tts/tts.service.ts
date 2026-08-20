@@ -46,6 +46,9 @@ export class TtsService {
     private readonly queueEnabled: boolean;
     /** Chống double-run khi queue tắt (inline fallback). */
     private readonly inlineRunning = new Set<string>();
+    /** Cache danh sách giọng preset từ worker (đổi khi đổi model → cache 1h). */
+    private voicesCache: { label: string; id: string }[] | null = null;
+    private voicesCacheAt = 0;
 
     constructor(
         private readonly configService: ConfigService,
@@ -90,9 +93,14 @@ export class TtsService {
 
     /**
      * User yêu cầu sinh audio AI cho chương. Idempotent: đang chờ/đang chạy/
-     * đã xong thì trả trạng thái hiện tại thay vì tạo job mới.
+     * đã xong thì trả trạng thái hiện tại thay vì tạo job mới. Riêng tác giả
+     * truyện (hoặc admin) được yêu cầu SINH LẠI audio đã READY — dùng khi họ
+     * vừa đổi mẫu giọng (voice cloning) và muốn chương đọc bằng giọng mới.
      */
-    async requestGeneration(chapterId: string): Promise<TtsStatusResult> {
+    async requestGeneration(
+        chapterId: string,
+        user?: { id: string; role?: string },
+    ): Promise<TtsStatusResult> {
         if (!this.enabled) {
             throw new ServiceUnavailableException(
                 'Tính năng giọng đọc AI chưa được bật trên máy chủ',
@@ -108,7 +116,7 @@ export class TtsService {
                 audioUrl: true,
                 ttsAudioUrl: true,
                 ttsAudioStatus: true,
-                story: { select: { accessType: true, price: true } },
+                story: { select: { accessType: true, price: true, authorId: true } },
             },
         });
         if (!chapter || !chapter.isPublished) {
@@ -126,21 +134,30 @@ export class TtsService {
         }
 
         // Atomic claim: chỉ chuyển sang PENDING khi đang null hoặc FAILED —
-        // 2 user bấm cùng lúc thì chỉ 1 job được tạo.
+        // 2 user bấm cùng lúc thì chỉ 1 job được tạo. Tác giả/admin được claim
+        // thêm cả READY (sinh lại bằng giọng mới); PROCESSING thì không ai
+        // chen được.
+        const isOwner =
+            !!user && (user.id === chapter.story.authorId || user.role === 'ADMIN');
+        const claimableStatuses: (TtsAudioStatus | null)[] = [null, TtsAudioStatus.FAILED];
+        if (isOwner) claimableStatuses.push(TtsAudioStatus.READY);
         const claimed = await this.prisma.chapter.updateMany({
             where: {
                 id: chapterId,
-                OR: [{ ttsAudioStatus: null }, { ttsAudioStatus: TtsAudioStatus.FAILED }],
+                OR: claimableStatuses.map((s) => ({ ttsAudioStatus: s })),
             },
             data: { ttsAudioStatus: TtsAudioStatus.PENDING },
         });
 
         if (claimed.count > 0) {
             if (this.queueEnabled && this.ttsQueue) {
+                // jobId phải unique (kèm timestamp): BullMQ bỏ qua job trùng id
+                // với job completed còn lưu → chặn mất job sinh LẠI. Dedupe
+                // thật sự đã nằm ở atomic claim phía trên.
                 await this.ttsQueue.add(
                     'generate',
                     { chapterId } satisfies TtsJobData,
-                    { jobId: `tts-${chapterId}` }, // dedupe theo chương
+                    { jobId: `tts-${chapterId}-${Date.now()}` },
                 );
             } else {
                 // Không có Redis (dev tối giản) → chạy nền ngay trong process.
@@ -168,7 +185,19 @@ export class TtsService {
     async generateNow(chapterId: string): Promise<void> {
         const chapter = await this.prisma.chapter.findUnique({
             where: { id: chapterId },
-            select: { id: true, title: true, content: true, ttsAudioStatus: true, ttsAudioUrl: true },
+            select: {
+                id: true,
+                title: true,
+                content: true,
+                ttsAudioStatus: true,
+                ttsAudioUrl: true,
+                // Giọng của tác giả: clip clone + preset đã chọn.
+                story: {
+                    select: {
+                        author: { select: { ttsVoiceUrl: true, ttsVoicePreset: true } },
+                    },
+                },
+            },
         });
         if (!chapter) return; // chương bị xoá sau khi xếp hàng — bỏ qua
         if (chapter.ttsAudioStatus === TtsAudioStatus.READY && chapter.ttsAudioUrl) return;
@@ -188,7 +217,11 @@ export class TtsService {
                 `Generating TTS for chapter ${chapterId} (${text.length} chars)...`,
             );
             const started = Date.now();
-            const audio = await this.callWorker(text);
+            // Giọng: clone của tác giả > preset tác giả chọn > mặc định server.
+            const audio = await this.callWorker(text, {
+                refAudioUrl: chapter.story.author.ttsVoiceUrl,
+                voice: chapter.story.author.ttsVoicePreset,
+            });
             this.logger.log(
                 `TTS worker returned ${(audio.length / 1024 / 1024).toFixed(1)}MB ` +
                 `in ${Math.round((Date.now() - started) / 1000)}s for chapter ${chapterId}`,
@@ -217,8 +250,16 @@ export class TtsService {
         }
     }
 
-    /** POST text sang VieNeu-TTS worker, nhận về buffer MP3. */
-    private async callWorker(text: string): Promise<Buffer> {
+    /**
+     * POST text sang VieNeu-TTS worker, nhận về buffer MP3.
+     * refAudioUrl (clone) thắng voice (preset); không có cả hai thì dùng
+     * TTS_WORKER_VOICE / giọng mặc định model.
+     */
+    private async callWorker(
+        text: string,
+        opts: { refAudioUrl?: string | null; voice?: string | null; timeoutMs?: number } = {},
+    ): Promise<Buffer> {
+        const voice = opts.voice || this.workerVoice;
         const res = await fetch(`${this.workerUrl}/synthesize`, {
             method: 'POST',
             headers: {
@@ -227,15 +268,145 @@ export class TtsService {
             },
             body: JSON.stringify({
                 text,
-                ...(this.workerVoice ? { voice: this.workerVoice } : {}),
+                ...(voice ? { voice } : {}),
+                ...(opts.refAudioUrl ? { ref_audio_url: opts.refAudioUrl } : {}),
             }),
-            signal: AbortSignal.timeout(this.workerTimeoutMs),
+            signal: AbortSignal.timeout(opts.timeoutMs ?? this.workerTimeoutMs),
         });
         if (!res.ok) {
             const body = await res.text().catch(() => '');
             throw new Error(`TTS worker HTTP ${res.status}: ${body.slice(0, 500)}`);
         }
         return Buffer.from(await res.arrayBuffer());
+    }
+
+    // ------------------------------------------------------------------
+    // Mẫu giọng tác giả (voice cloning)
+    // ------------------------------------------------------------------
+
+    /** Cài đặt giọng hiện tại của user (clip clone + preset đã chọn). */
+    async getVoice(userId: string): Promise<{
+        url: string | null;
+        preset: string | null;
+        enabled: boolean;
+    }> {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { ttsVoiceUrl: true, ttsVoicePreset: true },
+        });
+        return {
+            url: user?.ttsVoiceUrl ?? null,
+            preset: user?.ttsVoicePreset ?? null,
+            enabled: this.enabled,
+        };
+    }
+
+    /**
+     * Danh sách giọng preset của model (từ worker GET /voices), cache 1h —
+     * danh sách chỉ đổi khi đổi model. Worker chưa sẵn sàng thì trả rỗng.
+     */
+    async listVoices(): Promise<{ voices: { label: string; id: string }[] }> {
+        if (!this.enabled) return { voices: [] };
+        const now = Date.now();
+        if (this.voicesCache && now - this.voicesCacheAt < 60 * 60_000) {
+            return { voices: this.voicesCache };
+        }
+        try {
+            const res = await fetch(`${this.workerUrl}/voices`, {
+                headers: this.workerApiKey ? { 'X-Api-Key': this.workerApiKey } : {},
+                signal: AbortSignal.timeout(15_000),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = (await res.json()) as { voices?: { label: string; id: string }[] };
+            this.voicesCache = data.voices || [];
+            this.voicesCacheAt = now;
+        } catch (err: any) {
+            this.logger.warn(`Cannot fetch voice list from worker: ${err.message}`);
+            // Không cache lỗi — lần gọi sau thử lại (worker có thể đang nạp model).
+            return { voices: this.voicesCache || [] };
+        }
+        return { voices: this.voicesCache };
+    }
+
+    /**
+     * Tác giả chọn giọng preset (null = quay về giọng mặc định server).
+     * Validate với danh sách từ worker khi có; danh sách rỗng (worker đang
+     * khởi động / SDK không hỗ trợ list) thì chấp nhận chuỗi thô.
+     */
+    async setPreset(userId: string, preset: string | null): Promise<{ preset: string | null }> {
+        const value = (preset || '').trim().slice(0, 100) || null;
+        if (value) {
+            const { voices } = await this.listVoices();
+            if (voices.length > 0 && !voices.some((v) => v.id === value)) {
+                throw new BadRequestException('Giọng đọc không hợp lệ');
+            }
+        }
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { ttsVoicePreset: value },
+        });
+        return { preset: value };
+    }
+
+    /**
+     * Tác giả tải mẫu giọng (clip 3–10s). Upload lên Garage folder
+     * `author-voices` rồi lưu URL vào User.ttsVoiceUrl. Audio AI sinh SAU
+     * thời điểm này mới dùng giọng mới; chương đã READY muốn đổi giọng thì
+     * tác giả bấm "Tạo lại" ở trang đọc (requestGeneration cho owner).
+     */
+    async setVoice(userId: string, file: Express.Multer.File): Promise<{ url: string }> {
+        const url = await this.cloudinaryService.uploadAudio(file, 'author-voices', userId);
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { ttsVoiceUrl: url },
+        });
+        return { url };
+    }
+
+    /** Gỡ mẫu giọng — audio AI sinh sau đó quay về giọng mặc định. */
+    async deleteVoice(userId: string): Promise<{ url: null }> {
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { ttsVoiceUrl: null },
+        });
+        return { url: null };
+    }
+
+    /**
+     * Nghe thử một giọng với câu ngắn — gọi worker đồng bộ (chỉ vài giây) và
+     * trả base64 để tránh đụng response envelope global.
+     * - voice truyền vào → nghe thử giọng preset đó (chưa cần lưu).
+     * - không truyền → giọng đã cài của user: clone (clip) > preset đã lưu.
+     */
+    async previewVoice(
+        userId: string,
+        text?: string,
+        voice?: string,
+    ): Promise<{ audioBase64: string; mime: string }> {
+        if (!this.enabled) {
+            throw new ServiceUnavailableException(
+                'Tính năng giọng đọc AI chưa được bật trên máy chủ',
+            );
+        }
+        const sample = (text || '').trim().slice(0, 300) ||
+            'Xin chào, đây là giọng đọc của tôi. [cười] Chúc bạn nghe truyện vui vẻ.';
+
+        let opts: { refAudioUrl?: string | null; voice?: string | null };
+        if (voice) {
+            opts = { voice: voice.trim().slice(0, 100) };
+        } else {
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { ttsVoiceUrl: true, ttsVoicePreset: true },
+            });
+            if (!user?.ttsVoiceUrl && !user?.ttsVoicePreset) {
+                throw new BadRequestException('Bạn chưa tải mẫu giọng hoặc chọn giọng nào');
+            }
+            opts = { refAudioUrl: user.ttsVoiceUrl, voice: user.ttsVoicePreset };
+        }
+        // Câu ngắn — 3 phút là quá đủ, tránh giữ request treo 20 phút.
+        const audio = await this.callWorker(sample, { ...opts, timeoutMs: 3 * 60_000 });
+        return { audioBase64: audio.toString('base64'), mime: 'audio/mpeg' };
     }
 }
 

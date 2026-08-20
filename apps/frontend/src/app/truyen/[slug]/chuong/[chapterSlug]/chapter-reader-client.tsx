@@ -30,6 +30,7 @@ import {
 import { useSaveProgress, useChapterProgress } from '@/lib/api/hooks/use-reading-history';
 import { ChapterPaywall } from '@/components/stories/chapter-paywall';
 import { ChapterAudioPlayer, countryToTtsLang } from '@/components/stories/chapter-audio-player';
+import { stripTtsEmotionTags } from '@/utils/tts-emotion';
 import { BookOpen, Search, Menu, Type, ChevronLeft, ChevronRight, X, Lock } from 'lucide-react';
 
 export default function ChapterReadingPage() {
@@ -789,6 +790,14 @@ export default function ChapterReadingPage() {
                                                 (chapterData.price ?? 0) === 0 &&
                                                 !(chapterData as any).lockType
                                             }
+                                            // Tác giả truyện/admin được sinh lại audio (đổi giọng AI).
+                                            canRegenerateTts={
+                                                !!user &&
+                                                (user.id ===
+                                                    ((story as any)?.data?.authorId ||
+                                                        (story as any)?.authorId) ||
+                                                    (user as any).role === 'ADMIN')
+                                            }
                                         />
                                     )}
                                     <div
@@ -816,7 +825,8 @@ export default function ChapterReadingPage() {
                                                 />
                                             ) : (
                                                 <InlineAdsRenderer
-                                                    content={chapterData.content}
+                                                    // Ẩn tag biểu cảm giọng AI ([cười]...) khỏi chữ hiển thị.
+                                                    content={stripTtsEmotionTags(chapterData.content)}
                                                     slotKey="reading.inline"
                                                     defaultRule={{ afterParagraph: 5, repeatEvery: 5 }}
                                                 />
