@@ -137,14 +137,12 @@ export default function ChapterManagementPage() {
     const ttsStatusOf = (chapter: any): string | null =>
         ttsOverrides[chapter.id] ?? chapter.ttsAudioStatus ?? null;
 
-    // Chương đủ điều kiện tạo giọng AI: chủ truyện/admin, đã xuất bản, không có audio tác giả,
-    // không thuộc diện trả phí (VIP trả phí / FREEMIUM chương có giá).
+    // Chương đủ điều kiện tạo giọng AI: chủ truyện/admin + đã xuất bản + chưa có audio tác giả.
+    // Kiểm tra trả phí để backend xử lý (tránh false-positive khi story chưa load).
     const canTts = (chapter: any): boolean =>
         isStoryOwner &&
         chapter.isPublished &&
-        !chapter.audioUrl &&
-        !((story as any)?.accessType === 'VIP' && ((story as any)?.price ?? 0) > 0) &&
-        !((story as any)?.accessType === 'FREEMIUM' && (chapter.price ?? 0) > 0);
+        !chapter.audioUrl;
 
     const anyTtsInProgress = allChapters.some((ch: any) => {
         const s = ttsStatusOf(ch);
