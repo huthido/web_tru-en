@@ -58,12 +58,29 @@ export default function ChapterReadingPage() {
     // (mặc định bật kể cả khi settings chưa load), miễn cho tác giả/admin.
     const copyProtected =
         ((siteSettings as any)?.copyProtectionEnabled ?? true) && !isStoryOwner;
+
+    // Chặn phím tắt CTRL + chọn/chép/in/nguồn trang khi chống copy bật.
+    useEffect(() => {
+        if (!copyProtected) return;
+        const handler = (e: KeyboardEvent) => {
+            const ctrl = e.ctrlKey || e.metaKey;
+            if (ctrl && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); return; }
+            if (ctrl && (e.key === 'p' || e.key === 'P')) { e.preventDefault(); return; }
+            if (ctrl && (e.key === 'u' || e.key === 'U')) { e.preventDefault(); return; }
+            if (ctrl && (e.key === 's' || e.key === 'S')) { e.preventDefault(); return; }
+            if (e.key === 'F12') { e.preventDefault(); return; }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [copyProtected]);
+
     const copyGuardProps = copyProtected
         ? {
             onCopy: (e: React.ClipboardEvent) => e.preventDefault(),
             onCut: (e: React.ClipboardEvent) => e.preventDefault(),
             onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
             onDragStart: (e: React.DragEvent) => e.preventDefault(),
+            onSelectStart: (e: React.SyntheticEvent) => { e.nativeEvent.stopImmediatePropagation(); e.preventDefault(); },
         }
         : {};
 
@@ -822,12 +839,18 @@ export default function ChapterReadingPage() {
                                     )}
                                     <div
                                         ref={contentRef}
-                                        className={`bg-surface-container rounded-lg p-6 md:p-8 lg:p-12 shadow-sm${copyProtected ? ' select-none' : ''}`}
+                                        data-chapter-content={copyProtected ? 'true' : undefined}
+                                        className={`bg-surface-container rounded-lg p-6 md:p-8 lg:p-12 shadow-sm`}
                                         style={{
                                             fontSize: `${fontSize}px`,
                                             lineHeight: '2',
-                                            // iOS: chặn menu copy khi nhấn giữ vào text.
-                                            ...(copyProtected ? { WebkitTouchCallout: 'none' as const } : {}),
+                                            // Chống chọn text: áp dụng cả CSS lẫn inline để đúng trên mọi trình duyệt.
+                                            ...(copyProtected ? {
+                                                userSelect: 'none' as const,
+                                                WebkitUserSelect: 'none' as const,
+                                                WebkitTouchCallout: 'none' as const,
+                                                MozUserSelect: 'none' as const,
+                                            } : {}),
                                         }}
                                         {...copyGuardProps}
                                     >
@@ -836,6 +859,11 @@ export default function ChapterReadingPage() {
                                             style={{
                                                 fontFamily: 'var(--font-quicksand), Quicksand, sans-serif',
                                                 maxWidth: '100%',
+                                                // Kế thừa chống chọn từ div cha
+                                                ...(copyProtected ? {
+                                                    userSelect: 'none' as const,
+                                                    WebkitUserSelect: 'none' as const,
+                                                } : {}),
                                             }}
                                         >
                                             {chapterData.isLocked ? (

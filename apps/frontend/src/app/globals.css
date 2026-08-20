@@ -575,3 +575,11 @@ textarea::placeholder {
     display: none;
   }
 }
+
+/* Chống in nội dung chương — áp dụng khi người dùng Ctrl+P hoặc print. */
+@media print {
+  .chapter-content-print-hide,
+  [data-chapter-content="true"] {
+    display: none !important;
+  }
+}
