@@ -94,11 +94,20 @@ export function InlineAdsRenderer({
  * sẵn script/style/iframe/object/embed/form và mọi thuộc tính `on*`, nên không
  * cần khai báo danh sách cấm riêng như bản DOMPurify trước đây.
  */
-const EMPTY_PARAGRAPH_RE = /<p(?:\s[^>]*)?>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi;
+const EMPTY_PARAGRAPH = String.raw`<p(?:\s[^>]*)?>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>`;
+// Một hoặc nhiều đoạn rỗng liên tiếp (kể cả khoảng trắng giữa chúng).
+const EMPTY_RUN_RE = new RegExp(`(?:${EMPTY_PARAGRAPH}\s*)+`, 'gi');
+const EMPTY_ONE_RE = new RegExp(EMPTY_PARAGRAPH, 'gi');
 
-/** Bỏ các đoạn rỗng (`<p><br></p>`, `<p>&nbsp;</p>`, `<p></p>`). */
+/**
+ * Dòng trống thứ nhất sau một đoạn bị bỏ (CSS margin của <p> đã thay nó);
+ * từ dòng trống thứ 2 trở đi giữ lại để tác giả vẫn ngắt cảnh được.
+ */
 export function stripEmptyParagraphs(html: string): string {
-    return html.replace(EMPTY_PARAGRAPH_RE, '');
+    return html.replace(EMPTY_RUN_RE, (run) => {
+        const count = (run.match(EMPTY_ONE_RE) || []).length;
+        return count > 1 ? '<p><br></p>'.repeat(count - 1) : '';
+    });
 }
 
 function sanitize(html: string): string {
