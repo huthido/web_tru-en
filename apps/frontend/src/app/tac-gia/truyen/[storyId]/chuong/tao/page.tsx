@@ -110,16 +110,26 @@ export default function CreateChapterPage() {
                                             </p>
                                         )}
                                     </div>
-                                    <Link
-                                        href={`/tac-gia/truyen/${storySlug}/chuong`}
-                                        className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg font-medium transition-colors"
-                                    >
-                                        Quay lại
-                                    </Link>
+                                    <div className="flex items-center gap-2">
+                                        <Link
+                                            href={`/tac-gia/truyen/${storySlug}/chuong`}
+                                            className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg font-medium transition-colors"
+                                        >
+                                            Hủy
+                                        </Link>
+                                        <button
+                                            type="submit"
+                                            form="chapter-form"
+                                            disabled={createMutation.isPending || formData.content.replace(/<[^>]*>/g, '').length < 100}
+                                            className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                                        >
+                                            {createMutation.isPending ? 'Đang tạo...' : 'Tạo chương'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="bg-surface-container rounded-lg shadow-sm p-6 md:p-8 space-y-6 border border-outline-variant">
+                            <form id="chapter-form" onSubmit={handleSubmit} className="bg-surface-container rounded-lg shadow-sm p-6 md:p-8 space-y-6 border border-outline-variant">
                                 {/* Title */}
                                 <div>
                                     <label className="block text-sm font-medium text-on-surface-variant mb-2">
