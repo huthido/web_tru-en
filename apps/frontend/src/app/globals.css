@@ -492,7 +492,8 @@ textarea::placeholder {
 .chapter-html-content p {
   margin-bottom: 1rem;
   text-align: justify;
-  line-height: 2;
+  /* Kế thừa leading-relaxed của khung đọc, không ép 2 (đồng bộ commit 4656b17). */
+  line-height: inherit;
 }
 
 .chapter-html-content h1,
