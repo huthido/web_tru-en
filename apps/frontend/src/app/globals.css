@@ -490,9 +490,10 @@ textarea::placeholder {
 }
 
 .chapter-html-content p {
-  margin-bottom: 1rem;
+  /* Hiển thị đúng như trong editor Quill: <p> không có margin, khoảng cách
+     giữa các đoạn là dòng trống <p><br></p> tác giả tự gõ. */
+  margin: 0;
   text-align: justify;
-  /* Kế thừa leading-relaxed của khung đọc, không ép 2 (đồng bộ commit 4656b17). */
   line-height: inherit;
 }
 
