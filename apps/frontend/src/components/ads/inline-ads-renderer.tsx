@@ -96,7 +96,7 @@ export function InlineAdsRenderer({
  */
 const EMPTY_PARAGRAPH = String.raw`<p(?:\s[^>]*)?>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>`;
 // Một hoặc nhiều đoạn rỗng liên tiếp (kể cả khoảng trắng giữa chúng).
-const EMPTY_RUN_RE = new RegExp(`(?:${EMPTY_PARAGRAPH}\s*)+`, 'gi');
+const EMPTY_RUN_RE = new RegExp(`(?:${EMPTY_PARAGRAPH}\\s*)+`, 'gi');
 const EMPTY_ONE_RE = new RegExp(EMPTY_PARAGRAPH, 'gi');
 
 /**
