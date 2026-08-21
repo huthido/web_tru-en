@@ -1,28 +1,31 @@
 import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
-import { Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { TtsService, TtsJobData } from './tts.service';
 import { TTS_QUEUE } from '../queue/queue.module';
 
 /**
- * Worker BullMQ sinh audio AI. Mỗi job chiếm trọn CPU của 1 TTS worker nhiều
- * phút nên concurrency = số TTS worker (TTS_WORKER_URL có thể là nhiều URL):
- * 1 worker → 1 job một lúc; N máy → N chương song song.
+ * Số TTS worker = số URL trong TTS_WORKER_URL. Đọc thẳng process.env lúc
+ * import vì decorator @Processor cần giá trị tĩnh — BullMQ khởi tạo vòng lặp
+ * fetch với concurrency ban đầu, đổi setter sau khi chạy không có tác dụng.
  */
-@Processor(TTS_QUEUE, { concurrency: 1 })
-export class TtsProcessor extends WorkerHost implements OnApplicationBootstrap {
+const TTS_WORKER_COUNT = Math.max(
+    1,
+    (process.env.TTS_WORKER_URL || '').split(',').filter((u) => u.trim()).length,
+);
+
+/**
+ * Worker BullMQ sinh audio AI. Mỗi job chiếm trọn CPU của 1 TTS worker nhiều
+ * phút nên concurrency = số TTS worker: 1 máy → 1 job một lúc; N máy → N
+ * chương song song (TtsService.pickWorker chia job cho worker ít bận nhất).
+ */
+@Processor(TTS_QUEUE, { concurrency: TTS_WORKER_COUNT })
+export class TtsProcessor extends WorkerHost {
     private readonly logger = new Logger(TtsProcessor.name);
 
     constructor(private readonly ttsService: TtsService) {
         super();
-    }
-
-    onApplicationBootstrap() {
-        const n = Math.max(1, this.ttsService.workerCount);
-        if (this.worker && this.worker.concurrency !== n) {
-            this.worker.concurrency = n;
-            this.logger.log(`TTS queue concurrency = ${n} (theo số TTS worker)`);
-        }
+        this.logger.log(`TTS queue concurrency = ${TTS_WORKER_COUNT} (theo số TTS worker)`);
     }
 
     async process(job: Job<TtsJobData>): Promise<void> {
