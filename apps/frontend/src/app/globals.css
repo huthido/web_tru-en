@@ -490,9 +490,10 @@ textarea::placeholder {
 }
 
 .chapter-html-content p {
-  /* Hiển thị đúng như trong editor Quill: <p> không có margin, khoảng cách
-     giữa các đoạn là dòng trống <p><br></p> tác giả tự gõ. */
-  margin: 0;
+  /* Đoạn rỗng <p><br></p> đã bị renderer bỏ; margin này = đúng 1 dòng trống
+     trong editor Quill (line-height 1.42) nên nhìn giống lúc soạn, và chương
+     không gõ dòng trống cũng có khoảng cách y hệt. */
+  margin: 0 0 1.4em;
   text-align: justify;
   line-height: inherit;
 }

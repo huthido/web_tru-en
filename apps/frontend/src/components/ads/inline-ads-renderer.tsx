@@ -69,14 +69,22 @@ export function InlineAdsRenderer({
     }, [ads, defaultRule]);
 
     const isHtml = useMemo(() => content.trim().startsWith('<'), [content]);
+    // Hai kiểu soạn cùng tồn tại: Quill lưu `<p><br></p>` giữa mọi đoạn (951
+    // chương) hoặc không có dòng trống (723 chương). Chuẩn hoá: bỏ đoạn rỗng
+    // rồi để CSS `.chapter-html-content p` tạo khoảng cách bằng đúng 1 dòng
+    // trống của editor → mọi chương hiển thị như nhau. Không dùng :has vì iOS cũ.
+    const normalized = useMemo(
+        () => (isHtml ? stripEmptyParagraphs(content) : content),
+        [content, isHtml],
+    );
 
     const nodes = useMemo(() => {
         if (!slotEnabled || ads.length === 0) {
             // Không có ad → render content nguyên trạng.
-            return renderContentOnly(content, isHtml);
+            return renderContentOnly(normalized, isHtml);
         }
-        return renderContentWithInlineAds(content, isHtml, ads, rule, adClassName);
-    }, [content, isHtml, ads, rule, adClassName, slotEnabled]);
+        return renderContentWithInlineAds(normalized, isHtml, ads, rule, adClassName);
+    }, [normalized, isHtml, ads, rule, adClassName, slotEnabled]);
 
     return <>{nodes}</>;
 }
@@ -86,6 +94,13 @@ export function InlineAdsRenderer({
  * sẵn script/style/iframe/object/embed/form và mọi thuộc tính `on*`, nên không
  * cần khai báo danh sách cấm riêng như bản DOMPurify trước đây.
  */
+const EMPTY_PARAGRAPH_RE = /<p(?:\s[^>]*)?>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi;
+
+/** Bỏ các đoạn rỗng (`<p><br></p>`, `<p>&nbsp;</p>`, `<p></p>`). */
+export function stripEmptyParagraphs(html: string): string {
+    return html.replace(EMPTY_PARAGRAPH_RE, '');
+}
+
 function sanitize(html: string): string {
     return sanitizeContentHtml(html);
 }
