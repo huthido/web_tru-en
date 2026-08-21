@@ -54,7 +54,13 @@ export interface TtsStatusResult {
 @Injectable()
 export class TtsService {
     private readonly logger = new Logger(TtsService.name);
-    private readonly workerUrl: string;
+    /**
+     * Danh sách worker (TTS_WORKER_URL phân cách bằng dấu phẩy) — mỗi worker
+     * là 1 máy CPU riêng, sinh tuần tự; nhiều worker = nhiều chương song song.
+     */
+    private readonly workerUrls: string[];
+    /** Số request đang chạy trên từng worker — chọn worker ít bận nhất. */
+    private readonly workerLoad = new Map<string, number>();
     private readonly workerApiKey: string;
     private readonly workerVoice: string;
     private readonly workerTimeoutMs: number;
@@ -93,7 +99,11 @@ export class TtsService {
         @Optional() @InjectQueue(TTS_QUEUE) private readonly ttsQueue?: Queue,
         @Optional() private readonly redis?: RedisService,
     ) {
-        this.workerUrl = (this.configService.get<string>('TTS_WORKER_URL') || '').replace(/\/$/, '');
+        this.workerUrls = (this.configService.get<string>('TTS_WORKER_URL') || '')
+            .split(',')
+            .map((u) => u.trim().replace(/\/$/, ''))
+            .filter(Boolean);
+        for (const u of this.workerUrls) this.workerLoad.set(u, 0);
         this.workerApiKey = this.configService.get<string>('TTS_WORKER_API_KEY') || '';
         this.workerVoice = this.configService.get<string>('TTS_WORKER_VOICE') || '';
         // Chương dài sinh nhiều phút trên CPU — mặc định chờ tối đa 20 phút.
@@ -106,12 +116,38 @@ export class TtsService {
             this.enabled && this.configService.get<string>('TTS_AUTO_GENERATE') !== '0';
 
         if (this.enabled) {
-            this.logger.log(`VieNeu-TTS worker configured at ${this.workerUrl}`);
+            this.logger.log(
+                `VieNeu-TTS ${this.workerUrls.length} worker(s) configured: ${this.workerUrls.join(', ')}`,
+            );
         }
     }
 
     get enabled(): boolean {
-        return !!this.workerUrl;
+        return this.workerUrls.length > 0;
+    }
+
+    /** Số worker = số job BullMQ nên chạy song song (TtsProcessor đọc). */
+    get workerCount(): number {
+        return this.workerUrls.length;
+    }
+
+    /** Worker đầu tiên — dùng cho request nhẹ (danh sách giọng). */
+    private get workerUrl(): string {
+        return this.workerUrls[0] ?? '';
+    }
+
+    /** Chọn worker đang ít request nhất (round-robin theo tải). */
+    private pickWorker(): string {
+        let best = this.workerUrls[0];
+        let bestLoad = Infinity;
+        for (const u of this.workerUrls) {
+            const load = this.workerLoad.get(u) ?? 0;
+            if (load < bestLoad) {
+                best = u;
+                bestLoad = load;
+            }
+        }
+        return best;
     }
 
     /** Trạng thái audio AI của chương — public, frontend poll trong lúc chờ. */
@@ -474,7 +510,23 @@ export class TtsService {
     ): Promise<Buffer> {
         const voice = opts.voice || this.workerVoice;
         const timeoutMs = opts.timeoutMs ?? this.workerTimeoutMs;
-        const res = await fetch(`${this.workerUrl}/synthesize`, {
+        const workerUrl = this.pickWorker();
+        this.workerLoad.set(workerUrl, (this.workerLoad.get(workerUrl) ?? 0) + 1);
+        try {
+            return await this.callWorkerAt(workerUrl, text, voice, opts.refAudioUrl, timeoutMs);
+        } finally {
+            this.workerLoad.set(workerUrl, Math.max(0, (this.workerLoad.get(workerUrl) ?? 1) - 1));
+        }
+    }
+
+    private async callWorkerAt(
+        workerUrl: string,
+        text: string,
+        voice: string,
+        refAudioUrl: string | null | undefined,
+        timeoutMs: number,
+    ): Promise<Buffer> {
+        const res = await fetch(`${workerUrl}/synthesize`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -486,14 +538,14 @@ export class TtsService {
             body: JSON.stringify({
                 text,
                 ...(voice ? { voice } : {}),
-                ...(opts.refAudioUrl ? { ref_audio_url: opts.refAudioUrl } : {}),
+                ...(refAudioUrl ? { ref_audio_url: refAudioUrl } : {}),
             }),
             signal: AbortSignal.timeout(timeoutMs),
             dispatcher: this.workerDispatcher,
         } as RequestInit);
         if (!res.ok) {
             const body = await res.text().catch(() => '');
-            throw new Error(`TTS worker HTTP ${res.status}: ${body.slice(0, 500)}`);
+            throw new Error(`TTS worker ${workerUrl} HTTP ${res.status}: ${body.slice(0, 500)}`);
         }
         return Buffer.from(await res.arrayBuffer());
     }

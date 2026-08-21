@@ -205,6 +205,7 @@ services:
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       EMAIL_FROM: ${EMAIL_FROM}
       # Giọng đọc AI (VieNeu-TTS). Để trống TTS_WORKER_URL = tắt tính năng.
+      # Nhiều URL phân cách dấu phẩy = nhiều worker song song (concurrency tự theo số URL).
       # Khi bật service tts-worker bên dưới: http://tts-worker:8000
       TTS_WORKER_URL: ${TTS_WORKER_URL:-}
       TTS_WORKER_API_KEY: ${TTS_WORKER_API_KEY:-}
