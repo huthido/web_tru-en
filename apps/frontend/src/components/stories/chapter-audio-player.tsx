@@ -592,9 +592,12 @@ export function ChapterAudioPlayer({
             {showAiSection && (
                 <div className="mt-3 pt-3 border-t border-outline-variant/50 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                     {aiInProgress ? (
-                        <span className="inline-flex items-center gap-2 text-sm text-on-surface-variant">
+                        <span
+                            className="inline-flex items-center gap-2 text-sm text-on-surface-variant"
+                            title={ttsVoiceName ? `Giọng: ${ttsVoiceName}` : undefined}
+                        >
                             <Loader2 size={15} className="animate-spin text-primary" />
-                            Đang tạo giọng đọc AI{ttsVoiceName ? ` (${ttsVoiceName})` : ''}… có thể mất vài phút. Audio sẽ tự xuất hiện tại đây.
+                            Đang tạo giọng đọc AI… có thể mất vài phút. Audio sẽ tự xuất hiện tại đây.
                         </span>
                     ) : showAiRequest ? (
                         <button

@@ -514,16 +514,18 @@ export default function ChapterManagementPage() {
                                                                         onClick={() => handleTts(chapter)}
                                                                         disabled={busy || ttsRequesting[chapter.id]}
                                                                         title={
-                                                                            s === 'READY'
-                                                                                ? 'Đã có audio AI — bấm để tạo lại bằng giọng hiện tại của bạn'
-                                                                                : 'Tạo audio AI đọc chương này'
+                                                                            busy
+                                                                                ? (chapter.ttsVoiceName ? `Đang tạo giọng: ${chapter.ttsVoiceName}` : 'Đang tạo giọng đọc AI…')
+                                                                                : s === 'READY'
+                                                                                    ? 'Đã có audio AI — bấm để tạo lại bằng giọng hiện tại của bạn'
+                                                                                    : 'Tạo audio AI đọc chương này'
                                                                         }
                                                                         className="px-4 py-2 border border-outline-variant text-primary hover:bg-surface-container-high rounded-lg text-sm font-medium transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
                                                                     >
                                                                         {busy || ttsRequesting[chapter.id] ? (
                                                                             <>
                                                                                 <Loader2 size={14} className="animate-spin" />
-                                                                                Đang tạo giọng{chapter.ttsVoiceName ? ` (${chapter.ttsVoiceName})` : ''}…
+                                                                                Đang tạo giọng…
                                                                             </>
                                                                         ) : (
                                                                             <>
