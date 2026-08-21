@@ -407,7 +407,7 @@ export function ChapterAudioPlayer({
             }
         } catch (err: any) {
             const status = err?.response?.status;
-            const message = err?.response?.data?.message;
+            const message = err?.response?.data?.error || err?.response?.data?.message;
             if (status === 401) {
                 setAiError('Đăng nhập để tạo giọng đọc AI.');
             } else if (status === 503) {

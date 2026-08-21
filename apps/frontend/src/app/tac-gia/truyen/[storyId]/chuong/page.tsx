@@ -174,7 +174,7 @@ export default function ChapterManagementPage() {
             );
         } catch (error: any) {
             showToast(
-                error?.response?.data?.message || 'Không tạo được giọng đọc AI, thử lại sau',
+                error?.response?.data?.error || error?.response?.data?.message || 'Không tạo được giọng đọc AI, thử lại sau',
                 'error',
             );
         } finally {
@@ -202,7 +202,7 @@ export default function ChapterManagementPage() {
             queryClient.invalidateQueries({ queryKey: ['chapters', storySlug] });
         } catch (error: any) {
             showToast(
-                error?.response?.data?.message || 'Không xếp hàng được, thử lại sau',
+                error?.response?.data?.error || error?.response?.data?.message || 'Không xếp hàng được, thử lại sau',
                 'error',
             );
         } finally {
