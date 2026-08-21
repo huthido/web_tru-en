@@ -822,6 +822,7 @@ export default function ChapterReadingPage() {
                                             chapterId={chapterData.id}
                                             ttsAudioUrl={chapterData.ttsAudioUrl}
                                             ttsAudioStatus={chapterData.ttsAudioStatus}
+                                            ttsVoiceName={chapterData.ttsVoiceName}
                                             // Tắt tạo giọng AI trên trang đọc — chỉ nghe audio đã có.
                                             canRequestTts={false}
                                             canRegenerateTts={false}

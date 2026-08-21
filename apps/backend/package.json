@@ -76,6 +76,7 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "sharp": "^0.33.5",
+    "undici": "^6.28.0",
     "winston": "^3.19.0"
   },
   "devDependencies": {

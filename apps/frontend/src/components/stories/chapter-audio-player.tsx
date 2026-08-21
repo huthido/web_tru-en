@@ -19,6 +19,8 @@ interface ChapterAudioPlayerProps {
     ttsAudioUrl?: string | null;
     /** Trạng thái job sinh audio AI lúc load trang. */
     ttsAudioStatus?: TtsAudioStatus | null;
+    /** Tên giọng đọc AI đã dùng để sinh audio. */
+    ttsVoiceName?: string | null;
     /** User là TÁC GIẢ truyện/admin + chương miễn phí không khoá → hiện nút
      *  "Tạo giọng đọc AI". Độc giả thường không có nút này (audio dùng chung,
      *  quyền tạo thuộc chủ truyện). */
@@ -127,6 +129,7 @@ export function ChapterAudioPlayer({
     chapterId,
     ttsAudioUrl,
     ttsAudioStatus,
+    ttsVoiceName,
     canRequestTts,
     canRegenerateTts,
     allowDownload,
@@ -591,7 +594,7 @@ export function ChapterAudioPlayer({
                     {aiInProgress ? (
                         <span className="inline-flex items-center gap-2 text-sm text-on-surface-variant">
                             <Loader2 size={15} className="animate-spin text-primary" />
-                            Đang tạo giọng đọc AI… có thể mất vài phút. Audio sẽ tự xuất hiện tại đây.
+                            Đang tạo giọng đọc AI{ttsVoiceName ? ` (${ttsVoiceName})` : ''}… có thể mất vài phút. Audio sẽ tự xuất hiện tại đây.
                         </span>
                     ) : showAiRequest ? (
                         <button

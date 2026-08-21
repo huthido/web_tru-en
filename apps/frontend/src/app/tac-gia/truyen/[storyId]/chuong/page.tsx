@@ -523,7 +523,7 @@ export default function ChapterManagementPage() {
                                                                         {busy || ttsRequesting[chapter.id] ? (
                                                                             <>
                                                                                 <Loader2 size={14} className="animate-spin" />
-                                                                                Đang tạo giọng…
+                                                                                Đang tạo giọng{chapter.ttsVoiceName ? ` (${chapter.ttsVoiceName})` : ''}…
                                                                             </>
                                                                         ) : (
                                                                             <>

@@ -1,3 +1,4 @@
+import { Agent as UndiciAgent } from 'undici';
 import {
     BadRequestException,
     ForbiddenException,
@@ -57,6 +58,17 @@ export class TtsService {
     private readonly workerApiKey: string;
     private readonly workerVoice: string;
     private readonly workerTimeoutMs: number;
+    /**
+     * Node fetch (undici) mặc định ngắt kết nối nếu server không trả header
+     * trong 300s (headersTimeout) — worker TTS chỉ trả response sau khi sinh
+     * xong cả chương (10–15 phút) nên mọi chương dài đều "fetch failed" đúng
+     * 5 phút dù AbortSignal đặt 20 phút. Dispatcher riêng tắt 2 timeout này;
+     * thời hạn thực do AbortSignal.timeout quyết định.
+     */
+    private readonly workerDispatcher = new UndiciAgent({
+        headersTimeout: 0,
+        bodyTimeout: 0,
+    });
     private readonly queueEnabled: boolean;
     /** Tự sinh audio khi chương xuất bản (mặc định bật khi có worker). */
     private readonly autoGenerateEnabled: boolean;
@@ -397,9 +409,15 @@ export class TtsService {
         if (!chapter) return; // chương bị xoá sau khi xếp hàng — bỏ qua
         if (chapter.ttsAudioStatus === TtsAudioStatus.READY && chapter.ttsAudioUrl) return;
 
+        // Xác định tên giọng để hiển thị khi đang tạo.
+        const voiceName = await this.resolveVoiceName(
+            chapter.story.author.ttsVoiceUrl,
+            chapter.story.author.ttsVoicePreset,
+        );
+
         await this.prisma.chapter.update({
             where: { id: chapterId },
-            data: { ttsAudioStatus: TtsAudioStatus.PROCESSING },
+            data: { ttsAudioStatus: TtsAudioStatus.PROCESSING, ttsVoiceName: voiceName },
         });
 
         try {
@@ -455,19 +473,24 @@ export class TtsService {
         opts: { refAudioUrl?: string | null; voice?: string | null; timeoutMs?: number } = {},
     ): Promise<Buffer> {
         const voice = opts.voice || this.workerVoice;
+        const timeoutMs = opts.timeoutMs ?? this.workerTimeoutMs;
         const res = await fetch(`${this.workerUrl}/synthesize`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 ...(this.workerApiKey ? { 'X-Api-Key': this.workerApiKey } : {}),
+                // Worker bỏ dở giữa chừng khi quá hạn — tránh sinh tiếp audio
+                // mà backend đã không còn chờ (lãng phí CPU, dồn hàng chờ).
+                'X-Timeout-Ms': String(timeoutMs),
             },
             body: JSON.stringify({
                 text,
                 ...(voice ? { voice } : {}),
                 ...(opts.refAudioUrl ? { ref_audio_url: opts.refAudioUrl } : {}),
             }),
-            signal: AbortSignal.timeout(opts.timeoutMs ?? this.workerTimeoutMs),
-        });
+            signal: AbortSignal.timeout(timeoutMs),
+            dispatcher: this.workerDispatcher,
+        } as RequestInit);
         if (!res.ok) {
             const body = await res.text().catch(() => '');
             throw new Error(`TTS worker HTTP ${res.status}: ${body.slice(0, 500)}`);
@@ -494,6 +517,24 @@ export class TtsService {
             preset: user?.ttsVoicePreset ?? null,
             enabled: this.enabled,
         };
+    }
+
+    /** Resolve tên giọng đọc từ voice settings của tác giả. */
+    private async resolveVoiceName(
+        voiceUrl: string | null | undefined,
+        voicePreset: string | null | undefined,
+    ): Promise<string> {
+        if (voiceUrl) return 'Giọng clone của tác giả';
+        if (voicePreset) {
+            try {
+                const list = await this.listVoices();
+                const found = list.voices.find((v) => v.id === voicePreset);
+                return found?.label || voicePreset;
+            } catch {
+                return voicePreset;
+            }
+        }
+        return 'Giọng mặc định';
     }
 
     /**

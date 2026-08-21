@@ -186,6 +186,8 @@ model Chapter {
   ttsAudioUrl    String?
   /// Trạng thái job sinh audio AI. null = chưa ai yêu cầu.
   ttsAudioStatus TtsAudioStatus?
+  /// Tên giọng đọc AI đã dùng để sinh audio (hiển thị khi đang tạo).
+  ttsVoiceName   String?
   order          Int
   isPublished    Boolean          @default(false)
   /// Lịch tự xuất bản: khi != null và đã tới giờ, cron ChaptersCron sẽ tự

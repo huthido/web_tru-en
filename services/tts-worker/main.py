@@ -21,6 +21,7 @@ import socket
 import subprocess
 import tempfile
 import threading
+import time
 import urllib.request
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -245,7 +246,11 @@ def voices():
 
 
 @app.post("/synthesize")
-def synthesize(req: SynthesizeRequest, x_api_key: str | None = Header(default=None)):
+def synthesize(
+    req: SynthesizeRequest,
+    x_api_key: str | None = Header(default=None),
+    x_timeout_ms: int | None = Header(default=None),
+):
     if API_KEY and x_api_key != API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API key")
     if _model is None:
@@ -259,6 +264,14 @@ def synthesize(req: SynthesizeRequest, x_api_key: str | None = Header(default=No
 
     voice = req.voice or DEFAULT_VOICE or None
     chunks = split_chunks(text)
+    # Hạn chót client còn chờ (tính từ lúc nhận request, gồm cả thời gian xếp
+    # hàng sau _infer_lock). Quá hạn thì dừng — client đã bỏ, sinh tiếp vô ích.
+    deadline = (time.monotonic() + x_timeout_ms / 1000.0) if x_timeout_ms else None
+
+    def check_deadline(stage: str):
+        if deadline is not None and time.monotonic() > deadline:
+            log.warning("Client deadline passed at %s — aborting (%d chars)", stage, len(text))
+            raise HTTPException(status_code=504, detail="Client deadline passed")
 
     # Voice cloning: tải + chuẩn hoá clip mẫu, đăng ký giọng với model.
     ref_wav: Path | None = None
@@ -272,17 +285,20 @@ def synthesize(req: SynthesizeRequest, x_api_key: str | None = Header(default=No
     )
 
     with _infer_lock, tempfile.TemporaryDirectory(prefix="tts-") as tmp:
+        check_deadline("queue")
         if ref_wav is not None:
             ref_voice_name = ensure_ref_voice(ref_wav, ref_key)
         tmp_path = Path(tmp)
         wav_files: list[Path] = []
+        started = time.monotonic()
         for i, chunk in enumerate(chunks):
+            check_deadline(f"chunk {i + 1}/{len(chunks)}")
             audio = infer_chunk(chunk, voice, ref_wav, ref_voice_name)
             wav = tmp_path / f"chunk-{i:04d}.wav"
             _model.save(audio, str(wav))
             wav_files.append(wav)
             if (i + 1) % 10 == 0 or i + 1 == len(chunks):
-                log.info("  chunk %d/%d done", i + 1, len(chunks))
+                log.info("  chunk %d/%d done (%.0fs)", i + 1, len(chunks), time.monotonic() - started)
 
         # Ghép các wav (cùng format vì cùng model) và encode MP3 mono.
         concat_list = tmp_path / "list.txt"
