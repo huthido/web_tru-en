@@ -213,8 +213,9 @@ services:
       # Tự sinh audio khi chương xuất bản (mặc định bật; đặt "0" để tắt).
       TTS_AUTO_GENERATE: ${TTS_AUTO_GENERATE:-}
       # Ký tự tối đa mỗi request gửi worker; chương dài hơn được cắt theo câu
-      # thành nhiều phần rồi ghép MP3 lại. ~12k ký tự ≈ 30 chunk ≈ 12 phút,
-      # nằm gọn trong TTS_WORKER_TIMEOUT_MS (20 phút).
+      # thành nhiều phần rồi ghép MP3 lại. Phải vừa với worker CHẬM NHẤT:
+      # 6k ký tự = 15 chunk ≈ 14 phút ở 55s/chunk (vps103), nằm trong
+      # TTS_WORKER_TIMEOUT_MS 20 phút. Để 12k thì vps103 luôn quá hạn.
       TTS_PART_CHARS: ${TTS_PART_CHARS:-}
     ports:
       - "${BACKEND_PORT:-3009}:3009"
@@ -258,9 +259,10 @@ services:
       # hơn mem_limit ít nhất 1GB (worker còn sinh nốt tối đa 5 chunk sau khi
       # vượt ngưỡng) — hoặc nâng mem_limit lên trên mức bão hoà 5.2GB.
       TTS_MAX_RSS_MB: ${TTS_MAX_RSS_MB:-2800}
-      # Recycle cả theo số chunk đã sinh, phòng khi RSS đo được không phản ánh
-      # đúng phần bộ nhớ glibc/ONNX còn giữ.
-      TTS_MAX_CHUNKS_PER_LIFE: ${TTS_MAX_CHUNKS_PER_LIFE:-150}
+      # Van an toàn cuối, phòng khi RSS đo được không phản ánh đúng bộ nhớ
+      # đang giữ. Với arena tắt thì RSS phẳng nên chính ngưỡng này kích hoạt
+      # recycle — để thấp quá là restart vô ích (150 từng gây ~1 lần/75 phút).
+      TTS_MAX_CHUNKS_PER_LIFE: ${TTS_MAX_CHUNKS_PER_LIFE:-800}
       TTS_RSS_CHECK_EVERY: ${TTS_RSS_CHECK_EVERY:-5}
     # VPS 8GB/6 core dùng chung với backend+postgres+redis: chặn worker chiếm
     # quá 4GB RAM / 4 core để job TTS không bóp nghẹt web lúc cao điểm.

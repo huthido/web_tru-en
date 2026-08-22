@@ -50,12 +50,12 @@ MP3_BITRATE = os.environ.get("TTS_MP3_BITRATE", "64k")
 # (0.6GB → 4GB sau vài chục chương) rồi bị cgroup OOM-kill GIỮA job → mọi
 # request đang gửi tới worker fail cùng lúc. Tự recycle chủ động rẻ hơn nhiều.
 MAX_RSS_MB = int(os.environ.get("TTS_MAX_RSS_MB", "3000"))
-# Recycle theo KHỐI LƯỢNG đã sinh, không chỉ theo RSS: RSS trước đây chỉ
-# được đo giữa hai request, trong khi rò rỉ tích theo từng chunk — một
-# chương 195 chunk (63k ký tự) tự nó đủ đưa RSS từ 0.6GB vượt mem_limit
-# TRƯỚC khi có lần đo nào, và bị OOM-kill giữa job thì mất trắng cả giờ
-# CPU. Đếm chunk cho một ngưỡng chủ động, không phụ thuộc con số RSS.
-MAX_CHUNKS_PER_LIFE = int(os.environ.get("TTS_MAX_CHUNKS_PER_LIFE", "150"))
+# Van an toàn cuối: recycle theo số chunk đã sinh, phòng khi RSS đo được
+# không phản ánh đúng phần bộ nhớ đang giữ. Với TTS_ORT_DISABLE_ARENA=1
+# thì RSS phẳng (~0.6-1.1GB suốt 150 chunk, đo 22/08/2026) nên ngưỡng này
+# mới là thứ kích hoạt recycle — để thấp quá thì worker restart vô ích và
+# job đang gửi tới ăn 503 phải chờ. 800 chunk ≈ 320k ký tự mỗi đời process.
+MAX_CHUNKS_PER_LIFE = int(os.environ.get("TTS_MAX_CHUNKS_PER_LIFE", "800"))
 # Số chunk giữa 2 lần đo RSS + malloc_trim NGAY TRONG lúc đang sinh.
 RSS_CHECK_EVERY = max(1, int(os.environ.get("TTS_RSS_CHECK_EVERY", "5")))
 # Tắt CPU memory arena của ONNX Runtime. Arena giữ lại mọi buffer đã cấp để

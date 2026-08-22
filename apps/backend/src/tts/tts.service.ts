@@ -65,12 +65,17 @@ export class TtsService {
     private readonly workerVoice: string;
     private readonly workerTimeoutMs: number;
     /**
-     * Ký tự tối đa cho MỘT request /synthesize. Worker sinh tuần tự ~23s cho
-     * mỗi 400 ký tự, nên chương 63k ký tự = 195 chunk ≈ 75 phút: vượt xa
-     * timeout 20 phút → job chết sau khi đã đốt cả giờ CPU rồi retry lại từ
-     * đầu (log worker cho thấy có chương sinh 3 lần vẫn không xong). Cắt
-     * thành nhiều phần ~12k ký tự (≈30 chunk ≈ 12 phút): phần nào xong là
-     * giữ được, và worker recycle giữa hai phần không làm mất gì.
+     * Ký tự tối đa cho MỘT request /synthesize. Chương dài hơn được cắt theo
+     * câu thành nhiều phần: phần nào xong là giữ được, và worker recycle giữa
+     * hai phần không làm mất gì.
+     *
+     * Kích thước phần phải vừa với worker CHẬM NHẤT, không phải worker trung
+     * bình: mỗi phần chỉ có `TTS_WORKER_TIMEOUT_MS` (20 phút) để xong. Bản
+     * 12k ký tự đầu tiên tính theo 23s/chunk, nhưng sau khi tắt ONNX arena
+     * vps103 chạy ~55s/chunk → 12k ký tự = 32 chunk = 29 phút, quá hạn: đo
+     * 22/08/2026 thấy nó bị huỷ ở chunk 25-30/32 bốn lần liên tiếp, mỗi lần
+     * đốt 20 phút CPU mà không ra chương nào (3 chương/3h, trong khi yeuvps
+     * 18 và ottovps 13). 6k ký tự = 15 chunk ≈ 14 phút ngay cả trên vps103.
      */
     private readonly workerPartChars: number;
     /**
@@ -121,7 +126,7 @@ export class TtsService {
             10,
         ) || 20 * 60_000;
         this.workerPartChars =
-            parseInt(this.configService.get<string>('TTS_PART_CHARS') || '', 10) || 12_000;
+            parseInt(this.configService.get<string>('TTS_PART_CHARS') || '', 10) || 6_000;
         this.queueEnabled = !!this.configService.get<string>('REDIS_URL') && !!this.ttsQueue;
         this.autoGenerateEnabled =
             this.enabled && this.configService.get<string>('TTS_AUTO_GENERATE') !== '0';
