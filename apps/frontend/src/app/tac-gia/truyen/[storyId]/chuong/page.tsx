@@ -461,13 +461,13 @@ export default function ChapterManagementPage() {
                                                                 <div className="flex-shrink-0 flex items-center gap-2">
                                                                     <Link
                                                                         href={`/truyen/${storySlug}/chuong/${chapter.slug}`}
-                                                                        className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-sm font-medium transition-colors"
+                                                                        className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-xs font-medium transition-colors"
                                                                     >
                                                                         Xem
                                                                     </Link>
                                                                     <Link
                                                                         href={`/tac-gia/truyen/${storySlug}/chuong/${chapter.id}/sua`}
-                                                                        className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-sm font-medium transition-colors"
+                                                                        className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-xs font-medium transition-colors"
                                                                     >
                                                                         Chỉnh sửa
                                                                     </Link>
@@ -506,7 +506,7 @@ export default function ChapterManagementPage() {
                                                         </div>
 
                                                         {/* Actions */}
-                                                        <div className="flex flex-col gap-2 md:flex-row md:items-center ml-11 md:ml-0">
+                                                        <div className="flex flex-wrap items-center gap-1.5 ml-11 md:ml-0 md:flex-shrink-0">
                                                             {/* Giọng đọc AI cho từng chương (chương miễn phí đã đăng,
                                                                 không có audio tác giả). Job chạy nền vài phút. */}
                                                             {canTts(chapter) && (() => {
@@ -523,12 +523,12 @@ export default function ChapterManagementPage() {
                                                                                     ? 'Đã có audio AI — bấm để tạo lại bằng giọng hiện tại của bạn'
                                                                                     : 'Tạo audio AI đọc chương này'
                                                                         }
-                                                                        className="px-4 py-2 border border-outline-variant text-primary hover:bg-surface-container-high rounded-lg text-sm font-medium transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                                                                        className="px-3 py-1.5 border border-outline-variant text-primary hover:bg-surface-container-high rounded-lg text-xs font-medium transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
                                                                     >
                                                                         {busy || ttsRequesting[chapter.id] ? (
                                                                             <>
                                                                                 <Loader2 size={14} className="animate-spin" />
-                                                                                Đang tạo giọng…
+                                                                                Đang tạo…
                                                                             </>
                                                                         ) : (
                                                                             <>
@@ -536,7 +536,7 @@ export default function ChapterManagementPage() {
                                                                                 {s === 'READY'
                                                                                     ? 'Tạo lại giọng AI'
                                                                                     : s === 'FAILED'
-                                                                                        ? 'Tạo giọng AI (lỗi, thử lại)'
+                                                                                        ? 'Thử lại giọng AI'
                                                                                         : 'Tạo giọng AI'}
                                                                             </>
                                                                         )}
@@ -547,19 +547,16 @@ export default function ChapterManagementPage() {
                                                                 <button
                                                                     onClick={() => handleUnpublish(chapter.id)}
                                                                     disabled={unpublishMutation.isPending}
-                                                                    className="px-4 py-2 bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                                                                    className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50 flex items-center gap-1.5"
                                                                 >
                                                                     {unpublishMutation.isPending ? (
                                                                         <>
-                                                                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                                            </svg>
-                                                                            Đang thu hồi...
+                                                                            <Loader2 size={14} className="animate-spin" />
+                                                                            Thu hồi…
                                                                         </>
                                                                     ) : (
                                                                         <>
-                                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                                                                             </svg>
                                                                             Thu hồi
@@ -568,10 +565,10 @@ export default function ChapterManagementPage() {
                                                                 </button>
                                                             ) : story && !story.isPublished && !isAdmin ? (
                                                                 <span
-                                                                    className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium flex items-center gap-2 cursor-default"
+                                                                    className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-medium flex items-center gap-2 cursor-default whitespace-nowrap"
                                                                     title="Chương sẽ tự động được đăng khi truyện được admin duyệt — không cần thao tác gì thêm"
                                                                 >
-                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                     </svg>
                                                                     Sẽ đăng cùng truyện
@@ -580,19 +577,16 @@ export default function ChapterManagementPage() {
                                                                 <button
                                                                     onClick={() => handlePublish(chapter.id)}
                                                                     disabled={publishMutation.isPending}
-                                                                    className="px-4 py-2 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                                                    className="px-3 py-1.5 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
                                                                 >
                                                                     {publishMutation.isPending ? (
                                                                         <>
-                                                                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                                            </svg>
-                                                                            Đang xử lý...
+                                                                            <Loader2 size={14} className="animate-spin" />
+                                                                            Xuất bản…
                                                                         </>
                                                                     ) : (
                                                                         <>
-                                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                                             </svg>
                                                                             Xuất bản
@@ -603,9 +597,9 @@ export default function ChapterManagementPage() {
                                                             <button
                                                                 onClick={() => handleDelete(chapter.id, chapter.title)}
                                                                 disabled={deleteMutation.isPending}
-                                                                className="px-4 py-2 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                                                                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
                                                             >
-                                                                {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+                                                                {deleteMutation.isPending ? 'Xóa…' : 'Xóa'}
                                                             </button>
                                                         </div>
                                                     </div>
