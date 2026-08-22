@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { Loader2, Sparkles } from 'lucide-react';
+import { CheckCheck, Loader2, Sparkles } from 'lucide-react';
 import { chaptersService } from '@/lib/api/chapters.service';
 import { ttsService } from '@/lib/api/tts.service';
 import { Header } from '@/components/layouts/header';
@@ -13,7 +13,7 @@ import { Footer } from '@/components/layouts/footer';
 import { Loading } from '@/components/ui/loading';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { ToastContainer, useToast } from '@/components/ui/toast';
-import { useChapters, useDeleteChapter, usePublishChapter, useUnpublishChapter } from '@/lib/api/hooks/use-chapters';
+import { useChapters, useDeleteChapter, usePublishChapter, usePublishAllChapters, useUnpublishChapter } from '@/lib/api/hooks/use-chapters';
 import { useStory } from '@/lib/api/hooks/use-stories';
 import { useMyApprovals } from '@/lib/api/hooks/use-approvals';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
@@ -33,6 +33,7 @@ export default function ChapterManagementPage() {
     const deleteMutation = useDeleteChapter(storySlug);
     const publishMutation = usePublishChapter(storySlug);
     const unpublishMutation = useUnpublishChapter(storySlug);
+    const publishAllMutation = usePublishAllChapters(storySlug);
     const { toasts, showToast, removeToast } = useToast();
     
     const isAdmin = user?.role === 'ADMIN';
@@ -238,6 +239,26 @@ export default function ChapterManagementPage() {
         }
     };
 
+    const draftCount = allChapters.filter((ch: any) => !ch.isPublished).length;
+    const canPublishAll = draftCount > 0 && (!!story?.isPublished || isAdmin);
+
+    const handlePublishAll = async () => {
+        if (!canPublishAll) return;
+        const ok = window.confirm(
+            `Xuất bản ngay ${draftCount} chương chưa xuất bản?\n` +
+                'Lịch hẹn giờ (nếu có) của các chương này sẽ bị bỏ; follower nhận 1 thông báo cho chương mới nhất.',
+        );
+        if (!ok) return;
+        try {
+            const res = await publishAllMutation.mutateAsync();
+            const data: any = (res as any)?.data ?? res;
+            showToast(data?.message || `Đã xuất bản ${data?.published ?? draftCount} chương`, 'success');
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Có lỗi xảy ra khi xuất bản hàng loạt';
+            showToast(errorMessage, 'error');
+        }
+    };
+
     const handleUnpublish = async (id: string) => {
         try {
             await unpublishMutation.mutateAsync(id);
@@ -278,6 +299,25 @@ export default function ChapterManagementPage() {
                                         >
                                             Quay lại
                                         </Link>
+                                        {isStoryOwner && draftCount > 0 && (
+                                            <button
+                                                onClick={handlePublishAll}
+                                                disabled={!canPublishAll || publishAllMutation.isPending}
+                                                className="px-4 py-2 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                                                title={
+                                                    canPublishAll
+                                                        ? `Xuất bản ngay ${draftCount} chương chưa xuất bản`
+                                                        : 'Truyện chưa được duyệt — chương sẽ tự đăng khi truyện được duyệt'
+                                                }
+                                            >
+                                                {publishAllMutation.isPending ? (
+                                                    <Loader2 size={18} className="animate-spin" />
+                                                ) : (
+                                                    <CheckCheck size={18} />
+                                                )}
+                                                Xuất bản tất cả ({draftCount})
+                                            </button>
+                                        )}
                                         {isStoryOwner && (
                                             <button
                                                 onClick={() => setBulkTtsModal(true)}

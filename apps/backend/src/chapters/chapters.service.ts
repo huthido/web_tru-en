@@ -821,6 +821,57 @@ export class ChaptersService {
     }
 
     /**
+     * Xuất bản NGAY mọi chương nháp của truyện (tác giả/admin). Truyện chưa
+     * duyệt thì chỉ admin làm được (chương sẽ tự đăng khi truyện được duyệt).
+     * Fanout thông báo 1 lần cho chương mới nhất (tránh spam follower N lần);
+     * audio AI sinh nền cho cả truyện.
+     */
+    async publishAllDrafts(storySlug: string, userId: string, userRole: UserRole) {
+        const story = await this.prisma.story.findFirst({
+            where: { OR: [{ slug: storySlug }, { id: storySlug }] },
+            select: { id: true, title: true, slug: true, authorId: true, isPublished: true },
+        });
+        if (!story) throw new NotFoundException('Truyện không tồn tại');
+        const isAdmin = userRole === UserRole.ADMIN;
+        if (story.authorId !== userId && !isAdmin) {
+            throw new ForbiddenException('Bạn chỉ có thể xuất bản chương của truyện mình');
+        }
+        if (!story.isPublished && !isAdmin) {
+            throw new BadRequestException(
+                'Truyện chưa được duyệt. Chương sẽ tự động được đăng khi truyện được duyệt — hãy gửi yêu cầu phê duyệt truyện từ trang Dashboard.',
+            );
+        }
+
+        const drafts = await this.prisma.chapter.findMany({
+            where: { storyId: story.id, isPublished: false },
+            orderBy: { order: 'asc' },
+            select: { id: true, title: true, slug: true, order: true },
+        });
+        if (drafts.length === 0) {
+            return { published: 0, message: 'Không có chương nháp nào để xuất bản.' };
+        }
+
+        const result = await this.prisma.chapter.updateMany({
+            where: { id: { in: drafts.map((d) => d.id) }, isPublished: false },
+            data: { isPublished: true, scheduledPublishAt: null },
+        });
+
+        const latest = drafts[drafts.length - 1];
+        void this.notificationsService.fanoutChapterPublished({
+            id: latest.id,
+            title: latest.title,
+            slug: latest.slug,
+            story: { id: story.id, title: story.title, slug: story.slug },
+        });
+        this.ttsService?.autoGenerateForStory(story.id);
+
+        return {
+            published: result.count,
+            message: `Đã xuất bản ${result.count} chương.`,
+        };
+    }
+
+    /**
      * Cron gọi mỗi phút: tìm chương tới hạn (scheduledPublishAt <= now,
      * chưa publish, truyện đã publish) và xuất bản + fanout thông báo.
      * Trả về số chương đã đăng.

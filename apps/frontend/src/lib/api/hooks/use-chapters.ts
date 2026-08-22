@@ -119,6 +119,18 @@ export const usePublishChapter = (storySlug: string) => {
     });
 };
 
+export const usePublishAllChapters = (storySlug: string) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: () => chaptersService.publishAll(storySlug),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['chapters', storySlug] });
+            queryClient.invalidateQueries({ queryKey: ['chapter'] });
+        },
+    });
+};
+
 export const useUnpublishChapter = (storySlug: string) => {
     const queryClient = useQueryClient();
 

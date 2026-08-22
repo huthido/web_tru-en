@@ -154,6 +154,16 @@ export const chaptersService = {
         return response.data;
     },
 
+    /** Xuất bản ngay mọi chương nháp của truyện. */
+    publishAll: async (
+        storySlug: string,
+    ): Promise<ApiResponse<{ published: number; message: string }>> => {
+        const response = await apiClient.post<{ published: number; message: string }>(
+            `/stories/${storySlug}/chapters/publish-all`,
+        );
+        return response.data;
+    },
+
     unpublish: async (storySlug: string, id: string): Promise<ApiResponse<Chapter>> => {
         const response = await apiClient.post<Chapter>(`/stories/${storySlug}/chapters/${id}/unpublish`);
         return response.data;

@@ -116,6 +116,13 @@ export class ChaptersController {
     }
 
     /** Đặt lịch rải đều xuất bản các chương nháp của truyện (drip release). */
+    /** Xuất bản ngay mọi chương nháp của truyện. */
+    @Post('publish-all')
+    @UseGuards(JwtAuthGuard)
+    publishAll(@Param('storySlug') storySlug: string, @CurrentUser() user: any) {
+        return this.chaptersService.publishAllDrafts(storySlug, user.id, user.role);
+    }
+
     @Post('schedule')
     @UseGuards(JwtAuthGuard)
     schedule(
