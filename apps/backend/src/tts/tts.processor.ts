@@ -19,7 +19,13 @@ const TTS_WORKER_COUNT = Math.max(
  * phút nên concurrency = số TTS worker: 1 máy → 1 job một lúc; N máy → N
  * chương song song (TtsService.pickWorker chia job cho worker ít bận nhất).
  */
-@Processor(TTS_QUEUE, { concurrency: TTS_WORKER_COUNT })
+// Script ops (scripts/*.ts) tạo Nest context từ AppModule → processor này cũng
+// khởi động và "cướp" job khỏi queue rồi chết theo script. Script đặt
+// BULL_PROCESSORS_DISABLED=1 trước khi import AppModule để worker không autorun.
+@Processor(TTS_QUEUE, {
+    concurrency: TTS_WORKER_COUNT,
+    autorun: process.env.BULL_PROCESSORS_DISABLED !== '1',
+})
 export class TtsProcessor extends WorkerHost {
     private readonly logger = new Logger(TtsProcessor.name);
 

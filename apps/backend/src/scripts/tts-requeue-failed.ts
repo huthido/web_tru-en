@@ -7,6 +7,7 @@
  *   docker exec <backend> node dist/scripts/tts-requeue-failed.js --apply    # xếp hàng thật
  *   ... --apply --limit 200                                                  # tối đa 200 chương
  */
+import './_no-processors'; // phải đứng trước AppModule
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
 import { AppModule } from '../app.module';
@@ -43,7 +44,9 @@ async function main() {
     }
 }
 
-main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-});
+main()
+    .then(() => process.exit(0)) // Redis subscriber/BullMQ giữ event loop → thoát tường minh
+    .catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });
