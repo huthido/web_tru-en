@@ -58,6 +58,12 @@ MAX_RSS_MB = int(os.environ.get("TTS_MAX_RSS_MB", "3000"))
 MAX_CHUNKS_PER_LIFE = int(os.environ.get("TTS_MAX_CHUNKS_PER_LIFE", "150"))
 # Số chunk giữa 2 lần đo RSS + malloc_trim NGAY TRONG lúc đang sinh.
 RSS_CHECK_EVERY = max(1, int(os.environ.get("TTS_RSS_CHECK_EVERY", "5")))
+# Tắt CPU memory arena của ONNX Runtime. Arena giữ lại mọi buffer đã cấp để
+# lần infer sau dùng lại: RSS vọt lên ~5GB trong ~10 chunk ĐẦU TIÊN rồi nằm
+# đó cả đời process (đo trên vps103 22/08/2026) — đó mới là thứ ép worker
+# phải recycle, không phải rò rỉ tích luỹ. Tắt arena thì ORT cấp/trả theo
+# từng lần infer: RAM thấp hơn nhiều, đổi lại chậm hơn ít nhiều.
+ORT_DISABLE_ARENA = os.environ.get("TTS_ORT_DISABLE_ARENA", "") == "1"
 
 _model = None
 # VieNeu infer không chắc thread-safe — serialize mọi request sinh audio.
@@ -198,8 +204,35 @@ def validate_ref_url(url: str) -> None:
             raise HTTPException(status_code=400, detail="Invalid reference clip URL")
 
 
+def _patch_ort_no_arena() -> None:
+    """Ép mọi InferenceSession do SDK tạo ra chạy với enable_cpu_mem_arena=False.
+
+    SDK vieneu tự tạo session nên không có đường truyền SessionOptions vào —
+    vá thẳng constructor trước khi import vieneu là cách gọn nhất.
+    """
+    import onnxruntime as ort
+
+    original = ort.InferenceSession.__init__
+
+    def patched(self, path_or_bytes, sess_options=None, providers=None,
+                provider_options=None, **kwargs):
+        if sess_options is None:
+            sess_options = ort.SessionOptions()
+        sess_options.enable_cpu_mem_arena = False
+        return original(self, path_or_bytes, sess_options=sess_options,
+                        providers=providers, provider_options=provider_options, **kwargs)
+
+    ort.InferenceSession.__init__ = patched
+    log.info("ONNX Runtime: CPU memory arena OFF (TTS_ORT_DISABLE_ARENA=1)")
+
+
 def _load_model():
     global _model
+    if ORT_DISABLE_ARENA:
+        try:
+            _patch_ort_no_arena()
+        except Exception as e:  # SDK đổi backend / không có onnxruntime
+            log.warning("Không tắt được ORT arena (%s) — chạy tiếp với mặc định", e)
     from vieneu import Vieneu  # import trễ: nặng, chỉ cần trong process serve
 
     log.info("Loading VieNeu-TTS model (first run downloads the checkpoint)...")

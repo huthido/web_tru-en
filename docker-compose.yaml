@@ -246,10 +246,16 @@ services:
       TTS_DEFAULT_VOICE: ${TTS_WORKER_VOICE:-}
       # Giới hạn thread ONNX/BLAS — khớp với cpus bên dưới, chừa core cho backend.
       OMP_NUM_THREADS: "4"
-      # Ngưỡng tự recycle. RSS phải thấp hơn mem_limit một khoảng: worker chỉ
-      # đo mỗi TTS_RSS_CHECK_EVERY chunk nên còn sinh thêm vài chunk (~150MB
-      # mỗi chunk trước khi trim) sau khi vượt ngưỡng. 2800MB + biên ≈ 1GB vẫn
-      # dưới mem_limit 4g → không bị cgroup OOM-kill giữa job.
+      # Tắt CPU memory arena của ONNX Runtime. Đo trên vps103 22/08/2026, cùng
+      # một chương 22 chunk: arena BẬT → RSS bão hoà 5.187MB (96% cgroup limit,
+      # đẩy host sang swap) ở ~34s/chunk; arena TẮT → RSS ~1.070MB ở ~60s/chunk.
+      # Máy này chạy chung với cả website trên 8GB RAM nên đổi tốc độ lấy 4GB
+      # RAM là đáng; worker riêng (vps103) thì để trống và cho mem_limit 6g.
+      TTS_ORT_DISABLE_ARENA: ${TTS_ORT_DISABLE_ARENA:-1}
+      # Ngưỡng tự recycle — với arena tắt, RSS ~1GB nên đây chỉ là van an toàn,
+      # bình thường không bao giờ chạm. Nếu bật lại arena thì ngưỡng phải thấp
+      # hơn mem_limit ít nhất 1GB (worker còn sinh nốt tối đa 5 chunk sau khi
+      # vượt ngưỡng) — hoặc nâng mem_limit lên trên mức bão hoà 5.2GB.
       TTS_MAX_RSS_MB: ${TTS_MAX_RSS_MB:-2800}
       # Recycle cả theo số chunk đã sinh, phòng khi RSS đo được không phản ánh
       # đúng phần bộ nhớ glibc/ONNX còn giữ.
