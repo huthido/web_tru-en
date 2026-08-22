@@ -55,6 +55,9 @@ _model = None
 _infer_lock = threading.Lock()
 _inflight = 0
 _inflight_lock = threading.Lock()
+# RSS đã vượt ngưỡng nhưng còn request đang chạy → không nhận job mới (503,
+# backend retry sau ~60s) và thoát ngay khi request cuối xong.
+_draining = False
 
 
 def current_rss_mb() -> float:
@@ -69,16 +72,25 @@ def current_rss_mb() -> float:
 
 def _maybe_recycle():
     """Chạy sau khi response đã gửi xong (BackgroundTasks)."""
+    global _draining
     gc.collect()
     rss = current_rss_mb()
     with _inflight_lock:
         busy = _inflight
-    if rss > MAX_RSS_MB and busy == 0:
-        log.warning(
-            "RSS %.0f MB > %d MB và không còn request — tự thoát để Docker khởi động lại",
-            rss, MAX_RSS_MB,
-        )
-        os._exit(0)
+    if rss > MAX_RSS_MB or _draining:
+        if busy == 0:
+            log.warning(
+                "RSS %.0f MB > %d MB và không còn request — tự thoát để Docker khởi động lại",
+                rss, MAX_RSS_MB,
+            )
+            os._exit(0)
+        if not _draining:
+            _draining = True
+            log.warning(
+                "RSS %.0f MB > %d MB — ngừng nhận job mới (503), thoát khi %d request đang chạy xong",
+                rss, MAX_RSS_MB, busy,
+            )
+        return
     log.info("RSS %.0f MB (ngưỡng recycle %d MB, inflight %d)", rss, MAX_RSS_MB, busy)
 
 # Voice cloning: cache clip mẫu đã tải + tên giọng đã đăng ký với model.
@@ -294,6 +306,8 @@ async def synthesize(
         raise HTTPException(status_code=401, detail="Invalid API key")
     if _model is None:
         raise HTTPException(status_code=503, detail="Model not loaded yet")
+    if _draining:
+        raise HTTPException(status_code=503, detail="Worker recycling — retry shortly")
 
     text = req.text.strip()
     if not text:
