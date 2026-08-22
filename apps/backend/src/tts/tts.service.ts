@@ -124,7 +124,18 @@ export class TtsService {
         this.workerUrls = (this.configService.get<string>('TTS_WORKER_URL') || '')
             .split(',')
             .map((u) => u.trim().replace(/\/$/, ''))
-            .filter(Boolean);
+            .filter(Boolean)
+            // Một mục sai định dạng làm hỏng cả slot: fetch ném TypeError ngay,
+            // mà lỗi đó KHÔNG phải "worker vắng mặt" nên job fail luôn thay vì
+            // chuyển sang máy khác. Đã dính 22/08/2026 khi dán nhầm cả
+            // "TTS_WORKER_URL = " vào ô giá trị trên Coolify.
+            .filter((u) => {
+                if (/^https?:\/\/[^\s]+$/.test(u)) return true;
+                this.logger.error(
+                    `TTS_WORKER_URL: bỏ qua mục không hợp lệ "${u}" — mỗi mục phải là một URL http(s), phân cách bằng dấu phẩy`,
+                );
+                return false;
+            });
         for (const u of this.workerUrls) this.workerLoad.set(u, 0);
         this.workerApiKey = this.configService.get<string>('TTS_WORKER_API_KEY') || '';
         this.workerVoice = this.configService.get<string>('TTS_WORKER_VOICE') || '';
