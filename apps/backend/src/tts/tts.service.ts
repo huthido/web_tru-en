@@ -519,18 +519,84 @@ export class TtsService {
         return { items, total, page, limit, pages: Math.ceil(total / limit) };
     }
 
-    /** Admin: xoá audio TTS của chương (để tạo lại). */
+    /** Điều kiện chương đủ điều kiện sinh audio AI (đã đăng, miễn phí, không có audio tác giả). */
+    private eligibleChapterWhere() {
+        return {
+            isPublished: true,
+            audioUrl: null,
+            OR: [
+                { story: { accessType: 'FREE' as const } },
+                { story: { accessType: 'VIP' as const, price: { lte: 0 } } },
+                { price: 0, story: { accessType: 'FREEMIUM' as const } },
+            ],
+        };
+    }
+
+    /** Admin: xoá audio TTS của chương rồi xếp hàng tạo lại ngay (nếu đủ điều kiện). */
     async adminResetChapterTts(chapterId: string) {
         const chapter = await this.prisma.chapter.findUnique({
             where: { id: chapterId },
-            select: { id: true, ttsAudioStatus: true },
+            select: { id: true },
         });
         if (!chapter) throw new NotFoundException('Chương không tồn tại');
         await this.prisma.chapter.update({
             where: { id: chapterId },
             data: { ttsAudioStatus: null, ttsAudioUrl: null, ttsVoiceName: null },
         });
-        return { ok: true };
+        const eligible = await this.prisma.chapter.findFirst({
+            where: { id: chapterId, ...this.eligibleChapterWhere() },
+            select: { id: true },
+        });
+        const queued = eligible ? await this.claimAndEnqueue([chapterId]) : 0;
+        return { ok: true, queued };
+    }
+
+    /**
+     * Admin: xoá & tạo lại HÀNG LOẠT theo đúng bộ lọc của danh sách hàng chờ
+     * (status + search). Không truyền status = PENDING/PROCESSING/FAILED như
+     * mặc định của danh sách; muốn làm lại chương READY phải chọn rõ status.
+     */
+    async adminResetBulk(opts: { status?: string; search?: string; limit?: number }) {
+        const limit = Math.min(5000, Math.max(1, opts.limit ?? 5000));
+        const where: any = {};
+        if (opts.status) {
+            where.ttsAudioStatus = opts.status as TtsAudioStatus;
+        } else {
+            where.ttsAudioStatus = {
+                in: [TtsAudioStatus.PENDING, TtsAudioStatus.PROCESSING, TtsAudioStatus.FAILED],
+            };
+        }
+        if (opts.search) {
+            where.OR = [
+                { title: { contains: opts.search, mode: 'insensitive' } },
+                { story: { title: { contains: opts.search, mode: 'insensitive' } } },
+            ];
+        }
+        const matched = await this.prisma.chapter.findMany({
+            where,
+            select: { id: true },
+            orderBy: { createdAt: 'asc' },
+            take: limit,
+        });
+        if (matched.length === 0) return { matched: 0, reset: 0, queued: 0 };
+        const ids = matched.map((c) => c.id);
+
+        // Chỉ xoá audio/ trạng thái của các chương đã khớp; job BullMQ cũ (nếu
+        // còn) gặp chương null sẽ sinh lại bình thường, không sinh trùng vì
+        // claim là atomic.
+        const reset = await this.prisma.chapter.updateMany({
+            where: { id: { in: ids } },
+            data: { ttsAudioStatus: null, ttsAudioUrl: null, ttsVoiceName: null },
+        });
+        const eligible = await this.prisma.chapter.findMany({
+            where: { id: { in: ids }, ...this.eligibleChapterWhere() },
+            select: { id: true },
+        });
+        const queued = await this.claimAndEnqueue(eligible.map((c) => c.id));
+        this.logger.log(
+            `Admin reset-bulk: matched ${ids.length}, reset ${reset.count}, queued ${queued} (status=${opts.status || 'default'}, search=${opts.search || ''})`,
+        );
+        return { matched: ids.length, reset: reset.count, queued };
     }
 
     private async computeStoryStatus(storyId: string): Promise<StoryTtsStatus> {

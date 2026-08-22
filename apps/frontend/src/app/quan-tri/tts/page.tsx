@@ -40,6 +40,7 @@ export default function AdminTtsPage() {
     const [search, setSearch] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [resettingId, setResettingId] = useState<string | null>(null);
+    const [bulkResetting, setBulkResetting] = useState(false);
 
     const { data: stats, isLoading: statsLoading } = useQuery({
         queryKey: ['admin', 'tts', 'stats'],
@@ -64,13 +65,45 @@ export default function AdminTtsPage() {
     const handleReset = async (ch: TtsAdminQueueItem) => {
         setResettingId(ch.id);
         try {
-            await ttsService.adminResetChapterTts(ch.id);
+            const r = await ttsService.adminResetChapterTts(ch.id);
             queryClient.invalidateQueries({ queryKey: ['admin', 'tts'] });
-            showToast('Đã xoá audio TTS — chương sẽ được tạo lại khi có worker trống', 'success');
+            showToast(
+                r.queued > 0
+                    ? 'Đã xoá audio TTS và xếp hàng tạo lại'
+                    : 'Đã xoá audio TTS (chương không đủ điều kiện sinh lại: chưa đăng / trả phí / có audio tác giả)',
+                'success',
+            );
         } catch (err: any) {
             showToast(err?.response?.data?.error || 'Lỗi khi xoá audio TTS', 'error');
         } finally {
             setResettingId(null);
+        }
+    };
+
+    const filterLabel =
+        (FILTERS.find((o) => o.value === statusFilter)?.label || 'Đang chờ / đang tạo / lỗi') +
+        (search ? ` · "${search}"` : '');
+
+    const handleBulkReset = async () => {
+        const total = queue?.total ?? 0;
+        if (total === 0) return;
+        const ok = window.confirm(
+            `Xoá audio AI và tạo lại ${total.toLocaleString()} chương đang lọc (${filterLabel})?\n` +
+                'Chương chưa đăng / trả phí / có audio tác giả chỉ bị xoá, không sinh lại.',
+        );
+        if (!ok) return;
+        setBulkResetting(true);
+        try {
+            const r = await ttsService.adminResetBulk({
+                status: statusFilter || undefined,
+                search: search || undefined,
+            });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'tts'] });
+            showToast(`Đã xoá ${r.reset} chương, xếp hàng tạo lại ${r.queued} chương`, 'success');
+        } catch (err: any) {
+            showToast(err?.response?.data?.error || 'Lỗi khi xoá & tạo lại hàng loạt', 'error');
+        } finally {
+            setBulkResetting(false);
         }
     };
 
@@ -152,6 +185,17 @@ export default function AdminTtsPage() {
                             className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest rounded-lg text-sm font-medium text-on-surface-variant transition-colors"
                         >
                             Tìm
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleBulkReset}
+                            disabled={bulkResetting || (queue?.total ?? 0) === 0}
+                            title={`Xoá audio AI và tạo lại toàn bộ chương đang lọc: ${filterLabel}`}
+                            className="px-3 py-1.5 bg-error text-on-error hover:opacity-90 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                        >
+                            {bulkResetting
+                                ? 'Đang xử lý...'
+                                : `Xoá & tạo lại tất cả (${(queue?.total ?? 0).toLocaleString()})`}
                         </button>
                     </form>
                 </div>

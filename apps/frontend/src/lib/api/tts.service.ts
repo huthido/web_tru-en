@@ -110,9 +110,18 @@ export const ttsService = {
         return unwrap<TtsAdminQueueResult>(response.data);
     },
 
-    adminResetChapterTts: async (chapterId: string): Promise<{ ok: boolean }> => {
+    adminResetChapterTts: async (chapterId: string): Promise<{ ok: boolean; queued: number }> => {
         const response = await apiClient.post<any>(`/admin/tts/reset/${chapterId}`);
-        return unwrap<{ ok: boolean }>(response.data);
+        return unwrap<{ ok: boolean; queued: number }>(response.data);
+    },
+
+    /** Xoá & tạo lại mọi chương khớp bộ lọc (status + search) của hàng chờ. */
+    adminResetBulk: async (params: {
+        status?: string;
+        search?: string;
+    }): Promise<{ matched: number; reset: number; queued: number }> => {
+        const response = await apiClient.post<any>('/admin/tts/reset-bulk', params);
+        return unwrap<{ matched: number; reset: number; queued: number }>(response.data);
     },
 };
 

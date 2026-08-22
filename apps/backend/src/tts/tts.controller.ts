@@ -158,4 +158,10 @@ export class AdminTtsController {
     resetChapterTts(@Param('chapterId') chapterId: string) {
         return this.ttsService.adminResetChapterTts(chapterId);
     }
+
+    /** Xoá & tạo lại mọi chương khớp bộ lọc hiện tại của danh sách. */
+    @Post('reset-bulk')
+    resetBulk(@Body() body: { status?: string; search?: string; limit?: number }) {
+        return this.ttsService.adminResetBulk(body || {});
+    }
 }
