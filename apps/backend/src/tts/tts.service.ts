@@ -61,6 +61,14 @@ export class TtsService {
     private readonly workerUrls: string[];
     /** Số request đang chạy trên từng worker — chọn worker ít bận nhất. */
     private readonly workerLoad = new Map<string, number>();
+    /**
+     * Thời điểm worker báo lỗi KẾT NỐI gần nhất (không tính timeout — worker
+     * chậm vẫn là worker sống). Trong `workerCooldownMs` sau đó nó bị loại
+     * khỏi vòng chọn: pool có thể gồm máy không phải lúc nào cũng bật (laptop
+     * ngủ, máy nhà mất điện), mà không có cờ này thì mỗi worker chết vẫn hút
+     * 1/N số job rồi bắt từng job chờ /health tới 15 phút mới chịu fail.
+     */
+    private readonly workerFailedAt = new Map<string, number>();
     private readonly workerApiKey: string;
     private readonly workerVoice: string;
     private readonly workerTimeoutMs: number;
@@ -152,11 +160,20 @@ export class TtsService {
         return this.workerUrls[0] ?? '';
     }
 
-    /** Chọn worker đang ít request nhất (round-robin theo tải). */
+    /**
+     * Chọn worker ít request nhất TRONG SỐ worker chưa lỗi gần đây. Tất cả đều
+     * đang cooldown (ví dụ vừa deploy, cả stack tắt) thì quay lại chọn trong
+     * toàn bộ danh sách để job không đứng im.
+     */
     private pickWorker(): string {
-        let best = this.workerUrls[0];
+        const now = Date.now();
+        const healthy = this.workerUrls.filter(
+            (u) => now - (this.workerFailedAt.get(u) ?? 0) > this.workerCooldownMs,
+        );
+        const pool = healthy.length ? healthy : this.workerUrls;
+        let best = pool[0];
         let bestLoad = Infinity;
-        for (const u of this.workerUrls) {
+        for (const u of pool) {
             const load = this.workerLoad.get(u) ?? 0;
             if (load < bestLoad) {
                 best = u;
@@ -766,28 +783,47 @@ export class TtsService {
         timeoutMs: number,
         label: string,
     ): Promise<Buffer> {
-        const workerUrl = this.pickWorker();
-        this.workerLoad.set(workerUrl, (this.workerLoad.get(workerUrl) ?? 0) + 1);
-        try {
-            // Worker đang deploy lại / tự recycle (503 draining) / bị OOM-kill →
-            // lỗi kết nối tức thì. Nếu ném ngay, BullMQ đốt hết 4 lượt retry
-            // trong vài phút (mỗi lần deploy từng làm ~650 job FAILED). Thay vào
-            // đó chờ /health lên lại rồi gọi tiếp trong cùng job.
-            for (let attempt = 1; ; attempt++) {
-                try {
-                    return await this.callWorkerAt(workerUrl, text, voice, refAudioUrl, timeoutMs);
-                } catch (err) {
-                    if (attempt >= 3 || !this.isWorkerUnavailable(err)) throw err;
-                    this.logger.warn(
-                        `TTS worker ${workerUrl}${label} không sẵn sàng (${(err as Error).message}) — chờ worker lên lại (lần ${attempt})`,
-                    );
-                    const ok = await this.waitForWorker(workerUrl, this.workerWaitMs);
-                    if (!ok) throw err;
+        // Worker đang deploy lại / tự recycle (503 draining) / bị OOM-kill /
+        // máy phụ đang ngủ → lỗi kết nối tức thì. Ném ngay thì BullMQ đốt hết 4
+        // lượt retry trong vài phút (mỗi lần deploy từng làm ~650 job FAILED).
+        // Còn worker khoẻ khác thì chuyển sang NGAY; hết sạch mới chờ /health.
+        const maxAttempts = Math.max(3, this.workerUrls.length + 1);
+        for (let attempt = 1; ; attempt++) {
+            const workerUrl = this.pickWorker();
+            this.workerLoad.set(workerUrl, (this.workerLoad.get(workerUrl) ?? 0) + 1);
+            try {
+                const audio = await this.callWorkerAt(
+                    workerUrl, text, voice, refAudioUrl, timeoutMs,
+                );
+                this.workerFailedAt.delete(workerUrl);
+                return audio;
+            } catch (err) {
+                if (attempt >= maxAttempts || !this.isWorkerUnavailable(err)) throw err;
+                this.workerFailedAt.set(workerUrl, Date.now());
+                const canSwitch = this.hasHealthyWorker();
+                this.logger.warn(
+                    `TTS worker ${workerUrl}${label} không sẵn sàng (${(err as Error).message}) — ` +
+                    `${canSwitch ? 'chuyển sang worker khác' : 'chờ worker lên lại'} (lần ${attempt})`,
+                );
+                if (!canSwitch && !(await this.waitForWorker(workerUrl, this.workerWaitMs))) {
+                    throw err;
                 }
+            } finally {
+                this.workerLoad.set(workerUrl, Math.max(0, (this.workerLoad.get(workerUrl) ?? 1) - 1));
             }
-        } finally {
-            this.workerLoad.set(workerUrl, Math.max(0, (this.workerLoad.get(workerUrl) ?? 1) - 1));
         }
+    }
+
+    /** Bỏ qua worker vừa lỗi kết nối trong bấy lâu (mặc định 5 phút). */
+    private readonly workerCooldownMs =
+        parseInt(process.env.TTS_WORKER_COOLDOWN_MS || '', 10) || 5 * 60_000;
+
+    /** Còn worker nào chưa lỗi gần đây không? */
+    private hasHealthyWorker(): boolean {
+        const now = Date.now();
+        return this.workerUrls.some(
+            (u) => now - (this.workerFailedAt.get(u) ?? 0) > this.workerCooldownMs,
+        );
     }
 
     /** Tối đa chờ worker lên lại trong 1 job (mặc định 15 phút — đủ cho 1 lần deploy). */
@@ -823,6 +859,7 @@ export class TtsService {
                     };
                     if (data.model_loaded !== false && data.draining !== true) {
                         this.logger.log(`TTS worker ${workerUrl} đã sẵn sàng trở lại`);
+                        this.workerFailedAt.delete(workerUrl);
                         return true;
                     }
                 }
