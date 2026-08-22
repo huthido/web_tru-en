@@ -654,10 +654,62 @@ export class TtsService {
         const workerUrl = this.pickWorker();
         this.workerLoad.set(workerUrl, (this.workerLoad.get(workerUrl) ?? 0) + 1);
         try {
-            return await this.callWorkerAt(workerUrl, text, voice, opts.refAudioUrl, timeoutMs);
+            // Worker đang deploy lại / tự recycle (503 draining) / bị OOM-kill →
+            // lỗi kết nối tức thì. Nếu ném ngay, BullMQ đốt hết 4 lượt retry
+            // trong vài phút (mỗi lần deploy từng làm ~650 job FAILED). Thay vào
+            // đó chờ /health lên lại rồi gọi tiếp trong cùng job.
+            for (let attempt = 1; ; attempt++) {
+                try {
+                    return await this.callWorkerAt(workerUrl, text, voice, opts.refAudioUrl, timeoutMs);
+                } catch (err) {
+                    if (attempt >= 3 || !this.isWorkerUnavailable(err)) throw err;
+                    this.logger.warn(
+                        `TTS worker ${workerUrl} không sẵn sàng (${(err as Error).message}) — chờ worker lên lại (lần ${attempt})`,
+                    );
+                    const ok = await this.waitForWorker(workerUrl, this.workerWaitMs);
+                    if (!ok) throw err;
+                }
+            }
         } finally {
             this.workerLoad.set(workerUrl, Math.max(0, (this.workerLoad.get(workerUrl) ?? 1) - 1));
         }
+    }
+
+    /** Tối đa chờ worker lên lại trong 1 job (mặc định 15 phút — đủ cho 1 lần deploy). */
+    private readonly workerWaitMs =
+        parseInt(process.env.TTS_WORKER_WAIT_MS || '', 10) || 15 * 60_000;
+
+    /** Lỗi do worker vắng mặt (không phải lỗi nội dung/timeout sinh audio). */
+    private isWorkerUnavailable(err: unknown): boolean {
+        const e = err as Error & { cause?: { code?: string }; name?: string };
+        if (!e) return false;
+        if (e.name === 'TimeoutError' || e.name === 'AbortError') return false;
+        if (/HTTP 50[23]\b/.test(e.message || '')) return true; // 503 draining / 502 proxy
+        if (e.message === 'fetch failed') return true;
+        const code = e.cause?.code || '';
+        return ['ECONNREFUSED', 'ECONNRESET', 'ENOTFOUND', 'EAI_AGAIN', 'UND_ERR_SOCKET', 'UND_ERR_CONNECT_TIMEOUT'].includes(code);
+    }
+
+    /** Poll GET /health mỗi 10s tới khi worker báo model_loaded. */
+    private async waitForWorker(workerUrl: string, maxMs: number): Promise<boolean> {
+        const deadline = Date.now() + maxMs;
+        while (Date.now() < deadline) {
+            await new Promise((r) => setTimeout(r, 10_000));
+            try {
+                const res = await fetch(`${workerUrl}/health`, { signal: AbortSignal.timeout(5_000) });
+                if (res.ok) {
+                    const data = (await res.json().catch(() => ({}))) as { model_loaded?: boolean };
+                    if (data.model_loaded !== false) {
+                        this.logger.log(`TTS worker ${workerUrl} đã sẵn sàng trở lại`);
+                        return true;
+                    }
+                }
+            } catch {
+                /* chưa lên */
+            }
+        }
+        this.logger.error(`TTS worker ${workerUrl} vẫn không sẵn sàng sau ${Math.round(maxMs / 60000)} phút`);
+        return false;
     }
 
     private async callWorkerAt(

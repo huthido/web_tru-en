@@ -36,10 +36,11 @@ export const TTS_QUEUE = 'tts';
     BullModule.registerQueue({
       name: TTS_QUEUE,
       defaultJobOptions: {
-        // Worker TTS tự recycle / bị OOM-kill → "fetch failed" tức thì; 4 lần
-        // với backoff 60s/120s/240s đủ để chờ worker lên lại (~15s).
+        // Worker vắng mặt đã được TtsService chờ trong job (poll /health tới 15
+        // phút). Retry ở đây chỉ cho lỗi còn lại; backoff 5/10/20 phút để một
+        // đợt deploy/recycle dài không đốt hết lượt của hàng trăm job.
         attempts: 4,
-        backoff: { type: 'exponential', delay: 60_000 },
+        backoff: { type: 'exponential', delay: 5 * 60_000 },
         removeOnComplete: { age: 24 * 3600, count: 500 },
         removeOnFail: { age: 7 * 24 * 3600 },
       },
