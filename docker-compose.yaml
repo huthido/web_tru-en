@@ -246,11 +246,12 @@ services:
       TTS_DEFAULT_VOICE: ${TTS_WORKER_VOICE:-}
       # Giới hạn thread ONNX/BLAS — khớp với cpus bên dưới, chừa core cho backend.
       OMP_NUM_THREADS: "4"
-      # Tắt CPU memory arena của ONNX Runtime. Đo trên vps103 22/08/2026, cùng
-      # một chương 22 chunk: arena BẬT → RSS bão hoà 5.187MB (96% cgroup limit,
-      # đẩy host sang swap) ở ~34s/chunk; arena TẮT → RSS ~1.070MB ở ~60s/chunk.
-      # Máy này chạy chung với cả website trên 8GB RAM nên đổi tốc độ lấy 4GB
-      # RAM là đáng; worker riêng (vps103) thì để trống và cho mem_limit 6g.
+      # Tắt CPU memory arena của ONNX Runtime. Đo 22/08/2026 trên cùng một
+      # chương: arena BẬT → RSS bão hoà ~5.2GB (đạt trong ~10 chunk đầu rồi nằm
+      # đó cả đời process) ở ~20-34s/chunk; arena TẮT → RSS ~1.1GB ở ~30-60s/
+      # chunk. Bật arena chỉ an toàn khi worker được cấp ≥6GB RAM RIÊNG: thử
+      # trên vps103 (7.8GB, có Prometheus 1.5GB) thì host OOM-kill uvicorn ở
+      # anon-rss 5.3GB. Cả hai máy hiện đều để 1.
       TTS_ORT_DISABLE_ARENA: ${TTS_ORT_DISABLE_ARENA:-1}
       # Ngưỡng tự recycle — với arena tắt, RSS ~1GB nên đây chỉ là van an toàn,
       # bình thường không bao giờ chạm. Nếu bật lại arena thì ngưỡng phải thấp
