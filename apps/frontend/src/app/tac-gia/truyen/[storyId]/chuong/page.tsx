@@ -487,18 +487,34 @@ export default function ChapterManagementPage() {
                                                     key={chapter.id}
                                                     className="p-4 md:p-6 hover:bg-surface-container-high/50 transition-colors"
                                                 >
-                                                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                                        {/* Chapter Info */}
+                                                    <div className="flex flex-col md:flex-row md:items-end gap-3">
+                                                        {/* Chapter Info — cố định 2 dòng: tiêu đề + badge, rồi số liệu. */}
                                                         <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-3 mb-2">
+                                                            <div className="flex items-center gap-2 mb-1.5">
                                                                 <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-primary font-semibold text-sm">
                                                                     {chapter.order || 0}
                                                                 </span>
-                                                                <h3 className="flex-1 min-w-0 text-lg md:text-xl font-bold text-on-surface line-clamp-2">
+                                                                <h3 className="min-w-0 truncate text-lg md:text-xl font-bold text-on-surface" title={chapter.title}>
                                                                     {chapter.title}
                                                                 </h3>
+                                                                <span className={`flex-shrink-0 px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${chapter.isPublished
+                                                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                                                                    : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                                                                    }`}>
+                                                                    {chapter.isPublished ? 'Đã xuất bản' : 'Bản nháp'}
+                                                                </span>
+                                                                {ttsStatusOf(chapter) === 'READY' && (
+                                                                    <span className="flex-shrink-0 px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400" title="Đã có audio AI">
+                                                                        🔊 AI
+                                                                    </span>
+                                                                )}
+                                                                {chapter.audioUrl && (
+                                                                    <span className="flex-shrink-0 px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400" title="Có audio tác giả">
+                                                                        🎵 Audio
+                                                                    </span>
+                                                                )}
                                                                 {/* Xem / Chỉnh sửa nằm cùng dòng tên chương, bên phải */}
-                                                                <div className="flex-shrink-0 flex items-center gap-2">
+                                                                <div className="ml-auto flex-shrink-0 flex items-center gap-2">
                                                                     <Link
                                                                         href={`/truyen/${storySlug}/chuong/${chapter.slug}`}
                                                                         className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-xs font-medium transition-colors"
@@ -513,40 +529,17 @@ export default function ChapterManagementPage() {
                                                                     </Link>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex flex-wrap items-center gap-4 text-sm text-on-surface-variant ml-11">
-                                                                <span>Lượt xem: {chapter.viewCount?.toLocaleString() || 0}</span>
+                                                            <div className="flex items-center gap-3 text-sm text-on-surface-variant ml-10 whitespace-nowrap overflow-hidden">
+                                                                <span className="truncate">Lượt xem: {chapter.viewCount?.toLocaleString() || 0}</span>
                                                                 <span>•</span>
-                                                                <span>{chapter.wordCount?.toLocaleString() || 0} từ</span>
+                                                                <span className="truncate">{chapter.wordCount?.toLocaleString() || 0} từ</span>
                                                                 <span>•</span>
-                                                                <span>Thời gian đọc: {chapter.readingTime || 0} phút</span>
-                                                                <span>•</span>
-                                                                <span className={`px-2 py-1 rounded text-xs font-medium ${chapter.isPublished
-                                                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                                                                    : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                                                                    }`}>
-                                                                    {chapter.isPublished ? 'Đã xuất bản' : 'Bản nháp'}
-                                                                </span>
-                                                                {ttsStatusOf(chapter) === 'READY' && (
-                                                                    <>
-                                                                        <span>•</span>
-                                                                        <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
-                                                                            🔊 Audio AI
-                                                                        </span>
-                                                                    </>
-                                                                )}
-                                                                {chapter.audioUrl && (
-                                                                    <>
-                                                                        <span>•</span>
-                                                                        <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
-                                                                            🎵 Audio tác giả
-                                                                        </span>
-                                                                    </>
-                                                                )}
+                                                                <span className="truncate">Đọc: {chapter.readingTime || 0} phút</span>
                                                             </div>
                                                         </div>
 
                                                         {/* Actions */}
-                                                        <div className="flex flex-wrap items-center gap-1.5 ml-11 md:ml-0 md:flex-shrink-0">
+                                                        <div className="flex items-center gap-1.5 ml-10 md:ml-0 md:flex-shrink-0 md:self-end whitespace-nowrap">
                                                             {/* Giọng đọc AI cho từng chương (chương miễn phí đã đăng,
                                                                 không có audio tác giả). Job chạy nền vài phút. */}
                                                             {canTts(chapter) && (() => {
