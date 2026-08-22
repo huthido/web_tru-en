@@ -16,6 +16,8 @@ COPY main.py .
 
 # HF cache — mount volume vào /models để giữ checkpoint giữa các lần deploy.
 ENV HF_HOME=/models
+# glibc: giới hạn số arena malloc (ONNX nhiều thread → phân mảnh, RSS phình).
+ENV MALLOC_ARENA_MAX=2 MALLOC_TRIM_THRESHOLD_=131072
 VOLUME /models
 
 EXPOSE 8000

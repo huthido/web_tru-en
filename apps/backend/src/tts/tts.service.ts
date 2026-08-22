@@ -293,6 +293,59 @@ export class TtsService {
      * Claim atomic từng chương (null/FAILED → PENDING) rồi đẩy job — chương
      * đã được xếp hàng ở nơi khác giữa chừng sẽ bị bỏ qua. Trả số job đã tạo.
      */
+    /**
+     * Ops: xếp lại mọi chương FAILED (+ PROCESSING treo quá `staleMinutes`,
+     * thường do worker chết giữa job) của chương miễn phí đã publish.
+     * Dùng bởi scripts/tts-requeue-failed.ts. Trả về số chương đã xếp hàng.
+     */
+    async requeueFailed(
+        opts: { limit?: number; staleMinutes?: number; dryRun?: boolean } = {},
+    ): Promise<{ failed: number; stale: number; queued: number }> {
+        const limit = opts.limit ?? 1000;
+        const staleBefore = new Date(Date.now() - (opts.staleMinutes ?? 60) * 60_000);
+        const freeStory = {
+            OR: [
+                { story: { accessType: 'FREE' as const } },
+                { story: { accessType: 'VIP' as const, price: { lte: 0 } } },
+                { price: 0, story: { accessType: 'FREEMIUM' as const } },
+            ],
+        };
+        const stale = await this.prisma.chapter.findMany({
+            where: {
+                isPublished: true,
+                audioUrl: null,
+                ttsAudioStatus: TtsAudioStatus.PROCESSING,
+                updatedAt: { lt: staleBefore },
+                ...freeStory,
+            },
+            select: { id: true },
+        });
+        const failed = await this.prisma.chapter.findMany({
+            where: {
+                isPublished: true,
+                audioUrl: null,
+                ttsAudioStatus: TtsAudioStatus.FAILED,
+                ...freeStory,
+            },
+            select: { id: true },
+            orderBy: { updatedAt: 'asc' },
+            take: limit,
+        });
+        if (opts.dryRun) return { failed: failed.length, stale: stale.length, queued: 0 };
+        if (stale.length) {
+            await this.prisma.chapter.updateMany({
+                where: {
+                    id: { in: stale.map((c) => c.id) },
+                    ttsAudioStatus: TtsAudioStatus.PROCESSING,
+                },
+                data: { ttsAudioStatus: TtsAudioStatus.FAILED },
+            });
+        }
+        const ids = [...stale.map((c) => c.id), ...failed.map((c) => c.id)].slice(0, limit);
+        const queued = await this.claimAndEnqueue(ids);
+        return { failed: failed.length, stale: stale.length, queued };
+    }
+
     private async claimAndEnqueue(chapterIds: string[]): Promise<number> {
         let queued = 0;
         for (const id of chapterIds) {

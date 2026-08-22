@@ -27,7 +27,8 @@
     "fix:story-authors": "node dist/scripts/reassign-story-authors.js",
     "fix:story-authors:apply": "node dist/scripts/reassign-story-authors.js --apply",
     "fix:slugs": "node dist/scripts/apply-slug-map.js",
-    "fix:slugs:apply": "node dist/scripts/apply-slug-map.js --apply"
+    "fix:slugs:apply": "node dist/scripts/apply-slug-map.js --apply",
+    "tts:requeue-failed": "node dist/scripts/tts-requeue-failed.js --apply"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

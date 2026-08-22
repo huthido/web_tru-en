@@ -12,11 +12,13 @@ encode MP3 bằng ffmpeg — VieNeu ổn định nhất với đoạn ngắn, v�
 progress log rõ ràng khi chương dài.
 """
 
+import gc
 import hashlib
 import ipaddress
 import logging
 import os
 import re
+import resource
 import socket
 import subprocess
 import tempfile
@@ -27,7 +29,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlparse
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
 
@@ -39,10 +41,43 @@ DEFAULT_VOICE = os.environ.get("TTS_DEFAULT_VOICE", "")
 MAX_CHARS = int(os.environ.get("TTS_MAX_CHARS", "200000"))
 CHUNK_CHARS = int(os.environ.get("TTS_CHUNK_CHARS", "400"))
 MP3_BITRATE = os.environ.get("TTS_MP3_BITRATE", "64k")
+# RSS (MB) vượt ngưỡng này → process tự thoát SAU khi trả xong response và
+# không còn request nào đang chạy; Docker restart lại trong ~15s (model nạp
+# 10s). Lý do: ONNX/glibc giữ bộ nhớ tăng dần theo số chương đã sinh
+# (0.6GB → 4GB sau vài chục chương) rồi bị cgroup OOM-kill GIỮA job → mọi
+# request đang gửi tới worker fail cùng lúc. Tự recycle chủ động rẻ hơn nhiều.
+MAX_RSS_MB = int(os.environ.get("TTS_MAX_RSS_MB", "3000"))
 
 _model = None
 # VieNeu infer không chắc thread-safe — serialize mọi request sinh audio.
 _infer_lock = threading.Lock()
+_inflight = 0
+_inflight_lock = threading.Lock()
+
+
+def current_rss_mb() -> float:
+    try:
+        with open("/proc/self/statm") as f:
+            pages = int(f.read().split()[1])
+        return pages * resource.getpagesize() / 1024 / 1024
+    except Exception:
+        # ru_maxrss (Linux: KB) là đỉnh, vẫn đủ để quyết định recycle.
+        return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+
+
+def _maybe_recycle():
+    """Chạy sau khi response đã gửi xong (BackgroundTasks)."""
+    gc.collect()
+    rss = current_rss_mb()
+    with _inflight_lock:
+        busy = _inflight
+    if rss > MAX_RSS_MB and busy == 0:
+        log.warning(
+            "RSS %.0f MB > %d MB và không còn request — tự thoát để Docker khởi động lại",
+            rss, MAX_RSS_MB,
+        )
+        os._exit(0)
+    log.info("RSS %.0f MB (ngưỡng recycle %d MB, inflight %d)", rss, MAX_RSS_MB, busy)
 
 # Voice cloning: cache clip mẫu đã tải + tên giọng đã đăng ký với model.
 # Key = sha256(ref_audio_url) → clip đổi URL (upload mới) là key mới.
@@ -248,6 +283,7 @@ def voices():
 @app.post("/synthesize")
 def synthesize(
     req: SynthesizeRequest,
+    background: BackgroundTasks,
     x_api_key: str | None = Header(default=None),
     x_timeout_ms: int | None = Header(default=None),
 ):
@@ -262,6 +298,18 @@ def synthesize(
     if len(text) > MAX_CHARS:
         raise HTTPException(status_code=413, detail=f"Text too long (>{MAX_CHARS} chars)")
 
+    global _inflight
+    with _inflight_lock:
+        _inflight += 1
+    background.add_task(_maybe_recycle)
+    try:
+        return _synthesize(req, text, x_timeout_ms)
+    finally:
+        with _inflight_lock:
+            _inflight -= 1
+
+
+def _synthesize(req: SynthesizeRequest, text: str, x_timeout_ms: int | None) -> Response:
     voice = req.voice or DEFAULT_VOICE or None
     chunks = split_chunks(text)
     # Hạn chót client còn chờ (tính từ lúc nhận request, gồm cả thời gian xếp
