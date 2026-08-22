@@ -92,4 +92,61 @@ export const ttsService = {
         const response = await apiClient.post<any>('/tts/voice/preview', params || {});
         return unwrap<TtsPreviewResult>(response.data);
     },
+
+    // ── Admin ──────────────────────────────────────────────────────
+
+    getAdminStats: async (): Promise<TtsAdminStats> => {
+        const response = await apiClient.get<any>('/admin/tts/stats');
+        return unwrap<TtsAdminStats>(response.data);
+    },
+
+    getAdminQueue: async (params?: {
+        status?: string;
+        page?: number;
+        limit?: number;
+        search?: string;
+    }): Promise<TtsAdminQueueResult> => {
+        const response = await apiClient.get<any>('/admin/tts/queue', { params });
+        return unwrap<TtsAdminQueueResult>(response.data);
+    },
+
+    adminResetChapterTts: async (chapterId: string): Promise<{ ok: boolean }> => {
+        const response = await apiClient.post<any>(`/admin/tts/reset/${chapterId}`);
+        return unwrap<{ ok: boolean }>(response.data);
+    },
 };
+
+// ── Admin types ──────────────────────────────────────────────────
+
+export interface TtsAdminStats {
+    enabled: boolean;
+    queueEnabled: boolean;
+    workerCount: number;
+    total: number;
+    ready: number;
+    pending: number;
+    processing: number;
+    failed: number;
+    none: number;
+}
+
+export interface TtsAdminQueueItem {
+    id: string;
+    title: string;
+    slug: string;
+    ttsAudioStatus: string | null;
+    ttsAudioUrl: string | null;
+    ttsVoiceName: string | null;
+    order: number;
+    isPublished: boolean;
+    createdAt: string;
+    story: { id: string; title: string; slug: string; authorId: string };
+}
+
+export interface TtsAdminQueueResult {
+    items: TtsAdminQueueItem[];
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+}

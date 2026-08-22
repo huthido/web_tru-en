@@ -392,6 +392,94 @@ export class TtsService {
         return story;
     }
 
+    // ------------------------------------------------------------------
+    // Admin: theo dõi hàng chờ TTS
+    // ------------------------------------------------------------------
+
+    /** Thống kê toàn bộ chương theo trạng thái TTS. */
+    async getAdminStats() {
+        const groups = await this.prisma.chapter.groupBy({
+            by: ['ttsAudioStatus'],
+            _count: { _all: true },
+        });
+        const count = (s: TtsAudioStatus | null) =>
+            groups.find((g) => g.ttsAudioStatus === s)?._count._all ?? 0;
+        const total = groups.reduce((sum, g) => sum + g._count._all, 0);
+        return {
+            enabled: this.enabled,
+            queueEnabled: this.queueEnabled,
+            workerCount: this.workerUrls.length,
+            total,
+            ready: count(TtsAudioStatus.READY),
+            pending: count(TtsAudioStatus.PENDING),
+            processing: count(TtsAudioStatus.PROCESSING),
+            failed: count(TtsAudioStatus.FAILED),
+            none: count(null),
+        };
+    }
+
+    /** Danh sách chương đang chờ / đang xử lý / lỗi — admin theo dõi hàng chờ. */
+    async getAdminQueue(opts: {
+        status?: string;
+        page?: number;
+        limit?: number;
+        search?: string;
+    }) {
+        const page = Math.max(1, opts.page || 1);
+        const limit = Math.min(100, Math.max(1, opts.limit || 30));
+        const where: any = {};
+        if (opts.status) {
+            where.ttsAudioStatus = opts.status as TtsAudioStatus;
+        } else {
+            // Mặc định: chỉ hiện pending + processing + failed
+            where.ttsAudioStatus = { in: [TtsAudioStatus.PENDING, TtsAudioStatus.PROCESSING, TtsAudioStatus.FAILED] };
+        }
+        if (opts.search) {
+            where.OR = [
+                { title: { contains: opts.search, mode: 'insensitive' } },
+                { story: { title: { contains: opts.search, mode: 'insensitive' } } },
+            ];
+        }
+        const [items, total] = await Promise.all([
+            this.prisma.chapter.findMany({
+                where,
+                select: {
+                    id: true,
+                    title: true,
+                    slug: true,
+                    ttsAudioStatus: true,
+                    ttsAudioUrl: true,
+                    ttsVoiceName: true,
+                    order: true,
+                    isPublished: true,
+                    createdAt: true,
+                    story: {
+                        select: { id: true, title: true, slug: true, authorId: true },
+                    },
+                },
+                orderBy: { createdAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            this.prisma.chapter.count({ where }),
+        ]);
+        return { items, total, page, limit, pages: Math.ceil(total / limit) };
+    }
+
+    /** Admin: xoá audio TTS của chương (để tạo lại). */
+    async adminResetChapterTts(chapterId: string) {
+        const chapter = await this.prisma.chapter.findUnique({
+            where: { id: chapterId },
+            select: { id: true, ttsAudioStatus: true },
+        });
+        if (!chapter) throw new NotFoundException('Chương không tồn tại');
+        await this.prisma.chapter.update({
+            where: { id: chapterId },
+            data: { ttsAudioStatus: null, ttsAudioUrl: null, ttsVoiceName: null },
+        });
+        return { ok: true };
+    }
+
     private async computeStoryStatus(storyId: string): Promise<StoryTtsStatus> {
         const groups = await this.prisma.chapter.groupBy({
             by: ['ttsAudioStatus'],

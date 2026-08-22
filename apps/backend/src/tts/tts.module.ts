@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TtsService } from './tts.service';
 import { TtsProcessor } from './tts.processor';
-import { TtsController, TtsStoryController, TtsVoiceController } from './tts.controller';
+import { TtsController, TtsStoryController, TtsVoiceController, AdminTtsController } from './tts.controller';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 /**
@@ -11,7 +11,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
  */
 @Module({
     imports: [ConfigModule, CloudinaryModule],
-    controllers: [TtsController, TtsStoryController, TtsVoiceController],
+    controllers: [TtsController, TtsStoryController, TtsVoiceController, AdminTtsController],
     providers: [TtsService, TtsProcessor],
     exports: [TtsService],
 })

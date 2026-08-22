@@ -6,6 +6,7 @@ import {
     Get,
     Param,
     Post,
+    Query,
     UploadedFile,
     UseGuards,
     UseInterceptors,
@@ -14,6 +15,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { TtsService } from './tts.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '@prisma/client';
 import { Public } from '../auth/decorators/public.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { audioMulterFilter } from '../common/audio/multer-filter';
@@ -118,5 +122,40 @@ export class TtsVoiceController {
     @Post('preview')
     preview(@CurrentUser() user: any, @Body() body: { text?: string; voice?: string }) {
         return this.ttsService.previewVoice(user.id, body?.text, body?.voice);
+    }
+}
+
+/**
+ * Admin: theo dõi hàng chờ TTS — thống kê + danh sách chương đang chờ/xử lý/lỗi.
+ */
+@Controller('admin/tts')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.ADMIN)
+export class AdminTtsController {
+    constructor(private readonly ttsService: TtsService) { }
+
+    @Get('stats')
+    getStats() {
+        return this.ttsService.getAdminStats();
+    }
+
+    @Get('queue')
+    getQueue(
+        @Query('status') status?: string,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+        @Query('search') search?: string,
+    ) {
+        return this.ttsService.getAdminQueue({
+            status,
+            page: page ? parseInt(page) : undefined,
+            limit: limit ? parseInt(limit) : undefined,
+            search,
+        });
+    }
+
+    @Post('reset/:chapterId')
+    resetChapterTts(@Param('chapterId') chapterId: string) {
+        return this.ttsService.adminResetChapterTts(chapterId);
     }
 }
