@@ -12,6 +12,7 @@ encode MP3 bằng ffmpeg — VieNeu ổn định nhất với đoạn ngắn, v�
 progress log rõ ràng khi chương dài.
 """
 
+import asyncio
 import gc
 import hashlib
 import ipaddress
@@ -29,7 +30,8 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlparse
 
-from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 from fastapi.responses import Response
 from pydantic import BaseModel
 
@@ -281,8 +283,9 @@ def voices():
 
 
 @app.post("/synthesize")
-def synthesize(
+async def synthesize(
     req: SynthesizeRequest,
+    request: Request,
     background: BackgroundTasks,
     x_api_key: str | None = Header(default=None),
     x_timeout_ms: int | None = Header(default=None),
@@ -302,14 +305,36 @@ def synthesize(
     with _inflight_lock:
         _inflight += 1
     background.add_task(_maybe_recycle)
+
+    # Client ngắt kết nối (backend chết/timeout/script bị kill) → đặt cờ huỷ để
+    # luồng sinh audio dừng ở chunk kế tiếp (hoặc không lấy lock nữa nếu đang
+    # xếp hàng), thay vì chạy tiếp tới deadline và chặn các request thật phía sau.
+    cancel = threading.Event()
+
+    async def watch_disconnect():
+        while not cancel.is_set():
+            try:
+                if await request.is_disconnected():
+                    log.warning("Client disconnected — huỷ sinh audio (%d chars)", len(text))
+                    cancel.set()
+                    return
+            except Exception:
+                return
+            await asyncio.sleep(2)
+
+    watcher = asyncio.create_task(watch_disconnect())
     try:
-        return _synthesize(req, text, x_timeout_ms)
+        return await run_in_threadpool(_synthesize, req, text, x_timeout_ms, cancel)
     finally:
+        cancel.set()
+        watcher.cancel()
         with _inflight_lock:
             _inflight -= 1
 
 
-def _synthesize(req: SynthesizeRequest, text: str, x_timeout_ms: int | None) -> Response:
+def _synthesize(
+    req: SynthesizeRequest, text: str, x_timeout_ms: int | None, cancel: threading.Event
+) -> Response:
     voice = req.voice or DEFAULT_VOICE or None
     chunks = split_chunks(text)
     # Hạn chót client còn chờ (tính từ lúc nhận request, gồm cả thời gian xếp
@@ -317,13 +342,16 @@ def _synthesize(req: SynthesizeRequest, text: str, x_timeout_ms: int | None) -> 
     deadline = (time.monotonic() + x_timeout_ms / 1000.0) if x_timeout_ms else None
 
     def check_deadline(stage: str):
+        if cancel.is_set():
+            log.warning("Client gone at %s — aborting (%d chars)", stage, len(text))
+            raise HTTPException(status_code=499, detail="Client disconnected")
         if deadline is not None and time.monotonic() > deadline:
             log.warning("Client deadline passed at %s — aborting (%d chars)", stage, len(text))
             raise HTTPException(status_code=504, detail="Client deadline passed")
 
     # Voice cloning: tải + chuẩn hoá clip mẫu, đăng ký giọng với model.
     ref_wav: Path | None = None
-    ref_voice_name: str | None = None
+    ref_key: str | None = None
     if req.ref_audio_url:
         ref_wav, ref_key = get_ref_wav(req.ref_audio_url)
 
@@ -332,7 +360,19 @@ def _synthesize(req: SynthesizeRequest, text: str, x_timeout_ms: int | None) -> 
         len(text), len(chunks), voice or "default", bool(ref_wav),
     )
 
-    with _infer_lock, tempfile.TemporaryDirectory(prefix="tts-") as tmp:
+    # Xếp hàng lấy lock theo từng giây để request đã bị huỷ/quá hạn không
+    # chiếm lượt sinh của người khác.
+    while not _infer_lock.acquire(timeout=1.0):
+        check_deadline("queue")
+    try:
+        return _synthesize_locked(text, chunks, voice, ref_wav, ref_key, check_deadline)
+    finally:
+        _infer_lock.release()
+
+
+def _synthesize_locked(text, chunks, voice, ref_wav, ref_key, check_deadline) -> Response:
+    ref_voice_name: str | None = None
+    with tempfile.TemporaryDirectory(prefix="tts-") as tmp:
         check_deadline("queue")
         if ref_wav is not None:
             ref_voice_name = ensure_ref_voice(ref_wav, ref_key)
