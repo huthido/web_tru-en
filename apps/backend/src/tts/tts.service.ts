@@ -65,6 +65,15 @@ export class TtsService {
     private readonly workerVoice: string;
     private readonly workerTimeoutMs: number;
     /**
+     * Ký tự tối đa cho MỘT request /synthesize. Worker sinh tuần tự ~23s cho
+     * mỗi 400 ký tự, nên chương 63k ký tự = 195 chunk ≈ 75 phút: vượt xa
+     * timeout 20 phút → job chết sau khi đã đốt cả giờ CPU rồi retry lại từ
+     * đầu (log worker cho thấy có chương sinh 3 lần vẫn không xong). Cắt
+     * thành nhiều phần ~12k ký tự (≈30 chunk ≈ 12 phút): phần nào xong là
+     * giữ được, và worker recycle giữa hai phần không làm mất gì.
+     */
+    private readonly workerPartChars: number;
+    /**
      * Node fetch (undici) mặc định ngắt kết nối nếu server không trả header
      * trong 300s (headersTimeout) — worker TTS chỉ trả response sau khi sinh
      * xong cả chương (10–15 phút) nên mọi chương dài đều "fetch failed" đúng
@@ -111,6 +120,8 @@ export class TtsService {
             this.configService.get<string>('TTS_WORKER_TIMEOUT_MS') || '',
             10,
         ) || 20 * 60_000;
+        this.workerPartChars =
+            parseInt(this.configService.get<string>('TTS_PART_CHARS') || '', 10) || 12_000;
         this.queueEnabled = !!this.configService.get<string>('REDIS_URL') && !!this.ttsQueue;
         this.autoGenerateEnabled =
             this.enabled && this.configService.get<string>('TTS_AUTO_GENERATE') !== '0';
@@ -717,6 +728,39 @@ export class TtsService {
     ): Promise<Buffer> {
         const voice = opts.voice || this.workerVoice;
         const timeoutMs = opts.timeoutMs ?? this.workerTimeoutMs;
+        const parts = splitForWorker(text, this.workerPartChars);
+        if (parts.length === 1) {
+            return this.callWorkerPart(parts[0], voice, opts.refAudioUrl, timeoutMs, '');
+        }
+        this.logger.log(
+            `Text ${text.length} ký tự → chia ${parts.length} phần (tối đa ${this.workerPartChars} ký tự/phần)`,
+        );
+        const buffers: Buffer[] = [];
+        for (let i = 0; i < parts.length; i++) {
+            const label = ` (phần ${i + 1}/${parts.length})`;
+            const started = Date.now();
+            buffers.push(
+                await this.callWorkerPart(parts[i], voice, opts.refAudioUrl, timeoutMs, label),
+            );
+            this.logger.log(
+                `TTS${label}: ${parts[i].length} ký tự xong trong ${Math.round((Date.now() - started) / 1000)}s`,
+            );
+        }
+        return concatMp3(buffers);
+    }
+
+    /**
+     * Một request /synthesize: chọn worker ít bận nhất, chờ nếu worker vắng mặt.
+     * Mỗi phần chọn worker lại từ đầu — worker vừa vào draining thì phần sau tự
+     * chuyển sang máy còn khoẻ.
+     */
+    private async callWorkerPart(
+        text: string,
+        voice: string,
+        refAudioUrl: string | null | undefined,
+        timeoutMs: number,
+        label: string,
+    ): Promise<Buffer> {
         const workerUrl = this.pickWorker();
         this.workerLoad.set(workerUrl, (this.workerLoad.get(workerUrl) ?? 0) + 1);
         try {
@@ -726,11 +770,11 @@ export class TtsService {
             // đó chờ /health lên lại rồi gọi tiếp trong cùng job.
             for (let attempt = 1; ; attempt++) {
                 try {
-                    return await this.callWorkerAt(workerUrl, text, voice, opts.refAudioUrl, timeoutMs);
+                    return await this.callWorkerAt(workerUrl, text, voice, refAudioUrl, timeoutMs);
                 } catch (err) {
                     if (attempt >= 3 || !this.isWorkerUnavailable(err)) throw err;
                     this.logger.warn(
-                        `TTS worker ${workerUrl} không sẵn sàng (${(err as Error).message}) — chờ worker lên lại (lần ${attempt})`,
+                        `TTS worker ${workerUrl}${label} không sẵn sàng (${(err as Error).message}) — chờ worker lên lại (lần ${attempt})`,
                     );
                     const ok = await this.waitForWorker(workerUrl, this.workerWaitMs);
                     if (!ok) throw err;
@@ -756,7 +800,11 @@ export class TtsService {
         return ['ECONNREFUSED', 'ECONNRESET', 'ENOTFOUND', 'EAI_AGAIN', 'UND_ERR_SOCKET', 'UND_ERR_CONNECT_TIMEOUT'].includes(code);
     }
 
-    /** Poll GET /health mỗi 10s tới khi worker báo model_loaded. */
+    /**
+     * Poll GET /health mỗi 10s tới khi worker báo model_loaded và KHÔNG còn
+     * draining. Worker sắp recycle vẫn trả health 200 — gửi job vào lúc đó chỉ
+     * ăn 503 rồi đốt hết lượt retry, nên phải chờ nó thoát và lên lại.
+     */
     private async waitForWorker(workerUrl: string, maxMs: number): Promise<boolean> {
         const deadline = Date.now() + maxMs;
         while (Date.now() < deadline) {
@@ -764,8 +812,11 @@ export class TtsService {
             try {
                 const res = await fetch(`${workerUrl}/health`, { signal: AbortSignal.timeout(5_000) });
                 if (res.ok) {
-                    const data = (await res.json().catch(() => ({}))) as { model_loaded?: boolean };
-                    if (data.model_loaded !== false) {
+                    const data = (await res.json().catch(() => ({}))) as {
+                        model_loaded?: boolean;
+                        draining?: boolean;
+                    };
+                    if (data.model_loaded !== false && data.draining !== true) {
                         this.logger.log(`TTS worker ${workerUrl} đã sẵn sàng trở lại`);
                         return true;
                     }
@@ -1013,6 +1064,94 @@ export function groupAndSortVoices(
         .map((v, i) => ({ v, i, ...classify(v.label) }))
         .sort((a, b) => a.rank - b.rank || a.i - b.i)
         .map(({ v, group }) => ({ ...v, group }));
+}
+
+/**
+ * Cắt text chương thành các phần <= maxLen ký tự theo ranh giới câu.
+ *
+ * Không bao giờ cắt giữa câu: chỗ nối giữa hai phần là hai file MP3 khác nhau
+ * nên nghe rõ, rơi vào giữa câu sẽ thành hụt hơi.
+ */
+export function splitForWorker(text: string, maxLen: number): string[] {
+    if (text.length <= maxLen) return [text];
+    const sentences = text.match(/[^.!?…\n]*[.!?…]*\n*/g)?.filter((p) => p.trim()) ?? [text];
+    const parts: string[] = [];
+    let current = '';
+    for (const sentence of sentences) {
+        if (current && current.length + sentence.length > maxLen) {
+            parts.push(current.trim());
+            current = '';
+        }
+        // Câu đơn dài hơn cả maxLen (đoạn không có dấu chấm) → đành cắt cứng.
+        let rest = sentence;
+        while (rest.length > maxLen) {
+            parts.push(rest.slice(0, maxLen).trim());
+            rest = rest.slice(maxLen);
+        }
+        current += rest;
+    }
+    if (current.trim()) parts.push(current.trim());
+    return parts;
+}
+
+/** Độ dài (byte) frame MPEG Layer III tại offset i, 0 nếu không phải frame. */
+function mp3FrameLength(buf: Buffer, i: number): number {
+    if (i + 4 > buf.length) return 0;
+    if (buf[i] !== 0xff || (buf[i + 1] & 0xe0) !== 0xe0) return 0;
+    const version = (buf[i + 1] >> 3) & 0x03; // 3=MPEG1, 2=MPEG2, 0=MPEG2.5
+    const layer = (buf[i + 1] >> 1) & 0x03; // 1=Layer III
+    if (version === 1 || layer !== 1) return 0;
+    const bitrateIdx = (buf[i + 2] >> 4) & 0x0f;
+    const rateIdx = (buf[i + 2] >> 2) & 0x03;
+    if (bitrateIdx === 0 || bitrateIdx === 15 || rateIdx === 3) return 0;
+    const padding = (buf[i + 2] >> 1) & 0x01;
+    const mpeg1 = version === 3;
+    const bitrates = mpeg1
+        ? [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320]
+        : [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160];
+    const rates = mpeg1
+        ? [44100, 48000, 32000]
+        : version === 2
+            ? [22050, 24000, 16000]
+            : [11025, 12000, 8000];
+    const samples = mpeg1 ? 1152 : 576;
+    return Math.floor(((samples / 8) * (bitrates[bitrateIdx] * 1000)) / rates[rateIdx]) + padding;
+}
+
+/** Bỏ ID3v2/ID3v1 và frame Xing/Info, chỉ giữ lại các frame audio. */
+function stripMp3Tags(buf: Buffer): Buffer {
+    let start = 0;
+    while (
+        buf.length >= start + 10 &&
+        buf[start] === 0x49 && buf[start + 1] === 0x44 && buf[start + 2] === 0x33 // "ID3"
+    ) {
+        const size =
+            ((buf[start + 6] & 0x7f) << 21) | ((buf[start + 7] & 0x7f) << 14) |
+            ((buf[start + 8] & 0x7f) << 7) | (buf[start + 9] & 0x7f);
+        start += 10 + size + ((buf[start + 5] & 0x10) ? 10 : 0); // cờ 0x10 = có footer
+    }
+    const frameLen = mp3FrameLength(buf, start);
+    if (frameLen > 0) {
+        // Tag Xing/Info nằm ngay sau side info (offset 13/21/36 tuỳ version).
+        const head = buf.subarray(start, start + Math.min(frameLen, 40)).toString('latin1');
+        if (head.includes('Xing') || head.includes('Info')) start += frameLen;
+    }
+    let end = buf.length;
+    if (end >= 128 && buf.subarray(end - 128, end - 125).toString('latin1') === 'TAG') end -= 128;
+    return buf.subarray(start, end);
+}
+
+/**
+ * Nối các MP3 phần thành một file. Container backend không có ffmpeg nên nối ở
+ * mức byte — các phần đều do worker encode cùng tham số (CBR 64k mono).
+ *
+ * Bỏ Xing/Info của CẢ phần đầu là cố ý: tag đó chỉ đếm số frame của riêng phần
+ * 1, giữ lại thì trình phát báo sai thời lượng cả chương. Không có tag, MP3 CBR
+ * được tính thời lượng theo kích thước file nên ra đúng.
+ */
+export function concatMp3(parts: Buffer[]): Buffer {
+    if (parts.length === 1) return parts[0];
+    return Buffer.concat(parts.map(stripMp3Tags));
 }
 
 /** Bóc HTML chương thành text thuần cho TTS (bản server của toPlainText client). */

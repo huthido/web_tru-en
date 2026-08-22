@@ -13,6 +13,7 @@ progress log rõ ràng khi chương dài.
 """
 
 import asyncio
+import ctypes
 import gc
 import hashlib
 import ipaddress
@@ -49,6 +50,14 @@ MP3_BITRATE = os.environ.get("TTS_MP3_BITRATE", "64k")
 # (0.6GB → 4GB sau vài chục chương) rồi bị cgroup OOM-kill GIỮA job → mọi
 # request đang gửi tới worker fail cùng lúc. Tự recycle chủ động rẻ hơn nhiều.
 MAX_RSS_MB = int(os.environ.get("TTS_MAX_RSS_MB", "3000"))
+# Recycle theo KHỐI LƯỢNG đã sinh, không chỉ theo RSS: RSS trước đây chỉ
+# được đo giữa hai request, trong khi rò rỉ tích theo từng chunk — một
+# chương 195 chunk (63k ký tự) tự nó đủ đưa RSS từ 0.6GB vượt mem_limit
+# TRƯỚC khi có lần đo nào, và bị OOM-kill giữa job thì mất trắng cả giờ
+# CPU. Đếm chunk cho một ngưỡng chủ động, không phụ thuộc con số RSS.
+MAX_CHUNKS_PER_LIFE = int(os.environ.get("TTS_MAX_CHUNKS_PER_LIFE", "150"))
+# Số chunk giữa 2 lần đo RSS + malloc_trim NGAY TRONG lúc đang sinh.
+RSS_CHECK_EVERY = max(1, int(os.environ.get("TTS_RSS_CHECK_EVERY", "5")))
 
 _model = None
 # VieNeu infer không chắc thread-safe — serialize mọi request sinh audio.
@@ -58,6 +67,8 @@ _inflight_lock = threading.Lock()
 # RSS đã vượt ngưỡng nhưng còn request đang chạy → không nhận job mới (503,
 # backend retry sau ~60s) và thoát ngay khi request cuối xong.
 _draining = False
+# Tổng số chunk đã sinh từ lúc process khởi động (ngưỡng recycle chủ động).
+_chunks_since_start = 0
 
 
 def current_rss_mb() -> float:
@@ -70,28 +81,76 @@ def current_rss_mb() -> float:
         return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
 
 
+def _malloc_trim() -> None:
+    """Trả phần heap đã free về cho HĐH.
+
+    ONNX cấp rồi giải phóng buffer lớn mỗi lần infer, nhưng glibc giữ lại
+    trong arena nên RSS chỉ tăng chứ không tụt dù Python đã free — đó là
+    phần lớn "rò rỉ" khiến worker phải recycle mỗi ~10 phút. malloc_trim(0)
+    duyệt mọi arena và trả phần trống về kernel; rẻ (vài ms) so với 23s/chunk.
+    """
+    try:
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except Exception:
+        pass  # không phải glibc (musl) → bỏ qua, chỉ mất phần thu hồi
+
+
+def _recycle_reason(rss: float, chunks: int) -> str | None:
+    if rss > MAX_RSS_MB:
+        return "RSS %.0f MB > %d MB" % (rss, MAX_RSS_MB)
+    if chunks >= MAX_CHUNKS_PER_LIFE:
+        return "đã sinh %d chunk >= %d" % (chunks, MAX_CHUNKS_PER_LIFE)
+    return None
+
+
+def _note_chunk_done() -> None:
+    """Sau mỗi chunk: đếm, và định kỳ trim + đo RSS ngay GIỮA job.
+
+    Chỉ đo lúc job kết thúc là quá muộn với chương dài. Vượt ngưỡng giữa
+    chừng thì bật draining ngay để job mới bị 503 (backend chờ worker lên
+    lại) thay vì xếp hàng sau _infer_lock rồi chết chung khi process thoát.
+    """
+    global _chunks_since_start, _draining
+    _chunks_since_start += 1
+    if _chunks_since_start % RSS_CHECK_EVERY:
+        return
+    gc.collect()
+    _malloc_trim()
+    if _draining:
+        return
+    reason = _recycle_reason(current_rss_mb(), _chunks_since_start)
+    if reason:
+        _draining = True
+        log.warning("%s — ngừng nhận job mới (503), thoát khi job hiện tại xong", reason)
+
+
 def _maybe_recycle():
     """Chạy sau khi response đã gửi xong (BackgroundTasks)."""
     global _draining
     gc.collect()
+    _malloc_trim()
     rss = current_rss_mb()
     with _inflight_lock:
         busy = _inflight
-    if rss > MAX_RSS_MB or _draining:
+    reason = _recycle_reason(rss, _chunks_since_start)
+    if reason or _draining:
         if busy == 0:
             log.warning(
-                "RSS %.0f MB > %d MB và không còn request — tự thoát để Docker khởi động lại",
-                rss, MAX_RSS_MB,
+                "%s và không còn request — tự thoát để Docker khởi động lại",
+                reason or "Đang recycle",
             )
             os._exit(0)
         if not _draining:
             _draining = True
             log.warning(
-                "RSS %.0f MB > %d MB — ngừng nhận job mới (503), thoát khi %d request đang chạy xong",
-                rss, MAX_RSS_MB, busy,
+                "%s — ngừng nhận job mới (503), thoát khi %d request đang chạy xong",
+                reason, busy,
             )
         return
-    log.info("RSS %.0f MB (ngưỡng recycle %d MB, inflight %d)", rss, MAX_RSS_MB, busy)
+    log.info(
+        "RSS %.0f MB (ngưỡng recycle %d MB), %d/%d chunk, inflight %d",
+        rss, MAX_RSS_MB, _chunks_since_start, MAX_CHUNKS_PER_LIFE, busy,
+    )
 
 # Voice cloning: cache clip mẫu đã tải + tên giọng đã đăng ký với model.
 # Key = sha256(ref_audio_url) → clip đổi URL (upload mới) là key mới.
@@ -271,7 +330,15 @@ def infer_chunk(text: str, voice: str | None, ref_wav: Path | None = None,
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model_loaded": _model is not None}
+    # draining: worker sắp thoát, chỉ còn chờ job hiện tại xong. Backend đọc
+    # cờ này để chờ tiếp thay vì gửi job mới vào rồi ăn 503.
+    return {
+        "status": "draining" if _draining else "ok",
+        "model_loaded": _model is not None,
+        "draining": _draining,
+        "rss_mb": round(current_rss_mb()),
+        "chunks": _chunks_since_start,
+    }
 
 
 @app.get("/voices")
@@ -399,8 +466,13 @@ def _synthesize_locked(text, chunks, voice, ref_wav, ref_key, check_deadline) ->
             wav = tmp_path / f"chunk-{i:04d}.wav"
             _model.save(audio, str(wav))
             wav_files.append(wav)
+            del audio
+            _note_chunk_done()
             if (i + 1) % 10 == 0 or i + 1 == len(chunks):
-                log.info("  chunk %d/%d done (%.0fs)", i + 1, len(chunks), time.monotonic() - started)
+                log.info(
+                    "  chunk %d/%d done (%.0fs, RSS %.0f MB)",
+                    i + 1, len(chunks), time.monotonic() - started, current_rss_mb(),
+                )
 
         # Ghép các wav (cùng format vì cùng model) và encode MP3 mono.
         concat_list = tmp_path / "list.txt"
