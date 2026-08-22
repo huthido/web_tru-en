@@ -454,9 +454,24 @@ export default function ChapterManagementPage() {
                                                                 <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-primary font-semibold text-sm">
                                                                     {chapter.order || 0}
                                                                 </span>
-                                                                <h3 className="text-lg md:text-xl font-bold text-on-surface line-clamp-2">
+                                                                <h3 className="flex-1 min-w-0 text-lg md:text-xl font-bold text-on-surface line-clamp-2">
                                                                     {chapter.title}
                                                                 </h3>
+                                                                {/* Xem / Chỉnh sửa nằm cùng dòng tên chương, bên phải */}
+                                                                <div className="flex-shrink-0 flex items-center gap-2">
+                                                                    <Link
+                                                                        href={`/truyen/${storySlug}/chuong/${chapter.slug}`}
+                                                                        className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-sm font-medium transition-colors"
+                                                                    >
+                                                                        Xem
+                                                                    </Link>
+                                                                    <Link
+                                                                        href={`/tac-gia/truyen/${storySlug}/chuong/${chapter.id}/sua`}
+                                                                        className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-sm font-medium transition-colors"
+                                                                    >
+                                                                        Chỉnh sửa
+                                                                    </Link>
+                                                                </div>
                                                             </div>
                                                             <div className="flex flex-wrap items-center gap-4 text-sm text-on-surface-variant ml-11">
                                                                 <span>Lượt xem: {chapter.viewCount?.toLocaleString() || 0}</span>
@@ -492,18 +507,6 @@ export default function ChapterManagementPage() {
 
                                                         {/* Actions */}
                                                         <div className="flex flex-col gap-2 md:flex-row md:items-center ml-11 md:ml-0">
-                                                            <Link
-                                                                href={`/truyen/${storySlug}/chuong/${chapter.slug}`}
-                                                                className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-sm font-medium transition-colors text-center"
-                                                            >
-                                                                Xem
-                                                            </Link>
-                                                            <Link
-                                                                href={`/tac-gia/truyen/${storySlug}/chuong/${chapter.id}/sua`}
-                                                                className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-sm font-medium transition-colors text-center"
-                                                            >
-                                                                Chỉnh sửa
-                                                            </Link>
                                                             {/* Giọng đọc AI cho từng chương (chương miễn phí đã đăng,
                                                                 không có audio tác giả). Job chạy nền vài phút. */}
                                                             {canTts(chapter) && (() => {
