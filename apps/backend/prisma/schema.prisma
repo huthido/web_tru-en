@@ -869,10 +869,11 @@ model Settings {
   // Tự xếp hàng sinh audio AI ngay khi chương được xuất bản. Mặc định TẮT:
   // mỗi chương tốn nhiều phút CPU worker, admin chủ động bật khi đủ máy.
   ttsAutoGenerateOnPublish    Boolean @default(false)
-  // Phí GÓI THÁNG giọng đọc AI (xu / 30 ngày): tác giả mua gói rồi tạo
-  // không giới hạn chương trong thời hạn (User.ttsSubscriptionExpiresAt).
-  // 0 = miễn phí cho mọi tác giả. Admin không cần gói.
-  ttsSubscriptionCoinCost     Int     @default(0)
+  // Bảng giá GÓI THÁNG giọng đọc AI: mảng `[{months, coins}]` (vd 1 tháng
+  // 10000 xu, 2 tháng 15000, 3 tháng 20000). Tác giả mua gói rồi tạo không
+  // giới hạn chương trong thời hạn (User.ttsSubscriptionExpiresAt, 1 tháng
+  // = 30 ngày). Mảng RỖNG = miễn phí cho mọi tác giả. Admin không cần gói.
+  ttsSubscriptionPlans        Json    @default("[]")
   // Quảng cáo — global kill switch + cấu hình network ID. Client gọi
   // GET /ads/config để lấy snapshot dạng JSON.
   adsEnabled                 Boolean  @default(true)
@@ -885,6 +886,11 @@ model Settings {
   consentRequired            Boolean  @default(true)
   // Danh sách hostname được phép dùng ảnh ngoài (vd: "i.pinimg.com"). Admin quản lý qua UI.
   allowedImageDomains        String[] @default([])
+  // ─── Hình thức thanh toán ở Cửa hàng ───
+  // Hiện cổng VNPay trong bộ chọn "Hình thức thanh toán". Tắt khi chưa cấu
+  // hình VNPay → chỉ còn chuyển khoản (nếu bật). Backend cũng chặn tạo
+  // thanh toán VNPay khi tắt.
+  vnpayPaymentEnabled        Boolean  @default(true)
   // ─── Thanh toán thủ công (chuyển khoản ngân hàng, admin xác nhận tay) ───
   // Kênh nạp xu offline: user tạo yêu cầu → chuyển khoản theo QR/STK → admin
   // "kích hoạt bằng tay" ở trang duyệt. Dùng khi chưa có cổng online (VNPay).

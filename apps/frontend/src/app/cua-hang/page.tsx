@@ -27,14 +27,25 @@ export default function ShopPage() {
     const [method, setMethod] = useState<PayMethod>('VNPAY');
     const [manualData, setManualData] = useState<ManualPaymentInstructions | null>(null);
 
+    // Admin ẩn/hiện từng hình thức trong Cài đặt: VNPay (mặc định hiện) và
+    // chuyển khoản. Bộ chọn chỉ hiện khi có cả hai; một hình thức thì dùng
+    // luôn; không có thì tạm đóng nạp xu.
     const manualEnabled = !!settings?.manualPaymentEnabled;
+    const vnpayEnabled = settings?.vnpayPaymentEnabled !== false;
+    const canPay = vnpayEnabled || manualEnabled;
+    const effectiveMethod: PayMethod =
+        vnpayEnabled && manualEnabled ? method : vnpayEnabled ? 'VNPAY' : 'MANUAL';
 
     const totalBalance = (wallet?.purchasedBalance ?? 0) + (wallet?.earnedBalance ?? 0);
 
     const handleBuy = async (packageId: string) => {
+        if (!canPay) {
+            toast.error('Hiện chưa mở hình thức thanh toán nào, vui lòng quay lại sau.');
+            return;
+        }
         setBuyingId(packageId);
         try {
-            if (method === 'MANUAL') {
+            if (effectiveMethod === 'MANUAL') {
                 const res = await createManual.mutateAsync(packageId);
                 setManualData(res);
                 setBuyingId(null);
@@ -75,9 +86,13 @@ export default function ShopPage() {
                                         </h1>
                                         <p className="text-on-surface-variant text-sm">
                                             Chọn gói xu để nạp vào tài khoản.{' '}
-                                            {manualEnabled
-                                                ? 'Thanh toán qua VNPay hoặc chuyển khoản ngân hàng.'
-                                                : 'Thanh toán an toàn qua VNPay.'}
+                                            {!canPay
+                                                ? 'Hiện chưa mở hình thức thanh toán nào.'
+                                                : vnpayEnabled && manualEnabled
+                                                    ? 'Thanh toán qua VNPay hoặc chuyển khoản ngân hàng.'
+                                                    : vnpayEnabled
+                                                        ? 'Thanh toán an toàn qua VNPay.'
+                                                        : 'Thanh toán bằng chuyển khoản ngân hàng.'}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary-container">
@@ -92,8 +107,8 @@ export default function ShopPage() {
                                 </div>
                             </div>
 
-                            {/* Bộ chọn hình thức thanh toán — chỉ hiện khi bật CK thủ công */}
-                            {manualEnabled && (
+                            {/* Bộ chọn hình thức thanh toán — chỉ hiện khi admin bật CẢ VNPay lẫn CK thủ công */}
+                            {vnpayEnabled && manualEnabled && (
                                 <div className="bg-surface-container rounded-lg p-4 mb-6 shadow-sm border border-outline-variant">
                                     <p className="text-sm font-medium text-on-surface mb-3">Hình thức thanh toán</p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -128,6 +143,13 @@ export default function ShopPage() {
                                             </div>
                                         </button>
                                     </div>
+                                </div>
+                            )}
+
+                            {/* Admin tắt mọi hình thức thanh toán */}
+                            {!canPay && (
+                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6 text-sm text-yellow-800 dark:text-yellow-300">
+                                    Nạp xu đang tạm đóng — hiện chưa mở hình thức thanh toán nào. Vui lòng quay lại sau.
                                 </div>
                             )}
 
@@ -175,14 +197,14 @@ export default function ShopPage() {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleBuy(pkg.id)}
-                                                    disabled={isBuying || !!buyingId}
+                                                    disabled={isBuying || !!buyingId || !canPay}
                                                     className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:opacity-90 text-on-primary rounded-lg font-medium transition-all disabled:opacity-50"
                                                 >
                                                     {isBuying ? (
                                                         <>
                                                             <Loader2 size={18} className="animate-spin" /> Đang xử lý...
                                                         </>
-                                                    ) : method === 'MANUAL' ? (
+                                                    ) : effectiveMethod === 'MANUAL' ? (
                                                         <>
                                                             <Landmark size={18} /> Chuyển khoản
                                                         </>

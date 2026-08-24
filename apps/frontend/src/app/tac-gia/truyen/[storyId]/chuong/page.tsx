@@ -166,7 +166,7 @@ export default function ChapterManagementPage() {
         return () => clearInterval(interval);
     }, [anyTtsInProgress, storySlug, queryClient]);
 
-    // Gói tháng giọng đọc AI (Settings.ttsSubscriptionCoinCost): admin đặt phí > 0
+    // Gói tháng giọng đọc AI (Settings.ttsSubscriptionPlans): admin có bảng giá
     // thì tác giả phải có gói còn hạn mới tạo được; admin miễn.
     const { data: ttsSub, refetch: refetchTtsSub } = useTtsSubscription(isStoryOwner);
     const needsSubscription = !!ttsSub?.required && !ttsSub.active;

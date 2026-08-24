@@ -1,4 +1,17 @@
-import { IsString, IsOptional, IsBoolean, IsEmail, IsUrl, ValidateIf, IsInt, Min, Max, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsEmail, IsUrl, ValidateIf, IsInt, Min, Max, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+/** Một mức giá gói giọng đọc AI: `months` tháng (30 ngày/tháng) giá `coins` xu. */
+export class TtsSubscriptionPlanDto {
+  @IsInt()
+  @Min(1)
+  @Max(36)
+  months: number;
+
+  @IsInt()
+  @Min(0)
+  coins: number;
+}
 
 export class UpdateSettingsDto {
   @IsOptional()
@@ -130,12 +143,13 @@ export class UpdateSettingsDto {
   @IsBoolean()
   ttsAutoGenerateOnPublish?: boolean;
 
-  // Giọng đọc AI: phí gói tháng (xu / 30 ngày) tác giả mua để tự tạo audio
-  // không giới hạn chương (0 = miễn phí cho mọi tác giả).
+  // Giọng đọc AI: bảng giá gói tháng [{months, coins}] tác giả mua để tự tạo
+  // audio không giới hạn chương (mảng rỗng = miễn phí cho mọi tác giả).
   @IsOptional()
-  @IsInt()
-  @Min(0)
-  ttsSubscriptionCoinCost?: number;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TtsSubscriptionPlanDto)
+  ttsSubscriptionPlans?: TtsSubscriptionPlanDto[];
 
   // --- Cấu hình quảng cáo (3rd-party) ---
   @IsOptional()
@@ -170,6 +184,11 @@ export class UpdateSettingsDto {
   @IsArray()
   @IsString({ each: true })
   allowedImageDomains?: string[];
+
+  // --- Hình thức thanh toán: hiện cổng VNPay ở Cửa hàng ---
+  @IsOptional()
+  @IsBoolean()
+  vnpayPaymentEnabled?: boolean;
 
   // --- Thanh toán thủ công (chuyển khoản, admin xác nhận tay) ---
   @IsOptional()

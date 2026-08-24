@@ -1,8 +1,8 @@
 -- Giọng đọc AI: chuyển từ thu xu THEO CHƯƠNG sang GÓI THÁNG cho tác giả.
--- Bỏ cột phí/chương (không đổi tên để giá cũ theo chương không âm thầm
--- thành giá tháng) và thêm cột phí gói tháng, mặc định 0 = miễn phí.
+-- Bỏ cột phí/chương và thêm bảng giá gói: JSON [{months, coins}], mặc định
+-- rỗng = miễn phí (admin thêm mức giá trong Cài đặt).
 ALTER TABLE "settings" DROP COLUMN "ttsGenerationCoinCost";
-ALTER TABLE "settings" ADD COLUMN "ttsSubscriptionCoinCost" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "settings" ADD COLUMN "ttsSubscriptionPlans" JSONB NOT NULL DEFAULT '[]';
 
 -- Hạn gói tháng của từng tác giả (NULL = chưa mua).
 ALTER TABLE "users" ADD COLUMN "ttsSubscriptionExpiresAt" TIMESTAMP(3);

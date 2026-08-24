@@ -49,6 +49,15 @@ export class PaymentsService {
     if (!pkg || !pkg.isActive) {
       throw new NotFoundException('Coin package not found or inactive');
     }
+    // Admin ẩn cổng VNPay trong Cài đặt → chặn cả API (không chỉ ẩn nút).
+    if (opts.provider === PaymentProvider.VNPAY) {
+      const settings = await this.prisma.settings.findFirst({
+        select: { vnpayPaymentEnabled: true },
+      });
+      if (settings && !settings.vnpayPaymentEnabled) {
+        throw new BadRequestException('Cổng VNPay hiện đang tắt, vui lòng chọn hình thức thanh toán khác');
+      }
+    }
 
     // Internal txnRef must be ≤100 chars (VNPay limit ~100). cuid + timestamp suffix.
     const txnRef = `${Date.now()}-${randomUUID().slice(0, 8)}`;

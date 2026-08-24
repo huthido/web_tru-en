@@ -128,24 +128,28 @@ export class WalletService implements OnModuleInit {
         });
     }
 
-    /** Gói tháng giọng đọc AI = 30 ngày / lần mua; gia hạn cộng dồn vào hạn còn lại. */
-    static readonly TTS_SUBSCRIPTION_DAYS = 30;
+    /** 1 "tháng" gói giọng đọc AI = 30 ngày; gia hạn cộng dồn vào hạn còn lại. */
+    static readonly TTS_SUBSCRIPTION_DAYS_PER_MONTH = 30;
 
     /**
-     * Tác giả mua / gia hạn GÓI THÁNG giọng đọc AI bằng xu. Trừ mềm (purchased
-     * trước, hết thì earned) như mua nội dung; ghi CoinTransaction
+     * Tác giả mua / gia hạn GÓI giọng đọc AI `months` tháng bằng xu. Trừ mềm
+     * (purchased trước, hết thì earned) như mua nội dung; ghi CoinTransaction
      * TTS_SUBSCRIPTION (referenceId = userId) và dời User.ttsSubscriptionExpiresAt:
-     * còn hạn thì cộng thêm 30 ngày vào hạn cũ, hết hạn thì tính từ bây giờ.
+     * còn hạn thì cộng thêm vào hạn cũ, hết hạn thì tính từ bây giờ.
      * Toàn bộ trong một transaction — ví không đủ thì hạn gói không đổi.
      */
     async chargeTtsSubscription(
         userId: string,
         cost: number,
+        months: number,
     ): Promise<{ charged: number; expiresAt: Date; newBalance: number }> {
         if (!Number.isInteger(cost) || cost < 0) {
             throw new BadRequestException('Phí gói giọng đọc AI không hợp lệ');
         }
-        const days = WalletService.TTS_SUBSCRIPTION_DAYS;
+        if (!Number.isInteger(months) || months < 1 || months > 36) {
+            throw new BadRequestException('Thời hạn gói giọng đọc AI không hợp lệ');
+        }
+        const days = months * WalletService.TTS_SUBSCRIPTION_DAYS_PER_MONTH;
         return this.prisma.$transaction(async (tx) => {
             const user = await tx.user.findUnique({
                 where: { id: userId },
@@ -165,7 +169,7 @@ export class WalletService implements OnModuleInit {
                 if (!w) throw new BadRequestException('Ví chưa được khởi tạo');
                 if (w.purchasedBalance + w.earnedBalance < cost) {
                     throw new BadRequestException(
-                        `Số dư không đủ: gói giọng đọc AI ${days} ngày cần ${cost} xu, ` +
+                        `Số dư không đủ: gói giọng đọc AI ${months} tháng cần ${cost} xu, ` +
                         `ví hiện có ${w.purchasedBalance + w.earnedBalance} xu`,
                     );
                 }
@@ -176,7 +180,7 @@ export class WalletService implements OnModuleInit {
                         amount: -cost,
                         type: TransactionType.TTS_SUBSCRIPTION,
                         description:
-                            `Gói giọng đọc AI ${days} ngày` +
+                            `Gói giọng đọc AI ${months} tháng` +
                             ` (đến ${expiresAt.toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })})`,
                         referenceId: userId,
                     },

@@ -1,6 +1,12 @@
 import { apiClient } from './client';
 import { ApiResponse } from './client';
 
+/** Một mức giá gói giọng đọc AI: `months` tháng (30 ngày/tháng) giá `coins` xu. */
+export interface TtsSubscriptionPlan {
+    months: number;
+    coins: number;
+}
+
 export interface Settings {
     id: string;
     siteName: string;
@@ -33,9 +39,11 @@ export interface Settings {
     minWithdrawalCoins?: number;
     /** Tự tạo giọng đọc AI khi chương được xuất bản (mặc định tắt). */
     ttsAutoGenerateOnPublish?: boolean;
-    /** Phí gói tháng giọng đọc AI cho tác giả (xu / 30 ngày, 0 = miễn phí). */
-    ttsSubscriptionCoinCost?: number;
+    /** Bảng giá gói giọng đọc AI cho tác giả [{months, coins}]; rỗng = miễn phí. */
+    ttsSubscriptionPlans?: TtsSubscriptionPlan[];
     allowedImageDomains?: string[];
+    /** Hiện cổng VNPay trong Hình thức thanh toán ở Cửa hàng (mặc định bật). */
+    vnpayPaymentEnabled?: boolean;
     // --- Thanh toán thủ công (chuyển khoản, admin xác nhận tay) ---
     manualPaymentEnabled?: boolean;
     manualPaymentBankBin?: string | null;
@@ -74,8 +82,9 @@ export interface UpdateSettingsRequest {
     copyProtectionEnabled?: boolean;
     minWithdrawalCoins?: number;
     ttsAutoGenerateOnPublish?: boolean;
-    ttsSubscriptionCoinCost?: number;
+    ttsSubscriptionPlans?: TtsSubscriptionPlan[];
     allowedImageDomains?: string[];
+    vnpayPaymentEnabled?: boolean;
     // --- Thanh toán thủ công ---
     manualPaymentEnabled?: boolean;
     manualPaymentBankBin?: string;

@@ -15,11 +15,11 @@ export const useTtsSubscription = (enabled = true) =>
         staleTime: 60 * 1000,
     });
 
-/** Mua / gia hạn gói tháng bằng xu; xong thì làm mới ví + trạng thái gói. */
+/** Mua / gia hạn gói `months` tháng bằng xu; xong thì làm mới ví + trạng thái gói. */
 export const useSubscribeTts = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: () => ttsService.subscribe(),
+        mutationFn: (months: number) => ttsService.subscribe(months),
         onSuccess: (info) => {
             queryClient.setQueryData(TTS_SUBSCRIPTION_QUERY_KEY, info);
             queryClient.invalidateQueries({ queryKey: ['wallet'] });

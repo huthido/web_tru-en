@@ -20,12 +20,19 @@ import { SettingsService } from '../settings/settings.service';
 import { WalletService } from '../wallet/wallet.service';
 import { TTS_QUEUE } from '../queue/queue.module';
 
+/** Một mức giá gói giọng đọc AI: `months` tháng (30 ngày/tháng) giá `coins` xu. */
+export interface TtsSubscriptionPlan {
+    months: number;
+    coins: number;
+}
+
 /** Trạng thái gói tháng giọng đọc AI của một tác giả. */
 export interface TtsSubscriptionInfo {
-    /** Phí gói (xu / `days` ngày) admin đặt; 0 = miễn phí. */
-    cost: number;
-    days: number;
-    /** User này có bắt buộc phải có gói mới tạo audio không (phí > 0, không phải admin). */
+    /** Bảng giá admin đặt, sắp theo số tháng tăng dần; rỗng = miễn phí. */
+    plans: TtsSubscriptionPlan[];
+    /** Số ngày của 1 "tháng" gói (30). */
+    daysPerMonth: number;
+    /** User này có bắt buộc phải có gói mới tạo audio không (có bảng giá, không phải admin). */
     required: boolean;
     /** Còn hạn. */
     active: boolean;
@@ -360,25 +367,41 @@ export class TtsService {
     }
 
     // ------------------------------------------------------------------
-    // GÓI THÁNG giọng đọc AI cho tác giả (Settings.ttsSubscriptionCoinCost,
-    // xu / 30 ngày). Admin miễn; phí = 0 → mọi tác giả dùng tự do. Luồng
-    // tự động/ops (auto publish, requeue, admin reset) không đi qua đây.
+    // GÓI THÁNG giọng đọc AI cho tác giả (Settings.ttsSubscriptionPlans =
+    // [{months, coins}], 1 tháng = 30 ngày). Admin miễn; bảng giá rỗng →
+    // mọi tác giả dùng tự do. Luồng tự động/ops (auto publish, requeue,
+    // admin reset) không đi qua đây.
     // ------------------------------------------------------------------
 
-    /** Phí gói tháng admin đặt (0 = miễn phí). */
-    private async getSubscriptionCost(): Promise<number> {
+    /**
+     * Bảng giá admin đặt — lọc mức không hợp lệ, gộp trùng số tháng (giữ
+     * mức rẻ hơn), sắp theo số tháng tăng dần. Rỗng = miễn phí.
+     */
+    private async getSubscriptionPlans(): Promise<TtsSubscriptionPlan[]> {
         const settings = await this.settingsService.getSettings();
-        const cost = (settings as { ttsSubscriptionCoinCost?: number }).ttsSubscriptionCoinCost ?? 0;
-        return Number.isInteger(cost) && cost > 0 ? cost : 0;
+        const raw = (settings as { ttsSubscriptionPlans?: unknown }).ttsSubscriptionPlans;
+        if (!Array.isArray(raw)) return [];
+        const byMonths = new Map<number, number>();
+        for (const item of raw) {
+            const months = Number((item as any)?.months);
+            const coins = Number((item as any)?.coins);
+            if (!Number.isInteger(months) || months < 1 || months > 36) continue;
+            if (!Number.isInteger(coins) || coins < 0) continue;
+            const prev = byMonths.get(months);
+            if (prev === undefined || coins < prev) byMonths.set(months, coins);
+        }
+        return [...byMonths.entries()]
+            .map(([months, coins]) => ({ months, coins }))
+            .sort((a, b) => a.months - b.months);
     }
 
     /**
      * Trạng thái gói của user: `required` = user này có PHẢI có gói mới được
-     * tạo audio không (phí > 0 và không phải admin); `active` = còn hạn.
+     * tạo audio không (có bảng giá và không phải admin); `active` = còn hạn.
      */
     async getSubscription(user: { id: string; role?: string }): Promise<TtsSubscriptionInfo> {
-        const [cost, u] = await Promise.all([
-            this.getSubscriptionCost(),
+        const [plans, u] = await Promise.all([
+            this.getSubscriptionPlans(),
             this.prisma.user.findUnique({
                 where: { id: user.id },
                 select: { ttsSubscriptionExpiresAt: true },
@@ -387,39 +410,58 @@ export class TtsService {
         const expiresAt = u?.ttsSubscriptionExpiresAt ?? null;
         const active = !!expiresAt && expiresAt.getTime() > Date.now();
         return {
-            cost,
-            days: WalletService.TTS_SUBSCRIPTION_DAYS,
-            required: cost > 0 && user.role !== 'ADMIN',
+            plans,
+            daysPerMonth: WalletService.TTS_SUBSCRIPTION_DAYS_PER_MONTH,
+            required: plans.length > 0 && user.role !== 'ADMIN',
             active,
             expiresAt: expiresAt ? expiresAt.toISOString() : null,
         };
     }
 
     /**
-     * Mua / gia hạn gói tháng bằng xu (gia hạn cộng dồn vào hạn còn lại).
-     * Admin hoặc phí 0 → không trừ xu, vẫn ghi hạn (vô hại).
+     * Mua / gia hạn gói `months` tháng theo bảng giá (gia hạn cộng dồn vào
+     * hạn còn lại). Admin không bị trừ xu (mua số tháng bất kỳ 1–36).
      */
-    async subscribe(user: { id: string; role?: string }): Promise<TtsSubscriptionInfo & { charged: number }> {
+    async subscribe(
+        user: { id: string; role?: string },
+        months: number,
+    ): Promise<TtsSubscriptionInfo & { charged: number }> {
         if (!this.enabled) {
             throw new ServiceUnavailableException(
                 'Tính năng giọng đọc AI chưa được bật trên máy chủ',
             );
         }
-        const cost = user.role === 'ADMIN' ? 0 : await this.getSubscriptionCost();
-        const r = await this.walletService.chargeTtsSubscription(user.id, cost);
+        if (!Number.isInteger(months) || months < 1) {
+            throw new BadRequestException('Vui lòng chọn gói giọng đọc AI');
+        }
+        let cost = 0;
+        if (user.role !== 'ADMIN') {
+            const plans = await this.getSubscriptionPlans();
+            if (plans.length === 0) {
+                throw new BadRequestException('Giọng đọc AI hiện miễn phí, không cần mua gói');
+            }
+            const plan = plans.find((p) => p.months === months);
+            if (!plan) {
+                throw new BadRequestException('Gói giọng đọc AI không tồn tại — tải lại trang để xem bảng giá mới');
+            }
+            cost = plan.coins;
+        }
+        const r = await this.walletService.chargeTtsSubscription(user.id, cost, months);
         const info = await this.getSubscription(user);
         return { ...info, charged: r.charged };
     }
 
-    /** Chặn tác giả chưa có gói (khi admin đặt phí > 0). Admin luôn qua. */
+    /** Chặn tác giả chưa có gói (khi admin có bảng giá). Admin luôn qua. */
     private async assertSubscribed(user?: { id: string; role?: string }): Promise<void> {
         if (!user || user.role === 'ADMIN') return;
         const sub = await this.getSubscription(user);
         if (sub.required && !sub.active) {
+            const cheapest = sub.plans[0];
+            const hint = cheapest ? ` (từ ${cheapest.coins} xu/${cheapest.months} tháng)` : '';
             throw new ForbiddenException(
                 sub.expiresAt
-                    ? `Gói giọng đọc AI của bạn đã hết hạn — gia hạn ${sub.cost} xu/${sub.days} ngày để tiếp tục tạo audio`
-                    : `Cần đăng ký gói giọng đọc AI (${sub.cost} xu/${sub.days} ngày) để tự tạo audio cho chương`,
+                    ? `Gói giọng đọc AI của bạn đã hết hạn — gia hạn${hint} để tiếp tục tạo audio`
+                    : `Cần đăng ký gói giọng đọc AI${hint} để tự tạo audio cho chương`,
             );
         }
     }

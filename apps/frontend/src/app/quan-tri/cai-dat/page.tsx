@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/toast';
 import { Loading } from '@/components/ui/loading';
 import Image from 'next/image';
 import { isUsableImageSrc } from '@/utils/image-utils';
+import type { TtsSubscriptionPlan } from '@/lib/api/settings.service';
 
 const BUILTIN_DOMAINS = [
     'res.cloudinary.com',
@@ -81,8 +82,9 @@ export default function AdminSettingsPage() {
         copyProtectionEnabled: true,
         // --- Giọng đọc AI ---
         ttsAutoGenerateOnPublish: false,
-        ttsSubscriptionCoinCost: 0,
+        ttsSubscriptionPlans: [] as TtsSubscriptionPlan[],
         // --- Thanh toán thủ công (chuyển khoản) ---
+        vnpayPaymentEnabled: true,
         manualPaymentEnabled: false,
         manualPaymentBankBin: '',
         manualPaymentBankName: '',
@@ -101,6 +103,18 @@ export default function AdminSettingsPage() {
     });
 
     const [newDomain, setNewDomain] = useState('');
+    // Mức giá gói giọng đọc AI đang nhập (số tháng + xu) — bấm "Thêm mức" để đưa vào bảng giá.
+    const [newPlan, setNewPlan] = useState<{ months: string; coins: string }>({ months: '1', coins: '' });
+    const addTtsPlan = () => {
+        const months = parseInt(newPlan.months, 10);
+        const coins = parseInt(newPlan.coins, 10);
+        if (!Number.isInteger(months) || months < 1 || months > 36 || !Number.isInteger(coins) || coins < 0) return;
+        const plans = formData.ttsSubscriptionPlans.filter((p) => p.months !== months);
+        plans.push({ months, coins });
+        plans.sort((a, b) => a.months - b.months);
+        setFormData({ ...formData, ttsSubscriptionPlans: plans });
+        setNewPlan({ months: String(Math.min(36, months + 1)), coins: '' });
+    };
     const logoInputRef = useRef<HTMLInputElement>(null);
     const faviconInputRef = useRef<HTMLInputElement>(null);
 
@@ -129,7 +143,10 @@ export default function AdminSettingsPage() {
                 chapterAudioDownloadEnabled: (settings as any).chapterAudioDownloadEnabled ?? false,
                 copyProtectionEnabled: (settings as any).copyProtectionEnabled ?? true,
                 ttsAutoGenerateOnPublish: (settings as any).ttsAutoGenerateOnPublish ?? false,
-                ttsSubscriptionCoinCost: (settings as any).ttsSubscriptionCoinCost ?? 0,
+                ttsSubscriptionPlans: Array.isArray((settings as any).ttsSubscriptionPlans)
+                    ? (settings as any).ttsSubscriptionPlans
+                    : [],
+                vnpayPaymentEnabled: (settings as any).vnpayPaymentEnabled ?? true,
                 manualPaymentEnabled: (settings as any).manualPaymentEnabled ?? false,
                 manualPaymentBankBin: (settings as any).manualPaymentBankBin || '',
                 manualPaymentBankName: (settings as any).manualPaymentBankName || '',
@@ -570,29 +587,92 @@ export default function AdminSettingsPage() {
                                 />
                             </div>
 
-                            {/* Giọng đọc AI: phí gói tháng */}
+                            {/* Giọng đọc AI: bảng giá gói tháng */}
                             <div className="border-t border-outline-variant pt-4">
                                 <label className="text-sm font-medium text-on-surface-variant block mb-1">
-                                    Phí gói giọng đọc AI (xu / 30 ngày)
+                                    Bảng giá gói giọng đọc AI (xu theo số tháng)
                                 </label>
                                 <p className="text-xs text-on-surface-variant mb-3">
-                                    Tác giả mua gói theo tháng bằng xu rồi tự tạo giọng đọc AI cho mọi chương miễn phí
-                                    không giới hạn trong thời hạn (gia hạn cộng dồn). 0 = miễn phí cho mọi tác giả.
+                                    Tác giả chọn một mức (vd 1 tháng 10.000 xu · 2 tháng 15.000 xu · 3 tháng 20.000 xu)
+                                    rồi tự tạo giọng đọc AI cho mọi chương miễn phí không giới hạn trong thời hạn
+                                    (1 tháng = 30 ngày, gia hạn cộng dồn). Không có mức nào = miễn phí cho mọi tác giả.
                                     Admin không cần gói. Đổi giá không ảnh hưởng gói đã mua.
                                 </p>
-                                <input
-                                    type="number"
-                                    min={0}
-                                    step={1}
-                                    value={formData.ttsSubscriptionCoinCost}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            ttsSubscriptionCoinCost: Math.max(0, parseInt(e.target.value || '0', 10) || 0),
-                                        })
-                                    }
-                                    className="w-40 px-3 py-2 border border-outline-variant rounded-lg bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-primary"
-                                />
+                                {formData.ttsSubscriptionPlans.length === 0 ? (
+                                    <p className="text-sm text-on-surface-variant italic mb-3">
+                                        Chưa có mức giá nào — giọng đọc AI đang miễn phí cho tác giả.
+                                    </p>
+                                ) : (
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {formData.ttsSubscriptionPlans.map((plan) => (
+                                            <span
+                                                key={plan.months}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-primary/10 text-primary border border-primary/30"
+                                            >
+                                                <span className="font-semibold">{plan.months} tháng</span>
+                                                <span className="text-on-surface-variant">·</span>
+                                                <span>{plan.coins.toLocaleString('vi-VN')} xu</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setFormData({
+                                                            ...formData,
+                                                            ttsSubscriptionPlans: formData.ttsSubscriptionPlans.filter(
+                                                                (p) => p.months !== plan.months,
+                                                            ),
+                                                        })
+                                                    }
+                                                    className="ml-0.5 hover:text-error transition-colors"
+                                                    aria-label={`Xóa mức ${plan.months} tháng`}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                                <div className="flex flex-wrap items-end gap-2">
+                                    <div>
+                                        <label className="block text-xs text-on-surface-variant mb-1">Số tháng</label>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={36}
+                                            step={1}
+                                            value={newPlan.months}
+                                            onChange={(e) => setNewPlan({ ...newPlan, months: e.target.value })}
+                                            className="w-24 px-3 py-2 border border-outline-variant rounded-lg bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-primary"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-on-surface-variant mb-1">Giá (xu)</label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            step={1}
+                                            value={newPlan.coins}
+                                            onChange={(e) => setNewPlan({ ...newPlan, coins: e.target.value })}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    addTtsPlan();
+                                                }
+                                            }}
+                                            placeholder="vd: 10000"
+                                            className="w-36 px-3 py-2 border border-outline-variant rounded-lg bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-primary"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={addTtsPlan}
+                                        className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-sm font-medium transition-colors"
+                                    >
+                                        Thêm mức
+                                    </button>
+                                </div>
+                                <p className="text-xs text-on-surface-variant mt-2">
+                                    Thêm mức có cùng số tháng sẽ thay giá cũ. Nhớ bấm Lưu cài đặt.
+                                </p>
                             </div>
 
                             {/* Phí donate nền tảng */}
@@ -680,7 +760,27 @@ export default function AdminSettingsPage() {
                             để xác nhận (kích hoạt bằng tay) — xu sẽ được cộng vào ví người dùng.
                         </p>
                         <div className="space-y-4">
+                            {/* Hình thức thanh toán: ẩn/hiện cổng VNPay */}
                             <div className="flex items-center justify-between">
+                                <div>
+                                    <label className="text-sm font-medium text-on-surface-variant">
+                                        Hiện cổng VNPay trong Hình thức thanh toán
+                                    </label>
+                                    <p className="text-xs text-on-surface-variant">
+                                        Tắt khi chưa cấu hình VNPay: Cửa hàng ẩn tuỳ chọn &quot;Cổng VNPay&quot; và chỉ còn
+                                        chuyển khoản (nếu bật bên dưới). Bộ chọn &quot;Hình thức thanh toán&quot; chỉ hiện khi
+                                        có từ 2 hình thức trở lên; tắt cả hai thì Cửa hàng báo tạm đóng nạp xu.
+                                    </p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.vnpayPaymentEnabled}
+                                    onChange={(e) => setFormData({ ...formData, vnpayPaymentEnabled: e.target.checked })}
+                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between border-t border-outline-variant pt-4">
                                 <div>
                                     <label className="text-sm font-medium text-on-surface-variant">
                                         Bật thanh toán chuyển khoản

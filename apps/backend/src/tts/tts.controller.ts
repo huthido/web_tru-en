@@ -126,8 +126,8 @@ export class TtsVoiceController {
 }
 
 /**
- * Gói tháng giọng đọc AI của tác giả: xem hạn + mua/gia hạn bằng xu
- * (Settings.ttsSubscriptionCoinCost, 30 ngày/lần, gia hạn cộng dồn).
+ * Gói tháng giọng đọc AI của tác giả: xem hạn + bảng giá, mua/gia hạn bằng
+ * xu theo mức đã chọn (Settings.ttsSubscriptionPlans, gia hạn cộng dồn).
  */
 @Controller('tts/subscription')
 @UseGuards(JwtAuthGuard)
@@ -139,9 +139,10 @@ export class TtsSubscriptionController {
         return this.ttsService.getSubscription({ id: user.id, role: user.role });
     }
 
+    /** body.months = số tháng của mức giá đã chọn trong bảng giá. */
     @Post()
-    subscribe(@CurrentUser() user: any) {
-        return this.ttsService.subscribe({ id: user.id, role: user.role });
+    subscribe(@CurrentUser() user: any, @Body() body: { months?: number }) {
+        return this.ttsService.subscribe({ id: user.id, role: user.role }, Number(body?.months));
     }
 }
 

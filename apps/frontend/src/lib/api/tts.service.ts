@@ -32,12 +32,18 @@ export interface StoryTtsStatus {
     none: number;
 }
 
+/** Một mức giá gói giọng đọc AI: `months` tháng (30 ngày/tháng) giá `coins` xu. */
+export interface TtsSubscriptionPlan {
+    months: number;
+    coins: number;
+}
+
 /** Gói tháng giọng đọc AI của tác giả (GET/POST /tts/subscription). */
 export interface TtsSubscriptionInfo {
-    /** Phí gói (xu / `days` ngày) admin đặt; 0 = miễn phí. */
-    cost: number;
-    days: number;
-    /** User này có bắt buộc phải có gói mới tạo audio không (phí > 0, không phải admin). */
+    /** Bảng giá admin đặt, sắp theo số tháng tăng dần; rỗng = miễn phí. */
+    plans: TtsSubscriptionPlan[];
+    daysPerMonth: number;
+    /** User này có bắt buộc phải có gói mới tạo audio không (có bảng giá, không phải admin). */
     required: boolean;
     /** Còn hạn. */
     active: boolean;
@@ -113,9 +119,9 @@ export const ttsService = {
         return unwrap<TtsSubscriptionInfo>(response.data);
     },
 
-    /** Mua / gia hạn gói tháng bằng xu (gia hạn cộng dồn vào hạn còn lại). */
-    subscribe: async (): Promise<TtsSubscriptionInfo & { charged: number }> => {
-        const response = await apiClient.post<any>('/tts/subscription');
+    /** Mua / gia hạn gói `months` tháng theo bảng giá (gia hạn cộng dồn vào hạn còn lại). */
+    subscribe: async (months: number): Promise<TtsSubscriptionInfo & { charged: number }> => {
+        const response = await apiClient.post<any>('/tts/subscription', { months });
         return unwrap<TtsSubscriptionInfo & { charged: number }>(response.data);
     },
 
