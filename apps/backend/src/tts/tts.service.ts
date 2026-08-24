@@ -20,6 +20,18 @@ import { SettingsService } from '../settings/settings.service';
 import { WalletService } from '../wallet/wallet.service';
 import { TTS_QUEUE } from '../queue/queue.module';
 
+/** Trạng thái gói tháng giọng đọc AI của một tác giả. */
+export interface TtsSubscriptionInfo {
+    /** Phí gói (xu / `days` ngày) admin đặt; 0 = miễn phí. */
+    cost: number;
+    days: number;
+    /** User này có bắt buộc phải có gói mới tạo audio không (phí > 0, không phải admin). */
+    required: boolean;
+    /** Còn hạn. */
+    active: boolean;
+    expiresAt: string | null;
+}
+
 export interface TtsJobData {
     chapterId: string;
 }
@@ -238,7 +250,6 @@ export class TtsService {
             where: { id: chapterId },
             select: {
                 id: true,
-                title: true,
                 isPublished: true,
                 price: true,
                 audioUrl: true,
@@ -276,26 +287,15 @@ export class TtsService {
             TtsAudioStatus.FAILED,
             TtsAudioStatus.READY,
         ];
-        // Claim + trừ xu trong CÙNG transaction: ví không đủ → claim rollback,
-        // chương giữ nguyên trạng thái cũ, không có job nào được tạo.
-        const cost = await this.getGenerationCost(user);
-        const claimed = await this.prisma.$transaction(async (tx) => {
-            const r = await tx.chapter.updateMany({
-                where: {
-                    id: chapterId,
-                    OR: claimableStatuses.map((s) => ({ ttsAudioStatus: s })),
-                },
-                data: { ttsAudioStatus: TtsAudioStatus.PENDING },
-            });
-            if (r.count > 0 && cost > 0 && user) {
-                await this.walletService.chargeTtsGeneration(
-                    tx,
-                    user.id,
-                    [{ id: chapter.id, title: chapter.title }],
-                    cost,
-                );
-            }
-            return r;
+        // Gói tháng: tác giả chưa có/hết hạn gói (khi admin đặt phí) → chặn
+        // TRƯỚC khi claim để trạng thái chương không đổi.
+        await this.assertSubscribed(user);
+        const claimed = await this.prisma.chapter.updateMany({
+            where: {
+                id: chapterId,
+                OR: claimableStatuses.map((s) => ({ ttsAudioStatus: s })),
+            },
+            data: { ttsAudioStatus: TtsAudioStatus.PENDING },
         });
 
         if (claimed.count > 0) {
@@ -346,41 +346,82 @@ export class TtsService {
                 // FREEMIUM: bỏ qua chương trả phí; FREE: price bị bỏ qua theo spec.
                 ...(story.accessType === 'FREEMIUM' ? { price: 0 } : {}),
             },
-            select: { id: true, title: true },
+            select: { id: true },
             orderBy: { order: 'asc' },
         });
 
-        // Claim từng chương rồi trừ xu theo số chương THẬT SỰ claim được —
-        // cùng transaction để ví không đủ thì không chương nào bị đổi trạng thái.
-        const cost = await this.getGenerationCost(user);
-        const claimedIds = await this.prisma.$transaction(async (tx) => {
-            const ids = await this.claimIn(tx, eligible.map((c) => c.id));
-            if (ids.length > 0 && cost > 0) {
-                const picked = new Set(ids);
-                await this.walletService.chargeTtsGeneration(
-                    tx,
-                    user.id,
-                    eligible.filter((c) => picked.has(c.id)),
-                    cost,
-                );
-            }
-            return ids;
-        }, { timeout: 30_000 }); // truyện 500 chương claim tuần tự > 5s mặc định
+        // Gói tháng: kiểm tra trước khi claim — không đủ điều kiện thì không
+        // chương nào đổi trạng thái.
+        await this.assertSubscribed(user);
+        const claimedIds = await this.claimIn(this.prisma, eligible.map((c) => c.id));
         const queued = await this.enqueue(claimedIds);
         const status = await this.computeStoryStatus(story.id);
         return { queued, ...status };
     }
 
-    /**
-     * Phí xu mỗi chương khi TÁC GIẢ tự bấm tạo (Settings.ttsGenerationCoinCost).
-     * Admin miễn phí. Luồng tự động/ops (auto publish, requeue, admin reset)
-     * không đi qua đây nên không bao giờ trừ xu.
-     */
-    private async getGenerationCost(user?: { id: string; role?: string }): Promise<number> {
-        if (!user || user.role === 'ADMIN') return 0;
+    // ------------------------------------------------------------------
+    // GÓI THÁNG giọng đọc AI cho tác giả (Settings.ttsSubscriptionCoinCost,
+    // xu / 30 ngày). Admin miễn; phí = 0 → mọi tác giả dùng tự do. Luồng
+    // tự động/ops (auto publish, requeue, admin reset) không đi qua đây.
+    // ------------------------------------------------------------------
+
+    /** Phí gói tháng admin đặt (0 = miễn phí). */
+    private async getSubscriptionCost(): Promise<number> {
         const settings = await this.settingsService.getSettings();
-        const cost = (settings as { ttsGenerationCoinCost?: number }).ttsGenerationCoinCost ?? 0;
+        const cost = (settings as { ttsSubscriptionCoinCost?: number }).ttsSubscriptionCoinCost ?? 0;
         return Number.isInteger(cost) && cost > 0 ? cost : 0;
+    }
+
+    /**
+     * Trạng thái gói của user: `required` = user này có PHẢI có gói mới được
+     * tạo audio không (phí > 0 và không phải admin); `active` = còn hạn.
+     */
+    async getSubscription(user: { id: string; role?: string }): Promise<TtsSubscriptionInfo> {
+        const [cost, u] = await Promise.all([
+            this.getSubscriptionCost(),
+            this.prisma.user.findUnique({
+                where: { id: user.id },
+                select: { ttsSubscriptionExpiresAt: true },
+            }),
+        ]);
+        const expiresAt = u?.ttsSubscriptionExpiresAt ?? null;
+        const active = !!expiresAt && expiresAt.getTime() > Date.now();
+        return {
+            cost,
+            days: WalletService.TTS_SUBSCRIPTION_DAYS,
+            required: cost > 0 && user.role !== 'ADMIN',
+            active,
+            expiresAt: expiresAt ? expiresAt.toISOString() : null,
+        };
+    }
+
+    /**
+     * Mua / gia hạn gói tháng bằng xu (gia hạn cộng dồn vào hạn còn lại).
+     * Admin hoặc phí 0 → không trừ xu, vẫn ghi hạn (vô hại).
+     */
+    async subscribe(user: { id: string; role?: string }): Promise<TtsSubscriptionInfo & { charged: number }> {
+        if (!this.enabled) {
+            throw new ServiceUnavailableException(
+                'Tính năng giọng đọc AI chưa được bật trên máy chủ',
+            );
+        }
+        const cost = user.role === 'ADMIN' ? 0 : await this.getSubscriptionCost();
+        const r = await this.walletService.chargeTtsSubscription(user.id, cost);
+        const info = await this.getSubscription(user);
+        return { ...info, charged: r.charged };
+    }
+
+    /** Chặn tác giả chưa có gói (khi admin đặt phí > 0). Admin luôn qua. */
+    private async assertSubscribed(user?: { id: string; role?: string }): Promise<void> {
+        if (!user || user.role === 'ADMIN') return;
+        const sub = await this.getSubscription(user);
+        if (sub.required && !sub.active) {
+            throw new ForbiddenException(
+                sub.expiresAt
+                    ? `Gói giọng đọc AI của bạn đã hết hạn — gia hạn ${sub.cost} xu/${sub.days} ngày để tiếp tục tạo audio`
+                    : `Cần đăng ký gói giọng đọc AI (${sub.cost} xu/${sub.days} ngày) để tự tạo audio cho chương`,
+            );
+        }
     }
 
     /**

@@ -130,11 +130,12 @@ export class UpdateSettingsDto {
   @IsBoolean()
   ttsAutoGenerateOnPublish?: boolean;
 
-  // Giọng đọc AI: số xu trừ tác giả mỗi chương khi tự bấm tạo (0 = miễn phí).
+  // Giọng đọc AI: phí gói tháng (xu / 30 ngày) tác giả mua để tự tạo audio
+  // không giới hạn chương (0 = miễn phí cho mọi tác giả).
   @IsOptional()
   @IsInt()
   @Min(0)
-  ttsGenerationCoinCost?: number;
+  ttsSubscriptionCoinCost?: number;
 
   // --- Cấu hình quảng cáo (3rd-party) ---
   @IsOptional()

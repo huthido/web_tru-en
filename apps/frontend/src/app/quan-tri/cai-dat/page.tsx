@@ -81,7 +81,7 @@ export default function AdminSettingsPage() {
         copyProtectionEnabled: true,
         // --- Giọng đọc AI ---
         ttsAutoGenerateOnPublish: false,
-        ttsGenerationCoinCost: 0,
+        ttsSubscriptionCoinCost: 0,
         // --- Thanh toán thủ công (chuyển khoản) ---
         manualPaymentEnabled: false,
         manualPaymentBankBin: '',
@@ -129,7 +129,7 @@ export default function AdminSettingsPage() {
                 chapterAudioDownloadEnabled: (settings as any).chapterAudioDownloadEnabled ?? false,
                 copyProtectionEnabled: (settings as any).copyProtectionEnabled ?? true,
                 ttsAutoGenerateOnPublish: (settings as any).ttsAutoGenerateOnPublish ?? false,
-                ttsGenerationCoinCost: (settings as any).ttsGenerationCoinCost ?? 0,
+                ttsSubscriptionCoinCost: (settings as any).ttsSubscriptionCoinCost ?? 0,
                 manualPaymentEnabled: (settings as any).manualPaymentEnabled ?? false,
                 manualPaymentBankBin: (settings as any).manualPaymentBankBin || '',
                 manualPaymentBankName: (settings as any).manualPaymentBankName || '',
@@ -570,24 +570,25 @@ export default function AdminSettingsPage() {
                                 />
                             </div>
 
-                            {/* Giọng đọc AI: phí xu */}
+                            {/* Giọng đọc AI: phí gói tháng */}
                             <div className="border-t border-outline-variant pt-4">
                                 <label className="text-sm font-medium text-on-surface-variant block mb-1">
-                                    Phí tạo giọng đọc AI (xu / chương)
+                                    Phí gói giọng đọc AI (xu / 30 ngày)
                                 </label>
                                 <p className="text-xs text-on-surface-variant mb-3">
-                                    Số xu trừ khỏi ví tác giả mỗi chương khi họ bấm &quot;Tạo giọng AI&quot; hoặc
-                                    &quot;Tạo giọng AI cả truyện&quot; (tạo lại cũng tính). 0 = miễn phí. Admin không bị trừ.
+                                    Tác giả mua gói theo tháng bằng xu rồi tự tạo giọng đọc AI cho mọi chương miễn phí
+                                    không giới hạn trong thời hạn (gia hạn cộng dồn). 0 = miễn phí cho mọi tác giả.
+                                    Admin không cần gói. Đổi giá không ảnh hưởng gói đã mua.
                                 </p>
                                 <input
                                     type="number"
                                     min={0}
                                     step={1}
-                                    value={formData.ttsGenerationCoinCost}
+                                    value={formData.ttsSubscriptionCoinCost}
                                     onChange={(e) =>
                                         setFormData({
                                             ...formData,
-                                            ttsGenerationCoinCost: Math.max(0, parseInt(e.target.value || '0', 10) || 0),
+                                            ttsSubscriptionCoinCost: Math.max(0, parseInt(e.target.value || '0', 10) || 0),
                                         })
                                     }
                                     className="w-40 px-3 py-2 border border-outline-variant rounded-lg bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-primary"

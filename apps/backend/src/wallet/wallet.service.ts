@@ -128,49 +128,71 @@ export class WalletService implements OnModuleInit {
         });
     }
 
+    /** Gói tháng giọng đọc AI = 30 ngày / lần mua; gia hạn cộng dồn vào hạn còn lại. */
+    static readonly TTS_SUBSCRIPTION_DAYS = 30;
+
     /**
-     * Trừ xu tác giả khi tự bấm sinh giọng đọc AI (TTS) — gọi TRONG transaction
-     * của TtsService để claim chương và trừ xu cùng rollback nếu ví không đủ.
-     * Trừ mềm (purchased trước, hết thì earned) như mua nội dung. Ghi một
-     * CoinTransaction TTS_GENERATION cho cả lô (referenceId = chương đầu tiên).
+     * Tác giả mua / gia hạn GÓI THÁNG giọng đọc AI bằng xu. Trừ mềm (purchased
+     * trước, hết thì earned) như mua nội dung; ghi CoinTransaction
+     * TTS_SUBSCRIPTION (referenceId = userId) và dời User.ttsSubscriptionExpiresAt:
+     * còn hạn thì cộng thêm 30 ngày vào hạn cũ, hết hạn thì tính từ bây giờ.
+     * Toàn bộ trong một transaction — ví không đủ thì hạn gói không đổi.
      */
-    async chargeTtsGeneration(
-        tx: WalletTx,
+    async chargeTtsSubscription(
         userId: string,
-        chapters: { id: string; title: string }[],
-        costPerChapter: number,
-    ): Promise<{ charged: number; newBalance: number }> {
-        if (!Number.isInteger(costPerChapter) || costPerChapter < 0) {
-            throw new BadRequestException('Phí tạo giọng đọc AI không hợp lệ');
+        cost: number,
+    ): Promise<{ charged: number; expiresAt: Date; newBalance: number }> {
+        if (!Number.isInteger(cost) || cost < 0) {
+            throw new BadRequestException('Phí gói giọng đọc AI không hợp lệ');
         }
-        const total = costPerChapter * chapters.length;
-        if (total <= 0 || chapters.length === 0) {
-            const w = await tx.userWallet.findUnique({ where: { userId } });
-            return { charged: 0, newBalance: w?.balance ?? 0 };
-        }
-        const w = await tx.userWallet.findUnique({ where: { userId } });
-        if (!w) throw new BadRequestException('Ví chưa được khởi tạo');
-        if (w.purchasedBalance + w.earnedBalance < total) {
-            throw new BadRequestException(
-                `Số dư không đủ: cần ${total} xu để tạo giọng đọc AI cho ${chapters.length} chương ` +
-                `(${costPerChapter} xu/chương), ví hiện có ${w.purchasedBalance + w.earnedBalance} xu`,
-            );
-        }
-        const wallet = await this.debitForContent(tx, userId, total);
-        const description =
-            chapters.length === 1
-                ? `Tạo giọng đọc AI: ${chapters[0].title}`
-                : `Tạo giọng đọc AI cho ${chapters.length} chương (${costPerChapter} xu/chương)`;
-        await tx.coinTransaction.create({
-            data: {
-                walletId: wallet.id,
-                amount: -total,
-                type: TransactionType.TTS_GENERATION,
-                description,
-                referenceId: chapters[0].id,
-            },
+        const days = WalletService.TTS_SUBSCRIPTION_DAYS;
+        return this.prisma.$transaction(async (tx) => {
+            const user = await tx.user.findUnique({
+                where: { id: userId },
+                select: { ttsSubscriptionExpiresAt: true },
+            });
+            if (!user) throw new BadRequestException('Tài khoản không tồn tại');
+            const now = new Date();
+            const base =
+                user.ttsSubscriptionExpiresAt && user.ttsSubscriptionExpiresAt > now
+                    ? user.ttsSubscriptionExpiresAt
+                    : now;
+            const expiresAt = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+
+            let newBalance: number;
+            if (cost > 0) {
+                const w = await tx.userWallet.findUnique({ where: { userId } });
+                if (!w) throw new BadRequestException('Ví chưa được khởi tạo');
+                if (w.purchasedBalance + w.earnedBalance < cost) {
+                    throw new BadRequestException(
+                        `Số dư không đủ: gói giọng đọc AI ${days} ngày cần ${cost} xu, ` +
+                        `ví hiện có ${w.purchasedBalance + w.earnedBalance} xu`,
+                    );
+                }
+                const wallet = await this.debitForContent(tx, userId, cost);
+                await tx.coinTransaction.create({
+                    data: {
+                        walletId: wallet.id,
+                        amount: -cost,
+                        type: TransactionType.TTS_SUBSCRIPTION,
+                        description:
+                            `Gói giọng đọc AI ${days} ngày` +
+                            ` (đến ${expiresAt.toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })})`,
+                        referenceId: userId,
+                    },
+                });
+                newBalance = wallet.balance;
+            } else {
+                const w = await tx.userWallet.findUnique({ where: { userId } });
+                newBalance = w?.balance ?? 0;
+            }
+
+            await tx.user.update({
+                where: { id: userId },
+                data: { ttsSubscriptionExpiresAt: expiresAt },
+            });
+            return { charged: cost, expiresAt, newBalance };
         });
-        return { charged: total, newBalance: wallet.balance };
     }
 
     /**

@@ -35,6 +35,10 @@ model User {
   /// Giọng preset VieNeu tác giả chọn (id từ GET /tts/voices, vd 'Adam').
   /// Chỉ dùng khi không có ttsVoiceUrl. NULL = giọng mặc định server.
   ttsVoicePreset String?
+  /// Hạn gói tháng giọng đọc AI (mua bằng xu, 30 ngày/lần, gia hạn cộng dồn).
+  /// NULL hoặc quá khứ = chưa có gói → không tự tạo audio AI được khi admin
+  /// đặt Settings.ttsSubscriptionCoinCost > 0.
+  ttsSubscriptionExpiresAt DateTime?
   isActive      Boolean   @default(true)
   emailVerified Boolean   @default(false)
   /// Soft-delete timestamp. Khi user tự xoá tài khoản trong app (Apple
@@ -865,9 +869,10 @@ model Settings {
   // Tự xếp hàng sinh audio AI ngay khi chương được xuất bản. Mặc định TẮT:
   // mỗi chương tốn nhiều phút CPU worker, admin chủ động bật khi đủ máy.
   ttsAutoGenerateOnPublish    Boolean @default(false)
-  // Số xu trừ tác giả mỗi CHƯƠNG khi tự bấm "Tạo giọng AI" (tạo lại cũng
-  // tính). 0 = miễn phí. Admin không bị trừ.
-  ttsGenerationCoinCost       Int     @default(0)
+  // Phí GÓI THÁNG giọng đọc AI (xu / 30 ngày): tác giả mua gói rồi tạo
+  // không giới hạn chương trong thời hạn (User.ttsSubscriptionExpiresAt).
+  // 0 = miễn phí cho mọi tác giả. Admin không cần gói.
+  ttsSubscriptionCoinCost     Int     @default(0)
   // Quảng cáo — global kill switch + cấu hình network ID. Client gọi
   // GET /ads/config để lấy snapshot dạng JSON.
   adsEnabled                 Boolean  @default(true)
@@ -1174,7 +1179,8 @@ enum TransactionType {
   DONATE_AUTHOR
   WITHDRAWAL
   TRANSFER
-  TTS_GENERATION // Tác giả trả xu để sinh giọng đọc AI cho chương
+  TTS_GENERATION // (cũ) trả xu theo chương — giữ để đọc lịch sử, không tạo mới
+  TTS_SUBSCRIPTION // Tác giả mua gói tháng giọng đọc AI
 }
 
 enum WithdrawalStatus {

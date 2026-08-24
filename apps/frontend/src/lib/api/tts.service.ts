@@ -32,6 +32,18 @@ export interface StoryTtsStatus {
     none: number;
 }
 
+/** Gói tháng giọng đọc AI của tác giả (GET/POST /tts/subscription). */
+export interface TtsSubscriptionInfo {
+    /** Phí gói (xu / `days` ngày) admin đặt; 0 = miễn phí. */
+    cost: number;
+    days: number;
+    /** User này có bắt buộc phải có gói mới tạo audio không (phí > 0, không phải admin). */
+    required: boolean;
+    /** Còn hạn. */
+    active: boolean;
+    expiresAt: string | null;
+}
+
 const unwrap = <T>(data: any): T => (data?.data ?? data) as T;
 
 /** API giọng đọc AI (VieNeu-TTS) — mẫu giọng tác giả + danh sách giọng preset. */
@@ -91,6 +103,20 @@ export const ttsService = {
     preview: async (params?: { text?: string; voice?: string }): Promise<TtsPreviewResult> => {
         const response = await apiClient.post<any>('/tts/voice/preview', params || {});
         return unwrap<TtsPreviewResult>(response.data);
+    },
+
+    // ── Gói tháng ──────────────────────────────────────────────────
+
+    /** Trạng thái gói tháng giọng đọc AI của user đang đăng nhập. */
+    getSubscription: async (): Promise<TtsSubscriptionInfo> => {
+        const response = await apiClient.get<any>('/tts/subscription');
+        return unwrap<TtsSubscriptionInfo>(response.data);
+    },
+
+    /** Mua / gia hạn gói tháng bằng xu (gia hạn cộng dồn vào hạn còn lại). */
+    subscribe: async (): Promise<TtsSubscriptionInfo & { charged: number }> => {
+        const response = await apiClient.post<any>('/tts/subscription');
+        return unwrap<TtsSubscriptionInfo & { charged: number }>(response.data);
     },
 
     // ── Admin ──────────────────────────────────────────────────────

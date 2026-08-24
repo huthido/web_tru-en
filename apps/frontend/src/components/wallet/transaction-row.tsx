@@ -26,6 +26,7 @@ const TYPE_META: Record<TransactionType, { label: string; icon: LucideIcon; colo
     REFUND: { label: 'Hoàn xu', icon: Undo2, color: 'text-teal-600 dark:text-teal-400' },
     ADMIN_ADJUST: { label: 'Điều chỉnh', icon: Settings, color: 'text-zinc-600 dark:text-zinc-400' },
     TTS_GENERATION: { label: 'Tạo giọng đọc AI', icon: Sparkles, color: 'text-fuchsia-600 dark:text-fuchsia-400' },
+    TTS_SUBSCRIPTION: { label: 'Gói giọng đọc AI', icon: Sparkles, color: 'text-fuchsia-600 dark:text-fuchsia-400' },
 };
 
 export const TRANSACTION_TYPE_OPTIONS: { value: TransactionType; label: string }[] = (

@@ -52,6 +52,7 @@ const makeTypeMeta = (colors: ThemeColors): TxMeta => ({
     WITHDRAWAL: { icon: 'arrow-up-circle', tint: colors.danger, label: 'Rút xu' },
     ADMIN_ADJUST: { icon: 'settings', tint: colors.textMuted, label: 'Điều chỉnh' },
     TTS_GENERATION: { icon: 'sparkles', tint: colors.primary, label: 'Tạo giọng đọc AI' },
+    TTS_SUBSCRIPTION: { icon: 'sparkles', tint: colors.primary, label: 'Gói giọng đọc AI' },
 });
 
 function metaFor(typeMeta: TxMeta, type: TransactionType) {

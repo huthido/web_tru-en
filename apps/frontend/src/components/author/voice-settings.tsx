@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, Mic, Play, Trash2, UploadCloud, Volume2 } from 'lucide-react';
 import { ttsService, TtsPresetVoice } from '@/lib/api/tts.service';
+import { TtsSubscriptionCard } from './tts-subscription-card';
 import { TTS_EMOTION_TAGS } from '@/utils/tts-emotion';
 
 const MAX_VOICE_SIZE = 10 * 1024 * 1024; // 10MB — khớp giới hạn backend
@@ -198,6 +199,9 @@ export function VoiceSettings() {
                     được áp dụng khi tính năng bật.
                 </p>
             )}
+
+            {/* Gói tháng giọng đọc AI — chỉ hiện khi admin đặt phí */}
+            <TtsSubscriptionCard />
 
             {/* 1. Giọng có sẵn */}
             <div className="mb-4">

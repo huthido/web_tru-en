@@ -179,7 +179,8 @@ export type TransactionType =
     | 'DONATE_AUTHOR'
     | 'WITHDRAWAL'
     | 'TRANSFER'
-    | 'TTS_GENERATION';
+    | 'TTS_GENERATION'
+    | 'TTS_SUBSCRIPTION';
 
 export interface UserWallet {
     id: string;

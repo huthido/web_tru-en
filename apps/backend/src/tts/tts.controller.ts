@@ -126,6 +126,26 @@ export class TtsVoiceController {
 }
 
 /**
+ * Gói tháng giọng đọc AI của tác giả: xem hạn + mua/gia hạn bằng xu
+ * (Settings.ttsSubscriptionCoinCost, 30 ngày/lần, gia hạn cộng dồn).
+ */
+@Controller('tts/subscription')
+@UseGuards(JwtAuthGuard)
+export class TtsSubscriptionController {
+    constructor(private readonly ttsService: TtsService) { }
+
+    @Get()
+    getMySubscription(@CurrentUser() user: any) {
+        return this.ttsService.getSubscription({ id: user.id, role: user.role });
+    }
+
+    @Post()
+    subscribe(@CurrentUser() user: any) {
+        return this.ttsService.subscribe({ id: user.id, role: user.role });
+    }
+}
+
+/**
  * Admin: theo dõi hàng chờ TTS — thống kê + danh sách chương đang chờ/xử lý/lỗi.
  */
 @Controller('admin/tts')

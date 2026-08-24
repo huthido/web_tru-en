@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TtsService } from './tts.service';
 import { TtsProcessor } from './tts.processor';
-import { TtsController, TtsStoryController, TtsVoiceController, AdminTtsController } from './tts.controller';
+import { TtsController, TtsStoryController, TtsVoiceController, TtsSubscriptionController, AdminTtsController } from './tts.controller';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { SettingsModule } from '../settings/settings.module';
 import { WalletModule } from '../wallet/wallet.module';
@@ -13,7 +13,7 @@ import { WalletModule } from '../wallet/wallet.module';
  */
 @Module({
     imports: [ConfigModule, CloudinaryModule, SettingsModule, WalletModule],
-    controllers: [TtsController, TtsStoryController, TtsVoiceController, AdminTtsController],
+    controllers: [TtsController, TtsStoryController, TtsVoiceController, TtsSubscriptionController, AdminTtsController],
     providers: [TtsService, TtsProcessor],
     exports: [TtsService],
 })

@@ -33,8 +33,8 @@ export interface Settings {
     minWithdrawalCoins?: number;
     /** Tự tạo giọng đọc AI khi chương được xuất bản (mặc định tắt). */
     ttsAutoGenerateOnPublish?: boolean;
-    /** Số xu trừ tác giả mỗi chương khi tự bấm tạo giọng AI (0 = miễn phí). */
-    ttsGenerationCoinCost?: number;
+    /** Phí gói tháng giọng đọc AI cho tác giả (xu / 30 ngày, 0 = miễn phí). */
+    ttsSubscriptionCoinCost?: number;
     allowedImageDomains?: string[];
     // --- Thanh toán thủ công (chuyển khoản, admin xác nhận tay) ---
     manualPaymentEnabled?: boolean;
@@ -74,7 +74,7 @@ export interface UpdateSettingsRequest {
     copyProtectionEnabled?: boolean;
     minWithdrawalCoins?: number;
     ttsAutoGenerateOnPublish?: boolean;
-    ttsGenerationCoinCost?: number;
+    ttsSubscriptionCoinCost?: number;
     allowedImageDomains?: string[];
     // --- Thanh toán thủ công ---
     manualPaymentEnabled?: boolean;
