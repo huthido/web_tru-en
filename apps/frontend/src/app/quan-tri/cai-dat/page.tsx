@@ -269,12 +269,26 @@ export default function AdminSettingsPage() {
     return (
         <>
             <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
+                {/* Hàng tiêu đề dính trên (sticky top): nút Lưu cài đặt + Làm mới luôn hiện ở mọi tab / vị trí cuộn.
+                    Margin âm bù padding của <main> để nền phủ hết chiều ngang khi cuộn. */}
+                <div className="sticky top-0 z-20 -mx-3 sm:-mx-4 md:-mx-6 -mt-3 sm:-mt-4 md:-mt-6 px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 md:pt-6 pb-3 bg-surface/95 backdrop-blur border-b border-outline-variant flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="min-w-0">
                         <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">Cài đặt</h1>
-                        <p className="text-sm sm:text-base text-on-surface-variant mt-1 sm:mt-2">Cấu hình hệ thống</p>
+                        <p className={`text-sm sm:text-base mt-1 ${dirty ? 'text-amber-700 dark:text-amber-400 font-medium' : 'text-on-surface-variant'}`}>
+                            {dirty ? 'Có thay đổi chưa lưu — Lưu sẽ áp dụng cho mọi tab' : 'Cấu hình hệ thống'}
+                        </p>
                     </div>
-                    <RefreshButton />
+                    <div className="flex items-center gap-2 shrink-0">
+                        <button
+                            type="button"
+                            onClick={handleSave}
+                            disabled={updateMutation.isPending}
+                            className="px-5 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                        >
+                            {updateMutation.isPending ? 'Đang lưu...' : 'Lưu cài đặt'}
+                        </button>
+                        <RefreshButton />
+                    </div>
                 </div>
 
                 {/* Thanh tab — mỗi nhóm cài đặt một tab; dữ liệu form giữ chung nên đổi tab không mất thay đổi */}
@@ -1194,26 +1208,11 @@ export default function AdminSettingsPage() {
                         </div>
                         <p className="text-xs text-on-surface-variant mt-2">
                             Chỉ nhập hostname, không cần <code>https://</code>. Nhấn Enter hoặc bấm Thêm.
-                            Sau khi thêm, nhớ bấm <strong>Lưu cài đặt</strong> ở thanh dưới cùng.
+                            Sau khi thêm, nhớ bấm <strong>Lưu cài đặt</strong> ở góc trên.
                         </p>
                     </div>
                         </>
                     )}
-                </div>
-
-                {/* Thanh lưu dính đáy — luôn hiện dù đang ở tab nào / cuộn tới đâu */}
-                <div className="sticky bottom-0 z-20 bg-surface-container/95 backdrop-blur border border-outline-variant rounded-lg shadow-lg px-4 py-3 flex items-center justify-between gap-3">
-                    <p className={`text-sm ${dirty ? 'text-amber-700 dark:text-amber-400 font-medium' : 'text-on-surface-variant'}`}>
-                        {dirty ? 'Có thay đổi chưa lưu — áp dụng cho mọi tab' : 'Mọi thay đổi đã được lưu'}
-                    </p>
-                    <button
-                        type="button"
-                        onClick={handleSave}
-                        disabled={updateMutation.isPending}
-                        className="px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                    >
-                        {updateMutation.isPending ? 'Đang lưu...' : 'Lưu cài đặt'}
-                    </button>
                 </div>
             </div>
         </>
