@@ -861,6 +861,13 @@ model Settings {
   // Chống copy nội dung chương trên trang đọc (chặn bôi đen/copy/chuột phải —
   // chặn mềm phía client; tác giả truyện + admin được miễn). Mặc định bật.
   copyProtectionEnabled       Boolean @default(true)
+  // ─── Giọng đọc AI (TTS) ───
+  // Tự xếp hàng sinh audio AI ngay khi chương được xuất bản. Mặc định TẮT:
+  // mỗi chương tốn nhiều phút CPU worker, admin chủ động bật khi đủ máy.
+  ttsAutoGenerateOnPublish    Boolean @default(false)
+  // Số xu trừ tác giả mỗi CHƯƠNG khi tự bấm "Tạo giọng AI" (tạo lại cũng
+  // tính). 0 = miễn phí. Admin không bị trừ.
+  ttsGenerationCoinCost       Int     @default(0)
   // Quảng cáo — global kill switch + cấu hình network ID. Client gọi
   // GET /ads/config để lấy snapshot dạng JSON.
   adsEnabled                 Boolean  @default(true)
@@ -1167,6 +1174,7 @@ enum TransactionType {
   DONATE_AUTHOR
   WITHDRAWAL
   TRANSFER
+  TTS_GENERATION // Tác giả trả xu để sinh giọng đọc AI cho chương
 }
 
 enum WithdrawalStatus {

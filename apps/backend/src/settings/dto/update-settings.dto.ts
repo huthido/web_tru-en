@@ -125,6 +125,17 @@ export class UpdateSettingsDto {
   @Min(0)
   minWithdrawalCoins?: number;
 
+  // Giọng đọc AI: tự sinh audio khi chương xuất bản (mặc định tắt).
+  @IsOptional()
+  @IsBoolean()
+  ttsAutoGenerateOnPublish?: boolean;
+
+  // Giọng đọc AI: số xu trừ tác giả mỗi chương khi tự bấm tạo (0 = miễn phí).
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  ttsGenerationCoinCost?: number;
+
   // --- Cấu hình quảng cáo (3rd-party) ---
   @IsOptional()
   @IsBoolean()

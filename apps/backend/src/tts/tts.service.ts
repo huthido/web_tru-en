@@ -12,10 +12,12 @@ import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { createHash } from 'crypto';
-import { TtsAudioStatus } from '@prisma/client';
+import { Prisma, TtsAudioStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { RedisService } from '../redis/redis.service';
+import { SettingsService } from '../settings/settings.service';
+import { WalletService } from '../wallet/wallet.service';
 import { TTS_QUEUE } from '../queue/queue.module';
 
 export interface TtsJobData {
@@ -98,7 +100,10 @@ export class TtsService {
         bodyTimeout: 0,
     });
     private readonly queueEnabled: boolean;
-    /** Tự sinh audio khi chương xuất bản (mặc định bật khi có worker). */
+    /**
+     * Van tắt cứng bằng env `TTS_AUTO_GENERATE=0`. Bật/tắt thật sự nằm ở
+     * Settings.ttsAutoGenerateOnPublish (admin chỉnh trong Cài đặt, mặc định TẮT).
+     */
     private readonly autoGenerateEnabled: boolean;
     /** Chống double-run khi queue tắt (inline fallback). */
     private readonly inlineRunning = new Set<string>();
@@ -118,6 +123,8 @@ export class TtsService {
         private readonly configService: ConfigService,
         private readonly prisma: PrismaService,
         private readonly cloudinaryService: CloudinaryService,
+        private readonly settingsService: SettingsService,
+        private readonly walletService: WalletService,
         @Optional() @InjectQueue(TTS_QUEUE) private readonly ttsQueue?: Queue,
         @Optional() private readonly redis?: RedisService,
     ) {
@@ -231,6 +238,7 @@ export class TtsService {
             where: { id: chapterId },
             select: {
                 id: true,
+                title: true,
                 isPublished: true,
                 price: true,
                 audioUrl: true,
@@ -268,12 +276,26 @@ export class TtsService {
             TtsAudioStatus.FAILED,
             TtsAudioStatus.READY,
         ];
-        const claimed = await this.prisma.chapter.updateMany({
-            where: {
-                id: chapterId,
-                OR: claimableStatuses.map((s) => ({ ttsAudioStatus: s })),
-            },
-            data: { ttsAudioStatus: TtsAudioStatus.PENDING },
+        // Claim + trừ xu trong CÙNG transaction: ví không đủ → claim rollback,
+        // chương giữ nguyên trạng thái cũ, không có job nào được tạo.
+        const cost = await this.getGenerationCost(user);
+        const claimed = await this.prisma.$transaction(async (tx) => {
+            const r = await tx.chapter.updateMany({
+                where: {
+                    id: chapterId,
+                    OR: claimableStatuses.map((s) => ({ ttsAudioStatus: s })),
+                },
+                data: { ttsAudioStatus: TtsAudioStatus.PENDING },
+            });
+            if (r.count > 0 && cost > 0 && user) {
+                await this.walletService.chargeTtsGeneration(
+                    tx,
+                    user.id,
+                    [{ id: chapter.id, title: chapter.title }],
+                    cost,
+                );
+            }
+            return r;
         });
 
         if (claimed.count > 0) {
@@ -324,13 +346,41 @@ export class TtsService {
                 // FREEMIUM: bỏ qua chương trả phí; FREE: price bị bỏ qua theo spec.
                 ...(story.accessType === 'FREEMIUM' ? { price: 0 } : {}),
             },
-            select: { id: true },
+            select: { id: true, title: true },
             orderBy: { order: 'asc' },
         });
 
-        const queued = await this.claimAndEnqueue(eligible.map((c) => c.id));
+        // Claim từng chương rồi trừ xu theo số chương THẬT SỰ claim được —
+        // cùng transaction để ví không đủ thì không chương nào bị đổi trạng thái.
+        const cost = await this.getGenerationCost(user);
+        const claimedIds = await this.prisma.$transaction(async (tx) => {
+            const ids = await this.claimIn(tx, eligible.map((c) => c.id));
+            if (ids.length > 0 && cost > 0) {
+                const picked = new Set(ids);
+                await this.walletService.chargeTtsGeneration(
+                    tx,
+                    user.id,
+                    eligible.filter((c) => picked.has(c.id)),
+                    cost,
+                );
+            }
+            return ids;
+        }, { timeout: 30_000 }); // truyện 500 chương claim tuần tự > 5s mặc định
+        const queued = await this.enqueue(claimedIds);
         const status = await this.computeStoryStatus(story.id);
         return { queued, ...status };
+    }
+
+    /**
+     * Phí xu mỗi chương khi TÁC GIẢ tự bấm tạo (Settings.ttsGenerationCoinCost).
+     * Admin miễn phí. Luồng tự động/ops (auto publish, requeue, admin reset)
+     * không đi qua đây nên không bao giờ trừ xu.
+     */
+    private async getGenerationCost(user?: { id: string; role?: string }): Promise<number> {
+        if (!user || user.role === 'ADMIN') return 0;
+        const settings = await this.settingsService.getSettings();
+        const cost = (settings as { ttsGenerationCoinCost?: number }).ttsGenerationCoinCost ?? 0;
+        return Number.isInteger(cost) && cost > 0 ? cost : 0;
     }
 
     /**
@@ -391,16 +441,32 @@ export class TtsService {
     }
 
     private async claimAndEnqueue(chapterIds: string[]): Promise<number> {
-        let queued = 0;
+        const claimed = await this.claimIn(this.prisma, chapterIds);
+        return this.enqueue(claimed);
+    }
+
+    /** Claim atomic null/FAILED → PENDING từng chương; trả danh sách id claim được. */
+    private async claimIn(
+        db: Prisma.TransactionClient | PrismaService,
+        chapterIds: string[],
+    ): Promise<string[]> {
+        const claimed: string[] = [];
         for (const id of chapterIds) {
-            const claimed = await this.prisma.chapter.updateMany({
+            const r = await db.chapter.updateMany({
                 where: {
                     id,
                     OR: [{ ttsAudioStatus: null }, { ttsAudioStatus: TtsAudioStatus.FAILED }],
                 },
                 data: { ttsAudioStatus: TtsAudioStatus.PENDING },
             });
-            if (claimed.count === 0) continue;
+            if (r.count > 0) claimed.push(id);
+        }
+        return claimed;
+    }
+
+    /** Đẩy job cho các chương ĐÃ claim (gọi sau khi transaction claim commit). */
+    private async enqueue(chapterIds: string[]): Promise<number> {
+        for (const id of chapterIds) {
             if (this.queueEnabled && this.ttsQueue) {
                 await this.ttsQueue.add(
                     'generate',
@@ -410,16 +476,17 @@ export class TtsService {
             } else {
                 this.runInline(id);
             }
-            queued++;
         }
-        return queued;
+        return chapterIds.length;
     }
 
     // ------------------------------------------------------------------
     // Tự động sinh khi chương được XUẤT BẢN — độc giả không phải đợi.
     // Hook từ ChaptersService (publish/update/cron hẹn giờ) và
     // ApprovalsService (duyệt truyện auto-publish chương). Fire-and-forget:
-    // lỗi chỉ log, không chặn luồng publish. Tắt bằng TTS_AUTO_GENERATE=0.
+    // lỗi chỉ log, không chặn luồng publish. Chỉ chạy khi admin bật
+    // Settings.ttsAutoGenerateOnPublish (mặc định TẮT); env TTS_AUTO_GENERATE=0
+    // là van tắt cứng. Luồng này KHÔNG trừ xu tác giả.
     // ------------------------------------------------------------------
 
     autoGenerateForChapter(chapterId: string): void {
@@ -437,6 +504,7 @@ export class TtsService {
     }
 
     private async autoGenerate(target: { id?: string; storyId?: string }): Promise<void> {
+        if (!(await this.isAutoGenerateOnPublishEnabled())) return;
         const eligible = await this.prisma.chapter.findMany({
             where: {
                 ...target,
@@ -462,6 +530,12 @@ export class TtsService {
         if (queued > 0) {
             this.logger.log(`Auto-queued TTS for ${queued} freshly published chapter(s)`);
         }
+    }
+
+    /** Admin bật "tự tạo giọng AI khi xuất bản" trong Cài đặt chưa? */
+    private async isAutoGenerateOnPublishEnabled(): Promise<boolean> {
+        const settings = await this.settingsService.getSettings();
+        return (settings as { ttsAutoGenerateOnPublish?: boolean }).ttsAutoGenerateOnPublish === true;
     }
 
     /** Tiến độ audio AI của truyện (đếm theo trạng thái) — tác giả/admin. */

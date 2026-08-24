@@ -79,6 +79,9 @@ export default function AdminSettingsPage() {
         allowCoinTransfer: false,
         chapterAudioDownloadEnabled: false,
         copyProtectionEnabled: true,
+        // --- Giọng đọc AI ---
+        ttsAutoGenerateOnPublish: false,
+        ttsGenerationCoinCost: 0,
         // --- Thanh toán thủ công (chuyển khoản) ---
         manualPaymentEnabled: false,
         manualPaymentBankBin: '',
@@ -125,6 +128,8 @@ export default function AdminSettingsPage() {
                 allowCoinTransfer: settings.allowCoinTransfer || false,
                 chapterAudioDownloadEnabled: (settings as any).chapterAudioDownloadEnabled ?? false,
                 copyProtectionEnabled: (settings as any).copyProtectionEnabled ?? true,
+                ttsAutoGenerateOnPublish: (settings as any).ttsAutoGenerateOnPublish ?? false,
+                ttsGenerationCoinCost: (settings as any).ttsGenerationCoinCost ?? 0,
                 manualPaymentEnabled: (settings as any).manualPaymentEnabled ?? false,
                 manualPaymentBankBin: (settings as any).manualPaymentBankBin || '',
                 manualPaymentBankName: (settings as any).manualPaymentBankName || '',
@@ -543,6 +548,49 @@ export default function AdminSettingsPage() {
                                     checked={formData.copyProtectionEnabled}
                                     onChange={(e) => setFormData({ ...formData, copyProtectionEnabled: e.target.checked })}
                                     className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                />
+                            </div>
+
+                            {/* Giọng đọc AI: tự tạo khi xuất bản */}
+                            <div className="flex items-center justify-between border-t border-outline-variant pt-4">
+                                <div>
+                                    <label className="text-sm font-medium text-on-surface-variant">
+                                        Tự tạo giọng đọc AI khi xuất bản chương
+                                    </label>
+                                    <p className="text-xs text-on-surface-variant">
+                                        Khi bật: Mỗi chương miễn phí vừa xuất bản được tự xếp hàng tạo audio AI (không trừ xu tác giả)<br />
+                                        Khi tắt: Chỉ tạo khi tác giả/admin bấm &quot;Tạo giọng AI&quot; ở trang quản lý chương
+                                    </p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.ttsAutoGenerateOnPublish}
+                                    onChange={(e) => setFormData({ ...formData, ttsAutoGenerateOnPublish: e.target.checked })}
+                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                />
+                            </div>
+
+                            {/* Giọng đọc AI: phí xu */}
+                            <div className="border-t border-outline-variant pt-4">
+                                <label className="text-sm font-medium text-on-surface-variant block mb-1">
+                                    Phí tạo giọng đọc AI (xu / chương)
+                                </label>
+                                <p className="text-xs text-on-surface-variant mb-3">
+                                    Số xu trừ khỏi ví tác giả mỗi chương khi họ bấm &quot;Tạo giọng AI&quot; hoặc
+                                    &quot;Tạo giọng AI cả truyện&quot; (tạo lại cũng tính). 0 = miễn phí. Admin không bị trừ.
+                                </p>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    step={1}
+                                    value={formData.ttsGenerationCoinCost}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            ttsGenerationCoinCost: Math.max(0, parseInt(e.target.value || '0', 10) || 0),
+                                        })
+                                    }
+                                    className="w-40 px-3 py-2 border border-outline-variant rounded-lg bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-primary"
                                 />
                             </div>
 

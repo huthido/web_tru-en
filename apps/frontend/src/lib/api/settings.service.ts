@@ -31,6 +31,10 @@ export interface Settings {
     /** Chống copy nội dung chương trên trang đọc (mặc định bật). */
     copyProtectionEnabled?: boolean;
     minWithdrawalCoins?: number;
+    /** Tự tạo giọng đọc AI khi chương được xuất bản (mặc định tắt). */
+    ttsAutoGenerateOnPublish?: boolean;
+    /** Số xu trừ tác giả mỗi chương khi tự bấm tạo giọng AI (0 = miễn phí). */
+    ttsGenerationCoinCost?: number;
     allowedImageDomains?: string[];
     // --- Thanh toán thủ công (chuyển khoản, admin xác nhận tay) ---
     manualPaymentEnabled?: boolean;
@@ -69,6 +73,8 @@ export interface UpdateSettingsRequest {
     chapterAudioDownloadEnabled?: boolean;
     copyProtectionEnabled?: boolean;
     minWithdrawalCoins?: number;
+    ttsAutoGenerateOnPublish?: boolean;
+    ttsGenerationCoinCost?: number;
     allowedImageDomains?: string[];
     // --- Thanh toán thủ công ---
     manualPaymentEnabled?: boolean;

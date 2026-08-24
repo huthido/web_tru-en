@@ -129,6 +129,51 @@ export class WalletService implements OnModuleInit {
     }
 
     /**
+     * Trừ xu tác giả khi tự bấm sinh giọng đọc AI (TTS) — gọi TRONG transaction
+     * của TtsService để claim chương và trừ xu cùng rollback nếu ví không đủ.
+     * Trừ mềm (purchased trước, hết thì earned) như mua nội dung. Ghi một
+     * CoinTransaction TTS_GENERATION cho cả lô (referenceId = chương đầu tiên).
+     */
+    async chargeTtsGeneration(
+        tx: WalletTx,
+        userId: string,
+        chapters: { id: string; title: string }[],
+        costPerChapter: number,
+    ): Promise<{ charged: number; newBalance: number }> {
+        if (!Number.isInteger(costPerChapter) || costPerChapter < 0) {
+            throw new BadRequestException('Phí tạo giọng đọc AI không hợp lệ');
+        }
+        const total = costPerChapter * chapters.length;
+        if (total <= 0 || chapters.length === 0) {
+            const w = await tx.userWallet.findUnique({ where: { userId } });
+            return { charged: 0, newBalance: w?.balance ?? 0 };
+        }
+        const w = await tx.userWallet.findUnique({ where: { userId } });
+        if (!w) throw new BadRequestException('Ví chưa được khởi tạo');
+        if (w.purchasedBalance + w.earnedBalance < total) {
+            throw new BadRequestException(
+                `Số dư không đủ: cần ${total} xu để tạo giọng đọc AI cho ${chapters.length} chương ` +
+                `(${costPerChapter} xu/chương), ví hiện có ${w.purchasedBalance + w.earnedBalance} xu`,
+            );
+        }
+        const wallet = await this.debitForContent(tx, userId, total);
+        const description =
+            chapters.length === 1
+                ? `Tạo giọng đọc AI: ${chapters[0].title}`
+                : `Tạo giọng đọc AI cho ${chapters.length} chương (${costPerChapter} xu/chương)`;
+        await tx.coinTransaction.create({
+            data: {
+                walletId: wallet.id,
+                amount: -total,
+                type: TransactionType.TTS_GENERATION,
+                description,
+                referenceId: chapters[0].id,
+            },
+        });
+        return { charged: total, newBalance: wallet.balance };
+    }
+
+    /**
      * Spend debit (STRICT) — TRANSFER sender only.
      * Purchased bucket only. Blocks the laundering path
      * (earned → friend → friend withdraws).

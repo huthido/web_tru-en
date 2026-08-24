@@ -18,6 +18,7 @@ import { useStory } from '@/lib/api/hooks/use-stories';
 import { useMyApprovals } from '@/lib/api/hooks/use-approvals';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { useAuth } from '@/lib/api/hooks/use-auth';
+import { useSettings } from '@/lib/api/hooks/use-settings';
 
 export default function ChapterManagementPage() {
     const params = useParams();
@@ -66,6 +67,8 @@ export default function ChapterManagementPage() {
     const [ttsRequesting, setTtsRequesting] = useState<Record<string, boolean>>({});
     const [bulkTtsModal, setBulkTtsModal] = useState(false);
     const [bulkTtsRequesting, setBulkTtsRequesting] = useState(false);
+    // Xác nhận trừ xu trước khi tạo giọng AI cho MỘT chương (chỉ khi admin đặt phí > 0).
+    const [ttsConfirm, setTtsConfirm] = useState<any | null>(null);
     const queryClient = useQueryClient();
 
     // Delete modal state
@@ -162,17 +165,38 @@ export default function ChapterManagementPage() {
         return () => clearInterval(interval);
     }, [anyTtsInProgress, storySlug, queryClient]);
 
+    // Phí xu mỗi chương do admin đặt (Settings.ttsGenerationCoinCost); admin miễn phí.
+    const { data: siteSettings } = useSettings();
+    const ttsCoinCost =
+        user?.role === 'ADMIN' ? 0 : Math.max(0, Number((siteSettings as any)?.ttsGenerationCoinCost ?? 0) || 0);
+
+    // Số chương "Tạo giọng AI cả truyện" sẽ xếp hàng (ước tính phía client để báo phí).
+    const bulkTtsCandidates = allChapters.filter((ch: any) => {
+        const s = ttsStatusOf(ch);
+        return canTts(ch) && (s === null || s === 'FAILED');
+    }).length;
+
     const handleTts = async (chapter: any) => {
+        if (ttsCoinCost > 0) {
+            setTtsConfirm(chapter);
+            return;
+        }
+        await runTts(chapter);
+    };
+
+    const runTts = async (chapter: any) => {
         setTtsRequesting((m) => ({ ...m, [chapter.id]: true }));
         try {
             const res = await chaptersService.requestTts(chapter.id);
             setTtsOverrides((m) => ({ ...m, [chapter.id]: res.status || 'PENDING' }));
+            const feeNote = ttsCoinCost > 0 ? ` (đã trừ ${ttsCoinCost} xu)` : '';
             showToast(
                 ttsStatusOf(chapter) === 'READY'
-                    ? 'Đã xếp hàng tạo lại audio bằng giọng hiện tại'
-                    : 'Đã xếp hàng tạo giọng đọc AI — vài phút nữa audio sẽ sẵn sàng',
+                    ? `Đã xếp hàng tạo lại audio bằng giọng hiện tại${feeNote}`
+                    : `Đã xếp hàng tạo giọng đọc AI — vài phút nữa audio sẽ sẵn sàng${feeNote}`,
                 'success',
             );
+            if (ttsCoinCost > 0) queryClient.invalidateQueries({ queryKey: ['wallet'] });
         } catch (error: any) {
             showToast(
                 error?.response?.data?.error || error?.response?.data?.message || 'Không tạo được giọng đọc AI, thử lại sau',
@@ -195,9 +219,11 @@ export default function ChapterManagementPage() {
                 );
             } else {
                 showToast(
-                    `Đã xếp hàng ${res.queued} chương — hệ thống tạo lần lượt, mỗi chương vài phút`,
+                    `Đã xếp hàng ${res.queued} chương — hệ thống tạo lần lượt, mỗi chương vài phút` +
+                        (ttsCoinCost > 0 ? ` (đã trừ ${res.queued * ttsCoinCost} xu)` : ''),
                     'success',
                 );
+                if (ttsCoinCost > 0) queryClient.invalidateQueries({ queryKey: ['wallet'] });
             }
             setTtsOverrides({});
             queryClient.invalidateQueries({ queryKey: ['chapters', storySlug] });
@@ -322,7 +348,11 @@ export default function ChapterManagementPage() {
                                             <button
                                                 onClick={() => setBulkTtsModal(true)}
                                                 className="px-4 py-2 border border-outline-variant text-primary hover:bg-surface-container-high rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
-                                                title="Tạo audio AI cho mọi chương miễn phí đã xuất bản chưa có audio"
+                                                title={
+                                                    ttsCoinCost > 0
+                                                        ? `Tạo audio AI cho mọi chương miễn phí đã xuất bản chưa có audio — ${ttsCoinCost} xu/chương`
+                                                        : 'Tạo audio AI cho mọi chương miễn phí đã xuất bản chưa có audio'
+                                                }
                                             >
                                                 <Sparkles size={18} />
                                                 Tạo giọng AI cả truyện
@@ -552,9 +582,10 @@ export default function ChapterManagementPage() {
                                                                         title={
                                                                             busy
                                                                                 ? (chapter.ttsVoiceName ? `Đang tạo giọng: ${chapter.ttsVoiceName}` : 'Đang tạo giọng đọc AI…')
-                                                                                : s === 'READY'
+                                                                                : (s === 'READY'
                                                                                     ? 'Đã có audio AI — bấm để tạo lại bằng giọng hiện tại của bạn'
-                                                                                    : 'Tạo audio AI đọc chương này'
+                                                                                    : 'Tạo audio AI đọc chương này') +
+                                                                                  (ttsCoinCost > 0 ? ` (${ttsCoinCost} xu)` : '')
                                                                         }
                                                                         className="px-3 py-1.5 border border-outline-variant text-primary hover:bg-surface-container-high rounded-lg text-xs font-medium transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
                                                                     >
@@ -707,6 +738,24 @@ export default function ChapterManagementPage() {
                     onClose={() => setDeleteModal({ isOpen: false, chapterId: '', chapterTitle: '' })}
                 />
 
+                {/* Single-chapter TTS fee confirmation (chỉ khi admin đặt phí > 0) */}
+                <ConfirmModal
+                    isOpen={!!ttsConfirm}
+                    title={ttsStatusOf(ttsConfirm || {}) === 'READY' ? 'Tạo lại giọng đọc AI' : 'Tạo giọng đọc AI'}
+                    message={
+                        `Tạo audio AI cho chương "${ttsConfirm?.title ?? ''}" sẽ trừ ${ttsCoinCost} xu khỏi ví của bạn. ` +
+                        'Xu không được hoàn lại nếu bạn tạo lại sau này. Tiếp tục?'
+                    }
+                    confirmText={ttsConfirm && ttsRequesting[ttsConfirm.id] ? 'Đang xếp hàng…' : `Trừ ${ttsCoinCost} xu & tạo`}
+                    cancelText="Hủy"
+                    onConfirm={async () => {
+                        const ch = ttsConfirm;
+                        setTtsConfirm(null);
+                        if (ch) await runTts(ch);
+                    }}
+                    onClose={() => setTtsConfirm(null)}
+                />
+
                 {/* Bulk TTS Confirmation Modal */}
                 <ConfirmModal
                     isOpen={bulkTtsModal}
@@ -715,7 +764,11 @@ export default function ChapterManagementPage() {
                         'Hệ thống sẽ xếp hàng tạo audio AI cho MỌI chương miễn phí đã xuất bản ' +
                         'chưa có audio (chương đã có audio AI hoặc audio tác giả sẽ được giữ nguyên). ' +
                         'Audio tạo lần lượt từng chương, mỗi chương mất vài phút — truyện dài có thể ' +
-                        'chạy nền nhiều giờ, bạn không cần giữ trang này mở.'
+                        'chạy nền nhiều giờ, bạn không cần giữ trang này mở.' +
+                        (ttsCoinCost > 0
+                            ? ` Phí ${ttsCoinCost} xu/chương — ước tính ${bulkTtsCandidates} chương ≈ ${bulkTtsCandidates * ttsCoinCost} xu, ` +
+                              'trừ theo số chương thật sự được xếp hàng; ví không đủ thì không chương nào được tạo.'
+                            : '')
                     }
                     confirmText={bulkTtsRequesting ? 'Đang xếp hàng…' : 'Bắt đầu tạo'}
                     cancelText="Hủy"

@@ -9,6 +9,7 @@ import {
     Heart,
     Settings,
     Send,
+    Sparkles,
     Undo2,
     type LucideIcon,
 } from 'lucide-react';
@@ -24,6 +25,7 @@ const TYPE_META: Record<TransactionType, { label: string; icon: LucideIcon; colo
     BONUS: { label: 'Quà tặng', icon: Gift, color: 'text-amber-600 dark:text-amber-400' },
     REFUND: { label: 'Hoàn xu', icon: Undo2, color: 'text-teal-600 dark:text-teal-400' },
     ADMIN_ADJUST: { label: 'Điều chỉnh', icon: Settings, color: 'text-zinc-600 dark:text-zinc-400' },
+    TTS_GENERATION: { label: 'Tạo giọng đọc AI', icon: Sparkles, color: 'text-fuchsia-600 dark:text-fuchsia-400' },
 };
 
 export const TRANSACTION_TYPE_OPTIONS: { value: TransactionType; label: string }[] = (
