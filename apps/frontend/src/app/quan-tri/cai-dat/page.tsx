@@ -51,6 +51,18 @@ const VN_BANKS: { bin: string; name: string }[] = [
     { bin: '546034', name: 'Cake by VPBank' },
 ];
 
+const SETTINGS_TABS = [
+    { id: 'basic', label: 'Cơ bản' },
+    { id: 'contact', label: 'Liên hệ' },
+    { id: 'social', label: 'Mạng xã hội' },
+    { id: 'system', label: 'Hệ thống' },
+    { id: 'tts', label: 'Giọng đọc AI & phí' },
+    { id: 'payment', label: 'Thanh toán' },
+    { id: 'ads', label: 'Quảng cáo' },
+    { id: 'domains', label: 'Domain ảnh' },
+] as const;
+type SettingsTabId = (typeof SETTINGS_TABS)[number]['id'];
+
 export default function AdminSettingsPage() {
     const { data: settings, isLoading } = useSettings();
     const updateMutation = useUpdateSettings();
@@ -115,12 +127,36 @@ export default function AdminSettingsPage() {
         setFormData({ ...formData, ttsSubscriptionPlans: plans });
         setNewPlan({ months: String(Math.min(36, months + 1)), coins: '' });
     };
+    // Tab đang mở — nhớ qua hash URL (#payment) để reload/ chia sẻ link vào đúng tab.
+    const [activeTab, setActiveTab] = useState<SettingsTabId>('basic');
+    useEffect(() => {
+        const h = window.location.hash.replace('#', '');
+        if (SETTINGS_TABS.some((t) => t.id === h)) setActiveTab(h as SettingsTabId);
+    }, []);
+    const switchTab = (id: SettingsTabId) => {
+        setActiveTab(id);
+        window.history.replaceState(null, '', `#${id}`);
+    };
+
+    // Snapshot form đã lưu — so với formData để báo "chưa lưu" + chặn rời trang.
+    const savedSnapshotRef = useRef<string>('');
+    const dirty = savedSnapshotRef.current !== '' && JSON.stringify(formData) !== savedSnapshotRef.current;
+    useEffect(() => {
+        if (!dirty) return;
+        const onBeforeUnload = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+            e.returnValue = '';
+        };
+        window.addEventListener('beforeunload', onBeforeUnload);
+        return () => window.removeEventListener('beforeunload', onBeforeUnload);
+    }, [dirty]);
+
     const logoInputRef = useRef<HTMLInputElement>(null);
     const faviconInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (settings) {
-            setFormData({
+            const loaded = {
                 siteName: settings.siteName || '',
                 siteDescription: settings.siteDescription || '',
                 siteLogo: settings.siteLogo || '',
@@ -161,13 +197,16 @@ export default function AdminSettingsPage() {
                 admobIosAppId: (settings as any).admobIosAppId || '',
                 fanPlacementId: (settings as any).fanPlacementId || '',
                 adsTxtContent: (settings as any).adsTxtContent || '',
-            });
+            };
+            setFormData(loaded);
+            savedSnapshotRef.current = JSON.stringify(loaded);
         }
     }, [settings]);
 
     const handleSave = async () => {
         try {
             await updateMutation.mutateAsync(formData);
+            savedSnapshotRef.current = JSON.stringify(formData);
             showToast('Đã lưu cài đặt thành công', 'success');
         } catch (error: any) {
             // Xử lý lỗi validation từ backend
@@ -238,7 +277,29 @@ export default function AdminSettingsPage() {
                     <RefreshButton />
                 </div>
 
+                {/* Thanh tab — mỗi nhóm cài đặt một tab; dữ liệu form giữ chung nên đổi tab không mất thay đổi */}
+                <div className="flex gap-1 overflow-x-auto border-b border-outline-variant -mb-2 pb-px" role="tablist" aria-label="Nhóm cài đặt">
+                    {SETTINGS_TABS.map((t) => (
+                        <button
+                            key={t.id}
+                            type="button"
+                            role="tab"
+                            aria-selected={activeTab === t.id}
+                            onClick={() => switchTab(t.id)}
+                            className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
+                                activeTab === t.id
+                                    ? 'border-primary text-primary'
+                                    : 'border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant'
+                            }`}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+
                 <div className="space-y-6">
+                    {activeTab === 'basic' && (
+                        <>
                     {/* Thông tin cơ bản */}
                     <div className="bg-surface-container rounded-lg p-6 shadow-sm space-y-6">
                         <h2 className="text-xl font-bold text-on-surface">Thông tin cơ bản</h2>
@@ -335,7 +396,11 @@ export default function AdminSettingsPage() {
                             </div>
                         </div>
                     </div>
+                        </>
+                    )}
 
+                    {activeTab === 'contact' && (
+                        <>
                     {/* Thông tin liên hệ */}
                     <div className="bg-surface-container rounded-lg p-6 shadow-sm space-y-6">
                         <h2 className="text-xl font-bold text-on-surface">Thông tin liên hệ</h2>
@@ -378,7 +443,11 @@ export default function AdminSettingsPage() {
                             />
                         </div>
                     </div>
+                        </>
+                    )}
 
+                    {activeTab === 'social' && (
+                        <>
                     {/* Mạng xã hội */}
                     <div className="bg-surface-container rounded-lg p-6 shadow-sm space-y-6">
                         <h2 className="text-xl font-bold text-on-surface">Mạng xã hội</h2>
@@ -489,7 +558,11 @@ export default function AdminSettingsPage() {
                             </div>
                         </div>
                     </div>
+                        </>
+                    )}
 
+                    {activeTab === 'system' && (
+                        <>
                     {/* Cài đặt hệ thống */}
                     <div className="bg-surface-container rounded-lg p-6 shadow-sm space-y-6">
                         <h2 className="text-xl font-bold text-on-surface">Cài đặt hệ thống</h2>
@@ -567,9 +640,20 @@ export default function AdminSettingsPage() {
                                     className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                 />
                             </div>
+                        </div>
+                    </div>
+                        </>
+                    )}
 
+                    {activeTab === 'tts' && (
+                        <>
+                    {/* Giọng đọc AI & phí nền tảng */}
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm space-y-6">
+                        <h2 className="text-xl font-bold text-on-surface">Giọng đọc AI &amp; phí nền tảng</h2>
+
+                        <div className="space-y-4">
                             {/* Giọng đọc AI: tự tạo khi xuất bản */}
-                            <div className="flex items-center justify-between border-t border-outline-variant pt-4">
+                            <div className="flex items-center justify-between">
                                 <div>
                                     <label className="text-sm font-medium text-on-surface-variant">
                                         Tự tạo giọng đọc AI khi xuất bản chương
@@ -747,9 +831,13 @@ export default function AdminSettingsPage() {
                             </div>
                         </div>
                     </div>
+                        </>
+                    )}
 
+                    {activeTab === 'payment' && (
+                        <>
                     {/* === Thanh toán thủ công (chuyển khoản, admin xác nhận tay) === */}
-                    <div className="bg-surface-container rounded-lg shadow-sm border border-outline-variant p-6 mt-6">
+                    <div className="bg-surface-container rounded-lg shadow-sm border border-outline-variant p-6">
                         <h2 className="text-xl font-semibold text-on-surface mb-1">
                             Thanh toán thủ công (chuyển khoản)
                         </h2>
@@ -895,9 +983,13 @@ export default function AdminSettingsPage() {
                             )}
                         </div>
                     </div>
+                        </>
+                    )}
 
+                    {activeTab === 'ads' && (
+                        <>
                     {/* === Cấu hình quảng cáo === */}
-                    <div className="bg-surface-container rounded-lg shadow-sm border border-outline-variant p-6 mt-6">
+                    <div className="bg-surface-container rounded-lg shadow-sm border border-outline-variant p-6">
                         <h2 className="text-xl font-semibold text-on-surface mb-4">Quảng cáo (Ads)</h2>
                         <p className="text-sm text-on-surface-variant mb-4">
                             Khi tắt <code>adsEnabled</code>, mọi ad placement trên web + mobile ẩn đi —
@@ -1012,7 +1104,11 @@ export default function AdminSettingsPage() {
                             </div>
                         </div>
                     </div>
+                        </>
+                    )}
 
+                    {activeTab === 'domains' && (
+                        <>
                     {/* === Domain ảnh ngoài === */}
                     <div className="bg-surface-container rounded-lg shadow-sm border border-outline-variant p-6">
                         <h2 className="text-xl font-semibold text-on-surface mb-1">Domain ảnh ngoài (Image Domains)</h2>
@@ -1098,19 +1194,26 @@ export default function AdminSettingsPage() {
                         </div>
                         <p className="text-xs text-on-surface-variant mt-2">
                             Chỉ nhập hostname, không cần <code>https://</code>. Nhấn Enter hoặc bấm Thêm.
-                            Sau khi thêm, nhớ bấm <strong>Lưu cài đặt</strong> bên dưới.
+                            Sau khi thêm, nhớ bấm <strong>Lưu cài đặt</strong> ở thanh dưới cùng.
                         </p>
                     </div>
+                        </>
+                    )}
+                </div>
 
-                    <div className="flex justify-end pt-4">
-                        <button
-                            onClick={handleSave}
-                            disabled={updateMutation.isPending}
-                            className="px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {updateMutation.isPending ? 'Đang lưu...' : 'Lưu cài đặt'}
-                        </button>
-                    </div>
+                {/* Thanh lưu dính đáy — luôn hiện dù đang ở tab nào / cuộn tới đâu */}
+                <div className="sticky bottom-0 z-20 bg-surface-container/95 backdrop-blur border border-outline-variant rounded-lg shadow-lg px-4 py-3 flex items-center justify-between gap-3">
+                    <p className={`text-sm ${dirty ? 'text-amber-700 dark:text-amber-400 font-medium' : 'text-on-surface-variant'}`}>
+                        {dirty ? 'Có thay đổi chưa lưu — áp dụng cho mọi tab' : 'Mọi thay đổi đã được lưu'}
+                    </p>
+                    <button
+                        type="button"
+                        onClick={handleSave}
+                        disabled={updateMutation.isPending}
+                        className="px-6 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                        {updateMutation.isPending ? 'Đang lưu...' : 'Lưu cài đặt'}
+                    </button>
                 </div>
             </div>
         </>
