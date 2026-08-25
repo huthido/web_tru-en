@@ -14,7 +14,7 @@ import {
   createPaginatedResult,
 } from '../common/utils/pagination.util';
 import { buildSearchConditions } from '../common/utils/search.util';
-import { storyInclude, storyWithChaptersInclude, safeStorySelect } from '../prisma/prisma.helpers';
+import { storyInclude, storyWithChaptersInclude, safeStorySelect, storyCardSelect } from '../prisma/prisma.helpers';
 import { StoryStatus, UserRole } from '@prisma/client';
 import { SearchIndexerService } from '../search/search-indexer.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -1102,7 +1102,7 @@ export class StoriesService {
         where: {
           ...PUBLIC_STORY_WHERE,
         },
-        include: storyInclude,
+        select: storyCardSelect,
         orderBy,
         take: limit,
       });
@@ -1142,8 +1142,8 @@ export class StoriesService {
             },
           },
         },
-        include: {
-          ...storyInclude,
+        select: {
+          ...storyCardSelect,
           ratings: {
             where: {
               createdAt: {
@@ -1196,7 +1196,7 @@ export class StoriesService {
         where: {
           ...PUBLIC_STORY_WHERE,
         },
-        include: storyInclude,
+        select: storyCardSelect,
       });
 
       if (stories.length === 0) {
@@ -1281,7 +1281,7 @@ export class StoriesService {
             gte: 5, // At least 5 ratings to be considered
           },
         },
-        include: storyInclude,
+        select: storyCardSelect,
         orderBy: [
           { rating: 'desc' },
           { ratingCount: 'desc' },
@@ -1341,7 +1341,7 @@ export class StoriesService {
         where: {
           ...PUBLIC_STORY_WHERE,
         },
-        include: storyInclude,
+        select: storyCardSelect,
         orderBy: [
           { likeCount: 'desc' },
           { followCount: 'desc' },
@@ -1371,7 +1371,7 @@ export class StoriesService {
   async getMostFollowed(limit: number = 15) {
     return this.prisma.story.findMany({
       where: { ...PUBLIC_STORY_WHERE },
-      include: storyInclude,
+      select: storyCardSelect,
       orderBy: { followCount: 'desc' },
       take: limit,
     });
@@ -1381,7 +1381,7 @@ export class StoriesService {
   async getMostViewed(limit: number = 15) {
     return this.prisma.story.findMany({
       where: { ...PUBLIC_STORY_WHERE },
-      include: storyInclude,
+      select: storyCardSelect,
       orderBy: { viewCount: 'desc' },
       take: limit,
     });
@@ -1398,7 +1398,7 @@ export class StoriesService {
     if (ids.length === 0) return [];
     return this.prisma.story.findMany({
       where: { id: { in: ids } },
-      include: storyInclude,
+      select: storyCardSelect,
     });
   }
 
@@ -1409,7 +1409,7 @@ export class StoriesService {
         ...PUBLIC_STORY_WHERE,
         accessType: { in: ['FREEMIUM', 'VIP'] },
       },
-      include: storyInclude,
+      select: storyCardSelect,
       orderBy: { viewCount: 'desc' },
       take: limit,
     });
@@ -1429,8 +1429,8 @@ export class StoriesService {
           },
         },
       },
-      include: {
-        ...storyInclude,
+      select: {
+        ...storyCardSelect,
         ratings: {
           where: { createdAt: { gte: oneWeekAgo } },
         },
@@ -1746,7 +1746,7 @@ export class StoriesService {
           }] : []),
         ],
       },
-      include: storyInclude,
+      select: storyCardSelect,
       orderBy: [
         { rating: 'desc' },
         { viewCount: 'desc' },

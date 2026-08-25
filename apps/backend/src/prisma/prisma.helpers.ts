@@ -127,6 +127,37 @@ export function getPaginationMeta(
     };
 }
 
+// Slim select cho THẺ truyện trang chủ / danh sách curated (homepage sections,
+// mobile homepage, /stories/homepage/*). Chỉ những field thẻ thật sự dùng:
+// bỏ `description` (trung bình ~730 ký tự/truyện) và mảng `tags` thô + object
+// category/tag đầy đủ — vốn chiếm phần lớn payload trang chủ (404KB → ~1/3).
+// Card web (BookCard) & mobile (StoryCard) đều chỉ cần các field dưới đây.
+export const storyCardSelect = {
+    id: true,
+    title: true,
+    slug: true,
+    coverImage: true,
+    authorId: true,
+    authorName: true,
+    status: true,
+    accessType: true,
+    price: true,
+    isPublished: true,
+    viewCount: true,
+    likeCount: true,
+    followCount: true,
+    rating: true,
+    ratingCount: true,
+    isRecommended: true,
+    country: true,
+    createdAt: true,
+    updatedAt: true,
+    lastChapterAt: true,
+    publishedAt: true,
+    author: storyInclude.author,
+    _count: storyInclude._count,
+} satisfies Prisma.StorySelect;
+
 // Safe story select (excludes isRecommended if column doesn't exist)
 // Use this instead of storyInclude when column might not exist
 export const safeStorySelect = {
