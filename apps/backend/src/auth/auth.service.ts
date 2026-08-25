@@ -279,12 +279,13 @@ export class AuthService {
         // ✅ User có thể đăng nhập → Cho đăng nhập ngay
         this.logger.log(`OAuth user logged in: ${user.email} (${user.id}) - Active`);
 
-        // Update avatar/displayName if needed
+        // Chỉ điền avatar/displayName từ OAuth khi user CHƯA có —
+        // không ghi đè tên/ảnh user đã tự đặt trong hồ sơ
         const updateData: any = {};
-        if (oauthUser.avatar && oauthUser.avatar !== user.avatar) {
+        if (oauthUser.avatar && !user.avatar) {
           updateData.avatar = oauthUser.avatar;
         }
-        if (oauthUser.displayName && oauthUser.displayName !== user.displayName) {
+        if (oauthUser.displayName && !user.displayName) {
           updateData.displayName = oauthUser.displayName;
         }
 
@@ -350,8 +351,8 @@ export class AuthService {
             data: {
               provider: oauthUser.provider,
               providerId: oauthUser.providerId,
-              avatar: oauthUser.avatar || existingUser.avatar,
-              displayName: oauthUser.displayName || existingUser.displayName,
+              avatar: existingUser.avatar || oauthUser.avatar,
+              displayName: existingUser.displayName || oauthUser.displayName,
             } as Prisma.UserUncheckedUpdateInput,
           });
 
@@ -366,8 +367,8 @@ export class AuthService {
           const updateData: any = {
             provider: oauthUser.provider,
             providerId: oauthUser.providerId,
-            avatar: oauthUser.avatar || existingUser.avatar,
-            displayName: oauthUser.displayName || existingUser.displayName,
+            avatar: existingUser.avatar || oauthUser.avatar,
+            displayName: existingUser.displayName || oauthUser.displayName,
           };
 
           if (!requireEmailVerification) {
