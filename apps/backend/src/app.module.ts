@@ -16,6 +16,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { ApprovalsModule } from './approvals/approvals.module';
 import { AdminModule } from './admin/admin.module';
 import { StatisticsModule } from './statistics/statistics.module';
+import { StoryItemsModule } from './story-items/story-items.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { AdsModule } from './ads/ads.module';
 import { RatingsModule } from './ratings/ratings.module';
@@ -111,6 +112,7 @@ import { HomepageSectionsModule } from './homepage-sections/homepage-sections.mo
     PaintingsModule,
     BugReportsModule,
     HomepageSectionsModule,
+    StoryItemsModule,
     MiddlewareModule, // Must be imported to provide MaintenanceMiddleware
   ],
   controllers: [HealthController],

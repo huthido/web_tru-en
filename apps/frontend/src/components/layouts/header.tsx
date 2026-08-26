@@ -11,7 +11,7 @@ import { useSearchSuggestions } from '@/lib/api/hooks/use-search';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { useSettings } from '@/lib/api/hooks/use-settings';
 import { useWalletBalance } from '@/lib/api/hooks/use-wallet';
-import { Coins, LayoutDashboard, Users } from 'lucide-react';
+import { Coins, LayoutDashboard, Users, Package } from 'lucide-react';
 import { BrandMark } from '@/components/ui/brand-mark';
 
 export function Header() {
@@ -349,6 +349,14 @@ export function Header() {
                     >
                       <Users size={20} className="text-on-surface-variant" />
                       <span>Người theo dõi</span>
+                    </Link>
+                    <Link
+                      href="/vat-pham-cua-toi"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-variant transition-colors duration-200"
+                    >
+                      <Package size={20} className="text-on-surface-variant" />
+                      <span>Kho vật phẩm</span>
                     </Link>
                     <Link
                       href="/tai-khoan"

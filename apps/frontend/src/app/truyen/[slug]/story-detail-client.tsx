@@ -20,6 +20,7 @@ import { VerifiedBadge } from '@/components/users/verified-badge';
 import { CommentSection } from '@/components/comments/comment-section';
 import { StarRating } from '@/components/stories/star-rating';
 import { DonateAuthorModal } from '@/components/stories/donate-author-modal';
+import { StoryItemsSection } from '@/components/stories/story-items-section';
 import { StoryVipBanner } from '@/components/stories/story-vip-banner';
 import { ArrowLeft, BookOpen, HeartHandshake, Share2, Megaphone, Lock } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
@@ -551,6 +552,9 @@ export default function BookDetailPage() {
                   )}
                 </div>
               )}
+
+              {/* Vật phẩm của truyện (bán bằng xu) */}
+              <StoryItemsSection storyId={story.id} />
 
               {/* Chapters List */}
               {chaptersLoading ? (

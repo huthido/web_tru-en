@@ -16,7 +16,7 @@ import { Story } from '@/lib/api/stories.service';
 import { useToastContext } from '@/components/providers/toast-provider';
 import { MonetizationProgressBanner } from '@/components/author/monetization-progress-banner';
 import { VoiceSettings } from '@/components/author/voice-settings';
-import { BookOpen, Eye, Star, Edit, Trash2, Send, LayoutGrid, List, BarChart3 } from 'lucide-react';
+import { BookOpen, Eye, Star, Edit, Trash2, Send, LayoutGrid, List, BarChart3, Package } from 'lucide-react';
 
 export default function AuthorDashboardPage() {
     const router = useRouter();
@@ -417,6 +417,13 @@ export default function AuthorDashboardPage() {
                                                                 Stats
                                                             </Link>
                                                         </div>
+                                                        <Link
+                                                            href={`/tac-gia/truyen/${story.id}/vat-pham`}
+                                                            className="px-3 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-xs font-medium transition-colors text-center flex items-center justify-center gap-1"
+                                                        >
+                                                            <Package className="w-4 h-4" />
+                                                            Vật phẩm
+                                                        </Link>
                                                         {!story.isPublished && (
                                                             <button
                                                                 onClick={() => handlePublish(story.id, story.title, (story._count?.chapters || 0) > 0)}

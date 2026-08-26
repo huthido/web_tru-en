@@ -214,6 +214,22 @@ export class CloudinaryService {
     return this.saveToLocal(buffer, folder, 'image.jpg');
   }
 
+  /** Upload 1 file BẤT KỲ (PDF/zip/epub/ảnh…) lên Garage, giữ mimetype. Fallback local. */
+  async uploadFile(
+    file: Express.Multer.File,
+    folder: string = 'files',
+  ): Promise<string> {
+    if (this.useGarage) {
+      return this.uploadToGarage(
+        file.buffer,
+        folder,
+        file.originalname || 'file',
+        file.mimetype || 'application/octet-stream',
+      );
+    }
+    return this.saveToLocal(file.buffer, folder, file.originalname || 'file');
+  }
+
   /** True nếu Garage S3 đang được cấu hình (dùng cho công cụ migration). */
   get garageEnabled(): boolean {
     return this.useGarage;

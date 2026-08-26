@@ -710,6 +710,97 @@ export class WalletService implements OnModuleInit {
     }
 
     /**
+     * Mua VẬT PHẨM của truyện bằng xu (Transactional). Kinh tế giống payForChapter
+     * (người mua trả gross, tác giả nhận net, nền tảng giữ fee) nhưng:
+     *  - Mua NHIỀU LẦN được (không idempotent) — mỗi lần tạo 1 StoryItemPurchase.
+     *  - Có `quantity` và kiểm/giữ TỒN KHO atomically (UPDATE có điều kiện,
+     *    race-safe) trước khi trừ tiền.
+     */
+    async payForItem(
+        buyerId: string,
+        item: { id: string; name: string; price: number; storyId: string; authorId: string },
+        quantity: number,
+    ) {
+        if (!Number.isInteger(quantity) || quantity <= 0 || quantity > 999) {
+            throw new BadRequestException('Số lượng không hợp lệ');
+        }
+        if (!Number.isInteger(item.price) || item.price <= 0) {
+            throw new BadRequestException('Vật phẩm này không bán bằng xu');
+        }
+        if (buyerId === item.authorId) {
+            throw new BadRequestException('Bạn không thể mua vật phẩm của chính mình');
+        }
+
+        const gross = item.price * quantity;
+        const feePercent = await this.getChapterSaleFeePercent();
+        const { fee, net } = WalletService.splitDonation(gross, feePercent);
+        if (net <= 0) {
+            throw new BadRequestException('Giá vật phẩm quá thấp');
+        }
+
+        const result = await this.prisma.$transaction(async (tx) => {
+            // 1. Giữ tồn kho atomically: chỉ tăng soldCount khi còn hàng + đang bán.
+            //    0 hàng bị ảnh hưởng = hết hàng / ngừng bán (race-safe nhờ điều kiện SQL).
+            const affected = await tx.$executeRaw`
+                UPDATE "story_items"
+                SET "soldCount" = "soldCount" + ${quantity}, "updatedAt" = now()
+                WHERE "id" = ${item.id}
+                  AND "isActive" = true
+                  AND ("stock" IS NULL OR "soldCount" + ${quantity} <= "stock")`;
+            if (affected === 0) {
+                throw new BadRequestException('Vật phẩm đã hết hàng hoặc ngừng bán');
+            }
+
+            // 2. Trừ tiền người mua (đủ tiền mới qua; nếu lỗi thì rollback cả tồn kho).
+            const buyerWallet = await this.debitForContent(tx, buyerId, gross);
+            // 3. Cộng net cho tác giả (bucket earned); fee nền tảng giữ (ghi trên purchase).
+            const authorWallet = await this.creditEarned(tx, item.authorId, net);
+
+            await tx.coinTransaction.create({
+                data: {
+                    walletId: buyerWallet.id,
+                    amount: -gross,
+                    type: TransactionType.PURCHASE_ITEM,
+                    description: `Mua vật phẩm: ${item.name}${quantity > 1 ? ` x${quantity}` : ''}`,
+                    referenceId: item.id,
+                },
+            });
+            const feeNote = fee > 0 ? ` (đã trừ ${fee} xu phí nền tảng ${feePercent}%)` : '';
+            await tx.coinTransaction.create({
+                data: {
+                    walletId: authorWallet.id,
+                    amount: net,
+                    type: TransactionType.PURCHASE_ITEM,
+                    description: `Bán vật phẩm "${item.name}"${quantity > 1 ? ` x${quantity}` : ''}: +${net} xu${feeNote}`,
+                    referenceId: buyerId,
+                },
+            });
+
+            await tx.storyItemPurchase.create({
+                data: {
+                    userId: buyerId,
+                    itemId: item.id,
+                    storyId: item.storyId,
+                    quantity,
+                    pricePaid: gross,
+                    platformFee: fee,
+                    netAmount: net,
+                },
+            });
+
+            return { newBalance: buyerWallet.balance, pricePaid: gross, quantity };
+        });
+
+        this.notifyAuthor(
+            item.authorId,
+            'Có người mua vật phẩm 🎁',
+            `Vật phẩm "${item.name}"${quantity > 1 ? ` x${quantity}` : ''} vừa được mua (${gross} xu).`,
+            { type: NotificationType.ITEM_PURCHASED, actionUrl: '/tac-gia/thu-nhap' },
+        );
+        return result;
+    }
+
+    /**
      * Buy a whole VIP story (Transactional). Same economics as payForChapter
      * (buyer pays gross, author gets net, platform keeps fee) but a single
      * StoryPurchase row unlocks every chapter of the story. Idempotent.

@@ -80,6 +80,8 @@ model User {
   wallet                  UserWallet?
   chapterPurchases        ChapterPurchase[]
   storyPurchases          StoryPurchase[]
+  storyItems              StoryItem[]              @relation("StoryItemAuthor")
+  storyItemPurchases      StoryItemPurchase[]      @relation("StoryItemBuyer")
   sentDonations           AuthorDonation[]         @relation("DonationSender")
   receivedDonations       AuthorDonation[]         @relation("DonationReceiver")
   uploadedImages          UserImage[]
@@ -156,6 +158,8 @@ model Story {
   approvalRequests ApprovalRequest[] @relation("StoryApprovals")
   readingHistory   ReadingHistory[]
   storyPurchases   StoryPurchase[]
+  storyItems       StoryItem[]
+  storyItemPurchases StoryItemPurchase[]
   homepageSectionStories HomepageSectionStory[]
 
   @@index([slug])
@@ -576,6 +580,7 @@ enum NotificationType {
   COIN_TRANSFER_RECEIVED // Nhận chuyển khoản xu
   COIN_DEPOSITED // Nạp xu thành công
   COMMENT_REPLY // Có người trả lời bình luận
+  ITEM_PURCHASED // Có người mua vật phẩm của truyện
 }
 
 enum NotificationPriority {
@@ -1210,6 +1215,55 @@ model StoryPurchase {
   @@map("story_purchases")
 }
 
+// Vật phẩm tác giả bán kèm truyện, thanh toán bằng xu. Vật phẩm gồm tên + ảnh
+// + mô tả, kèm file tải về tuỳ chọn. Mua NHIỀU LẦN (tiêu hao/quà tặng). Tồn kho
+// tuỳ chọn: stock null = không giới hạn; số = số lượng tối đa (soldCount đếm đã bán).
+model StoryItem {
+  id          String              @id @default(cuid())
+  storyId     String
+  authorId    String
+  name        String              @db.VarChar(200)
+  description String?             @db.Text
+  imageUrl    String
+  fileUrl     String? // file tải về tuỳ chọn (chỉ người đã mua tải được)
+  price       Int // giá xu mỗi lần mua (> 0)
+  stock       Int? // null = không giới hạn; số = tồn kho tối đa
+  soldCount   Int                 @default(0) // tổng số lượng đã bán (để tính còn lại)
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  story       Story               @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  author      User                @relation("StoryItemAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  purchases   StoryItemPurchase[]
+
+  @@index([storyId, isActive])
+  @@index([authorId])
+  @@map("story_items")
+}
+
+// Một lần mua vật phẩm (mua nhiều lần được nên KHÔNG unique theo user/item).
+// Lưu breakdown chia doanh thu như StoryPurchase.
+model StoryItemPurchase {
+  id          String    @id @default(cuid())
+  userId      String
+  itemId      String
+  storyId     String
+  quantity    Int       @default(1)
+  pricePaid   Int // gross tổng = price * quantity
+  platformFee Int       @default(0) // xu nền tảng giữ
+  netAmount   Int       @default(0) // xu cộng cho tác giả
+  createdAt   DateTime  @default(now())
+  user        User      @relation("StoryItemBuyer", fields: [userId], references: [id], onDelete: Cascade)
+  item        StoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  story       Story     @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([itemId])
+  @@index([storyId])
+  @@index([createdAt])
+  @@map("story_item_purchases")
+}
+
 enum TransactionType {
   DEPOSIT
   PURCHASE_CHAPTER
@@ -1222,6 +1276,7 @@ enum TransactionType {
   TRANSFER
   TTS_GENERATION // (cũ) trả xu theo chương — giữ để đọc lịch sử, không tạo mới
   TTS_SUBSCRIPTION // Tác giả mua gói tháng giọng đọc AI
+  PURCHASE_ITEM // Mua vật phẩm của truyện
 }
 
 enum WithdrawalStatus {
