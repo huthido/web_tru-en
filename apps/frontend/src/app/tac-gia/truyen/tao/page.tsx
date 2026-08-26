@@ -4,7 +4,6 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { useCreateStory } from '@/lib/api/hooks/use-stories';
 import { useCategories } from '@/lib/api/hooks/use-categories';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
@@ -337,7 +336,6 @@ export default function CreateStoryPage() {
                             </form>
                         </div>
                     </main>
-                    <Footer />
                 </div>
             </div>
         </ProtectedRoute>

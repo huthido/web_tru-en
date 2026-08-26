@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { useStory, useUpdateStory } from '@/lib/api/hooks/use-stories';
 import { useCategories } from '@/lib/api/hooks/use-categories';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
@@ -429,7 +428,6 @@ export default function EditStoryPage() {
                         </div>
                     </main>
                 </div>
-                <Footer />
             </div>
         </ProtectedRoute>
     );

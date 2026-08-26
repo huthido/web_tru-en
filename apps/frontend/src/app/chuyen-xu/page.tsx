@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { useWalletBalance, useTransferCoins } from '@/lib/api/hooks/use-wallet';
 import { ArrowLeftRight, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -113,7 +112,6 @@ export default function TransferPage() {
                             </form>
                         </div>
                     </main>
-                    <Footer />
                 </div>
             </div>
         </ProtectedRoute>

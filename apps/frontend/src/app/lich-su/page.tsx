@@ -7,7 +7,6 @@ import { ImageSizes } from '@/utils/image-utils';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { AdSlot } from '@/components/ads/ad-slot';
 import { Loading } from '@/components/ui/loading';
 import { useReadingHistory, useClearHistory } from '@/lib/api/hooks/use-reading-history';
@@ -298,7 +297,6 @@ function HistoryContent() {
             )}
           </div>
         </main>
-        <Footer />
       </div>
 
       {/* Clear History Modal */}

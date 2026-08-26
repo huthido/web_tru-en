@@ -2,7 +2,6 @@
 
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { ArtTab } from '@/components/art/art-tab';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 
@@ -19,7 +18,6 @@ export default function ArtClient() {
             <ArtTab currentUserId={user?.id} isLoggedIn={isAuthenticated} />
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

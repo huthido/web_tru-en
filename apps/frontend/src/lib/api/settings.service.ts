@@ -26,6 +26,10 @@ export interface Settings {
     siteThreads?: string;
     maintenanceMode: boolean;
     maintenanceMessage?: string;
+    /** Thay hẳn footer (chỉ hiện ở trang cá nhân) bằng 1 ảnh banner khi bật. */
+    footerBannerEnabled?: boolean;
+    footerBannerImage?: string | null;
+    footerBannerLink?: string | null;
     allowRegistration: boolean;
     requireEmailVerification: boolean;
     donationPlatformFeePercent: number;
@@ -73,6 +77,9 @@ export interface UpdateSettingsRequest {
     siteThreads?: string;
     maintenanceMode?: boolean;
     maintenanceMessage?: string;
+    footerBannerEnabled?: boolean;
+    footerBannerImage?: string;
+    footerBannerLink?: string;
     allowRegistration?: boolean;
     requireEmailVerification?: boolean;
     donationPlatformFeePercent?: number;
@@ -139,6 +146,28 @@ export const settingsService = {
 
         const response = await apiClient.post<{ url: string }>(
             '/settings/upload-favicon',
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }
+        );
+        if ((response.data as any)?.data?.url) {
+            return (response.data as any).data.url;
+        }
+        if ((response.data as any)?.url) {
+            return (response.data as any).url;
+        }
+        return '';
+    },
+
+    uploadFooterBanner: async (file: File): Promise<string> => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await apiClient.post<{ url: string }>(
+            '/settings/upload-footer-banner',
             formData,
             {
                 headers: {

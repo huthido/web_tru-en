@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { useTransactionHistory } from '@/lib/api/hooks/use-wallet';
 import { TransactionRow, TRANSACTION_TYPE_OPTIONS } from '@/components/wallet/transaction-row';
@@ -201,7 +200,6 @@ export default function TransactionsPage() {
                             </div>
                         </div>
                     </main>
-                    <Footer />
                 </div>
             </div>
         </ProtectedRoute>

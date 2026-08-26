@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { AdSlot } from '@/components/ads/ad-slot';
 import { BookCard } from '@/components/books/book-card';
 import { BookCardSkeleton } from '@/components/ui/loading';
@@ -76,7 +75,6 @@ export default function FavoritesPage() {
               </div>
             </div>
           </main>
-          <Footer />
         </div>
       </div>
     );
@@ -229,7 +227,6 @@ export default function FavoritesPage() {
             )}
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { Loading } from '@/components/ui/loading';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { useMyNotifications, useMarkAsRead, useMarkAllAsRead } from '@/lib/api/hooks/use-notifications';
@@ -278,7 +277,6 @@ export default function NotificationsPage() {
                             )}
                         </div>
                     </main>
-                    <Footer />
                 </div>
             </div>
         </ProtectedRoute>

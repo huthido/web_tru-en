@@ -4,7 +4,6 @@ import { Suspense, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { Loading } from '@/components/ui/loading';
 import { ToastContainer, useToast } from '@/components/ui/toast';
 import { useAuth } from '@/lib/api/hooks/use-auth';
@@ -459,7 +458,6 @@ function AdvertisingContent() {
                         )}
                     </div>
                 </main>
-                <Footer />
             </div>
 
             {selectedSlot && (

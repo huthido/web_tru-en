@@ -3,7 +3,6 @@
 import { sanitizeContentHtml } from '@/lib/html/sanitize';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { Loading } from '@/components/ui/loading';
 import { usePage } from '@/lib/api/hooks/use-pages';
 
@@ -24,7 +23,6 @@ export function PageContent({ slug, fallbackTitle }: PageContentProps) {
                     <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                         <Loading />
                     </main>
-                    <Footer />
                 </div>
             </div>
         );
@@ -46,7 +44,6 @@ export function PageContent({ slug, fallbackTitle }: PageContentProps) {
                             </p>
                         </div>
                     </main>
-                    <Footer />
                 </div>
             </div>
         );
@@ -73,7 +70,6 @@ export function PageContent({ slug, fallbackTitle }: PageContentProps) {
                         />
                     </div>
                 </main>
-                <Footer />
             </div>
         </div>
     );

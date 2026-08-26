@@ -93,6 +93,21 @@ export class UpdateSettingsDto {
   @IsString()
   maintenanceMessage?: string;
 
+  // --- Footer / Banner: thay hẳn footer bằng 1 ảnh banner khi bật ---
+  @IsOptional()
+  @IsBoolean()
+  footerBannerEnabled?: boolean;
+
+  @IsOptional()
+  @ValidateIf((o) => o.footerBannerImage !== '' && o.footerBannerImage != null)
+  @IsUrl()
+  footerBannerImage?: string;
+
+  @IsOptional()
+  @ValidateIf((o) => o.footerBannerLink !== '' && o.footerBannerLink != null)
+  @IsUrl()
+  footerBannerLink?: string;
+
   @IsOptional()
   @IsBoolean()
   allowRegistration?: boolean;

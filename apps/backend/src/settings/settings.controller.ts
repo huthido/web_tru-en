@@ -77,6 +77,41 @@ export class SettingsController {
     };
   }
 
+  @Post('upload-footer-banner')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB
+      },
+      fileFilter: imageMulterFilter,
+    })
+  )
+  async uploadFooterBanner(
+    @UploadedFile(
+      new ImageNormalizePipe({
+        maxSizeBytes: 5 * 1024 * 1024,
+        maxWidth: 1600, // banner rộng — giữ độ phân giải cao hơn logo
+        quality: 90,
+        policy: 'force-webp',
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    const imageUrl = await this.cloudinaryService.uploadImage(file, 'settings');
+
+    await this.settingsService.updateSettings({ footerBannerImage: imageUrl });
+
+    return {
+      success: true,
+      data: { url: imageUrl },
+      message: 'Footer banner uploaded successfully',
+      timestamp: new Date().toISOString(),
+    };
+  }
+
   @Post('upload-favicon')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)

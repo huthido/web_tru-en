@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { useCreateChapter } from '@/lib/api/hooks/use-chapters';
 import { useStory } from '@/lib/api/hooks/use-stories';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
@@ -248,7 +247,6 @@ export default function CreateChapterPage() {
                             </form>
                         </div>
                     </main>
-                    <Footer />
                 </div>
             </div>
         </ProtectedRoute>

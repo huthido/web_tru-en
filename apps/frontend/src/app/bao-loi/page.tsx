@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { Bug, CheckCircle2, Loader2 } from 'lucide-react';
 import {
   bugReportsService,
@@ -214,7 +213,6 @@ function BugReportContent() {
             )}
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

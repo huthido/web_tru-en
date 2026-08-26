@@ -7,7 +7,6 @@ import { shouldUnoptimizeImage, ImageSizes } from '@/utils/image-utils';
 import Link from 'next/link';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Header } from '@/components/layouts/header';
-import { Footer } from '@/components/layouts/footer';
 import { Loading } from '@/components/ui/loading';
 import { useActiveAds, useTrackAdView, useTrackAdClick } from '@/lib/api/hooks/use-ads';
 import { AdType } from '@/lib/api/ads.service';
@@ -202,7 +201,6 @@ export default function AdPage() {
                         </div>
                     </div>
                 </main>
-                <Footer />
             </div>
         </div>
     );

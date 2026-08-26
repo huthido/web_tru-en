@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { Loading } from '@/components/ui/loading';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { useMyStories, useDeleteStory, usePublishStory } from '@/lib/api/hooks/use-stories';
@@ -609,7 +608,6 @@ export default function AuthorDashboardPage() {
                         )}
                     </div>
                 </main>
-                <Footer />
             </div>
 
             {/* Delete Confirmation Modal */}

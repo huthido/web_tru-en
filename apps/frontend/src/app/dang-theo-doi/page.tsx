@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { AdSlot } from '@/components/ads/ad-slot';
 import { BookCard } from '@/components/books/book-card';
 import { BookCardSkeleton } from '@/components/ui/loading';
@@ -183,7 +182,6 @@ function FollowsContent() {
             )}
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { Loading } from '@/components/ui/loading';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useAuthorFollowers } from '@/lib/api/hooks/use-authors';
@@ -138,7 +137,6 @@ function FollowersContent() {
             )}
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

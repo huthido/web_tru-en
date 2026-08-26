@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useWalletBalance } from '@/lib/api/hooks/use-wallet';
@@ -127,7 +126,6 @@ export default function AuthorEarningsPage() {
               </Link>
             </div>
           </main>
-          <Footer />
         </div>
       </div>
     </ProtectedRoute>

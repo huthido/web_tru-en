@@ -9,7 +9,6 @@ import { chaptersService } from '@/lib/api/chapters.service';
 import { ttsService } from '@/lib/api/tts.service';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { Loading } from '@/components/ui/loading';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { ToastContainer, useToast } from '@/components/ui/toast';
@@ -723,7 +722,6 @@ export default function ChapterManagementPage() {
                             )}
                         </div>
                     </main>
-                    <Footer />
                 </div>
 
                 {/* Delete Confirmation Modal */}

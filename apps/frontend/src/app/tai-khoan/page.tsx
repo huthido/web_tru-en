@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { AdSlot } from '@/components/ads/ad-slot';
 import { useAuth } from '@/contexts/auth-context';
 import { usersService } from '@/lib/api/users.service';
@@ -672,7 +671,6 @@ function ProfileContent() {
         </main>
 
         {/* Footer */}
-        <Footer />
       </div>
 
       {/* Avatar Modal */}

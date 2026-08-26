@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { AdSlot } from '@/components/ads/ad-slot';
 import { Loading } from '@/components/ui/loading';
 import { useMyFollows } from '@/lib/api/hooks/use-follows';
@@ -334,7 +333,6 @@ function LibraryContent() {
             )}
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

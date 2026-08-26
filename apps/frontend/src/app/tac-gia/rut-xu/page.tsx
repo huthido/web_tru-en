@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { useWalletBalance, useMyWithdrawals, useRequestWithdrawal } from '@/lib/api/hooks/use-wallet';
 import { Banknote, Loader2, AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
@@ -157,7 +156,6 @@ export default function WithdrawalsPage() {
                             </div>
                         </div>
                     </main>
-                    <Footer />
                 </div>
             </div>
         </ProtectedRoute>

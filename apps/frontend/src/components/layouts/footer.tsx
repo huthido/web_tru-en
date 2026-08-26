@@ -15,6 +15,36 @@ export function Footer() {
     useEffect(() => { setCurrentYear(new Date().getFullYear()); }, []);
     const { data: settings } = useSettings();
 
+    // Admin có thể thay HẲN footer bằng 1 ảnh banner (Cài đặt → Footer).
+    // Banner rộng full khu footer; nếu có footerBannerLink thì bấm vào mở link.
+    if (settings?.footerBannerEnabled && settings?.footerBannerImage) {
+        const banner = (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+                src={settings.footerBannerImage}
+                alt={settings.siteName || 'Banner'}
+                className="w-full h-auto block"
+                loading="lazy"
+            />
+        );
+        return (
+            <footer className="w-full bg-surface-container border-t border-outline-variant/40 transition-colors duration-300">
+                {settings.footerBannerLink ? (
+                    <a
+                        href={settings.footerBannerLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block transition-opacity hover:opacity-90"
+                    >
+                        {banner}
+                    </a>
+                ) : (
+                    banner
+                )}
+            </footer>
+        );
+    }
+
     return (
         <footer className="w-full bg-surface-container border-t border-outline-variant/40 transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">

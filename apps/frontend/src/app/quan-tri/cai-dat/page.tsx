@@ -2,7 +2,7 @@
 
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { useState, useRef, useEffect } from 'react';
-import { useSettings, useUpdateSettings, useUploadLogo, useUploadFavicon } from '@/lib/api/hooks/use-settings';
+import { useSettings, useUpdateSettings, useUploadLogo, useUploadFavicon, useUploadFooterBanner } from '@/lib/api/hooks/use-settings';
 import { useToast } from '@/components/ui/toast';
 import { Loading } from '@/components/ui/loading';
 import Image from 'next/image';
@@ -55,6 +55,7 @@ const SETTINGS_TABS = [
     { id: 'basic', label: 'Cơ bản' },
     { id: 'contact', label: 'Liên hệ' },
     { id: 'social', label: 'Mạng xã hội' },
+    { id: 'footer', label: 'Footer' },
     { id: 'system', label: 'Hệ thống' },
     { id: 'tts', label: 'Giọng đọc AI & phí' },
     { id: 'payment', label: 'Thanh toán' },
@@ -68,6 +69,7 @@ export default function AdminSettingsPage() {
     const updateMutation = useUpdateSettings();
     const uploadLogoMutation = useUploadLogo();
     const uploadFaviconMutation = useUploadFavicon();
+    const uploadFooterBannerMutation = useUploadFooterBanner();
     const { showToast } = useToast();
 
     const [formData, setFormData] = useState({
@@ -86,6 +88,10 @@ export default function AdminSettingsPage() {
         siteTikTok: '',
         siteLinkedIn: '',
         siteThreads: '',
+        // --- Footer / Banner ---
+        footerBannerEnabled: false,
+        footerBannerImage: '',
+        footerBannerLink: '',
         requireEmailVerification: false,
         donationPlatformFeePercent: 2,
         chapterSaleFeePercent: 2,
@@ -153,6 +159,7 @@ export default function AdminSettingsPage() {
 
     const logoInputRef = useRef<HTMLInputElement>(null);
     const faviconInputRef = useRef<HTMLInputElement>(null);
+    const footerBannerInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (settings) {
@@ -172,6 +179,9 @@ export default function AdminSettingsPage() {
                 siteTikTok: settings.siteTikTok || '',
                 siteLinkedIn: settings.siteLinkedIn || '',
                 siteThreads: settings.siteThreads || '',
+                footerBannerEnabled: (settings as any).footerBannerEnabled ?? false,
+                footerBannerImage: (settings as any).footerBannerImage || '',
+                footerBannerLink: (settings as any).footerBannerLink || '',
                 requireEmailVerification: settings.requireEmailVerification || false,
                 donationPlatformFeePercent: settings.donationPlatformFeePercent ?? 2,
                 chapterSaleFeePercent: settings.chapterSaleFeePercent ?? 2,
@@ -255,6 +265,19 @@ export default function AdminSettingsPage() {
             showToast('Đã tải favicon lên thành công', 'success');
         } catch (error: any) {
             showToast(error?.response?.data?.error || 'Có lỗi xảy ra khi tải favicon', 'error');
+        }
+    };
+
+    const handleFooterBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            const url = await uploadFooterBannerMutation.mutateAsync(file);
+            setFormData({ ...formData, footerBannerImage: url });
+            showToast('Đã tải banner lên thành công', 'success');
+        } catch (error: any) {
+            showToast(error?.response?.data?.error || 'Có lỗi xảy ra khi tải banner', 'error');
         }
     };
 
@@ -570,6 +593,88 @@ export default function AdminSettingsPage() {
                                     placeholder="https://threads.net/@..."
                                 />
                             </div>
+                        </div>
+                    </div>
+                        </>
+                    )}
+
+                    {activeTab === 'footer' && (
+                        <>
+                    <div className="bg-surface-container rounded-lg p-6 shadow-sm space-y-6">
+                        <h2 className="text-xl font-bold text-on-surface">Footer / Banner</h2>
+                        <p className="text-sm text-on-surface-variant">
+                            Footer hiện chỉ hiển thị ở <b>trang cá nhân</b> (/u/tên-người-dùng). Bật tuỳ chọn
+                            dưới đây để thay hẳn footer bằng một ảnh banner.
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <label className="text-sm font-medium text-on-surface-variant">
+                                    Thay footer bằng banner ảnh
+                                </label>
+                                <p className="text-xs text-on-surface-variant">
+                                    Khi bật: khu footer hiển thị 1 ảnh banner thay cho các cột liên kết<br />
+                                    Khi tắt: hiển thị footer thường (logo + liên kết + mạng xã hội)
+                                </p>
+                            </div>
+                            <input
+                                type="checkbox"
+                                checked={formData.footerBannerEnabled}
+                                onChange={(e) => setFormData({ ...formData, footerBannerEnabled: e.target.checked })}
+                                className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                            />
+                        </div>
+
+                        <div className="border-t border-outline-variant pt-6">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                                Ảnh banner
+                            </label>
+                            <div className="space-y-3">
+                                {isUsableImageSrc(formData.footerBannerImage) && (
+                                    <div className="relative w-full max-w-lg border border-outline-variant rounded-lg overflow-hidden bg-surface-variant">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={formData.footerBannerImage}
+                                            alt="Banner"
+                                            className="w-full h-auto block"
+                                        />
+                                    </div>
+                                )}
+                                <input
+                                    ref={footerBannerInputRef}
+                                    type="file"
+                                    accept="image/*,.heic,.heif"
+                                    onChange={handleFooterBannerUpload}
+                                    className="hidden"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => footerBannerInputRef.current?.click()}
+                                    disabled={uploadFooterBannerMutation.isPending}
+                                    className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50"
+                                >
+                                    {uploadFooterBannerMutation.isPending ? 'Đang tải...' : formData.footerBannerImage ? 'Thay đổi banner' : 'Tải banner lên'}
+                                </button>
+                                <p className="text-xs text-on-surface-variant">
+                                    Nên dùng ảnh ngang, rộng (khuyến nghị ≥ 1200px). Tối đa 5MB.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-outline-variant pt-6">
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                                Link khi bấm vào banner <span className="font-normal">(tuỳ chọn)</span>
+                            </label>
+                            <input
+                                type="url"
+                                value={formData.footerBannerLink}
+                                onChange={(e) => setFormData({ ...formData, footerBannerLink: e.target.value })}
+                                placeholder="https://..."
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
+                            />
+                            <p className="text-xs text-on-surface-variant mt-2">
+                                Để trống nếu banner không cần bấm vào. Link mở ở tab mới.
+                            </p>
                         </div>
                     </div>
                         </>

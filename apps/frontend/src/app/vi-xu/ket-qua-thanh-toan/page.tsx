@@ -6,7 +6,6 @@ import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { useMyPayments } from '@/lib/api/hooks/use-payments';
 import type { MyPayment, PaymentStatus } from '@/lib/api/payments.service';
@@ -218,7 +217,6 @@ export default function PaymentResultPage() {
                             </Suspense>
                         </div>
                     </main>
-                    <Footer />
                 </div>
             </div>
         </ProtectedRoute>

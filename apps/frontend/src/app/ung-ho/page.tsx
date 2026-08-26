@@ -7,7 +7,6 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { ImageSizes } from '@/utils/image-utils';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { usePage } from '@/lib/api/hooks/use-pages';
 
 function SupportContent() {
@@ -81,7 +80,6 @@ function SupportContent() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

@@ -66,3 +66,14 @@ export const useUploadFavicon = () => {
         },
     });
 };
+
+export const useUploadFooterBanner = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (file: File) => settingsService.uploadFooterBanner(file),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['settings'] });
+        },
+    });
+};

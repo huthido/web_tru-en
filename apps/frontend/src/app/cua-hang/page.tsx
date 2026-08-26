@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { useWalletBalance } from '@/lib/api/hooks/use-wallet';
 import { useShopCoinPackages, useCreateCoinPackagePayment, useCreateManualPayment } from '@/lib/api/hooks/use-payments';
@@ -231,7 +230,6 @@ export default function ShopPage() {
                             </div>
                         </div>
                     </main>
-                    <Footer />
                 </div>
             </div>
 

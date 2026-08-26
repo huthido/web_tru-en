@@ -7,7 +7,6 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { shouldUnoptimizeImage, ImageSizes } from '@/utils/image-utils';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { Header } from '@/components/layouts/header';
-import { Footer } from '@/components/layouts/footer';
 import { Loading } from '@/components/ui/loading';
 import { useChapter, useChapters } from '@/lib/api/hooks/use-chapters';
 import { useStory } from '@/lib/api/hooks/use-stories';
@@ -979,7 +978,6 @@ export default function ChapterReadingPage() {
                         </div>
                     </div>
                 </main>
-                <Footer />
             </div >
 
             {/* Floating Action Button with Menu */}

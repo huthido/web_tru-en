@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { AdSlot } from '@/components/ads/ad-slot';
 import { BookCard } from '@/components/books/book-card';
 import { Loading } from '@/components/ui/loading';
@@ -437,7 +436,6 @@ function SearchContent() {
                     </div>
                 </main>
 
-                <Footer />
             </div>
         </div>
     );

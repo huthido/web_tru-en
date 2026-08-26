@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { AdSlot } from '@/components/ads/ad-slot';
 import { BookCard } from '@/components/books/book-card';
 import { Loading } from '@/components/ui/loading';
@@ -375,7 +374,6 @@ function StoriesContent() {
                     </div>
                 </main>
 
-                <Footer />
             </div>
         </div>
     );

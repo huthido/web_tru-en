@@ -845,6 +845,12 @@ model Settings {
   siteThreads                String?
   maintenanceMode            Boolean  @default(false)
   maintenanceMessage         String?  @db.Text
+  // ─── Footer / Banner ───
+  // Khi bật, khu footer (giờ chỉ hiện trên trang cá nhân /u/[username]) được
+  // thay hẳn bằng MỘT ảnh banner. footerBannerLink (tuỳ chọn) = link bấm vào.
+  footerBannerEnabled        Boolean  @default(false)
+  footerBannerImage          String?
+  footerBannerLink           String?
   allowRegistration          Boolean  @default(true)
   requireEmailVerification   Boolean  @default(false)
   // Donation rev-share: % the platform keeps when a user donates coins to an

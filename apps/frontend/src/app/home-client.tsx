@@ -4,7 +4,6 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
-import { Footer } from '@/components/layouts/footer';
 import { AdSlot } from '@/components/ads/ad-slot';
 import { BookSectionSkeleton } from '@/components/ui/loading';
 import { BookSection } from '@/components/books/book-section';
@@ -132,7 +131,6 @@ export default function HomeClient({ initialSections }: HomeClientProps) {
           <div className="px-4 md:px-6 mt-8"><AdSlot slotKey="home.bottom" /></div>
         </main>
 
-        <Footer />
       </div>
     </div>
   );
