@@ -42,6 +42,8 @@ export interface Settings {
     donationPlatformFeePercent: number;
     /** Phí % platform giữ khi tác giả bán chương / truyện VIP. */
     chapterSaleFeePercent: number;
+    /** Phí % platform giữ khi người mua vật phẩm của truyện. */
+    itemSaleFeePercent?: number;
     allowCoinTransfer?: boolean;
     /** Cho phép độc giả tải xuống file audio chương (audio tác giả + AI). */
     chapterAudioDownloadEnabled?: boolean;
@@ -92,6 +94,7 @@ export interface UpdateSettingsRequest {
     requireEmailVerification?: boolean;
     donationPlatformFeePercent?: number;
     chapterSaleFeePercent?: number;
+    itemSaleFeePercent?: number;
     allowCoinTransfer?: boolean;
     chapterAudioDownloadEnabled?: boolean;
     copyProtectionEnabled?: boolean;

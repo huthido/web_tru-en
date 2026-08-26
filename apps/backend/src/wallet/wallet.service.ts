@@ -10,6 +10,7 @@ type WalletTx = Prisma.TransactionClient;
 
 const REDIS_FEE_KEY_DONATION = 'wallet:fee:donation';
 const REDIS_FEE_KEY_CHAPTER = 'wallet:fee:chapter';
+const REDIS_FEE_KEY_ITEM = 'wallet:fee:item';
 const REDIS_FEE_INVALIDATE_CHANNEL = 'wallet:fee:invalidate';
 
 const DEFAULT_MIN_WITHDRAWAL_COINS = 1000;
@@ -32,6 +33,8 @@ export class WalletService implements OnModuleInit {
     private cachedFeeAt = 0;
     private cachedChapterFeePercent: number | null = null;
     private cachedChapterFeeAt = 0;
+    private cachedItemFeePercent: number | null = null;
+    private cachedItemFeeAt = 0;
 
     constructor(
         private prisma: PrismaService,
@@ -53,6 +56,10 @@ export class WalletService implements OnModuleInit {
             if (msg === 'chapter' || msg === 'all') {
                 this.cachedChapterFeePercent = null;
                 this.cachedChapterFeeAt = 0;
+            }
+            if (msg === 'item' || msg === 'all') {
+                this.cachedItemFeePercent = null;
+                this.cachedItemFeeAt = 0;
             }
         });
     }
@@ -412,6 +419,60 @@ export class WalletService implements OnModuleInit {
         await this.redis.publish(REDIS_FEE_INVALIDATE_CHANNEL, 'chapter');
     }
 
+    /**
+     * Resolve the current ITEM (vật phẩm truyện) sale fee %. Same fallback chain
+     * (Settings → env → default) but reads `itemSaleFeePercent` so admin can tune
+     * the merchandise fee independently of chapter/donation. Separate cache.
+     */
+    async getItemSaleFeePercent(): Promise<number> {
+        const now = Date.now();
+        if (
+            this.cachedItemFeePercent !== null &&
+            now - this.cachedItemFeeAt < FEE_CACHE_TTL_MS
+        ) {
+            return this.cachedItemFeePercent;
+        }
+        const fromRedis = await this.redis.get(REDIS_FEE_KEY_ITEM);
+        if (fromRedis !== null) {
+            const parsed = Number(fromRedis);
+            if (Number.isInteger(parsed) && parsed >= 0 && parsed <= 50) {
+                this.cachedItemFeePercent = parsed;
+                this.cachedItemFeeAt = now;
+                return parsed;
+            }
+        }
+
+        let percent = DEFAULT_DONATION_PLATFORM_FEE_PERCENT;
+        try {
+            const settings = await this.prisma.settings.findFirst({
+                select: { itemSaleFeePercent: true },
+            });
+            if (settings?.itemSaleFeePercent != null) {
+                percent = settings.itemSaleFeePercent;
+            } else {
+                const envValue = Number(this.config.get<string>('ITEM_SALE_FEE_PERCENT'));
+                if (Number.isInteger(envValue) && envValue >= 0 && envValue <= 50) {
+                    percent = envValue;
+                }
+            }
+        } catch (err: any) {
+            this.logger.warn(`Failed to read item sale fee from Settings, using default ${percent}%: ${err.message}`);
+        }
+
+        this.cachedItemFeePercent = percent;
+        this.cachedItemFeeAt = now;
+        await this.redis.set(REDIS_FEE_KEY_ITEM, String(percent), 60);
+        return percent;
+    }
+
+    /** Invalidate the item-sale fee cache. Same cross-instance protocol as donation. */
+    async invalidateItemFeeCache(): Promise<void> {
+        this.cachedItemFeePercent = null;
+        this.cachedItemFeeAt = 0;
+        await this.redis.del(REDIS_FEE_KEY_ITEM);
+        await this.redis.publish(REDIS_FEE_INVALIDATE_CHANNEL, 'item');
+    }
+
     // Get wallet balance, create if not exists
     async getBalance(userId: string) {
         let wallet = await this.prisma.userWallet.findUnique({
@@ -732,7 +793,7 @@ export class WalletService implements OnModuleInit {
         }
 
         const gross = item.price * quantity;
-        const feePercent = await this.getChapterSaleFeePercent();
+        const feePercent = await this.getItemSaleFeePercent();
         const { fee, net } = WalletService.splitDonation(gross, feePercent);
         if (net <= 0) {
             throw new BadRequestException('Giá vật phẩm quá thấp');

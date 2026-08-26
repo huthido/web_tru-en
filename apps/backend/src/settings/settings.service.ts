@@ -99,6 +99,9 @@ export class SettingsService {
       if ('chapterSaleFeePercent' in cleanedData && this.wallet) {
         await this.wallet.invalidateChapterFeeCache();
       }
+      if ('itemSaleFeePercent' in cleanedData && this.wallet) {
+        await this.wallet.invalidateItemFeeCache();
+      }
 
       return settings;
     } catch (error) {

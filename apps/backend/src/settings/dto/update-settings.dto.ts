@@ -150,6 +150,13 @@ export class UpdateSettingsDto {
   @Max(50)
   chapterSaleFeePercent?: number;
 
+  // Phí % nền tảng khi mua VẬT PHẨM của truyện. Cùng biên với các phí khác.
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(50)
+  itemSaleFeePercent?: number;
+
   // Spec mục 2 — bật/tắt chuyển xu giữa user.
   @IsOptional()
   @IsBoolean()

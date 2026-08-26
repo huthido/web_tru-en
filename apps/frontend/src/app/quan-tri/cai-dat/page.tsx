@@ -96,6 +96,7 @@ export default function AdminSettingsPage() {
         requireEmailVerification: false,
         donationPlatformFeePercent: 2,
         chapterSaleFeePercent: 2,
+        itemSaleFeePercent: 2,
         allowCoinTransfer: false,
         chapterAudioDownloadEnabled: false,
         copyProtectionEnabled: true,
@@ -192,6 +193,7 @@ export default function AdminSettingsPage() {
                 requireEmailVerification: settings.requireEmailVerification || false,
                 donationPlatformFeePercent: settings.donationPlatformFeePercent ?? 2,
                 chapterSaleFeePercent: settings.chapterSaleFeePercent ?? 2,
+                itemSaleFeePercent: (settings as any).itemSaleFeePercent ?? 2,
                 allowCoinTransfer: settings.allowCoinTransfer || false,
                 chapterAudioDownloadEnabled: (settings as any).chapterAudioDownloadEnabled ?? false,
                 copyProtectionEnabled: (settings as any).copyProtectionEnabled ?? true,
@@ -988,6 +990,41 @@ export default function AdminSettingsPage() {
                                     <span className="text-sm text-on-surface-variant">%</span>
                                     <span className="text-xs text-on-surface-variant ml-2">
                                         Ví dụ: bán chương 100 coin → tác giả nhận {Math.max(0, 100 - Math.ceil(100 * formData.chapterSaleFeePercent / 100))} coin · phí {Math.ceil(100 * formData.chapterSaleFeePercent / 100)} coin
+                                    </span>
+                                </div>
+                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                                    Giới hạn 0–50%. Người mua không thấy phí — chỉ thấy giá gross.
+                                </p>
+                            </div>
+
+                            {/* Phí bán vật phẩm của truyện — tách riêng khỏi phí chương/ủng hộ */}
+                            <div className="border-t border-outline-variant pt-4">
+                                <label className="text-sm font-medium text-on-surface-variant block mb-1">
+                                    Phí nền tảng khi bán vật phẩm của truyện (%)
+                                </label>
+                                <p className="text-xs text-on-surface-variant mb-3">
+                                    Áp dụng khi người mua giao dịch xu mua vật phẩm với tác giả. Tách riêng để
+                                    admin chỉnh độc lập. Các giao dịch trước thời điểm lưu vẫn giữ phí cũ.
+                                </p>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={50}
+                                        step={1}
+                                        value={formData.itemSaleFeePercent}
+                                        onChange={(e) => {
+                                            const v = parseInt(e.target.value, 10);
+                                            setFormData({
+                                                ...formData,
+                                                itemSaleFeePercent: Number.isNaN(v) ? 0 : Math.max(0, Math.min(50, v)),
+                                            });
+                                        }}
+                                        className="w-28 px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
+                                    />
+                                    <span className="text-sm text-on-surface-variant">%</span>
+                                    <span className="text-xs text-on-surface-variant ml-2">
+                                        Ví dụ: bán vật phẩm 100 xu → tác giả nhận {Math.max(0, 100 - Math.ceil(100 * formData.itemSaleFeePercent / 100))} xu · phí {Math.ceil(100 * formData.itemSaleFeePercent / 100)} xu
                                     </span>
                                 </div>
                                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">

@@ -894,6 +894,9 @@ model Settings {
   // donations so support can tune them independently (e.g. lower fee on sales
   // to encourage authors to set paid content). Backfilled = donation fee.
   chapterSaleFeePercent      Int      @default(2)
+  // Spec — phí % nền tảng giữ khi người mua VẬT PHẨM của truyện (giao dịch xu
+  // với tác giả). Tách riêng để admin chỉnh độc lập với phí chương/ủng hộ.
+  itemSaleFeePercent         Int      @default(2)
   // Spec mục 17 — số xu tối thiểu tác giả được phép yêu cầu rút.
   minWithdrawalCoins         Int      @default(1000)
   // Spec mục 2 — cho phép chuyển xu giữa user ("nếu cho phép"). Mặc định tắt.
