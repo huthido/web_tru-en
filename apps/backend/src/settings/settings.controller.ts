@@ -100,9 +100,8 @@ export class SettingsController {
     )
     file: Express.Multer.File,
   ) {
+    // Chỉ trả URL — admin thêm vào danh sách slide rồi bấm "Lưu cài đặt".
     const imageUrl = await this.cloudinaryService.uploadImage(file, 'settings');
-
-    await this.settingsService.updateSettings({ footerBannerImage: imageUrl });
 
     return {
       success: true,

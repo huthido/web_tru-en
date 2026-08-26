@@ -872,11 +872,14 @@ model Settings {
   maintenanceMode            Boolean  @default(false)
   maintenanceMessage         String?  @db.Text
   // ─── Footer / Banner ───
-  // Khi bật, khu footer (giờ chỉ hiện trên trang cá nhân /u/[username]) được
-  // thay hẳn bằng MỘT ảnh banner. footerBannerLink (tuỳ chọn) = link bấm vào.
+  // Khi bật, banner ảnh hiện ở đáy mọi trang (trừ trang cá nhân + admin).
+  // footerBannerSlides = JSON mảng `[{image, link?}]` cho SLIDESHOW nhiều ảnh
+  // (mỗi ảnh 1 link riêng tuỳ chọn); mảng nhiều phần tử → tự chạy slide.
+  // footerBannerImage/Link (ảnh đơn cũ) giữ để tương thích + fallback khi slides rỗng.
   footerBannerEnabled        Boolean  @default(false)
   footerBannerImage          String?
   footerBannerLink           String?
+  footerBannerSlides         Json     @default("[]")
   allowRegistration          Boolean  @default(true)
   requireEmailVerification   Boolean  @default(false)
   // Donation rev-share: % the platform keeps when a user donates coins to an

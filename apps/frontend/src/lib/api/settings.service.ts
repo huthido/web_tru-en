@@ -7,6 +7,11 @@ export interface TtsSubscriptionPlan {
     coins: number;
 }
 
+export interface FooterBannerSlide {
+    image: string;
+    link?: string;
+}
+
 export interface Settings {
     id: string;
     siteName: string;
@@ -26,10 +31,12 @@ export interface Settings {
     siteThreads?: string;
     maintenanceMode: boolean;
     maintenanceMessage?: string;
-    /** Thay hẳn footer (chỉ hiện ở trang cá nhân) bằng 1 ảnh banner khi bật. */
+    /** Bật banner ảnh ở đáy mọi trang (trừ trang cá nhân + admin). */
     footerBannerEnabled?: boolean;
     footerBannerImage?: string | null;
     footerBannerLink?: string | null;
+    /** Slideshow nhiều ảnh banner; mỗi ảnh 1 link riêng (tuỳ chọn). */
+    footerBannerSlides?: FooterBannerSlide[];
     allowRegistration: boolean;
     requireEmailVerification: boolean;
     donationPlatformFeePercent: number;
@@ -80,6 +87,7 @@ export interface UpdateSettingsRequest {
     footerBannerEnabled?: boolean;
     footerBannerImage?: string;
     footerBannerLink?: string;
+    footerBannerSlides?: FooterBannerSlide[];
     allowRegistration?: boolean;
     requireEmailVerification?: boolean;
     donationPlatformFeePercent?: number;

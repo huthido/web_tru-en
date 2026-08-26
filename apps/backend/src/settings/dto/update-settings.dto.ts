@@ -1,6 +1,18 @@
 import { IsString, IsOptional, IsBoolean, IsEmail, IsUrl, ValidateIf, IsInt, Min, Max, IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
+/** Một slide banner footer: ảnh + link bấm vào (tuỳ chọn). */
+export class FooterBannerSlideDto {
+  @ValidateIf((o) => o.image !== '' && o.image != null)
+  @IsUrl()
+  image: string;
+
+  @IsOptional()
+  @ValidateIf((o) => o.link !== '' && o.link != null)
+  @IsUrl()
+  link?: string;
+}
+
 /** Một mức giá gói giọng đọc AI: `months` tháng (30 ngày/tháng) giá `coins` xu. */
 export class TtsSubscriptionPlanDto {
   @IsInt()
@@ -107,6 +119,12 @@ export class UpdateSettingsDto {
   @ValidateIf((o) => o.footerBannerLink !== '' && o.footerBannerLink != null)
   @IsUrl()
   footerBannerLink?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FooterBannerSlideDto)
+  footerBannerSlides?: FooterBannerSlideDto[];
 
   @IsOptional()
   @IsBoolean()

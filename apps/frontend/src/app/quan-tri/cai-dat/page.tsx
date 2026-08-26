@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/toast';
 import { Loading } from '@/components/ui/loading';
 import Image from 'next/image';
 import { isUsableImageSrc } from '@/utils/image-utils';
-import type { TtsSubscriptionPlan } from '@/lib/api/settings.service';
+import type { TtsSubscriptionPlan, FooterBannerSlide } from '@/lib/api/settings.service';
 
 const BUILTIN_DOMAINS = [
     'res.cloudinary.com',
@@ -92,6 +92,7 @@ export default function AdminSettingsPage() {
         footerBannerEnabled: false,
         footerBannerImage: '',
         footerBannerLink: '',
+        footerBannerSlides: [] as FooterBannerSlide[],
         requireEmailVerification: false,
         donationPlatformFeePercent: 2,
         chapterSaleFeePercent: 2,
@@ -182,6 +183,12 @@ export default function AdminSettingsPage() {
                 footerBannerEnabled: (settings as any).footerBannerEnabled ?? false,
                 footerBannerImage: (settings as any).footerBannerImage || '',
                 footerBannerLink: (settings as any).footerBannerLink || '',
+                // Slides: dùng mảng nếu có; nếu rỗng mà còn ảnh đơn cũ thì chuyển thành 1 slide.
+                footerBannerSlides: Array.isArray((settings as any).footerBannerSlides) && (settings as any).footerBannerSlides.length > 0
+                    ? (settings as any).footerBannerSlides
+                    : ((settings as any).footerBannerImage
+                        ? [{ image: (settings as any).footerBannerImage, link: (settings as any).footerBannerLink || '' }]
+                        : []),
                 requireEmailVerification: settings.requireEmailVerification || false,
                 donationPlatformFeePercent: settings.donationPlatformFeePercent ?? 2,
                 chapterSaleFeePercent: settings.chapterSaleFeePercent ?? 2,
@@ -270,15 +277,44 @@ export default function AdminSettingsPage() {
 
     const handleFooterBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+        // reset input để chọn lại cùng 1 file vẫn kích hoạt onChange
+        if (e.target) e.target.value = '';
         if (!file) return;
 
         try {
             const url = await uploadFooterBannerMutation.mutateAsync(file);
-            setFormData({ ...formData, footerBannerImage: url });
-            showToast('Đã tải banner lên thành công', 'success');
+            setFormData((prev) => ({
+                ...prev,
+                footerBannerSlides: [...prev.footerBannerSlides, { image: url, link: '' }],
+            }));
+            showToast('Đã thêm ảnh banner', 'success');
         } catch (error: any) {
             showToast(error?.response?.data?.error || 'Có lỗi xảy ra khi tải banner', 'error');
         }
+    };
+
+    const removeBannerSlide = (index: number) => {
+        setFormData((prev) => ({
+            ...prev,
+            footerBannerSlides: prev.footerBannerSlides.filter((_, i) => i !== index),
+        }));
+    };
+
+    const updateBannerSlideLink = (index: number, link: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            footerBannerSlides: prev.footerBannerSlides.map((s, i) => (i === index ? { ...s, link } : s)),
+        }));
+    };
+
+    const moveBannerSlide = (index: number, dir: -1 | 1) => {
+        setFormData((prev) => {
+            const arr = [...prev.footerBannerSlides];
+            const j = index + dir;
+            if (j < 0 || j >= arr.length) return prev;
+            [arr[index], arr[j]] = [arr[j], arr[index]];
+            return { ...prev, footerBannerSlides: arr };
+        });
     };
 
     if (isLoading) {
@@ -626,20 +662,46 @@ export default function AdminSettingsPage() {
                         </div>
 
                         <div className="border-t border-outline-variant pt-6">
-                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
-                                Ảnh banner
-                            </label>
+                            <div className="flex items-center justify-between mb-3">
+                                <label className="block text-sm font-medium text-on-surface-variant">
+                                    Ảnh banner (slideshow)
+                                </label>
+                                <span className="text-xs text-on-surface-variant">{formData.footerBannerSlides.length} ảnh</span>
+                            </div>
+
                             <div className="space-y-3">
-                                {isUsableImageSrc(formData.footerBannerImage) && (
-                                    <div className="relative w-full max-w-lg border border-outline-variant rounded-lg overflow-hidden bg-surface-variant">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img
-                                            src={formData.footerBannerImage}
-                                            alt="Banner"
-                                            className="w-full h-auto block"
-                                        />
+                                {formData.footerBannerSlides.map((slide, i) => (
+                                    <div key={i} className="flex flex-col sm:flex-row gap-3 p-3 border border-outline-variant rounded-lg">
+                                        {isUsableImageSrc(slide.image) && (
+                                            <div className="relative w-full sm:w-40 h-24 flex-shrink-0 border border-outline-variant rounded overflow-hidden bg-surface-variant">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src={slide.image} alt={`Ảnh ${i + 1}`} className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
+                                        <div className="flex-1 min-w-0 space-y-2">
+                                            <input
+                                                type="url"
+                                                value={slide.link || ''}
+                                                onChange={(e) => updateBannerSlideLink(i, e.target.value)}
+                                                placeholder="Link khi bấm (tuỳ chọn) https://..."
+                                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
+                                            />
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <button type="button" onClick={() => moveBannerSlide(i, -1)} disabled={i === 0}
+                                                    className="px-2.5 py-1 rounded border border-outline-variant text-on-surface-variant hover:bg-surface-container-high disabled:opacity-40" aria-label="Lên">↑</button>
+                                                <button type="button" onClick={() => moveBannerSlide(i, 1)} disabled={i === formData.footerBannerSlides.length - 1}
+                                                    className="px-2.5 py-1 rounded border border-outline-variant text-on-surface-variant hover:bg-surface-container-high disabled:opacity-40" aria-label="Xuống">↓</button>
+                                                <button type="button" onClick={() => removeBannerSlide(i)}
+                                                    className="px-2.5 py-1 rounded border border-error/40 text-error hover:bg-error/10 ml-auto">Xoá</button>
+                                            </div>
+                                        </div>
                                     </div>
+                                ))}
+
+                                {formData.footerBannerSlides.length === 0 && (
+                                    <p className="text-sm text-on-surface-variant">Chưa có ảnh nào. Bấm &quot;Thêm ảnh&quot; để tải lên.</p>
                                 )}
+
                                 <input
                                     ref={footerBannerInputRef}
                                     type="file"
@@ -653,28 +715,12 @@ export default function AdminSettingsPage() {
                                     disabled={uploadFooterBannerMutation.isPending}
                                     className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50"
                                 >
-                                    {uploadFooterBannerMutation.isPending ? 'Đang tải...' : formData.footerBannerImage ? 'Thay đổi banner' : 'Tải banner lên'}
+                                    {uploadFooterBannerMutation.isPending ? 'Đang tải...' : '+ Thêm ảnh'}
                                 </button>
                                 <p className="text-xs text-on-surface-variant">
-                                    Nên dùng ảnh ngang, rộng (khuyến nghị ≥ 1200px). Tối đa 5MB.
+                                    Nên dùng ảnh ngang, cùng kích thước (khuyến nghị ≥ 1200px). Nhiều ảnh sẽ tự chạy slideshow ở đáy các trang. Tối đa 5MB/ảnh. Nhớ bấm &quot;Lưu cài đặt&quot;.
                                 </p>
                             </div>
-                        </div>
-
-                        <div className="border-t border-outline-variant pt-6">
-                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
-                                Link khi bấm vào banner <span className="font-normal">(tuỳ chọn)</span>
-                            </label>
-                            <input
-                                type="url"
-                                value={formData.footerBannerLink}
-                                onChange={(e) => setFormData({ ...formData, footerBannerLink: e.target.value })}
-                                placeholder="https://..."
-                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
-                            />
-                            <p className="text-xs text-on-surface-variant mt-2">
-                                Để trống nếu banner không cần bấm vào. Link mở ở tab mới.
-                            </p>
                         </div>
                     </div>
                         </>
