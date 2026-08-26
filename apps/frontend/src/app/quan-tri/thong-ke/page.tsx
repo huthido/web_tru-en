@@ -5,7 +5,7 @@ import { BarChart, LineChart, DoughnutChart } from '@/components/admin/charts';
 import { RefreshButton } from '@/components/admin/refresh-button';
 import { StoryViewsModal } from '@/components/admin/story-views-modal';
 import { Loading } from '@/components/ui/loading';
-import { useAdminStatistics, useUserGrowth, useStoryViews } from '@/lib/api/hooks/use-statistics';
+import { useAdminStatistics, useUserGrowth, useStoryViews, useAudioTopStories, useAudioTopUsers } from '@/lib/api/hooks/use-statistics';
 import { useQuery } from '@tanstack/react-query';
 import { statisticsService } from '@/lib/api/statistics.service';
 
@@ -14,6 +14,8 @@ export default function AdminStatisticsPage() {
     const [viewsStory, setViewsStory] = useState<{ id: string; title: string } | null>(null);
     const { data: userGrowth, isLoading: userGrowthLoading, refetch: refetchUserGrowth } = useUserGrowth();
     const { data: storyViews, isLoading: storyViewsLoading, refetch: refetchStoryViews } = useStoryViews();
+    const { data: audioTopStories } = useAudioTopStories(20);
+    const { data: audioTopUsers } = useAudioTopUsers(20);
     
     // Get additional stats
     const { data: categoryDist, isLoading: categoryDistLoading } = useQuery({
@@ -216,6 +218,88 @@ export default function AdminStatisticsPage() {
                         </div>
                     </div>
                 )}
+
+                {/* Top truyện được nghe nhiều nhất */}
+                <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                    <h2 className="text-xl font-bold mb-1">Top truyện được nghe nhiều nhất</h2>
+                    <p className="text-sm text-on-surface-variant mb-4">
+                        Lượt nghe (bấm play audio / giọng AI / đọc bằng máy), tính duy nhất mỗi người nghe cho mỗi chương.
+                    </p>
+                    {audioTopStories && audioTopStories.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-surface-container-low">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left w-12">#</th>
+                                        <th className="px-4 py-3 text-left">Truyện</th>
+                                        <th className="px-4 py-3 text-left">Tác giả</th>
+                                        <th className="px-4 py-3 text-right">Lượt nghe</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-outline-variant">
+                                    {audioTopStories.map((s, idx) => (
+                                        <tr key={s.storyId} className="hover:bg-surface-container-high">
+                                            <td className="px-4 py-3 text-on-surface-variant">{idx + 1}</td>
+                                            <td className="px-4 py-3 font-medium">
+                                                {s.slug ? (
+                                                    <a href={`/truyen/${s.slug}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline">
+                                                        {s.title}
+                                                    </a>
+                                                ) : s.title}
+                                            </td>
+                                            <td className="px-4 py-3">{s.authorName || 'N/A'}</td>
+                                            <td className="px-4 py-3 text-right font-semibold">{s.listens.toLocaleString('vi-VN')}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <p className="text-on-surface-variant">Chưa có lượt nghe nào.</p>
+                    )}
+                </div>
+
+                {/* Top người dùng nghe nhiều nhất */}
+                <div className="bg-surface-container rounded-lg p-6 shadow-sm">
+                    <h2 className="text-xl font-bold mb-1">Top người dùng nghe nhiều nhất</h2>
+                    <p className="text-sm text-on-surface-variant mb-4">
+                        Số chương đã nghe của mỗi người dùng.
+                        {typeof audioTopUsers?.anonymousListens === 'number' && audioTopUsers.anonymousListens > 0 && (
+                            <> Khách (chưa đăng nhập): <b>{audioTopUsers.anonymousListens.toLocaleString('vi-VN')}</b> lượt.</>
+                        )}
+                    </p>
+                    {audioTopUsers && audioTopUsers.users.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-surface-container-low">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left w-12">#</th>
+                                        <th className="px-4 py-3 text-left">Người dùng</th>
+                                        <th className="px-4 py-3 text-right">Lượt nghe</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-outline-variant">
+                                    {audioTopUsers.users.map((u, idx) => (
+                                        <tr key={u.userId ?? idx} className="hover:bg-surface-container-high">
+                                            <td className="px-4 py-3 text-on-surface-variant">{idx + 1}</td>
+                                            <td className="px-4 py-3 font-medium">
+                                                {u.username ? (
+                                                    <a href={`/u/${u.username}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline">
+                                                        {u.displayName || u.username}
+                                                        <span className="text-on-surface-variant font-normal"> @{u.username}</span>
+                                                    </a>
+                                                ) : (u.displayName || 'Người dùng')}
+                                            </td>
+                                            <td className="px-4 py-3 text-right font-semibold">{u.listens.toLocaleString('vi-VN')}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <p className="text-on-surface-variant">Chưa có lượt nghe nào.</p>
+                    )}
+                </div>
 
                 {viewsStory && (
                     <StoryViewsModal

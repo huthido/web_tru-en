@@ -90,3 +90,22 @@ export function useTrendingStories(limit?: number) {
   });
 }
 
+// Admin: thống kê lượt nghe (audio)
+export function useAudioTopStories(limit: number = 20) {
+  return useQuery({
+    queryKey: ['admin', 'statistics', 'audio', 'stories', limit],
+    queryFn: () => statisticsService.getAudioTopStories(limit),
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useAudioTopUsers(limit: number = 20) {
+  return useQuery({
+    queryKey: ['admin', 'statistics', 'audio', 'users', limit],
+    queryFn: () => statisticsService.getAudioTopUsers(limit),
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
+}
+

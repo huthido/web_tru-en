@@ -73,6 +73,7 @@ export default function AuthorStoryAnalyticsPage() {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <StatCard label="Lượt đọc truyện" value={stats.story?.viewCount ?? 0} />
                         <StatCard label="Tổng lượt đọc chương" value={stats.views?.chapters ?? 0} />
+                        <StatCard label="Lượt nghe" value={stats.listens?.total ?? 0} />
                         <StatCard label="Theo dõi" value={stats.story?.followCount ?? stats.counts?.follows ?? 0} />
                         <StatCard label="Yêu thích" value={stats.counts?.favorites ?? 0} />
                     </div>
@@ -112,6 +113,7 @@ export default function AuthorStoryAnalyticsPage() {
                                             <th className="py-2 w-12">#</th>
                                             <th className="py-2">Chương</th>
                                             <th className="py-2 text-right">Lượt đọc</th>
+                                            <th className="py-2 text-right">Lượt nghe</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-outline-variant">
@@ -123,6 +125,9 @@ export default function AuthorStoryAnalyticsPage() {
                                                 </td>
                                                 <td className="py-2 text-right text-on-surface">
                                                     {ch.viewCount.toLocaleString()}
+                                                </td>
+                                                <td className="py-2 text-right text-on-surface">
+                                                    {(stats.listens?.byChapter?.[ch.id] ?? 0).toLocaleString()}
                                                 </td>
                                             </tr>
                                         ))}

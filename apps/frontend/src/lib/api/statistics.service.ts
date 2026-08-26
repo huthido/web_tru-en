@@ -38,6 +38,27 @@ export interface StoryViewsByMonth {
   data: number[];
 }
 
+export interface AudioTopStory {
+  storyId: string;
+  listens: number;
+  title: string;
+  slug: string | null;
+  authorName: string | null;
+}
+
+export interface AudioTopUser {
+  userId: string | null;
+  listens: number;
+  username: string | null;
+  displayName: string | null;
+  avatar: string | null;
+}
+
+export interface AudioTopUsersResult {
+  users: AudioTopUser[];
+  anonymousListens: number;
+}
+
 export const statisticsService = {
   async getStats(): Promise<DashboardStats> {
     const response = await apiClient.get<{ success: boolean; data: DashboardStats }>('/admin/statistics');
@@ -111,6 +132,27 @@ export const statisticsService = {
     if (limit) params.append('limit', limit.toString());
     const response = await apiClient.get(`/statistics/trending?${params.toString()}`);
     return response.data.data || response.data;
+  },
+
+  /** Ghi 1 lượt nghe cho chương (fire-and-forget — không chặn luồng nghe). */
+  async recordChapterListen(chapterId: string, source?: string): Promise<void> {
+    try {
+      await apiClient.post(`/statistics/chapters/${chapterId}/listen`, { source });
+    } catch {
+      // Bỏ qua lỗi tracking.
+    }
+  },
+
+  /** Admin: xếp hạng truyện theo lượt nghe. */
+  async getAudioTopStories(limit = 20): Promise<AudioTopStory[]> {
+    const response = await apiClient.get(`/admin/statistics/audio/stories?limit=${limit}`);
+    return (response.data as any).data ?? response.data;
+  },
+
+  /** Admin: xếp hạng người dùng theo lượt nghe. */
+  async getAudioTopUsers(limit = 20): Promise<AudioTopUsersResult> {
+    const response = await apiClient.get(`/admin/statistics/audio/users?limit=${limit}`);
+    return (response.data as any).data ?? response.data;
   },
 };
 

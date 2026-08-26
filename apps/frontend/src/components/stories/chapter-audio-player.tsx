@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Headphones, Loader2, Pause, Play, Sparkles, Square } from 'lucide-react';
 import { chaptersService, type TtsAudioStatus } from '@/lib/api/chapters.service';
+import { statisticsService } from '@/lib/api/statistics.service';
 import { stripTtsEmotionTags } from '@/utils/tts-emotion';
 
 interface ChapterAudioPlayerProps {
@@ -158,6 +159,14 @@ export function ChapterAudioPlayer({
     const chunksRef = useRef<string[]>([]);
     const chunkIndexRef = useRef(0);
     const stoppedRef = useRef(false);
+    // Ghi 1 lượt nghe cho chương — chỉ 1 lần/lượt xem (backend còn đếm duy nhất
+    // theo người nghe/chương nên nghe lại không cộng thêm).
+    const listenTrackedRef = useRef(false);
+    const trackListen = useCallback((source: string) => {
+        if (listenTrackedRef.current || !chapterId) return;
+        listenTrackedRef.current = true;
+        statisticsService.recordChapterListen(chapterId, source);
+    }, [chapterId]);
     const rateRef = useRef(1);
     rateRef.current = rate;
     const voiceURIRef = useRef('');
@@ -282,6 +291,7 @@ export function ChapterAudioPlayer({
         const text = stripTtsEmotionTags(toPlainText(content));
         if (!text) return;
 
+        trackListen('webspeech');
         window.speechSynthesis.cancel();
         stoppedRef.current = false;
         chunksRef.current = splitIntoChunks(text);
@@ -436,7 +446,7 @@ export function ChapterAudioPlayer({
                     <span>Nghe chương này</span>
                     <span className="text-xs font-normal text-on-surface-variant">(audio do tác giả tải lên)</span>
                 </div>
-                <audio controls preload="metadata" src={audioUrl} className="w-full" {...audioGuardProps}>
+                <audio controls preload="metadata" src={audioUrl} className="w-full" onPlay={() => trackListen('author')} {...audioGuardProps}>
                     Trình duyệt không hỗ trợ phát audio.
                 </audio>
             </div>
@@ -469,7 +479,7 @@ export function ChapterAudioPlayer({
                         </button>
                     )}
                 </div>
-                <audio controls preload="metadata" src={aiUrl} className="w-full" {...audioGuardProps}>
+                <audio controls preload="metadata" src={aiUrl} className="w-full" onPlay={() => trackListen('ai')} {...audioGuardProps}>
                     Trình duyệt không hỗ trợ phát audio.
                 </audio>
                 {aiError && <p className="mt-2 text-xs text-error">{aiError}</p>}

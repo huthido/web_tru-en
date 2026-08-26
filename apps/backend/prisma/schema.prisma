@@ -62,6 +62,7 @@ model User {
   readingHistory          ReadingHistory[]
   authoredStories         Story[]                  @relation("StoryAuthor")
   viewLogs                ViewLog[]
+  audioListens            AudioListen[]
   approvalRequests        ApprovalRequest[]        @relation("ApprovalRequests")
   reviewedApprovals       ApprovalRequest[]        @relation("ReviewedApprovals")
   createdAds              Ad[]                     @relation("AdCreator")
@@ -151,6 +152,7 @@ model Story {
   storyCategories  StoryCategory[]
   storyTags        StoryTag[]
   viewLogs         ViewLog[]
+  audioListens     AudioListen[]
   approvalRequests ApprovalRequest[] @relation("StoryApprovals")
   readingHistory   ReadingHistory[]
   storyPurchases   StoryPurchase[]
@@ -208,6 +210,7 @@ model Chapter {
   comments       Comment[]
   readingHistory ReadingHistory[]
   viewLogs       ViewLog[]
+  audioListens   AudioListen[]
 
   approvalRequests ApprovalRequest[] @relation("ChapterApprovals")
   price            Int               @default(0) // Coin price to unlock
@@ -348,6 +351,32 @@ model ViewLog {
   @@index([createdAt])
   @@index([ipAddress])
   @@map("view_logs")
+}
+
+// Lượt NGHE truyện (bấm play audio tác giả / giọng AI / Web Speech). Đếm DUY
+// NHẤT theo (chương × người nghe): listenerKey = "u:<userId>" cho user đăng
+// nhập, "ip:<ip>" cho khách → nghe lại KHÔNG cộng thêm (upsert theo unique).
+// Dùng cho thống kê lượt nghe theo truyện, theo chương và theo người dùng.
+model AudioListen {
+  id          String   @id @default(cuid())
+  storyId     String
+  chapterId   String
+  userId      String?
+  listenerKey String // "u:<userId>" hoặc "ip:<ip>" — chốt tính duy nhất mỗi chương
+  source      String? // 'author' | 'ai' | 'webspeech'
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  story       Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  chapter     Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([chapterId, listenerKey])
+  @@index([storyId])
+  @@index([chapterId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audio_listens")
 }
 
 model StoryCategory {

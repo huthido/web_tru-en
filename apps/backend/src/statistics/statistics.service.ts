@@ -290,6 +290,20 @@ export class StatisticsService {
       },
     });
 
+    // Lượt nghe (audio) — tổng của truyện + tách theo chương. Đếm duy nhất mỗi
+    // (chương × người nghe) nên mỗi hàng audio_listens = 1 lượt.
+    const listenRows = await this.prisma.audioListen.groupBy({
+      by: ['chapterId'],
+      where: { storyId },
+      _count: { _all: true },
+    });
+    const listensByChapter: Record<string, number> = {};
+    let listensTotal = 0;
+    for (const row of listenRows) {
+      listensByChapter[row.chapterId] = row._count._all;
+      listensTotal += row._count._all;
+    }
+
     return {
       story: {
         id: story.id,
@@ -313,6 +327,98 @@ export class StatisticsService {
         chapters: totalChapterViews,
         total: story.viewCount + totalChapterViews,
       },
+      listens: {
+        total: listensTotal,
+        byChapter: listensByChapter,
+      },
+    };
+  }
+
+  /**
+   * Ghi 1 lượt NGHE cho một chương. Đếm DUY NHẤT theo (chương × người nghe):
+   * listenerKey = "u:<userId>" nếu đăng nhập, "ip:<ip>" nếu khách. Nghe lại
+   * không cộng thêm (upsert theo unique [chapterId, listenerKey]).
+   */
+  async recordListen(
+    chapterId: string,
+    opts: { userId?: string; ip?: string; ua?: string; source?: string },
+  ) {
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { id: chapterId },
+      select: { id: true, storyId: true },
+    });
+    if (!chapter) return { recorded: false };
+
+    const listenerKey = opts.userId ? `u:${opts.userId}` : `ip:${opts.ip || 'unknown'}`;
+    try {
+      await this.prisma.audioListen.upsert({
+        where: { chapterId_listenerKey: { chapterId, listenerKey } },
+        create: {
+          chapterId,
+          storyId: chapter.storyId,
+          userId: opts.userId ?? null,
+          listenerKey,
+          source: opts.source ?? null,
+          ipAddress: opts.ip ?? null,
+          userAgent: opts.ua ?? null,
+        },
+        update: {}, // đã nghe rồi → giữ nguyên, không cộng thêm
+      });
+    } catch {
+      // Bỏ qua (vd race unique) — tracking không được chặn luồng nghe.
+    }
+    return { recorded: true };
+  }
+
+  /** Admin: xếp hạng TRUYỆN theo tổng lượt nghe. */
+  async getAudioTopStories(limit = 20) {
+    const rows = await this.prisma.audioListen.groupBy({
+      by: ['storyId'],
+      _count: { _all: true },
+      orderBy: { _count: { storyId: 'desc' } },
+      take: limit,
+    });
+    const stories = await this.prisma.story.findMany({
+      where: { id: { in: rows.map((r) => r.storyId) } },
+      select: { id: true, title: true, slug: true, authorName: true },
+    });
+    const byId = new Map(stories.map((s) => [s.id, s]));
+    return rows.map((r) => ({
+      storyId: r.storyId,
+      listens: r._count._all,
+      title: byId.get(r.storyId)?.title ?? '(đã xoá)',
+      slug: byId.get(r.storyId)?.slug ?? null,
+      authorName: byId.get(r.storyId)?.authorName ?? null,
+    }));
+  }
+
+  /** Admin: xếp hạng NGƯỜI DÙNG theo tổng lượt nghe (kèm tổng lượt của khách). */
+  async getAudioTopUsers(limit = 20) {
+    const rows = await this.prisma.audioListen.groupBy({
+      by: ['userId'],
+      where: { userId: { not: null } },
+      _count: { _all: true },
+      orderBy: { _count: { userId: 'desc' } },
+      take: limit,
+    });
+    const ids = rows.map((r) => r.userId).filter((id): id is string => !!id);
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, username: true, displayName: true, avatar: true },
+    });
+    const byId = new Map(users.map((u) => [u.id, u]));
+    const anonymousListens = await this.prisma.audioListen.count({
+      where: { userId: null },
+    });
+    return {
+      users: rows.map((r) => ({
+        userId: r.userId,
+        listens: r._count._all,
+        username: r.userId ? byId.get(r.userId)?.username ?? null : null,
+        displayName: r.userId ? byId.get(r.userId)?.displayName ?? null : null,
+        avatar: r.userId ? byId.get(r.userId)?.avatar ?? null : null,
+      })),
+      anonymousListens,
     };
   }
 
