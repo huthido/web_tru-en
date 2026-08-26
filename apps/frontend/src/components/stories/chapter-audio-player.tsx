@@ -159,12 +159,14 @@ export function ChapterAudioPlayer({
     const chunksRef = useRef<string[]>([]);
     const chunkIndexRef = useRef(0);
     const stoppedRef = useRef(false);
-    // Ghi 1 lượt nghe cho chương — chỉ 1 lần/lượt xem (backend còn đếm duy nhất
-    // theo người nghe/chương nên nghe lại không cộng thêm).
-    const listenTrackedRef = useRef(false);
+    // Ghi lượt nghe MỖI LẦN bấm nút nghe (bấm play / Nghe). Debounce ngắn để
+    // gộp các sự kiện trùng của cùng 1 lần bấm (vd play bắn 2 lần).
+    const lastListenAtRef = useRef(0);
     const trackListen = useCallback((source: string) => {
-        if (listenTrackedRef.current || !chapterId) return;
-        listenTrackedRef.current = true;
+        if (!chapterId) return;
+        const now = Date.now();
+        if (now - lastListenAtRef.current < 800) return;
+        lastListenAtRef.current = now;
         statisticsService.recordChapterListen(chapterId, source);
     }, [chapterId]);
     const rateRef = useRef(1);

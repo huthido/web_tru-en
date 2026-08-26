@@ -335,13 +335,13 @@ export class StatisticsService {
   }
 
   /**
-   * Ghi 1 lượt NGHE cho một chương. Đếm DUY NHẤT theo (chương × người nghe):
-   * listenerKey = "u:<userId>" nếu đăng nhập, "ip:<ip>" nếu khách. Nghe lại
-   * không cộng thêm (upsert theo unique [chapterId, listenerKey]).
+   * Ghi 1 lượt NGHE: đếm MỖI LẦN bấm nút nghe (client-side) — 1 hàng = 1 lần
+   * bấm. Không dedupe theo IP (hạ tầng qua coolify-proxy làm mất IP thật của
+   * khách), nên đếm theo nút bấm cho ổn định.
    */
   async recordListen(
     chapterId: string,
-    opts: { userId?: string; ip?: string; ua?: string; source?: string },
+    opts: { userId?: string; ua?: string; source?: string },
   ) {
     const chapter = await this.prisma.chapter.findUnique({
       where: { id: chapterId },
@@ -349,23 +349,18 @@ export class StatisticsService {
     });
     if (!chapter) return { recorded: false };
 
-    const listenerKey = opts.userId ? `u:${opts.userId}` : `ip:${opts.ip || 'unknown'}`;
     try {
-      await this.prisma.audioListen.upsert({
-        where: { chapterId_listenerKey: { chapterId, listenerKey } },
-        create: {
+      await this.prisma.audioListen.create({
+        data: {
           chapterId,
           storyId: chapter.storyId,
           userId: opts.userId ?? null,
-          listenerKey,
           source: opts.source ?? null,
-          ipAddress: opts.ip ?? null,
           userAgent: opts.ua ?? null,
         },
-        update: {}, // đã nghe rồi → giữ nguyên, không cộng thêm
       });
     } catch {
-      // Bỏ qua (vd race unique) — tracking không được chặn luồng nghe.
+      // Bỏ qua lỗi ghi — tracking không được chặn luồng nghe.
     }
     return { recorded: true };
   }

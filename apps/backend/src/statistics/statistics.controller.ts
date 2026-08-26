@@ -78,8 +78,9 @@ export class PublicStatisticsController {
   }
 
   /**
-   * Ghi 1 lượt NGHE cho một chương (bấm play audio / giọng AI / Web Speech).
-   * Public: đếm cả khách. @CurrentUser tự có nếu request kèm token hợp lệ.
+   * Ghi 1 lượt NGHE cho một chương — đếm MỖI LẦN bấm nút nghe (play audio /
+   * giọng AI / Web Speech). Public: đếm cả khách. @CurrentUser tự có nếu
+   * request kèm token hợp lệ.
    */
   @Public()
   @Post('chapters/:chapterId/listen')
@@ -89,10 +90,8 @@ export class PublicStatisticsController {
     @Req() req: Request,
     @CurrentUser() user?: { id?: string },
   ) {
-    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip;
     return this.statisticsService.recordListen(chapterId, {
       userId: user?.id,
-      ip,
       ua: req.headers['user-agent'],
       source,
     });

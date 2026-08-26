@@ -223,7 +223,7 @@ export default function AdminStatisticsPage() {
                 <div className="bg-surface-container rounded-lg p-6 shadow-sm">
                     <h2 className="text-xl font-bold mb-1">Top truyện được nghe nhiều nhất</h2>
                     <p className="text-sm text-on-surface-variant mb-4">
-                        Lượt nghe (bấm play audio / giọng AI / đọc bằng máy), tính duy nhất mỗi người nghe cho mỗi chương.
+                        Tổng số lần bấm nút nghe (play audio tác giả / giọng AI / đọc bằng máy).
                     </p>
                     {audioTopStories && audioTopStories.length > 0 ? (
                         <div className="overflow-x-auto">
@@ -263,7 +263,7 @@ export default function AdminStatisticsPage() {
                 <div className="bg-surface-container rounded-lg p-6 shadow-sm">
                     <h2 className="text-xl font-bold mb-1">Top người dùng nghe nhiều nhất</h2>
                     <p className="text-sm text-on-surface-variant mb-4">
-                        Số chương đã nghe của mỗi người dùng.
+                        Tổng số lần bấm nghe của mỗi người dùng.
                         {typeof audioTopUsers?.anonymousListens === 'number' && audioTopUsers.anonymousListens > 0 && (
                             <> Khách (chưa đăng nhập): <b>{audioTopUsers.anonymousListens.toLocaleString('vi-VN')}</b> lượt.</>
                         )}
