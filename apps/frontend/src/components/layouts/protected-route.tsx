@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { UserRole } from '@shared/types';
 
 interface ProtectedRouteProps {
@@ -15,6 +15,12 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   const router = useRouter();
   const hasRedirected = useRef(false);
   const checkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Server và client-lần-đầu đều render như CHƯA mount → tránh hydration
+  // mismatch: trạng thái auth (dựa localStorage) chỉ có ở client, nếu render
+  // ngay theo nó sẽ lệch với HTML server (#418/#423). Chỉ áp trạng thái thật
+  // sau khi mount.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     // Prevent multiple redirects
@@ -58,7 +64,9 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     };
   }, [isAuthenticated, isLoading, user, requiredRole, router]);
 
-  if (isLoading) {
+  // Trước khi mount (kể cả HTML server) hoặc khi auth đang tải → luôn render
+  // spinner giống hệt nhau ⇒ hydrate khớp, không lỗi #418/#423.
+  if (!mounted || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
