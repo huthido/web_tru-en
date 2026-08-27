@@ -33,6 +33,9 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
     const [galleryImages, setGalleryImages] = useState<UserImage[]>([]);
     const [galleryLoading, setGalleryLoading] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [showPasteHtml, setShowPasteHtml] = useState(false);
+    const [pasteHtml, setPasteHtml] = useState('');
+    const [pasteError, setPasteError] = useState('');
 
     // Image resize & align state
     const [selectedImage, setSelectedImage] = useState<HTMLImageElement | null>(null);
@@ -148,6 +151,13 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
         };
     }, [uploadEndpoint, uploadFolder, insertImageToEditor]);
 
+    // Open the "paste HTML" modal (replaces plain/rich text with pasted HTML converted to paragraphs)
+    const pasteHtmlHandler = useCallback(() => {
+        setPasteHtml('');
+        setPasteError('');
+        setShowPasteHtml(true);
+    }, []);
+
     // Modules must be stable — never depend on value/onChange
     const modules = useMemo(
         () => ({
@@ -162,16 +172,18 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                     [{ align: [] }],
                     ['link', 'image', 'video'],
                     ['clean'],
+                    ['pasteHtml'],
                 ],
                 handlers: {
                     image: imageHandler,
+                    pasteHtml: pasteHtmlHandler,
                 },
             },
             clipboard: {
                 matchVisual: false,
             },
         }),
-        [imageHandler]
+        [imageHandler, pasteHtmlHandler]
     );
 
     const formats = useMemo(() => [
@@ -196,6 +208,42 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
         'height',
         'style',
     ], []);
+
+    // Decode common HTML entities in a text node
+    const decodeEntities = useCallback((text: string) => {
+        return text
+            .replace(/&nbsp;/gi, ' ')
+            .replace(/&amp;/gi, '&')
+            .replace(/&lt;/gi, '<')
+            .replace(/&gt;/gi, '>')
+            .replace(/&quot;/gi, '"')
+            .replace(/&#39;/gi, "'")
+            .replace(/&apos;/gi, "'");
+    }, []);
+
+    // Split raw HTML into paragraphs at block boundaries, stripping all other tags/attributes.
+    const htmlToParagraphs = useCallback((raw: string) => {
+        // Replace block-level openings (p, div) with a marker so their text stays attached
+        let text = raw.replace(/<(p|div|section|article|h[1-6]|li|blockquote)(\s[^>]*)?>/gi, '\n');
+        // Close-tags become markers too
+        text = text.replace(/<\/(p|div|section|article|h[1-6]|li|blockquote|tr|ul|ol)>/gi, '\n');
+        // <br> / <br/> => new line, remove other table wrappers
+        text = text.replace(/<br\s*\/?>/gi, '\n');
+        text = text.replace(/<\/?tr[^>]*>/gi, '\n');
+        text = text.replace(/<\/?td[^>]*>/gi, '');
+        // Remove any remaining tags entirely
+        text = text.replace(/<[^>]+>/g, '');
+        text = decodeEntities(text);
+
+        const lines = text
+            .split(/\n+/)
+            .map((l) => l.replace(/\s+/g, ' ').trim())
+            .filter((l) => l.length > 0);
+
+        if (lines.length === 0) return '';
+
+        return lines.map((line) => `<p>${line}</p>`).join('<p><br></p>');
+    }, [decodeEntities]);
 
     // --- Image Resize & Align Logic ---
     const triggerQuillUpdate = useCallback(() => {
@@ -382,6 +430,30 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
         setShowGallery(true);
         loadGalleryImages();
     }, [loadGalleryImages]);
+
+    const applyPastedHtml = useCallback(() => {
+        const converted = htmlToParagraphs(pasteHtml);
+        if (!converted) {
+            setPasteError('Không tìm thấy nội dung văn bản nào trong đoạn HTML bạn dán.');
+            return;
+        }
+        const quill = getQuillInstance();
+        if (quill) {
+            try {
+                // Load Deltas from the converted HTML, then replace the whole editor content
+                const delta = quill.clipboard.convert({ html: converted });
+                quill.setContents(delta, 'silent');
+                triggerQuillUpdate();
+                onChangeRef.current(converted);
+            } catch (err) {
+                console.error('Error applying pasted HTML:', err);
+                onChangeRef.current(converted);
+            }
+        } else {
+            onChangeRef.current((valueRef.current || '').replace(/<p[^>]*><\/p>/g, '') + converted);
+        }
+        setShowPasteHtml(false);
+    }, [htmlToParagraphs, pasteHtml, getQuillInstance, triggerQuillUpdate]);
 
     const formatFileSize = (bytes: number) => {
         if (bytes < 1024) return `${bytes} B`;
@@ -575,6 +647,65 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                 </div>
             )}
 
+            {/* Paste HTML Modal */}
+            {showPasteHtml && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowPasteHtml(false)}>
+                    <div
+                        className="bg-surface-container rounded-xl shadow-2xl w-[90vw] max-w-2xl max-h-[80vh] flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
+                            <h3 className="text-lg font-semibold text-on-surface">
+                                Dán mã HTML
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setShowPasteHtml(false)}
+                                className="p-1 rounded-lg text-on-surface-variant hover:text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6">
+                            <p className="text-sm text-on-surface-variant mb-3">
+                                Dán mã HTML vào ô bên dưới. Toàn bộ thẻ và thuộc tính HTML sẽ được bỏ đi,
+                                giữ lại văn bản và chia thành từng đoạn, thay thế nội dung hiện tại trong ô nhập.
+                            </p>
+                            <textarea
+                                value={pasteHtml}
+                                onChange={(e) => setPasteHtml(e.target.value)}
+                                placeholder="Ví dụ: &lt;div&gt;Đoạn văn 1...&lt;br&gt;&lt;br&gt;Đoạn văn 2...&lt;/div&gt;"
+                                className="w-full h-64 px-3 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm resize-none"
+                            />
+                            {pasteError && (
+                                <p className="mt-2 text-sm text-red-500">{pasteError}</p>
+                            )}
+                            <div className="mt-2 text-xs text-on-surface-variant">
+                                Nội dung chuyển đổi ({htmlToParagraphs(pasteHtml).replace(/<[^>]*>/g, '').length.toLocaleString()} ký tự, {htmlToParagraphs(pasteHtml).split('<p><br></p>').length} đoạn)
+                            </div>
+                        </div>
+
+                        <div className="px-6 py-3 border-t border-outline-variant flex items-center justify-end gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setShowPasteHtml(false)}
+                                className="px-4 py-2 text-sm font-medium rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-low transition-colors"
+                            >
+                                Huỷ
+                            </button>
+                            <button
+                                type="button"
+                                onClick={applyPastedHtml}
+                                className="px-4 py-2 text-sm font-medium rounded-lg bg-primary text-on-primary hover:opacity-90 transition-colors"
+                            >
+                                Dán và thay thế nội dung
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <style jsx global>{`
                 .quill {
                     background: white;
@@ -629,6 +760,12 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                 }
                 .dark .quill .ql-picker-label {
                     color: #9ca3af;
+                }
+                .quill .ql-toolbar .ql-pasteHtml {
+                    float: right;
+                    padding: 3px 10px;
+                    font-size: 13px;
+                    border-radius: 4px;
                 }
                 /* Image resize selection — limit ảnh lớn không vượt khung editor */
                 .ql-editor img {
