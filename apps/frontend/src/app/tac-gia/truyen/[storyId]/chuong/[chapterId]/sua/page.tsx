@@ -13,6 +13,7 @@ import { Loading } from '@/components/ui/loading';
 import { RichTextEditor } from '@/components/editor/rich-text-editor';
 import { MonetizationLockedNotice, useMonetizationLocked } from '@/components/author/monetization-locked-notice';
 import { ChapterAudioUpload } from '@/components/author/chapter-audio-upload';
+import { useEditorShortcuts } from '@/lib/hooks/use-editor-shortcuts';
 
 export default function EditChapterPage() {
     const params = useParams();
@@ -69,8 +70,8 @@ export default function EditChapterPage() {
         }
     }, [storySlug, chapterId]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (e?: React.FormEvent) => {
+        e?.preventDefault();
         setErrors({});
 
         // Validation
@@ -108,6 +109,12 @@ export default function EditChapterPage() {
             });
         }
     };
+
+    useEditorShortcuts({
+        onSave: () => handleSubmit(),
+        onNew: () => router.push(`/tac-gia/truyen/${storySlug}/chuong/tao`),
+        onList: () => router.push(`/tac-gia/truyen/${storySlug}/chuong`),
+    });
 
     if (storyLoading || isLoading) {
         return (
@@ -183,6 +190,7 @@ export default function EditChapterPage() {
                                     <button
                                         type="submit"
                                         form="chapter-form"
+                                        title="Ctrl/⌘+S để lưu"
                                         disabled={updateMutation.isPending || formData.content.replace(/<[^>]*>/g, '').length < 100}
                                         className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
@@ -190,6 +198,9 @@ export default function EditChapterPage() {
                                     </button>
                                 </div>
                             </div>
+                            <p className="mb-3 text-xs text-on-surface-variant hidden md:block">
+                                Phím tắt: <b>Ctrl/⌘+S</b> lưu · <b>Alt+N</b> chương mới · <b>Alt+L</b> danh sách chương
+                            </p>
 
                             <form id="chapter-form" onSubmit={handleSubmit} className="bg-surface-container rounded-lg shadow-sm p-6 md:p-8 space-y-6">
                                 {/* Title */}
