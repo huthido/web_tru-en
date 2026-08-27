@@ -199,7 +199,7 @@ export default function EditChapterPage() {
                                 </div>
                             </div>
                             <p className="mb-3 text-xs text-on-surface-variant hidden md:block">
-                                Phím tắt: <b>Ctrl/⌘+S</b> lưu · <b>Alt+N</b> chương mới · <b>Alt+L</b> danh sách chương
+                                Phím tắt: <b>Ctrl/⌘+S</b> lưu · <b>Alt+N</b> hoặc <b>Ctrl+M</b> chương mới · <b>Alt+L</b> danh sách chương
                             </p>
 
                             <form id="chapter-form" onSubmit={handleSubmit} className="bg-surface-container rounded-lg shadow-sm p-6 md:p-8 space-y-6">
