@@ -34,6 +34,8 @@ export interface UsersQuery {
   search?: string;
   role?: string;
   isActive?: boolean;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface UserStats {
@@ -109,6 +111,8 @@ export const usersService = {
     if (query?.search) params.append('search', query.search);
     if (query?.role) params.append('role', query.role);
     if (query?.isActive !== undefined) params.append('isActive', String(query.isActive));
+    if (query?.sortBy) params.append('sortBy', query.sortBy);
+    if (query?.sortOrder) params.append('sortOrder', query.sortOrder);
 
     const response = await apiClient.get<{ data: User[]; meta: any }>(`/users?${params.toString()}`);
     if ((response.data as any)?.data?.data && (response.data as any)?.data?.meta) {

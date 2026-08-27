@@ -237,6 +237,8 @@ export class UsersController {
     @Query('search') search?: string,
     @Query('role') role?: UserRole,
     @Query('isActive') isActive?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
   ) {
     return this.usersService.findAll({
       page: page ? parseInt(page) : undefined,
@@ -244,6 +246,8 @@ export class UsersController {
       search,
       role,
       isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
+      sortBy,
+      sortOrder: sortOrder === 'asc' ? 'asc' : 'desc',
     });
   }
 

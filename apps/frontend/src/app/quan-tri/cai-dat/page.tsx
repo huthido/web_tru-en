@@ -100,6 +100,10 @@ export default function AdminSettingsPage() {
         allowCoinTransfer: false,
         chapterAudioDownloadEnabled: false,
         copyProtectionEnabled: true,
+        // --- Auto-scroll sync ---
+        audioScrollSyncEnabled: true,
+        audioScrollSyncAuthorAudio: false,
+        audioScrollSyncWebSpeech: false,
         // --- Giọng đọc AI ---
         ttsAutoGenerateOnPublish: false,
         ttsSubscriptionPlans: [] as TtsSubscriptionPlan[],
@@ -197,6 +201,9 @@ export default function AdminSettingsPage() {
                 allowCoinTransfer: settings.allowCoinTransfer || false,
                 chapterAudioDownloadEnabled: (settings as any).chapterAudioDownloadEnabled ?? false,
                 copyProtectionEnabled: (settings as any).copyProtectionEnabled ?? true,
+                audioScrollSyncEnabled: (settings as any).audioScrollSyncEnabled ?? true,
+                audioScrollSyncAuthorAudio: (settings as any).audioScrollSyncAuthorAudio ?? false,
+                audioScrollSyncWebSpeech: (settings as any).audioScrollSyncWebSpeech ?? false,
                 ttsAutoGenerateOnPublish: (settings as any).ttsAutoGenerateOnPublish ?? false,
                 ttsSubscriptionPlans: Array.isArray((settings as any).ttsSubscriptionPlans)
                     ? (settings as any).ttsSubscriptionPlans
@@ -807,6 +814,66 @@ export default function AdminSettingsPage() {
                                     className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
                                 />
                             </div>
+
+                            {/* Auto-scroll sync: master toggle */}
+                            <div className="flex items-center justify-between border-t border-outline-variant pt-4">
+                                <div>
+                                    <label className="text-sm font-medium text-on-surface-variant">
+                                        Tự cuộn khi nghe đọc truyện
+                                    </label>
+                                    <p className="text-xs text-on-surface-variant">
+                                        Bật/tắt tính năng tự cuộn + highlight đoạn văn đang được đọc bởi audio<br />
+                                        Khi bật: Trang đọc tự di chuyển theo audio và đánh dấu đoạn đang đọc<br />
+                                        Khi tắt: Độc giả cuộn tay bình thường khi nghe
+                                    </p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.audioScrollSyncEnabled}
+                                    onChange={(e) => setFormData({ ...formData, audioScrollSyncEnabled: e.target.checked })}
+                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                />
+                            </div>
+
+                            {/* Auto-scroll: author audio */}
+                            {formData.audioScrollSyncEnabled && (
+                                <div className="flex items-center justify-between border-t border-outline-variant pt-4 ml-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-on-surface-variant">
+                                            Áp dụng cho audio tác giả
+                                        </label>
+                                        <p className="text-xs text-on-surface-variant">
+                                            Tự cuộn khi nghe file audio do tác giả tải lên (ước tính vị trí theo tỷ lệ text)
+                                        </p>
+                                    </div>
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.audioScrollSyncAuthorAudio}
+                                        onChange={(e) => setFormData({ ...formData, audioScrollSyncAuthorAudio: e.target.checked })}
+                                        className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Auto-scroll: Web Speech API */}
+                            {formData.audioScrollSyncEnabled && (
+                                <div className="flex items-center justify-between border-t border-outline-variant pt-4 ml-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-on-surface-variant">
+                                            Áp dụng cho giọng đọc thiết bị
+                                        </label>
+                                        <p className="text-xs text-on-surface-variant">
+                                            Tự cuộn khi nghe Web Speech API (giọng đọc của trình duyệt/thiết bị)
+                                        </p>
+                                    </div>
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.audioScrollSyncWebSpeech}
+                                        onChange={(e) => setFormData({ ...formData, audioScrollSyncWebSpeech: e.target.checked })}
+                                        className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                         </>

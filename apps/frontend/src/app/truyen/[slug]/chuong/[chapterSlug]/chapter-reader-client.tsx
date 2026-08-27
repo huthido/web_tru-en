@@ -28,10 +28,11 @@ import {
 } from '@/utils/reading-tracker';
 import { useSaveProgress, useChapterProgress } from '@/lib/api/hooks/use-reading-history';
 import { ChapterPaywall } from '@/components/stories/chapter-paywall';
-import { ChapterAudioPlayer, countryToTtsLang } from '@/components/stories/chapter-audio-player';
+import { ChapterAudioPlayer, countryToTtsLang, type ChapterAudioPlayerHandle } from '@/components/stories/chapter-audio-player';
 import { stripTtsEmotionTags } from '@/utils/tts-emotion';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { BookOpen, Search, Menu, Type, ChevronLeft, ChevronRight, X, Lock } from 'lucide-react';
+import { useAudioScrollSync } from '@/hooks/use-audio-scroll-sync';
+import { BookOpen, Search, Menu, Type, ChevronLeft, ChevronRight, X, Lock, ArrowDown } from 'lucide-react';
 
 export default function ChapterReadingPage() {
     const params = useParams();
@@ -108,6 +109,8 @@ export default function ChapterReadingPage() {
     const shouldRedirectToAdRef = useRef<boolean>(false);
     const pendingAdRef = useRef<any>(null);
     const isRestoringScrollRef = useRef<boolean>(false); // Flag to prevent saving during scroll restore
+    const audioPlayerRef = useRef<ChapterAudioPlayerHandle | null>(null);
+    const [audioScrollEnabled, setAudioScrollEnabled] = useState(true);
 
     // Fetch active ads
     const { data: popupAds = [] } = useActiveAds(AdType.POPUP);
@@ -118,8 +121,32 @@ export default function ChapterReadingPage() {
     const trackAdView = useTrackAdView();
     const trackAdClick = useTrackAdClick();
 
-    // Extract chapter data
+    // Extract chapter data (cần ở trên để xác định audio mode)
     const chapterData = (chapter as any)?.data || (chapter as any);
+
+    // Xác định chế độ audio đang dùng để quyết định auto-scroll có bật không.
+    // AI TTS luôn bật (mặc định). Author audio & Web Speech theo settings admin.
+    const hasAuthorAudio = !!chapterData?.audioUrl;
+    const hasAiTts = !!chapterData?.ttsAudioUrl;
+    const audioMode = hasAuthorAudio ? 'author' : hasAiTts ? 'ai' : 'webspeech';
+
+    const audioScrollSyncMasterEnabled = (siteSettings as any)?.audioScrollSyncEnabled ?? true;
+    const isAudioScrollModeEnabled =
+        audioMode === 'ai' ? audioScrollSyncMasterEnabled
+        : audioMode === 'author' ? audioScrollSyncMasterEnabled && ((siteSettings as any)?.audioScrollSyncAuthorAudio ?? false)
+        : audioScrollSyncMasterEnabled && ((siteSettings as any)?.audioScrollSyncWebSpeech ?? false);
+
+    // Auto-scroll sync: đồng bộ cuộn + highlight đoạn văn với audio playback.
+    // Truyền Web Speech position callback khi cần.
+    const { isAutoScrolling } = useAudioScrollSync({
+        playerRef: audioPlayerRef,
+        contentRef,
+        enabled: audioScrollEnabled && isAudioScrollModeEnabled,
+        getPositionMs: audioMode === 'webspeech' ? () => audioPlayerRef.current?.getPositionMs?.() ?? 0 : undefined,
+        totalDurationMs: audioMode === 'webspeech' ? audioPlayerRef.current?.totalDurationMs : undefined,
+        isPlaying: audioMode === 'webspeech' ? audioPlayerRef.current?.isPlaying ?? false : undefined,
+    });
+
     // Spec mục 4: FREEMIUM ẩn nhãn trả phí ở danh sách chương.
     const storyAccessType = (story as any)?.data?.accessType || (story as any)?.accessType
         || chapterData?.accessType;
@@ -438,8 +465,8 @@ export default function ChapterReadingPage() {
         const handleScroll = () => {
             if (!contentElement || !chapterId) return;
 
-            // Skip saving if we're restoring scroll position
-            if (isRestoringScrollRef.current) return;
+            // Skip saving if we're restoring scroll position or auto-scrolling
+            if (isRestoringScrollRef.current || isAutoScrolling) return;
 
             // Calculate progress based on window scroll position relative to content element
             const contentTop = contentElement.offsetTop;
@@ -532,8 +559,8 @@ export default function ChapterReadingPage() {
         const checkAndSaveComplete = () => {
             if (!contentElement || !user || !chapterId) return;
 
-            // Skip saving if we're restoring scroll position
-            if (isRestoringScrollRef.current) return;
+            // Skip saving if we're restoring scroll position or auto-scrolling
+            if (isRestoringScrollRef.current || isAutoScrolling) return;
 
             const contentTop = contentElement.offsetTop;
             const contentHeight = contentElement.scrollHeight;
@@ -592,7 +619,7 @@ export default function ChapterReadingPage() {
                 clearTimeout(scrollEndTimer);
             }
         };
-    }, [user, chapterId, saveProgress, storySlug, chapterSlug]); // Removed chapterData, added storySlug and chapterSlug
+    }, [user, chapterId, saveProgress, storySlug, chapterSlug, isAutoScrolling]); // Removed chapterData, added storySlug and chapterSlug
 
     // Get back URL - always go to parent page (story detail page)
     // Except if coming from author edit context
@@ -812,6 +839,7 @@ export default function ChapterReadingPage() {
                                         Chương khoá thì ẩn (audioUrl đã bị server ẩn, content chỉ là teaser). */}
                                     {!chapterData.isLocked && (
                                         <ChapterAudioPlayer
+                                            ref={audioPlayerRef}
                                             key={chapterData.id}
                                             audioUrl={chapterData.audioUrl}
                                             content={chapterData.content}
@@ -997,6 +1025,25 @@ export default function ChapterReadingPage() {
                                 >
                                     <BookOpen size={18} />
                                     <span>{showChapterList ? 'Ẩn danh sách chương' : 'Hiện danh sách chương'}</span>
+                                </button>
+                            </div>
+
+                            {/* Audio Auto-Scroll Toggle */}
+                            <div className="mb-2 pb-2 border-b border-outline-variant">
+                                <button
+                                    onClick={() => {
+                                        setAudioScrollEnabled(!audioScrollEnabled);
+                                        setShowFloatingMenu(false);
+                                    }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-surface-container-high rounded-lg transition-colors"
+                                >
+                                    <ArrowDown size={18} className={audioScrollEnabled ? 'text-primary' : 'text-on-surface-variant'} />
+                                    <span className={audioScrollEnabled ? 'text-primary font-medium' : 'text-on-surface-variant'}>
+                                        {audioScrollEnabled ? 'Tắt tự cuộn' : 'Bật tự cuộn'}
+                                    </span>
+                                    <div className={`ml-auto w-9 h-5 rounded-full transition-colors relative ${audioScrollEnabled ? 'bg-primary' : 'bg-surface-container-highest'}`}>
+                                        <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${audioScrollEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                                    </div>
                                 </button>
                             </div>
 

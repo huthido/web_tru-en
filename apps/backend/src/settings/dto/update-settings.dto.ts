@@ -172,6 +172,22 @@ export class UpdateSettingsDto {
   @IsBoolean()
   copyProtectionEnabled?: boolean;
 
+  // ─── Auto-scroll sync: đồng bộ cuộn + highlight khi nghe audio ───
+  // Master toggle — bật/tắt toàn bộ tính năng.
+  @IsOptional()
+  @IsBoolean()
+  audioScrollSyncEnabled?: boolean;
+
+  // Bật auto-scroll cho audio do tác giả tải lên.
+  @IsOptional()
+  @IsBoolean()
+  audioScrollSyncAuthorAudio?: boolean;
+
+  // Bật auto-scroll cho Web Speech API (giọng đọc thiết bị).
+  @IsOptional()
+  @IsBoolean()
+  audioScrollSyncWebSpeech?: boolean;
+
   // Spec mục 17 — số xu tối thiểu được rút.
   @IsOptional()
   @IsInt()

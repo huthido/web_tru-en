@@ -908,6 +908,13 @@ model Settings {
   // Chống copy nội dung chương trên trang đọc (chặn bôi đen/copy/chuột phải —
   // chặn mềm phía client; tác giả truyện + admin được miễn). Mặc định bật.
   copyProtectionEnabled       Boolean @default(true)
+  // ─── Auto-scroll sync: đồng bộ cuộn + highlight đoạn văn khi nghe audio ───
+  // Master toggle — bật/tắt toàn bộ tính năng auto-scroll trên trang đọc.
+  audioScrollSyncEnabled      Boolean @default(true)
+  // Bật auto-scroll cho audio do tác giả tải lên (file MP3).
+  audioScrollSyncAuthorAudio  Boolean @default(false)
+  // Bật auto-scroll cho Web Speech API (giọng đọc thiết bị).
+  audioScrollSyncWebSpeech    Boolean @default(false)
   // ─── Giọng đọc AI (TTS) ───
   // Tự xếp hàng sinh audio AI ngay khi chương được xuất bản. Mặc định TẮT:
   // mỗi chương tốn nhiều phút CPU worker, admin chủ động bật khi đủ máy.

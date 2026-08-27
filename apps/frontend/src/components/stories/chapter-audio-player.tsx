@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Headphones, Loader2, Pause, Play, Sparkles, Square } from 'lucide-react';
 import { chaptersService, type TtsAudioStatus } from '@/lib/api/chapters.service';
 import { statisticsService } from '@/lib/api/statistics.service';
@@ -122,19 +122,35 @@ function voiceLabel(v: SpeechSynthesisVoice): string {
  * - Tác giả có tải audio → phát file đó bằng <audio>.
  * - Không có audio → đọc nội dung chương bằng Web Speech API (giọng vi-VN
  *   nếu thiết bị có). Trình duyệt không hỗ trợ TTS thì ẩn hẳn khối này.
+ *
+ * Sử dụng forwardRef để component cha có thể truy cập audio element
+ * (dùng cho auto-scroll sync).
  */
-export function ChapterAudioPlayer({
-    audioUrl,
-    content,
-    preferredLang,
-    chapterId,
-    ttsAudioUrl,
-    ttsAudioStatus,
-    ttsVoiceName,
-    canRequestTts,
-    canRegenerateTts,
-    allowDownload,
-}: ChapterAudioPlayerProps) {
+/** Handle type exposed via ref — có getElement() để tránh stale closure. */
+export interface ChapterAudioPlayerHandle {
+    getElement: () => HTMLAudioElement | null;
+    /** Lấy vị trí hiện tại (ms) — dùng cho Web Speech API (không có timeupdate). */
+    getPositionMs?: () => number;
+    /** true khi audio đang phát (dùng cho Web Speech polling). */
+    isPlaying?: boolean;
+    /** Tổng thời lượng ước tính (ms) — dùng cho Web Speech API. */
+    totalDurationMs?: number;
+}
+
+const ChapterAudioPlayerInner = forwardRef<ChapterAudioPlayerHandle, ChapterAudioPlayerProps>(
+function ChapterAudioPlayerInner(props, ref) {
+    const {
+        audioUrl,
+        content,
+        preferredLang,
+        chapterId,
+        ttsAudioUrl,
+        ttsAudioStatus,
+        ttsVoiceName,
+        canRequestTts,
+        canRegenerateTts,
+        allowDownload,
+    } = props;
     // Chặn mềm tải xuống khi admin chưa bật (ẩn nút download + menu chuột phải).
     const audioGuardProps = allowDownload
         ? {}
@@ -159,6 +175,44 @@ export function ChapterAudioPlayer({
     const chunksRef = useRef<string[]>([]);
     const chunkIndexRef = useRef(0);
     const stoppedRef = useRef(false);
+    const authorAudioRef = useRef<HTMLAudioElement | null>(null);
+    const aiAudioRef = useRef<HTMLAudioElement | null>(null);
+
+    // Web Speech API: theo dõi chunk hiện tại + ước tính vị trí (ms).
+    const totalTextLengthRef = useRef(0);
+    const chunkTextLengthsRef = useRef<number[]>([]);
+    const WEB_SPEECH_WPM = 150; // từ/phút — tốc độ đọc trung bình tiếng Việt
+    const WEB_SPEECH_CHARS_PER_MS = (WEB_SPEECH_WPM * 5) / 60000; // ~12.5 chars/ms
+
+    // Expose audio element + Web Speech position cho component cha.
+    useImperativeHandle(ref, () => ({
+        getElement: () => aiAudioRef.current || authorAudioRef.current,
+        getPositionMs: ttsState !== 'idle' ? () => {
+            const chunks = chunksRef.current;
+            const chunkIdx = chunkIndexRef.current;
+            if (chunks.length === 0) return 0;
+
+            // Tính tổng duration ước tính dựa trên tổng ký tự
+            const totalMs = totalTextLengthRef.current / WEB_SPEECH_CHARS_PER_MS;
+
+            // Tính thời gian đã qua = tổng duration các chunk đã đọc xong
+            let elapsedMs = 0;
+            for (let i = 0; i < chunkIdx && i < chunks.length; i++) {
+                elapsedMs += (chunkTextLengthsRef.current[i] || chunks[i].length) / WEB_SPEECH_CHARS_PER_MS;
+            }
+
+            // Thêm ước tính phần trăm chunk hiện tại (dựa trên progress)
+            const chunkProgress = progress / 100;
+            const currentChunkMs = (chunkTextLengthsRef.current[chunkIdx] || chunks[chunkIdx]?.length || 0) / WEB_SPEECH_CHARS_PER_MS;
+            elapsedMs += currentChunkMs * chunkProgress;
+
+            return Math.min(elapsedMs, totalMs);
+        } : undefined,
+        isPlaying: ttsState === 'playing',
+        totalDurationMs: totalTextLengthRef.current > 0
+            ? totalTextLengthRef.current / WEB_SPEECH_CHARS_PER_MS
+            : undefined,
+    }));
     // Ghi lượt nghe MỖI LẦN bấm nút nghe (bấm play / Nghe). Debounce ngắn để
     // gộp các sự kiện trùng của cùng 1 lần bấm (vd play bắn 2 lần).
     const lastListenAtRef = useRef(0);
@@ -296,7 +350,13 @@ export function ChapterAudioPlayer({
         trackListen('webspeech');
         window.speechSynthesis.cancel();
         stoppedRef.current = false;
-        chunksRef.current = splitIntoChunks(text);
+        const chunks = splitIntoChunks(text);
+        chunksRef.current = chunks;
+
+        // Lưu độ dài text cho Web Speech position tracking.
+        totalTextLengthRef.current = text.length;
+        chunkTextLengthsRef.current = chunks.map((c) => c.length);
+
         setTtsState('playing');
 
         // getVoices() có thể rỗng ở lần gọi đầu (Chrome nạp voice bất đồng bộ).
@@ -448,7 +508,7 @@ export function ChapterAudioPlayer({
                     <span>Nghe chương này</span>
                     <span className="text-xs font-normal text-on-surface-variant">(audio do tác giả tải lên)</span>
                 </div>
-                <audio controls preload="metadata" src={audioUrl} className="w-full" onPlay={() => trackListen('author')} {...audioGuardProps}>
+                <audio ref={authorAudioRef} controls preload="metadata" src={audioUrl} className="w-full" onPlay={() => trackListen('author')} {...audioGuardProps}>
                     Trình duyệt không hỗ trợ phát audio.
                 </audio>
             </div>
@@ -481,7 +541,7 @@ export function ChapterAudioPlayer({
                         </button>
                     )}
                 </div>
-                <audio controls preload="metadata" src={aiUrl} className="w-full" onPlay={() => trackListen('ai')} {...audioGuardProps}>
+                <audio ref={aiAudioRef} controls preload="metadata" src={aiUrl} className="w-full" onPlay={() => trackListen('ai')} {...audioGuardProps}>
                     Trình duyệt không hỗ trợ phát audio.
                 </audio>
                 {aiError && <p className="mt-2 text-xs text-error">{aiError}</p>}
@@ -639,4 +699,6 @@ export function ChapterAudioPlayer({
             )}
         </div>
     );
-}
+});
+
+export const ChapterAudioPlayer = ChapterAudioPlayerInner;

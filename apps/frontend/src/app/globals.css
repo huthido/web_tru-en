@@ -519,6 +519,21 @@ textarea::placeholder {
   color: #9ca3af;
 }
 
+/* Audio scroll sync — paragraph đang được đọc bởi TTS */
+p.audio-sync-active {
+  background-color: rgba(99, 102, 241, 0.08);
+  border-left: 3px solid rgb(99, 102, 241);
+  padding-left: 0.75rem;
+  margin-left: -0.75rem;
+  border-radius: 0 4px 4px 0;
+  transition: background-color 0.3s ease, border-color 0.3s ease, padding 0.3s ease;
+}
+
+.dark p.audio-sync-active {
+  background-color: rgba(129, 140, 248, 0.12);
+  border-left-color: rgb(129, 140, 248);
+}
+
 /* Quill editor height for chapter editing */
 .ql-container.ql-snow {
   min-height: 400px;

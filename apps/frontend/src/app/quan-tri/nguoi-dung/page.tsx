@@ -15,7 +15,8 @@ export default function AdminUsersPage() {
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState<string>('');
     const [isActiveFilter, setIsActiveFilter] = useState<string>('');
-    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [sortBy, setSortBy] = useState<string>('createdAt');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');    const [editingUser, setEditingUser] = useState<User | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
     const [viewingUser, setViewingUser] = useState<User | null>(null);
     const [showViewModal, setShowViewModal] = useState(false);
@@ -31,6 +32,8 @@ export default function AdminUsersPage() {
         search: search || undefined,
         role: roleFilter || undefined,
         isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
+        sortBy,
+        sortOrder,
     });
 
     const updateMutation = useUpdateUser();
@@ -215,7 +218,7 @@ export default function AdminUsersPage() {
 
                 {/* Filters */}
                 <div className="bg-surface-container rounded-lg p-4 shadow-sm">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Tìm kiếm
@@ -266,6 +269,60 @@ export default function AdminUsersPage() {
                                 <option value="false">Đã khóa</option>
                             </select>
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                                Sắp xếp theo
+                            </label>
+                            <select
+                                value={sortBy}
+                                onChange={(e) => {
+                                    setSortBy(e.target.value);
+                                    setPage(1);
+                                }}
+                                className="w-full px-3 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
+                            >
+                                <option value="createdAt">Ngày tạo</option>
+                                <option value="authoredStories">Số truyện</option>
+                                <option value="comments">Số bình luận</option>
+                                <option value="favorites">Số yêu thích</option>
+                                <option value="follows">Số theo dõi</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                                Thứ tự
+                            </label>
+                            <div className="flex">
+                                <button
+                                    onClick={() => {
+                                        setSortOrder('desc');
+                                        setPage(1);
+                                    }}
+                                    className={`flex-1 px-3 py-2 border rounded-l-lg text-sm font-medium transition-colors ${
+                                        sortOrder === 'desc'
+                                            ? 'bg-primary text-on-primary border-primary'
+                                            : 'bg-surface-container text-on-surface border-outline-variant hover:bg-surface-container-high'
+                                    }`}
+                                >
+                                    Giảm dần ↓
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setSortOrder('asc');
+                                        setPage(1);
+                                    }}
+                                    className={`flex-1 px-3 py-2 border border-l-0 rounded-r-lg text-sm font-medium transition-colors ${
+                                        sortOrder === 'asc'
+                                            ? 'bg-primary text-on-primary border-primary'
+                                            : 'bg-surface-container text-on-surface border-outline-variant hover:bg-surface-container-high'
+                                    }`}
+                                >
+                                    Tăng dần ↑
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-3 flex items-center gap-4">
                         <div>
                             <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Số lượng / trang

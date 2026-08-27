@@ -370,6 +370,8 @@ export class UsersService {
     search?: string;
     role?: string;
     isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
   }) {
     const { page = 1, limit = 20 } = options || {};
     const skip = (page - 1) * limit;
@@ -393,6 +395,14 @@ export class UsersService {
       where.isActive = options.isActive;
     }
 
+    const validSortFields = ['createdAt', 'authoredStories', 'comments', 'favorites', 'follows'];
+    const sortField = validSortFields.includes(options?.sortBy || '') ? options!.sortBy! : 'createdAt';
+    const sortDir = options?.sortOrder === 'asc' ? 'asc' : 'desc';
+
+    const orderBy = sortField === 'createdAt'
+      ? { createdAt: sortDir as 'asc' | 'desc' }
+      : { [sortField]: { _count: sortDir as 'asc' | 'desc' } };
+
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
@@ -415,7 +425,7 @@ export class UsersService {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take: limit,
       }),
