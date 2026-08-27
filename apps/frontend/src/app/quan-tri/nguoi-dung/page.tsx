@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Loading } from '@/components/ui/loading';
-import { useUsers, useUpdateUser } from '@/lib/api/hooks/use-users';
+import { useUsers, useUpdateUser, useAdminUserDetail } from '@/lib/api/hooks/use-users';
 import { User } from '@/lib/api/users.service';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { UserRole } from '@shared/types';
@@ -597,6 +597,15 @@ export default function AdminUsersPage() {
     );
 }
 
+function StatCell({ label, value }: { label: string; value: React.ReactNode }) {
+    return (
+        <div className="bg-surface-container-low p-3 rounded-lg">
+            <div className="text-xs text-on-surface-variant">{label}</div>
+            <div className="text-lg font-bold text-on-surface">{value}</div>
+        </div>
+    );
+}
+
 function ViewUserModal({
     user,
     onClose,
@@ -604,6 +613,9 @@ function ViewUserModal({
     user: User;
     onClose: () => void;
 }) {
+    const { data: detail, isLoading: detailLoading } = useAdminUserDetail(user.id);
+    const s = detail?.stats;
+    const fmt = (n?: number | null) => (n ?? 0).toLocaleString('vi-VN');
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-surface-container rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -699,35 +711,51 @@ function ViewUserModal({
                             </div>
                         )}
 
+                        {/* Tài khoản */}
+                        <div>
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">Tài khoản</label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                <div><span className="text-on-surface-variant">ID: </span><span className="text-on-surface break-all">{detail?.id || user.id}</span></div>
+                                <div><span className="text-on-surface-variant">Đăng nhập qua: </span><span className="text-on-surface">{detail?.provider || 'local'}</span></div>
+                                <div><span className="text-on-surface-variant">Xác thực email: </span><span className="text-on-surface">{detail ? (detail.emailVerified ? 'Đã xác thực' : 'Chưa') : '…'}</span></div>
+                                <div><span className="text-on-surface-variant">Slug hồ sơ: </span><span className="text-on-surface">{detail?.profileSlug || '—'}</span></div>
+                                <div className="sm:col-span-2"><span className="text-on-surface-variant">Gói giọng AI: </span><span className="text-on-surface">{detail?.ttsSubscriptionExpiresAt ? `Đến ${new Date(detail.ttsSubscriptionExpiresAt).toLocaleDateString('vi-VN')}` : 'Không có'}</span></div>
+                            </div>
+                        </div>
+
+                        {/* Ví xu */}
                         <div>
                             <label className="block text-sm font-medium text-on-surface-variant mb-2">
-                                Thống kê
+                                Ví xu {detail?.wallet?.isLocked && <span className="text-xs text-error">(đang khoá)</span>}
                             </label>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="bg-surface-container-low p-3 rounded-lg">
-                                    <div className="text-sm text-on-surface-variant">Truyện đã tạo</div>
-                                    <div className="text-2xl font-bold text-on-surface">
-                                        {user._count?.authoredStories || 0}
-                                    </div>
-                                </div>
-                                <div className="bg-surface-container-low p-3 rounded-lg">
-                                    <div className="text-sm text-on-surface-variant">Bình luận</div>
-                                    <div className="text-2xl font-bold text-on-surface">
-                                        {user._count?.comments || 0}
-                                    </div>
-                                </div>
-                                <div className="bg-surface-container-low p-3 rounded-lg">
-                                    <div className="text-sm text-on-surface-variant">Yêu thích</div>
-                                    <div className="text-2xl font-bold text-on-surface">
-                                        {user._count?.favorites || 0}
-                                    </div>
-                                </div>
-                                <div className="bg-surface-container-low p-3 rounded-lg">
-                                    <div className="text-sm text-on-surface-variant">Theo dõi</div>
-                                    <div className="text-2xl font-bold text-on-surface">
-                                        {user._count?.follows || 0}
-                                    </div>
-                                </div>
+                            <div className="grid grid-cols-3 gap-3">
+                                <StatCell label="Số dư" value={<span className="text-primary">{fmt(detail?.wallet?.balance)}</span>} />
+                                <StatCell label="Xu đã nạp" value={fmt(detail?.wallet?.purchasedBalance)} />
+                                <StatCell label="Xu kiếm được" value={fmt(detail?.wallet?.earnedBalance)} />
+                            </div>
+                        </div>
+
+                        {/* Thống kê đầy đủ */}
+                        <div>
+                            <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                                Thống kê {detailLoading && <span className="text-xs">(đang tải…)</span>}
+                            </label>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                <StatCell label="Truyện đã tạo" value={fmt(s?.authoredStories)} />
+                                <StatCell label="Đã xuất bản" value={fmt(s?.publishedStories)} />
+                                <StatCell label="Tổng lượt xem" value={fmt(s?.totalStoryViews)} />
+                                <StatCell label="Người theo dõi" value={fmt(s?.authorFollowers)} />
+                                <StatCell label="Đang theo dõi" value={fmt(s?.followingStories)} />
+                                <StatCell label="Yêu thích" value={fmt(s?.favorites)} />
+                                <StatCell label="Bình luận" value={fmt(s?.comments)} />
+                                <StatCell label="Đánh giá" value={fmt(s?.ratings)} />
+                                <StatCell label="Vật phẩm tạo" value={fmt(s?.itemsCreated)} />
+                                <StatCell label="Mua chương" value={fmt(s?.chapterPurchases)} />
+                                <StatCell label="Mua truyện" value={fmt(s?.storyPurchases)} />
+                                <StatCell label="Mua vật phẩm" value={fmt(s?.itemPurchases)} />
+                                <StatCell label="Tổng chi (xu)" value={fmt(s?.totalSpent)} />
+                                <StatCell label="Nhận donate" value={fmt(s?.donationsReceived)} />
+                                <StatCell label="Yêu cầu rút" value={fmt(s?.withdrawalRequests)} />
                             </div>
                         </div>
 

@@ -247,6 +247,14 @@ export class UsersController {
     });
   }
 
+  /** Admin: thông tin đầy đủ 1 người dùng (hồ sơ + ví + thống kê). */
+  @Get('admin/detail/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getAdminUserDetail(@Param('id') id: string) {
+    return this.usersService.getAdminUserDetail(id);
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)

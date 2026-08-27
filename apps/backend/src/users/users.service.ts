@@ -267,6 +267,88 @@ export class UsersService {
     return user;
   }
 
+  /** Admin: thông tin ĐẦY ĐỦ của 1 người dùng — hồ sơ + ví + thống kê. */
+  async getAdminUserDetail(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        profileSlug: true,
+        displayName: true,
+        avatar: true,
+        bio: true,
+        role: true,
+        isActive: true,
+        emailVerified: true,
+        provider: true,
+        ttsSubscriptionExpiresAt: true,
+        ttsVoicePreset: true,
+        createdAt: true,
+        updatedAt: true,
+        wallet: {
+          select: { balance: true, purchasedBalance: true, earnedBalance: true, isLocked: true },
+        },
+        _count: {
+          select: {
+            authoredStories: true,
+            chapterPurchases: true,
+            storyPurchases: true,
+            storyItemPurchases: true,
+            storyItems: true,
+            favorites: true,
+            follows: true,
+            authorFollowers: true,
+            comments: true,
+            ratings: true,
+            receivedDonations: true,
+            sentDonations: true,
+            withdrawalRequests: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User không tồn tại');
+    }
+
+    const [publishedStories, viewsAgg, chSpent, stSpent, itSpent] = await Promise.all([
+      this.prisma.story.count({ where: { authorId: id, isPublished: true } }),
+      this.prisma.story.aggregate({ where: { authorId: id }, _sum: { viewCount: true } }),
+      this.prisma.chapterPurchase.aggregate({ where: { userId: id }, _sum: { pricePaid: true } }),
+      this.prisma.storyPurchase.aggregate({ where: { userId: id }, _sum: { pricePaid: true } }),
+      this.prisma.storyItemPurchase.aggregate({ where: { userId: id }, _sum: { pricePaid: true } }),
+    ]);
+    const totalSpent =
+      (chSpent._sum.pricePaid || 0) + (stSpent._sum.pricePaid || 0) + (itSpent._sum.pricePaid || 0);
+
+    const { _count, wallet, ...profile } = user;
+    return {
+      ...profile,
+      wallet: wallet || { balance: 0, purchasedBalance: 0, earnedBalance: 0, isLocked: false },
+      stats: {
+        authoredStories: _count.authoredStories,
+        publishedStories,
+        totalStoryViews: viewsAgg._sum.viewCount || 0,
+        authorFollowers: _count.authorFollowers,
+        followingStories: _count.follows,
+        favorites: _count.favorites,
+        comments: _count.comments,
+        ratings: _count.ratings,
+        chapterPurchases: _count.chapterPurchases,
+        storyPurchases: _count.storyPurchases,
+        itemPurchases: _count.storyItemPurchases,
+        itemsCreated: _count.storyItems,
+        totalSpent,
+        donationsReceived: _count.receivedDonations,
+        donationsSent: _count.sentDonations,
+        withdrawalRequests: _count.withdrawalRequests,
+      },
+    };
+  }
+
   async getUserByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },

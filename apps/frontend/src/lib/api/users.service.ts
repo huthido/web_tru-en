@@ -61,6 +61,43 @@ export interface PublicProfile {
   };
 }
 
+export interface AdminUserDetail {
+  id: string;
+  email: string;
+  username: string;
+  profileSlug?: string | null;
+  displayName?: string | null;
+  avatar?: string | null;
+  bio?: string | null;
+  role: string;
+  isActive: boolean;
+  emailVerified: boolean;
+  provider?: string | null;
+  ttsSubscriptionExpiresAt?: string | null;
+  ttsVoicePreset?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  wallet: { balance: number; purchasedBalance: number; earnedBalance: number; isLocked: boolean };
+  stats: {
+    authoredStories: number;
+    publishedStories: number;
+    totalStoryViews: number;
+    authorFollowers: number;
+    followingStories: number;
+    favorites: number;
+    comments: number;
+    ratings: number;
+    chapterPurchases: number;
+    storyPurchases: number;
+    itemPurchases: number;
+    itemsCreated: number;
+    totalSpent: number;
+    donationsReceived: number;
+    donationsSent: number;
+    withdrawalRequests: number;
+  };
+}
+
 export const usersService = {
   /**
    * Get all users (admin only)
@@ -83,6 +120,11 @@ export const usersService = {
   /**
    * Update user (admin only)
    */
+  getAdminDetail: async (id: string): Promise<AdminUserDetail> => {
+    const response = await apiClient.get(`/users/admin/detail/${id}`);
+    return response.data as unknown as AdminUserDetail;
+  },
+
   update: async (id: string, data: AdminUpdateUserRequest): Promise<ApiResponse<User>> => {
     const response = await apiClient.patch<User>(`/users/${id}`, data);
     return response.data as any;

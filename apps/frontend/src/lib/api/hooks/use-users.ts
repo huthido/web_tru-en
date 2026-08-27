@@ -27,6 +27,18 @@ export const useUpdateUser = () => {
 };
 
 /**
+ * Get full user detail (admin only) — hồ sơ + ví + thống kê.
+ */
+export const useAdminUserDetail = (id: string | null) => {
+  return useQuery({
+    queryKey: ['users', 'admin-detail', id],
+    queryFn: () => usersService.getAdminDetail(id!),
+    enabled: !!id,
+    staleTime: 30 * 1000,
+  });
+};
+
+/**
  * Get user stats (current user)
  */
 export const useUserStats = () => {
