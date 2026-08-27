@@ -137,14 +137,17 @@ export default function ChapterReadingPage() {
         : audioScrollSyncMasterEnabled && ((siteSettings as any)?.audioScrollSyncWebSpeech ?? false);
 
     // Auto-scroll sync: đồng bộ cuộn + highlight đoạn văn với audio playback.
-    // Truyền Web Speech position callback khi cần.
+    // Truyền Web Speech position callback khi cần (giữ identity ổn định để
+    // effect trong hook không cleanup/re-run mỗi lần trang re-render).
+    const getWebSpeechPositionMs = React.useCallback(
+        () => audioPlayerRef.current?.getPositionMs?.() ?? 0,
+        []
+    );
     const { isAutoScrolling } = useAudioScrollSync({
         playerRef: audioPlayerRef,
         contentRef,
         enabled: audioScrollEnabled && isAudioScrollModeEnabled,
-        getPositionMs: audioMode === 'webspeech' ? () => audioPlayerRef.current?.getPositionMs?.() ?? 0 : undefined,
-        totalDurationMs: audioMode === 'webspeech' ? audioPlayerRef.current?.totalDurationMs : undefined,
-        isPlaying: audioMode === 'webspeech' ? audioPlayerRef.current?.isPlaying ?? false : undefined,
+        getPositionMs: audioMode === 'webspeech' ? getWebSpeechPositionMs : undefined,
     });
 
     // Spec mục 4: FREEMIUM ẩn nhãn trả phí ở danh sách chương.

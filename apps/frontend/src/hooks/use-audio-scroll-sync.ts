@@ -13,15 +13,6 @@ interface AudioScrollSyncOptions {
      * Khi cung cấp, hook dùng polling (setInterval) thay vì event.
      */
     getPositionMs?: () => number;
-    /**
-     * Tổng thời lượng audio (ms) — cần thiết khi dùng getPositionMs
-     * vì Web Speech API không có thuộc tính duration.
-     */
-    totalDurationMs?: number;
-    /**
-     * True khi audio đang phát — dùng để start/stop polling.
-     */
-    isPlaying?: boolean;
 }
 
 interface AudioScrollSyncResult {
@@ -47,8 +38,6 @@ export function useAudioScrollSync({
     contentRef,
     enabled,
     getPositionMs,
-    totalDurationMs,
-    isPlaying = false,
 }: AudioScrollSyncOptions): AudioScrollSyncResult {
     const [activeParagraphIndex, setActiveParagraphIndex] = useState(-1);
     const [isAutoScrolling, setIsAutoScrolling] = useState(false);
@@ -56,6 +45,7 @@ export function useAudioScrollSync({
     const paragraphElsRef = useRef<Element[]>([]);
     const isAutoScrollingRef = useRef(false);
     const currentIndexRef = useRef(-1);
+    const durationMsRef = useRef(0);
 
     /** Lấy audio element từ player handle. */
     const getAudioElement = useCallback((): HTMLAudioElement | null => {
@@ -71,13 +61,14 @@ export function useAudioScrollSync({
     const buildTimeline = useCallback((durationMs: number) => {
         const container = contentRef.current;
         if (!container) return;
+        if (!durationMs || !isFinite(durationMs)) return;
+        durationMsRef.current = durationMs;
 
         const paragraphs = Array.from(container.querySelectorAll('p'));
         const textLengths = paragraphs.map((p) => getElementText(p).length);
 
         const totalTextLength = textLengths.reduce((sum, len) => sum + len, 0);
         if (totalTextLength === 0 || paragraphs.length === 0) return;
-        if (!durationMs || !isFinite(durationMs)) return;
 
         paragraphElsRef.current = paragraphs;
         timelineRef.current = paragraphs.map((_, i) => {
@@ -86,6 +77,20 @@ export function useAudioScrollSync({
             return { startMs, endMs };
         });
     }, [contentRef, getElementText]);
+
+    /**
+     * Khối nội dung có thể bị React render lại SAU khi timeline đã build
+     * (query ads/settings về muộn làm `dangerouslySetInnerHTML` thay toàn bộ
+     * DOM) — các <p> cũ bị tháo khỏi DOM, highlight/scroll rơi vào node chết.
+     * Phát hiện qua isConnected và build lại từ DOM hiện tại.
+     */
+    const ensureTimeline = useCallback(() => {
+        const els = paragraphElsRef.current;
+        if (els.length > 0 && els[0].isConnected) return;
+        if (!durationMsRef.current) return;
+        buildTimeline(durationMsRef.current);
+        currentIndexRef.current = -1; // ép highlight lại trên node mới
+    }, [buildTimeline]);
 
     /** Map thời gian hiện tại → paragraph index. */
     const getActiveParagraph = useCallback((currentTimeMs: number): number => {
@@ -143,6 +148,7 @@ export function useAudioScrollSync({
 
     /** Sync current time → paragraph (dùng chung cho cả 2 chế độ). */
     const syncToParagraph = useCallback((currentTimeMs: number) => {
+        ensureTimeline();
         if (timelineRef.current.length === 0) return;
         const newIndex = getActiveParagraph(currentTimeMs);
         if (newIndex >= 0 && newIndex !== currentIndexRef.current) {
@@ -154,7 +160,7 @@ export function useAudioScrollSync({
                 scrollToParagraph(el);
             }
         }
-    }, [getActiveParagraph, highlightParagraph, scrollToParagraph]);
+    }, [ensureTimeline, getActiveParagraph, highlightParagraph, scrollToParagraph]);
 
     // ─── Chế độ 1: Audio element (AI TTS / author audio) ───
     // Dùng timeupdate event — chính xác, không cần polling.
@@ -171,6 +177,7 @@ export function useAudioScrollSync({
 
         const onTimeUpdate = () => syncToParagraph(audio.currentTime * 1000);
         const onSeeked = () => {
+            ensureTimeline();
             if (timelineRef.current.length === 0) return;
             const idx = getActiveParagraph(audio.currentTime * 1000);
             currentIndexRef.current = idx;
@@ -196,21 +203,24 @@ export function useAudioScrollSync({
             setActiveParagraphIndex(-1);
             currentIndexRef.current = -1;
         };
-    }, [enabled, getPositionMs, getAudioElement, buildTimeline, syncToParagraph, getActiveParagraph, highlightParagraph, clearHighlights]);
+    }, [enabled, getPositionMs, getAudioElement, buildTimeline, ensureTimeline, syncToParagraph, getActiveParagraph, highlightParagraph, clearHighlights]);
 
     // ─── Chế độ 2: Custom position (Web Speech API) ───
     // Dùng polling — Web Speech API không có timeupdate event.
+    // Đọc isPlaying/totalDurationMs TRỰC TIẾP từ player handle mỗi tick:
+    // truyền qua props thì giá trị bị "đóng băng" ở render cuối của component
+    // cha (cha không re-render khi người dùng bấm Nghe trong player con).
     useEffect(() => {
-        if (!getPositionMs || !totalDurationMs || !enabled) return;
-
-        // Build timeline với totalDurationMs truyền từ ngoài
-        buildTimeline(totalDurationMs);
+        if (!getPositionMs || !enabled) return;
 
         // Poll mỗi 300ms — đủ mượt mà không đốt CPU
         const interval = setInterval(() => {
-            if (!isPlaying) return;
-            const currentMs = getPositionMs();
-            syncToParagraph(currentMs);
+            const handle = playerRef.current;
+            if (!handle?.isPlaying) return;
+            const totalMs = handle.totalDurationMs;
+            if (!totalMs) return;
+            if (durationMsRef.current !== totalMs) buildTimeline(totalMs);
+            syncToParagraph(getPositionMs());
         }, 300);
 
         return () => {
@@ -219,7 +229,7 @@ export function useAudioScrollSync({
             setActiveParagraphIndex(-1);
             currentIndexRef.current = -1;
         };
-    }, [enabled, getPositionMs, totalDurationMs, isPlaying, buildTimeline, syncToParagraph, clearHighlights]);
+    }, [enabled, getPositionMs, playerRef, buildTimeline, syncToParagraph, clearHighlights]);
 
     return { activeParagraphIndex, isAutoScrolling };
 }
