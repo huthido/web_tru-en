@@ -163,10 +163,10 @@ function AdmobBannerStub({ ad, height }: { ad: Ad; height: number }) {
                     unitId={unitId}
                     size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
                     requestOptions={{
-                        // Tôn trọng ATT — nếu user từ chối tracking, gửi ad non-personalized.
-                        // Tạm thời để false (personalized) ở placeholder; khi mobile có consent
-                        // sheet sẽ đọc state đó để tinh chỉnh.
-                        requestNonPersonalizedAdsOnly: false,
+                        // Families Policy — app gia đình (có đối tượng trẻ em):
+                        // chỉ phục vụ quảng cáo non-personalized, tránh tracking
+                        // hành vi nhắm tới trẻ (COPPA/GDPR-K).
+                        requestNonPersonalizedAdsOnly: true,
                     }}
                 />
             </View>

@@ -56,10 +56,17 @@ async function bootstrapAdMob() {
         if (Platform.OS === 'ios') {
             await requestTrackingPermissionsAsync();
         }
+        // Families Policy — app khai báo là app gia đình (target cả trẻ em), nên:
+        //  - maxAdContentRating = G (General) — quảng cáo phù hợp mọi lứa tuổi,
+        //    không phải T (Teen / 13+).
+        //  - tagForChildDirectedTreatment = true — đúng khai báo "directed to
+        //    children" trên Play Console; khiến AdMob giới hạn định dạng/nội dung.
+        //  - tagForUnderAgeOfConsent = true — không nhắm quảng cáo personal cũng
+        //    như không xử lý dữ liệu trên đối tượng chưa đủ tuổi đồng ý (COPPA/GDPR).
         await mobileAds().setRequestConfiguration({
-            maxAdContentRating: MaxAdContentRating.T,
-            tagForChildDirectedTreatment: false,
-            tagForUnderAgeOfConsent: false,
+            maxAdContentRating: MaxAdContentRating.G,
+            tagForChildDirectedTreatment: true,
+            tagForUnderAgeOfConsent: true,
         });
         await mobileAds().initialize();
     } catch (err) {
