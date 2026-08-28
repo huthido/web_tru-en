@@ -48,6 +48,16 @@ export class UsersController {
   }
 
   /**
+   * Bật / tắt quyền xem nội dung người lớn (Google Play Families Policy).
+   * Quyền do phụ huynh/người giám hộ cấp, hoặc tự xác nhận 18+.
+   * POST/PATCH với body `{ allow: true|false }`.
+   */
+  @Patch('me/adult-content')
+  async setAdultContent(@CurrentUser() user: any, @Body() body: { allow?: boolean }) {
+    return this.usersService.setAllowAdultContent(user.id, body?.allow === true);
+  }
+
+  /**
    * Self-delete tài khoản (Apple §5.1.1(v) — bắt buộc cho App Store). Soft
    * delete + anonymise PII; xem `UsersService.deleteMyAccount`.
    */

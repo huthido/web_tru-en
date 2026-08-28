@@ -72,6 +72,17 @@ export const SettingsScreen: React.FC = () => {
             ],
         },
         {
+            title: 'An toàn & Quyền',
+            rows: [
+                {
+                    icon: 'shield-checkmark-outline',
+                    label: 'An toàn & Quyền',
+                    sub: 'Phụ huynh quản lý tính năng xã hội cho trẻ',
+                    onPress: () => nav.navigate('SafetyControls'),
+                },
+            ],
+        },
+        {
             title: 'Hỗ trợ',
             rows: [
                 {

@@ -37,6 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         bio: true,
         role: true,
         isActive: true,
+        allowAdultContent: true,
       },
     });
 

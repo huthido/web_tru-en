@@ -8,7 +8,7 @@ import {
   IsInt,
   Min,
 } from 'class-validator';
-import { StoryAccessType } from '@prisma/client';
+import { StoryAccessType, StoryMaturity } from '@prisma/client';
 
 export class CreateStoryDto {
   @IsString()
@@ -49,5 +49,11 @@ export class CreateStoryDto {
   @IsInt()
   @Min(0)
   price?: number;
+
+  // Phân loại độ tuổi (ALL | MATURE). Chỉ ADMIN được đặt MATURE (kiểm duyệt);
+  // người thường luôn bị ép về ALL khi tạo mới.
+  @IsOptional()
+  @IsEnum(StoryMaturity)
+  maturity?: StoryMaturity;
 }
 

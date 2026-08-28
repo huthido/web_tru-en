@@ -18,6 +18,8 @@ import { ArtCard } from '@/components/art/ArtCard';
 import { ArtStoryRing } from '@/components/art/ArtStoryRing';
 import { ArtCommentModal } from '@/components/art/ArtCommentModal';
 import { ArtUploadModal } from '@/components/art/ArtUploadModal';
+import { SafetyReminderModal } from '@/components/safety/SafetyReminderModal';
+import { useSafety } from '@/contexts/safety-context';
 import { useTabBarSpace } from '@/components/MainTabBar';
 
 interface Props {
@@ -46,11 +48,14 @@ function SkeletonPost() {
 export function ArtFeedScreen({ currentUserId, isLoggedIn }: Props) {
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
+    const { controls } = useSafety();
+    const artDisabled = !controls.artUpload;
     // +56 để FAB đăng ảnh cũng không đè lên post cuối.
     const tabBarSpace = useTabBarSpace() + 56;
 
     const [commentPost, setCommentPost] = useState<ArtPost | null>(null);
     const [showUpload, setShowUpload] = useState(false);
+    const [pendingStory, setPendingStory] = useState(false);
 
     const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useArtFeed();
     const { data: stories = [] } = useArtStories();
@@ -59,6 +64,12 @@ export function ArtFeedScreen({ currentUserId, isLoggedIn }: Props) {
     const posts = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
 
     const handleAddStory = async () => {
+        if (artDisabled) return;
+        setPendingStory(true);
+    };
+
+    const doAddStory = async () => {
+        setPendingStory(false);
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
             Alert.alert('Cần quyền truy cập ảnh', 'Vui lòng cho phép ứng dụng truy cập thư viện ảnh trong Cài đặt.');
@@ -82,7 +93,7 @@ export function ArtFeedScreen({ currentUserId, isLoggedIn }: Props) {
                     <ArtStoryRing
                         stories={stories}
                         isLoggedIn={isLoggedIn}
-                        onAddStory={isLoggedIn ? handleAddStory : undefined}
+                        onAddStory={isLoggedIn && !artDisabled ? handleAddStory : undefined}
                     />
                 </View>
             )}
@@ -139,7 +150,7 @@ export function ArtFeedScreen({ currentUserId, isLoggedIn }: Props) {
             )}
 
             {/* FAB đăng ảnh */}
-            {isLoggedIn && (
+            {isLoggedIn && !artDisabled && (
                 <Pressable style={[styles.fab, { backgroundColor: colors.surfaceContainerHighest }]} onPress={() => setShowUpload(true)}>
                     <Ionicons name="add" size={28} color={colors.onSurface} />
                 </Pressable>
@@ -152,6 +163,13 @@ export function ArtFeedScreen({ currentUserId, isLoggedIn }: Props) {
             />
 
             {showUpload && <ArtUploadModal onClose={() => setShowUpload(false)} />}
+
+            <SafetyReminderModal
+                visible={pendingStory}
+                action="đăng câu chuyện (story) ảnh của bạn"
+                onCancel={() => setPendingStory(false)}
+                onConfirm={doAddStory}
+            />
         </View>
     );
 }

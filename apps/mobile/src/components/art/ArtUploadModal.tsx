@@ -14,9 +14,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { radius, spacing, type ThemeColors } from '@/theme';
+import { radius, spacing, typography, type ThemeColors } from '@/theme';
 import { useAppTheme } from '@/contexts/theme-context';
 import { useCreateArtPost } from '@/lib/hooks/art';
+import { useSafety } from '@/contexts/safety-context';
+import { SafetyReminderModal } from '@/components/safety/SafetyReminderModal';
 
 interface Props {
     onClose: () => void;
@@ -25,13 +27,18 @@ interface Props {
 export function ArtUploadModal({ onClose }: Props) {
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
+    const { controls } = useSafety();
 
     const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
     const [caption, setCaption] = useState('');
+    const [pendingPost, setPendingPost] = useState(false);
 
     const { mutate: createPost, isPending } = useCreateArtPost();
 
+    const artDisabled = !controls.artUpload;
+
     const pickImage = async () => {
+        if (artDisabled) return;
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
             Alert.alert('Cần quyền truy cập ảnh', 'Vui lòng cho phép ứng dụng truy cập thư viện ảnh trong Cài đặt.');
@@ -60,6 +67,16 @@ export function ArtUploadModal({ onClose }: Props) {
         );
     };
 
+    const handlePostPress = () => {
+        if (!image || artDisabled) return;
+        setPendingPost(true);
+    };
+
+    const handleConfirmReminder = () => {
+        setPendingPost(false);
+        handlePost();
+    };
+
     return (
         <Modal visible transparent animationType="slide" onRequestClose={onClose}>
             <Pressable style={styles.backdrop} onPress={onClose} />
@@ -75,56 +92,72 @@ export function ArtUploadModal({ onClose }: Props) {
                     </Pressable>
                 </View>
 
-                <View style={styles.body}>
-                    {/* Image picker */}
-                    {image ? (
-                        <View style={styles.previewWrap}>
-                            <Image source={{ uri: image.uri }} style={styles.preview} resizeMode="cover" />
-                            <Pressable
-                                style={styles.removeBtn}
-                                onPress={() => setImage(null)}
-                            >
-                                <Ionicons name="close-circle" size={24} color="#fff" />
-                            </Pressable>
-                        </View>
-                    ) : (
-                        <Pressable style={styles.pickZone} onPress={pickImage}>
-                            <Ionicons name="image-outline" size={40} color={colors.onSurfaceVariant} />
-                            <Text style={styles.pickText}>Chọn ảnh từ thư viện</Text>
-                            <Text style={styles.pickHint}>PNG · JPG · WEBP</Text>
-                        </Pressable>
-                    )}
-
-                    {/* Caption */}
-                    <TextInput
-                        style={styles.captionInput}
-                        value={caption}
-                        onChangeText={setCaption}
-                        placeholder="Viết mô tả... (tuỳ chọn)"
-                        placeholderTextColor={colors.textMuted}
-                        multiline
-                        maxLength={500}
-                        numberOfLines={3}
-                    />
-                    <Text style={styles.charCount}>{caption.length}/500</Text>
-
-                    {/* Submit */}
-                    <Pressable
-                        style={[styles.postBtn, (!image || isPending) && { opacity: 0.4 }]}
-                        disabled={!image || isPending}
-                        onPress={handlePost}
-                    >
-                        {isPending ? (
-                            <ActivityIndicator color={colors.onSurface} />
+                {artDisabled ? (
+                    <View style={styles.disabled}>
+                        <Ionicons name="lock-closed-outline" size={32} color={colors.onSurfaceVariant} />
+                        <Text style={styles.disabledText}>
+                            Tính năng đăng ảnh đã bị phụ huynh / người giám hộ tắt.
+                        </Text>
+                    </View>
+                ) : (
+                    <View style={styles.body}>
+                        {/* Image picker */}
+                        {image ? (
+                            <View style={styles.previewWrap}>
+                                <Image source={{ uri: image.uri }} style={styles.preview} resizeMode="cover" />
+                                <Pressable
+                                    style={styles.removeBtn}
+                                    onPress={() => setImage(null)}
+                                >
+                                    <Ionicons name="close-circle" size={24} color="#fff" />
+                                </Pressable>
+                            </View>
                         ) : (
-                            <>
-                                <Ionicons name="cloud-upload-outline" size={18} color={colors.onSurface} />
-                                <Text style={styles.postBtnText}>Đăng bài</Text>
-                            </>
+                            <Pressable style={styles.pickZone} onPress={pickImage}>
+                                <Ionicons name="image-outline" size={40} color={colors.onSurfaceVariant} />
+                                <Text style={styles.pickText}>Chọn ảnh từ thư viện</Text>
+                                <Text style={styles.pickHint}>PNG · JPG · WEBP</Text>
+                            </Pressable>
                         )}
-                    </Pressable>
-                </View>
+
+                        {/* Caption */}
+                        <TextInput
+                            style={styles.captionInput}
+                            value={caption}
+                            onChangeText={setCaption}
+                            placeholder="Viết mô tả... (tuỳ chọn)"
+                            placeholderTextColor={colors.textMuted}
+                            multiline
+                            maxLength={500}
+                            numberOfLines={3}
+                        />
+                        <Text style={styles.charCount}>{caption.length}/500</Text>
+
+                        {/* Submit */}
+                        <Pressable
+                            style={[styles.postBtn, (!image || isPending) && { opacity: 0.4 }]}
+                            disabled={!image || isPending}
+                            onPress={handlePostPress}
+                        >
+                            {isPending ? (
+                                <ActivityIndicator color={colors.onSurface} />
+                            ) : (
+                                <>
+                                    <Ionicons name="cloud-upload-outline" size={18} color={colors.onSurface} />
+                                    <Text style={styles.postBtnText}>Đăng bài</Text>
+                                </>
+                            )}
+                        </Pressable>
+                    </View>
+                )}
             </KeyboardAvoidingView>
+
+            <SafetyReminderModal
+                visible={pendingPost}
+                action="đăng ảnh nghệ thuật của bạn"
+                onCancel={() => setPendingPost(false)}
+                onConfirm={handleConfirmReminder}
+            />
         </Modal>
     );
 }
@@ -156,6 +189,16 @@ const makeStyles = (colors: ThemeColors) =>
             borderBottomColor: colors.outlineVariant,
         },
         title: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: colors.onSurface },
+        disabled: {
+            padding: spacing.xl,
+            alignItems: 'center',
+            gap: spacing.md,
+        },
+        disabledText: {
+            ...typography.bodyMd,
+            color: colors.onSurfaceVariant,
+            textAlign: 'center',
+        },
         body: { padding: spacing.lg, gap: spacing.md },
         pickZone: {
             borderWidth: 1.5,

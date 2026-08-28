@@ -1,5 +1,6 @@
 import { apiClient, unwrap } from './client';
 import { normalizePage } from './types';
+import { safetyStorage } from '@/lib/safety';
 import type {
     BuyResponse,
     Paged,
@@ -34,7 +35,10 @@ export interface RNFileLike {
 /** Build a fetcher for one of the curated homepage lists. */
 function homepageList(kind: string) {
     return async (limit = 15): Promise<Story[]> => {
-        const res = await apiClient.get(`/stories/homepage/${kind}`, { params: { limit } });
+        const adult = (await safetyStorage.isAllowAdultContent()) ? '1' : undefined;
+        const res = await apiClient.get(`/stories/homepage/${kind}`, {
+            params: { limit, adult },
+        });
         return unwrap<Story[]>(res) ?? [];
     };
 }
@@ -43,9 +47,11 @@ export const StoriesApi = {
     /** Paginated story list with search / category / sort filters. */
     async list(params: StoryQueryParams = {}): Promise<Paged<Story>> {
         const { categories, ...rest } = params;
+        const adult = (await safetyStorage.isAllowAdultContent()) ? '1' : undefined;
         const res = await apiClient.get('/stories', {
             params: {
                 ...rest,
+                adult,
                 categories: categories && categories.length ? categories.join(',') : undefined,
             },
         });
@@ -54,7 +60,8 @@ export const StoriesApi = {
 
     /** Story detail by slug or id — includes the published `chapters` array. */
     async getBySlug(slugOrId: string): Promise<Story> {
-        const res = await apiClient.get(`/stories/${slugOrId}`);
+        const adult = (await safetyStorage.isAllowAdultContent()) ? '1' : undefined;
+        const res = await apiClient.get(`/stories/${slugOrId}`, { params: { adult } });
         return unwrap<Story>(res);
     },
 

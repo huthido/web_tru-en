@@ -15,7 +15,7 @@ import {
 } from '../common/utils/pagination.util';
 import { buildSearchConditions } from '../common/utils/search.util';
 import { storyInclude, storyWithChaptersInclude, safeStorySelect, storyCardSelect } from '../prisma/prisma.helpers';
-import { StoryStatus, UserRole } from '@prisma/client';
+import { StoryStatus, StoryMaturity, UserRole } from '@prisma/client';
 import { SearchIndexerService } from '../search/search-indexer.service';
 import { WalletService } from '../wallet/wallet.service';
 import { MonetizationService } from '../monetization/monetization.service';
@@ -39,6 +39,15 @@ export const PUBLIC_STORY_WHERE = {
   status: { not: StoryStatus.DRAFT },
   chapters: { some: { isPublished: true } },
 } as const;
+
+/**
+ * Bộ lọc độ tuổi (Google Play Families Policy). Nội dung MATURE chỉ hiển thị
+ * khi tài khoản được phép xem nội dung người lớn (`allowAdultContent`); ngược
+ * lại chỉ lấy truyện phù hợp mọi lứa tuổi. ADMIN luôn thấy mọi nội dung (kiểm
+ * duyệt).
+ */
+export const MATURITY_WHERE = (allowAdultContent: boolean) =>
+  allowAdultContent ? {} : { maturity: StoryMaturity.ALL };
 
 @Injectable()
 export class StoriesService {
@@ -241,7 +250,7 @@ export class StoriesService {
     }
   }
 
-  async findAll(query: StoryQueryDto, userId?: string) {
+  async findAll(query: StoryQueryDto, userId?: string, allowAdultContent = false) {
     const { page, limit, skip } = getPaginationParams({
       page: query.page,
       limit: query.limit,
@@ -249,6 +258,9 @@ export class StoriesService {
 
     // Build where conditions
     const where: any = {};
+
+    // Maturity filter (Families Policy): ẩn MATURE nếu tài khoản không được phép
+    Object.assign(where, MATURITY_WHERE(allowAdultContent));
 
     // Search
     if (query.search) {
@@ -353,7 +365,7 @@ export class StoriesService {
     }
   }
 
-  async findOne(slugOrId: string, userId?: string) {
+  async findOne(slugOrId: string, userId?: string, allowAdultContent = false) {
     // Check if user is author or admin to include unpublished chapters
     let includeUnpublishedChapters = false;
     // Try to find by ID first, then by slug
@@ -369,7 +381,7 @@ export class StoriesService {
     if (looksLikeId) {
       storyCheck = await this.prisma.story.findUnique({
         where: { id: slugOrId },
-        select: { id: true, authorId: true, isPublished: true },
+        select: { id: true, authorId: true, isPublished: true, maturity: true },
       });
       if (storyCheck) {
         whereClause = { id: slugOrId };
@@ -380,7 +392,7 @@ export class StoriesService {
     if (!storyCheck) {
       storyCheck = await this.prisma.story.findUnique({
         where: { slug: slugOrId },
-        select: { id: true, authorId: true, isPublished: true },
+        select: { id: true, authorId: true, isPublished: true, maturity: true },
       });
       if (storyCheck) {
         whereClause = { slug: slugOrId };
@@ -398,6 +410,18 @@ export class StoriesService {
       includeUnpublishedChapters =
         storyCheck.authorId === userId ||
         Boolean(user?.role === UserRole.ADMIN);
+    }
+
+    // Maturity gate (Google Play Families Policy): ẩn nội dung MATURE với tài
+    // khoản chưa được phép xem nội dung người lớn. Tác giả/admin luôn xem được.
+    if (
+      storyCheck.maturity === StoryMaturity.MATURE &&
+      !includeUnpublishedChapters &&
+      !allowAdultContent
+    ) {
+      throw new ForbiddenException(
+        'Nội dung này dành cho người lớn và đã bị khoá. Hãy bật "Xem nội dung người lớn" trong Cài đặt → An toàn & Quyền.',
+      );
     }
 
     try {
@@ -548,6 +572,12 @@ export class StoriesService {
           tags: createStoryDto.tags || [],
           accessType: createStoryDto.accessType ?? undefined,
           price: createStoryDto.price ?? undefined,
+          // Chỉ ADMIN được gắn nhãn MATURE (giảm rủi ro vi phạm Families); người
+          // thường luôn tạo truyện phù hợp mọi lứa tuổi.
+          maturity:
+            userRole === UserRole.ADMIN && createStoryDto.maturity
+              ? createStoryDto.maturity
+              : StoryMaturity.ALL,
         },
         include: storyInclude,
       });
@@ -683,6 +713,12 @@ export class StoriesService {
 
     if (updateStoryDto.tags !== undefined) {
       updateData.tags = updateStoryDto.tags;
+    }
+
+    // Phân loại độ tuổi: chỉ ADMIN được đổi (người thường gửi field này sẽ bị
+    // bỏ qua, giữ nguyên giá trị hiện tại) — giảm rủi ro lách kiểm duyệt.
+    if (updateStoryDto.maturity !== undefined && userRole === UserRole.ADMIN) {
+      updateData.maturity = updateStoryDto.maturity;
     }
 
     if (updateStoryDto.accessType !== undefined || updateStoryDto.price !== undefined) {
@@ -1073,7 +1109,11 @@ export class StoriesService {
    */
   async getSitemapData() {
     return this.prisma.story.findMany({
-      where: PUBLIC_STORY_WHERE,
+      where: {
+        ...PUBLIC_STORY_WHERE,
+        // Không đưa nội dung người lớn vào sitemap công khai (Families Policy)
+        maturity: StoryMaturity.ALL,
+      },
       select: {
         slug: true,
         updatedAt: true,
@@ -1092,15 +1132,17 @@ export class StoriesService {
   // "Mới nhất" = mới ĐƯỢC DUYỆT, không phải mới tạo — truyện viết lâu nhưng
   // vừa duyệt vẫn lên đầu. publishedAt null (dữ liệu cũ chưa backfill) rơi
   // xuống cuối, tie-break bằng createdAt.
-  async getNewest(limit: number = 15) {
+  async getNewest(limit: number = 15, allowAdultContent = false) {
     const orderBy: any = [
       { publishedAt: { sort: 'desc', nulls: 'last' } },
       { createdAt: 'desc' },
     ];
+    const maturityWhere = MATURITY_WHERE(allowAdultContent);
     try {
       return await this.prisma.story.findMany({
         where: {
           ...PUBLIC_STORY_WHERE,
+          ...maturityWhere,
         },
         select: storyCardSelect,
         orderBy,
@@ -1112,6 +1154,7 @@ export class StoriesService {
         return await this.prisma.story.findMany({
           where: {
             ...PUBLIC_STORY_WHERE,
+            ...maturityWhere,
           },
           select: safeStorySelect,
           orderBy,
@@ -1123,7 +1166,7 @@ export class StoriesService {
   }
 
   // Get best of month (highest rating based on ratings created in current month)
-  async getBestOfMonth(limit: number = 15) {
+  async getBestOfMonth(limit: number = 15, allowAdultContent = false) {
     try {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -1133,6 +1176,7 @@ export class StoriesService {
       const storiesWithMonthlyRatings = await this.prisma.story.findMany({
         where: {
           ...PUBLIC_STORY_WHERE,
+          ...MATURITY_WHERE(allowAdultContent),
           ratings: {
             some: {
               createdAt: {
@@ -1183,18 +1227,19 @@ export class StoriesService {
     } catch (error: any) {
       // If column doesn't exist, fallback to newest stories
       if (error?.message?.includes('isRecommended')) {
-        return this.getNewest(limit);
+        return this.getNewest(limit, allowAdultContent);
       }
       throw error;
     }
   }
 
   // Get recommended stories (prioritize isRecommended, then algorithm: weighted score)
-  async getRecommended(limit: number = 15) {
+  async getRecommended(limit: number = 15, allowAdultContent = false) {
     try {
       const stories = await this.prisma.story.findMany({
         where: {
           ...PUBLIC_STORY_WHERE,
+          ...MATURITY_WHERE(allowAdultContent),
         },
         select: storyCardSelect,
       });
@@ -1265,14 +1310,14 @@ export class StoriesService {
     } catch (error: any) {
       // If column doesn't exist, fallback to newest stories
       if (error?.message?.includes('isRecommended')) {
-        return this.getNewest(limit);
+        return this.getNewest(limit, allowAdultContent);
       }
       throw error;
     }
   }
 
   // Get top rated stories (based on rating and ratingCount)
-  async getTopRated(limit: number = 15) {
+  async getTopRated(limit: number = 15, allowAdultContent = false) {
     try {
       return await this.prisma.story.findMany({
         where: {
@@ -1335,11 +1380,13 @@ export class StoriesService {
   }
 
   // Get most liked stories (based on likeCount and followCount)
-  async getMostLiked(limit: number = 15) {
+  async getMostLiked(limit: number = 15, allowAdultContent = false) {
+    const maturityWhere = MATURITY_WHERE(allowAdultContent);
     try {
       return await this.prisma.story.findMany({
         where: {
           ...PUBLIC_STORY_WHERE,
+          ...maturityWhere,
         },
         select: storyCardSelect,
         orderBy: [
@@ -1354,6 +1401,7 @@ export class StoriesService {
         return await this.prisma.story.findMany({
           where: {
             ...PUBLIC_STORY_WHERE,
+            ...maturityWhere,
           },
           select: safeStorySelect,
           orderBy: [
@@ -1368,9 +1416,9 @@ export class StoriesService {
   }
 
   // Get most followed stories
-  async getMostFollowed(limit: number = 15) {
+  async getMostFollowed(limit: number = 15, allowAdultContent = false) {
     return this.prisma.story.findMany({
-      where: { ...PUBLIC_STORY_WHERE },
+      where: { ...PUBLIC_STORY_WHERE, ...MATURITY_WHERE(allowAdultContent) },
       select: storyCardSelect,
       orderBy: { followCount: 'desc' },
       take: limit,
@@ -1378,9 +1426,9 @@ export class StoriesService {
   }
 
   // Get most viewed stories
-  async getMostViewed(limit: number = 15) {
+  async getMostViewed(limit: number = 15, allowAdultContent = false) {
     return this.prisma.story.findMany({
-      where: { ...PUBLIC_STORY_WHERE },
+      where: { ...PUBLIC_STORY_WHERE, ...MATURITY_WHERE(allowAdultContent) },
       select: storyCardSelect,
       orderBy: { viewCount: 'desc' },
       take: limit,
@@ -1388,9 +1436,9 @@ export class StoriesService {
   }
 
   // Get random stories
-  async getRandom(limit: number = 15) {
+  async getRandom(limit: number = 15, allowAdultContent = false) {
     const all = await this.prisma.story.findMany({
-      where: { ...PUBLIC_STORY_WHERE },
+      where: { ...PUBLIC_STORY_WHERE, ...MATURITY_WHERE(allowAdultContent) },
       select: { id: true },
     });
     const shuffled = all.sort(() => 0.5 - Math.random());
@@ -1403,10 +1451,11 @@ export class StoriesService {
   }
 
   // Get premium/paid stories (FREEMIUM hoặc VIP — truyện có nội dung trả phí)
-  async getPremiumStories(limit: number = 15) {
+  async getPremiumStories(limit: number = 15, allowAdultContent = false) {
     return this.prisma.story.findMany({
       where: {
         ...PUBLIC_STORY_WHERE,
+        ...MATURITY_WHERE(allowAdultContent),
         accessType: { in: ['FREEMIUM', 'VIP'] },
       },
       select: storyCardSelect,
@@ -1416,13 +1465,14 @@ export class StoriesService {
   }
 
   // Get best of week (rating cao nhất trong 7 ngày qua)
-  async getBestOfWeek(limit: number = 15) {
+  async getBestOfWeek(limit: number = 15, allowAdultContent = false) {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
     const storiesWithWeeklyRatings = await this.prisma.story.findMany({
       where: {
         ...PUBLIC_STORY_WHERE,
+        ...MATURITY_WHERE(allowAdultContent),
         ratings: {
           some: {
             createdAt: { gte: oneWeekAgo },
@@ -1460,19 +1510,19 @@ export class StoriesService {
    * Dispatch dynamic algorithm — gọi từ endpoint /stories/homepage/section/:sectionId.
    * Admin tạo section auto, chọn algorithm → frontend gọi endpoint này.
    */
-  async getByAlgorithm(algorithm: string, limit: number = 15) {
+  async getByAlgorithm(algorithm: string, limit: number = 15, allowAdultContent = false) {
     switch (algorithm) {
-      case 'newest':          return this.getNewest(limit);
-      case 'best-of-month':   return this.getBestOfMonth(limit);
-      case 'best-of-week':    return this.getBestOfWeek(limit);
-      case 'top-rated':       return this.getTopRated(limit);
-      case 'recommended':     return this.getRecommended(limit);
-      case 'most-liked':      return this.getMostLiked(limit);
-      case 'most-followed':   return this.getMostFollowed(limit);
-      case 'most-viewed':     return this.getMostViewed(limit);
-      case 'premium-stories': return this.getPremiumStories(limit);
-      case 'random':          return this.getRandom(limit);
-      default:                return this.getNewest(limit);
+      case 'newest':          return this.getNewest(limit, allowAdultContent);
+      case 'best-of-month':   return this.getBestOfMonth(limit, allowAdultContent);
+      case 'best-of-week':    return this.getBestOfWeek(limit, allowAdultContent);
+      case 'top-rated':       return this.getTopRated(limit, allowAdultContent);
+      case 'recommended':     return this.getRecommended(limit, allowAdultContent);
+      case 'most-liked':      return this.getMostLiked(limit, allowAdultContent);
+      case 'most-followed':   return this.getMostFollowed(limit, allowAdultContent);
+      case 'most-viewed':     return this.getMostViewed(limit, allowAdultContent);
+      case 'premium-stories': return this.getPremiumStories(limit, allowAdultContent);
+      case 'random':          return this.getRandom(limit, allowAdultContent);
+      default:                return this.getNewest(limit, allowAdultContent);
     }
   }
 
@@ -1622,7 +1672,7 @@ export class StoriesService {
   }
 
   // Get similar stories based on categories and tags
-  async getSimilarStories(storyId: string, limit: number = 10) {
+  async getSimilarStories(storyId: string, limit: number = 10, allowAdultContent = false) {
     // Get current story
     const story = await this.prisma.story.findUnique({
       where: { id: storyId },
@@ -1655,6 +1705,7 @@ export class StoriesService {
         status: {
           not: StoryStatus.DRAFT, // Exclude drafts only
         },
+        ...MATURITY_WHERE(allowAdultContent),
         OR: [
           ...(categoryIds.length > 0 ? [{
             storyCategories: {
@@ -1684,7 +1735,7 @@ export class StoriesService {
   }
 
   // Get recommended stories based on user's reading history
-  async getRecommendedStories(userId: string, limit: number = 10) {
+  async getRecommendedStories(userId: string, limit: number = 10, allowAdultContent = false) {
     // Get user's reading history
     const readingHistory = await this.prisma.readingHistory.findMany({
       where: { userId },
@@ -1702,7 +1753,7 @@ export class StoriesService {
 
     if (readingHistory.length === 0) {
       // If no reading history, return popular stories
-      return this.getTopRated(limit);
+      return this.getTopRated(limit, allowAdultContent);
     }
 
     // Extract categories and tags from reading history
@@ -1718,7 +1769,7 @@ export class StoriesService {
 
     // If no categories or tags found, return popular stories
     if (categoryIds.size === 0 && tagIds.size === 0) {
-      return this.getTopRated(limit);
+      return this.getTopRated(limit, allowAdultContent);
     }
 
     // Find recommended stories based on user's reading history
@@ -1729,6 +1780,7 @@ export class StoriesService {
         status: {
           not: StoryStatus.DRAFT, // Exclude drafts only
         },
+        ...MATURITY_WHERE(allowAdultContent),
         OR: [
           ...(categoryIds.size > 0 ? [{
             storyCategories: {

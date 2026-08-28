@@ -30,4 +30,14 @@ export const UsersApi = {
         });
         return unwrap<{ avatar: string }>(res);
     },
+
+    /**
+     * Bật / tắt quyền xem nội dung người lớn (Google Play Families Policy) —
+     * đồng bộ lên tài khoản để API xác thực (findAll/findOne/recommended) biết.
+     * Backend: PATCH /users/me/adult-content.
+     */
+    async setAllowAdultContent(allow: boolean): Promise<{ allowAdultContent: boolean }> {
+        const res = await apiClient.patch('/users/me/adult-content', { allow });
+        return unwrap<{ allowAdultContent: boolean }>(res);
+    },
 };

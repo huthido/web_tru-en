@@ -22,6 +22,7 @@ export type RootStackParamList = {
     Transactions: undefined;
     Notifications: undefined;
     Settings: undefined;
+    SafetyControls: undefined;
     EditProfile: undefined;
     Followers: undefined;
     UserProfile: { username: string };

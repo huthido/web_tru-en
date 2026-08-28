@@ -37,42 +37,48 @@ export class StoriesController {
     @Public()
     @Get()
     findAll(@Query() query: StoryQueryDto, @CurrentUser() user?: any) {
-        return this.storiesService.findAll(query, user?.id);
+        const adult = user?.role === 'ADMIN' || user?.allowAdultContent === true;
+        return this.storiesService.findAll(query, user?.id, adult);
     }
 
     @Public()
     @Get('homepage/newest')
-    async getNewest(@Query('limit') limit?: number) {
+    async getNewest(@Query('limit') limit?: number, @Query('adult') adult?: string) {
         const limitNum = limit ? parseInt(limit.toString(), 10) : 15;
-        return this.storiesService.getNewest(Math.min(limitNum, 20));
+        const adultOk = adult === '1' || adult === 'true';
+        return this.storiesService.getNewest(Math.min(limitNum, 20), adultOk);
     }
 
     @Public()
     @Get('homepage/best-of-month')
-    async getBestOfMonth(@Query('limit') limit?: number) {
+    async getBestOfMonth(@Query('limit') limit?: number, @Query('adult') adult?: string) {
         const limitNum = limit ? parseInt(limit.toString(), 10) : 15;
-        return this.storiesService.getBestOfMonth(Math.min(limitNum, 20));
+        const adultOk = adult === '1' || adult === 'true';
+        return this.storiesService.getBestOfMonth(Math.min(limitNum, 20), adultOk);
     }
 
     @Public()
     @Get('homepage/recommended')
-    async getRecommended(@Query('limit') limit?: number) {
+    async getRecommended(@Query('limit') limit?: number, @Query('adult') adult?: string) {
         const limitNum = limit ? parseInt(limit.toString(), 10) : 15;
-        return this.storiesService.getRecommended(Math.min(limitNum, 20));
+        const adultOk = adult === '1' || adult === 'true';
+        return this.storiesService.getRecommended(Math.min(limitNum, 20), adultOk);
     }
 
     @Public()
     @Get('homepage/top-rated')
-    async getTopRated(@Query('limit') limit?: number) {
+    async getTopRated(@Query('limit') limit?: number, @Query('adult') adult?: string) {
         const limitNum = limit ? parseInt(limit.toString(), 10) : 15;
-        return this.storiesService.getTopRated(Math.min(limitNum, 20));
+        const adultOk = adult === '1' || adult === 'true';
+        return this.storiesService.getTopRated(Math.min(limitNum, 20), adultOk);
     }
 
     @Public()
     @Get('homepage/most-liked')
-    async getMostLiked(@Query('limit') limit?: number) {
+    async getMostLiked(@Query('limit') limit?: number, @Query('adult') adult?: string) {
         const limitNum = limit ? parseInt(limit.toString(), 10) : 15;
-        return this.storiesService.getMostLiked(Math.min(limitNum, 20));
+        const adultOk = adult === '1' || adult === 'true';
+        return this.storiesService.getMostLiked(Math.min(limitNum, 20), adultOk);
     }
 
     /**
@@ -81,13 +87,14 @@ export class StoriesController {
      */
     @Public()
     @Get('homepage/section/:sectionId')
-    async getBySectionId(@Param('sectionId') sectionId: string, @Query('limit') limit?: number) {
+    async getBySectionId(@Param('sectionId') sectionId: string, @Query('limit') limit?: number, @Query('adult') adult?: string) {
         const section = await this.prisma.homepageSection.findUnique({ where: { id: sectionId } });
         if (!section || section.mode !== 'auto') {
             return [];
         }
         const limitNum = limit ? parseInt(limit.toString(), 10) : section.limit;
-        return this.storiesService.getByAlgorithm(section.algorithm, Math.min(limitNum, 50));
+        const adultOk = adult === '1' || adult === 'true';
+        return this.storiesService.getByAlgorithm(section.algorithm, Math.min(limitNum, 50), adultOk);
     }
 
     /**
@@ -237,9 +244,11 @@ export class StoriesController {
     async getSimilarStories(
         @Param('storyId') storyId: string,
         @Query('limit') limit?: number,
+        @Query('adult') adult?: string,
     ) {
         const limitNum = limit ? parseInt(limit.toString(), 10) : 10;
-        return this.storiesService.getSimilarStories(storyId, Math.min(limitNum, 20));
+        const adultOk = adult === '1' || adult === 'true';
+        return this.storiesService.getSimilarStories(storyId, Math.min(limitNum, 20), adultOk);
     }
 
     @Get('recommended')
@@ -251,13 +260,15 @@ export class StoriesController {
             throw new UnauthorizedException('Vui lòng đăng nhập để xem gợi ý');
         }
         const limitNum = limit ? parseInt(limit.toString(), 10) : 10;
-        return this.storiesService.getRecommendedStories(user.id, Math.min(limitNum, 20));
+        const adult = user?.role === 'ADMIN' || user?.allowAdultContent === true;
+        return this.storiesService.getRecommendedStories(user.id, Math.min(limitNum, 20), adult);
     }
 
     @Public()
     @Get(':slug')
     async findOne(@Param('slug') slug: string, @CurrentUser() user?: any) {
-        const story = await this.storiesService.findOne(slug, user?.id);
+        const adult = user?.role === 'ADMIN' || user?.allowAdultContent === true;
+        const story = await this.storiesService.findOne(slug, user?.id, adult);
         // Increment view count (async, don't wait)
         this.storiesService.incrementViewCount(slug).catch(() => { });
         return story;

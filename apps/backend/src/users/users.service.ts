@@ -242,6 +242,23 @@ export class UsersService {
     });
   }
 
+  /**
+   * Bật / tắt quyền xem nội dung người lớn (Google Play Families Policy).
+   * Quyền do phụ huynh/người giám hộ cấp cho tài khoản trẻ, hoặc tự xác nhận 18+.
+   */
+  async setAllowAdultContent(userId: string, allow: boolean) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { allowAdultContent: !!allow },
+      select: {
+        id: true,
+        username: true,
+        allowAdultContent: true,
+        updatedAt: true,
+      },
+    });
+  }
+
   async getUserById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },

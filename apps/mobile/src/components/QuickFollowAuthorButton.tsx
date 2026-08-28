@@ -6,6 +6,7 @@ import { fontSize, radius, spacing, typography, type ThemeColors } from '@/theme
 import { useAppTheme } from '@/contexts/theme-context';
 import { AuthorsService } from '@/lib/api/authors.service';
 import { useAuth } from '@/contexts/auth-context';
+import { useSafety } from '@/contexts/safety-context';
 
 interface Props {
     authorId: string;
@@ -18,7 +19,10 @@ export function QuickFollowAuthorButton({ authorId, compact = false }: Props) {
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
     const { user, isAuthenticated } = useAuth();
+    const { controls } = useSafety();
     const isMe = isAuthenticated && user?.id === authorId;
+
+    const followDisabled = !controls.follow;
 
     const statusQ = useQuery({
         queryKey: ['author', 'is-following', authorId],
@@ -43,6 +47,13 @@ export function QuickFollowAuthorButton({ authorId, compact = false }: Props) {
     const onPress = async () => {
         if (!isAuthenticated) {
             Alert.alert('Cần đăng nhập', 'Vui lòng đăng nhập để theo dõi tác giả.');
+            return;
+        }
+        if (followDisabled) {
+            Alert.alert(
+                'Tính năng bị tắt',
+                'Tính năng theo dõi đã bị phụ huynh / người giám hộ tắt.',
+            );
             return;
         }
         setOptimistic(!following);

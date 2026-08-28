@@ -2,6 +2,8 @@
 
 export type StoryStatus = 'DRAFT' | 'ONGOING' | 'COMPLETED' | 'PUBLISHED' | 'ARCHIVED';
 export type StoryAccessType = 'FREE' | 'FREEMIUM' | 'VIP';
+/** Phân loại độ tuổi nội dung (Google Play Families Policy). */
+export type StoryMaturity = 'ALL' | 'MATURE';
 export type ChapterLockType = 'CHAPTER' | 'STORY' | null;
 export type StorySortBy = 'newest' | 'popular' | 'rating' | 'viewCount';
 
@@ -49,6 +51,8 @@ export interface Story {
     /** Tác giả opt-in nhận xu từ ads (Phase B2.1). */
     adRevenueEnabled?: boolean;
     country?: string | null;
+    /** Phân loại độ tuổi — MATURE = nội dung người lớn (ẩn nếu chưa bật). */
+    maturity?: StoryMaturity;
     tags: string[];
     createdAt: string;
     updatedAt: string;

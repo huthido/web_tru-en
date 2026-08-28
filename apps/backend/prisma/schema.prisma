@@ -41,6 +41,9 @@ model User {
   ttsSubscriptionExpiresAt DateTime?
   isActive      Boolean   @default(true)
   emailVerified Boolean   @default(false)
+  /// Cho phép tài khoản xem nội dung người lớn (MATURE) — quyền do phụ huynh/
+  /// người giám hộ cấp cho tài khoản trẻ, hoặc tự xác nhận 18+. Mặc định tắt.
+  allowAdultContent Boolean @default(false)
   /// Soft-delete timestamp. Khi user tự xoá tài khoản trong app (Apple
   /// §5.1.1(v)): PII bị nullify, email/username đổi thành placeholder
   /// unique theo id, isActive = false, deletedAt = now(). NULL = tài khoản
@@ -136,8 +139,11 @@ model Story {
   /// Tác giả opt-in nhận xu từ quảng cáo hiển thị trong truyện này.
   /// Mặc định off — phải đủ điều kiện monetization mới bật được (xem
   /// MonetizationService.assertEligibleForAdvancedFeatures).
-  adRevenueEnabled Boolean           @default(false)
-  country          String?
+    adRevenueEnabled Boolean           @default(false)
+    /// Phân loại độ tuổi (ALL | MATURE) — nội dung người lớn bị ẩn với tài
+    /// khoản chưa bật xem nội dung người lớn (Families Policy).
+    maturity         StoryMaturity     @default(ALL)
+    country          String?
   tags             String[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
@@ -540,6 +546,15 @@ enum StoryAccessType {
   FREE
   FREEMIUM
   VIP
+}
+
+// Phân loại độ tuổi cho nội dung (Google Play Families Policy).
+//  ALL    : phù hợp mọi lứa tuổi (mặc định).
+//  MATURE : nội dung người lớn — chỉ hiển thị khi tài khoản đã bật xem
+//           nội dung người lớn (quyền do phụ huynh/người giám hộ cấp, 18+).
+enum StoryMaturity {
+  ALL
+  MATURE
 }
 
 enum ReportStatus {

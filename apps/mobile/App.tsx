@@ -20,8 +20,10 @@ import {
 } from '@expo-google-fonts/dm-sans';
 import { AuthProvider } from '@/contexts/auth-context';
 import { ThemeProvider, useAppTheme } from '@/contexts/theme-context';
+import { SafetyProvider } from '@/contexts/safety-context';
 import { RootNavigator } from '@/navigation';
 import { PushBootstrap } from '@/lib/push/PushBootstrap';
+import { AgeGateModal } from '@/components/safety/AgeGateModal';
 
 // Giữ splash screen tới khi font load xong — tránh FOUC khi text render system
 // font rồi flick sang Plus Jakarta sau ~200ms.
@@ -99,11 +101,14 @@ export default function App() {
             <SafeAreaProvider>
                 <QueryClientProvider client={queryClient}>
                     <ThemeProvider>
-                        <AuthProvider>
-                            <PushBootstrap />
-                            <RootNavigator />
-                            <ThemedStatusBar />
-                        </AuthProvider>
+                        <SafetyProvider>
+                            <AuthProvider>
+                                <PushBootstrap />
+                                <RootNavigator />
+                                <AgeGateModal />
+                                <ThemedStatusBar />
+                            </AuthProvider>
+                        </SafetyProvider>
                     </ThemeProvider>
                 </QueryClientProvider>
             </SafeAreaProvider>

@@ -15,6 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { radius, spacing, type ThemeColors } from '@/theme';
 import { useAppTheme } from '@/contexts/theme-context';
 import { useArtComments, useAddArtComment } from '@/lib/hooks/art';
+import { useSafety } from '@/contexts/safety-context';
+import { SafetyReminderModal } from '@/components/safety/SafetyReminderModal';
 import type { ArtPost } from '@/lib/api/art.service';
 
 interface Props {
@@ -26,7 +28,9 @@ interface Props {
 export function ArtCommentModal({ post, onClose, isLoggedIn }: Props) {
     const { colors } = useAppTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
+    const { controls } = useSafety();
     const [text, setText] = useState('');
+    const [pendingSend, setPendingSend] = useState(false);
 
     const query = useArtComments(post?.id ?? '', !!post);
     const { mutate: addComment, isPending } = useAddArtComment(post?.id ?? '');
@@ -36,11 +40,24 @@ export function ArtCommentModal({ post, onClose, isLoggedIn }: Props) {
         [query.data],
     );
 
+    const commentsDisabled = !controls.comments;
+
     const handleSend = () => {
         if (!text.trim() || !post) return;
         addComment(text.trim(), {
             onSuccess: () => setText(''),
         });
+    };
+
+    const handleSendPress = () => {
+        if (!text.trim() || !post) return;
+        if (commentsDisabled) return;
+        setPendingSend(true);
+    };
+
+    const handleConfirmReminder = () => {
+        setPendingSend(false);
+        handleSend();
     };
 
     return (
@@ -88,32 +105,45 @@ export function ArtCommentModal({ post, onClose, isLoggedIn }: Props) {
                 />
 
                 {isLoggedIn ? (
-                    <View style={styles.inputRow}>
-                        <TextInput
-                            style={styles.input}
-                            value={text}
-                            onChangeText={setText}
-                            placeholder="Viết bình luận..."
-                            placeholderTextColor={colors.textMuted}
-                            multiline
-                            maxLength={500}
-                        />
-                        <Pressable
-                            onPress={handleSend}
-                            disabled={!text.trim() || isPending}
-                            style={[styles.sendBtn, (!text.trim() || isPending) && { opacity: 0.4 }]}
-                        >
-                            {isPending ? (
-                                <ActivityIndicator size="small" color={colors.onPrimary} />
-                            ) : (
-                                <Ionicons name="send" size={18} color={colors.onSurface} />
-                            )}
-                        </Pressable>
-                    </View>
+                    commentsDisabled ? (
+                        <Text style={styles.loginHint}>
+                            Tính năng bình luận đã bị phụ huynh / người giám hộ tắt.
+                        </Text>
+                    ) : (
+                        <View style={styles.inputRow}>
+                            <TextInput
+                                style={styles.input}
+                                value={text}
+                                onChangeText={setText}
+                                placeholder="Viết bình luận..."
+                                placeholderTextColor={colors.textMuted}
+                                multiline
+                                maxLength={500}
+                            />
+                            <Pressable
+                                onPress={handleSendPress}
+                                disabled={!text.trim() || isPending}
+                                style={[styles.sendBtn, (!text.trim() || isPending) && { opacity: 0.4 }]}
+                            >
+                                {isPending ? (
+                                    <ActivityIndicator size="small" color={colors.onPrimary} />
+                                ) : (
+                                    <Ionicons name="send" size={18} color={colors.onSurface} />
+                                )}
+                            </Pressable>
+                        </View>
+                    )
                 ) : (
                     <Text style={styles.loginHint}>Đăng nhập để bình luận</Text>
                 )}
             </KeyboardAvoidingView>
+
+            <SafetyReminderModal
+                visible={pendingSend}
+                action="gửi bình luận"
+                onCancel={() => setPendingSend(false)}
+                onConfirm={handleConfirmReminder}
+            />
         </Modal>
     );
 }

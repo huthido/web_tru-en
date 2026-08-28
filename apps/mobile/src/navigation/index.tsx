@@ -30,6 +30,7 @@ import { WithdrawalsScreen } from '@/screens/author/WithdrawalsScreen';
 import { TransactionsScreen } from '@/screens/TransactionsScreen';
 import { NotificationsScreen } from '@/screens/NotificationsScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
+import { SafetyControlsScreen } from '@/screens/SafetyControlsScreen';
 import { EditProfileScreen } from '@/screens/EditProfileScreen';
 import { FollowersScreen } from '@/screens/FollowersScreen';
 import { UserProfileScreen } from '@/screens/UserProfileScreen';
@@ -202,6 +203,11 @@ export const RootNavigator: React.FC = () => {
                             name="Settings"
                             component={SettingsScreen}
                             options={{ title: 'Cài đặt' }}
+                        />
+                        <Stack.Screen
+                            name="SafetyControls"
+                            component={SafetyControlsScreen}
+                            options={{ title: 'An toàn & Quyền' }}
                         />
                         <Stack.Screen
                             name="EditProfile"
