@@ -34,12 +34,21 @@ const CONTENT_TAGS = [
 const BASE_OPTIONS: sanitizeHtmlLib.IOptions = {
   allowedTags: CONTENT_TAGS,
   allowedAttributes: {
-    '*': ['class', 'style', 'id', 'title', 'dir', 'lang'],
+    // KHÔNG cho `class`/`id` tuỳ ý: site dùng Tailwind, nên tác giả có thể viết
+    // <div class="fixed inset-0 z-50 …"> để dựng overlay phủ màn hình giả
+    // banner nạp xu/đăng nhập (UI-redress/phishing) dù không chạy được JS.
+    // `class` được lọc riêng qua allowedClasses (chỉ class Quill ql-*).
+    '*': ['style', 'title', 'dir', 'lang'],
     a: ['href', 'target', 'rel'],
     img: ['src', 'srcset', 'alt', 'width', 'height', 'loading'],
     td: ['colspan', 'rowspan'],
     th: ['colspan', 'rowspan', 'scope'],
     col: ['span'],
+  },
+  // Chỉ giữ class do Quill sinh (căn lề, thụt đầu dòng, cỡ chữ, code block…),
+  // loại mọi utility class có thể lạm dụng để định vị/che phủ.
+  allowedClasses: {
+    '*': [/^ql-[a-z0-9-]+$/i],
   },
   // Chặn javascript:, vbscript: và mọi scheme lạ. `data:` chỉ mở cho ảnh.
   allowedSchemes: ['http', 'https', 'mailto', 'tel'],
@@ -94,8 +103,13 @@ export function sanitizeAdHtml(html?: string | null): string {
     allowedTags: [...CONTENT_TAGS, 'iframe', 'ins'],
     allowedAttributes: {
       ...BASE_OPTIONS.allowedAttributes,
+      // Ad creative do ADMIN soạn (AdSense cần class `adsbygoogle`) → cho class
+      // rộng trở lại, khác với nội dung chương của tác giả thường.
+      '*': ['class', 'style', 'id', 'title', 'dir', 'lang'],
       iframe: ['src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen', 'scrolling', 'loading'],
       ins: ['class', 'style', 'data-ad-client', 'data-ad-slot', 'data-ad-format', 'data-full-width-responsive'],
     },
+    // Bỏ giới hạn ql-* cho ads (admin content).
+    allowedClasses: { '*': ['*'], ins: ['*'] },
   });
 }

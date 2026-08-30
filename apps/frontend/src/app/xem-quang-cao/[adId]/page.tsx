@@ -16,7 +16,11 @@ export default function AdPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const adId = params.adId as string;
-    const returnUrl = searchParams.get('return') || '/';
+    // Chỉ chấp nhận đường dẫn nội bộ để tránh open redirect: URL tuyệt đối
+    // (https://evil.com) hoặc protocol-relative (//evil.com) bị ép về '/'.
+    const rawReturn = searchParams.get('return') || '/';
+    const returnUrl =
+        rawReturn.startsWith('/') && !rawReturn.startsWith('//') ? rawReturn : '/';
     const storySlug = searchParams.get('story');
     const nextChapterSlug = searchParams.get('next');
     const prevChapterSlug = searchParams.get('prev');

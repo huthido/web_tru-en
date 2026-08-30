@@ -201,8 +201,17 @@ export async function normalizeBuffer(
     .trim()
     .toLowerCase();
 
-  // Animation + vector — passthrough nguyên xi.
-  if (declaredType === 'image/gif' || declaredType === 'image/svg+xml') {
+  // SVG là vector chứa script/HTML → lưu nguyên trạng lên CDN rồi mở trực tiếp
+  // sẽ chạy JS (stored XSS). Ở runtime upload (throwOnUnreadable !== false) thì
+  // CHẶN; chỉ passthrough khi chạy migration dữ liệu cũ do vận hành kiểm soát.
+  if (declaredType === 'image/svg+xml') {
+    if (opts.throwOnUnreadable !== false) {
+      throw new UnreadableImageError('image/svg+xml', 'SVG bị chặn vì lý do bảo mật');
+    }
+    return passthrough(buf, declaredCT);
+  }
+  // Animation — passthrough nguyên xi.
+  if (declaredType === 'image/gif') {
     return passthrough(buf, declaredCT);
   }
 
