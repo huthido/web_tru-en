@@ -146,10 +146,14 @@ export class PaymentsService {
       return { RspCode: '00', Message: 'Confirm Success' }; // VNPay wants 00 even for failure ack
     }
 
-    // SUCCESS — credit wallet and mark COMPLETED in a single transaction
-    await this.prisma.$transaction(async (tx) => {
-      await tx.payment.update({
-        where: { id: payment.id },
+    // SUCCESS — credit wallet and mark COMPLETED in a single transaction.
+    // VNPay retries IPN, so two calls can race past the COMPLETED check above.
+    // The conditional updateMany (status != COMPLETED) is the atomic guard:
+    // only the request that actually flips the row (count === 1) credits xu,
+    // the loser skips crediting → không cộng xu 2 lần cho một lần nạp.
+    const credited = await this.prisma.$transaction(async (tx) => {
+      const flip = await tx.payment.updateMany({
+        where: { id: payment.id, status: { not: PaymentStatus.COMPLETED } },
         data: {
           status: PaymentStatus.COMPLETED,
           paidAt: new Date(),
@@ -157,6 +161,11 @@ export class PaymentsService {
           providerData: params as any,
         },
       });
+
+      if (flip.count !== 1) {
+        // Một IPN đồng thời đã hoàn tất trước — không credit lần nữa.
+        return false;
+      }
 
       // VNPay top-up is a real-money purchase → credits the purchased bucket
       // (spendable but not withdrawable). Same path will be used by future
@@ -176,7 +185,12 @@ export class PaymentsService {
           referenceId: payment.id,
         },
       });
+      return true;
     });
+
+    if (!credited) {
+      return { RspCode: '02', Message: 'Order already confirmed' };
+    }
 
     return { RspCode: '00', Message: 'Confirm Success' };
   }
@@ -478,8 +492,11 @@ export class PaymentsService {
     const adminLabel = admin?.displayName || admin?.username || 'admin';
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      const p = await tx.payment.update({
-        where: { id: payment.id },
+      // updateMany có điều kiện PENDING là chốt atomic: nếu admin bấm trùng /
+      // hai request chạy song song, chỉ request thắng race (count === 1) mới
+      // credit ví — không cộng xu hai lần.
+      const flip = await tx.payment.updateMany({
+        where: { id: payment.id, status: PaymentStatus.PENDING },
         data: {
           status: PaymentStatus.COMPLETED,
           paidAt: new Date(),
@@ -494,6 +511,10 @@ export class PaymentsService {
         },
       });
 
+      if (flip.count !== 1) {
+        return null; // request khác đã xử lý — bỏ qua, không credit
+      }
+
       const wallet = await this.wallet.creditPurchasedExternal(tx, payment.userId, payment.coinAmount);
       await tx.coinTransaction.create({
         data: {
@@ -504,8 +525,13 @@ export class PaymentsService {
           referenceId: payment.id,
         },
       });
-      return p;
+      return tx.payment.findUnique({ where: { id: payment.id } });
     });
+
+    if (!updated) {
+      // Đã được xác nhận bởi một request đồng thời — trả nguyên trạng, không báo lại.
+      return this.prisma.payment.findUnique({ where: { id: payment.id } });
+    }
 
     this.notifications
       .notifyUser(payment.userId, {
@@ -874,6 +900,18 @@ export class PaymentsService {
         return { ok: true };
       }
 
+      // FAIL-CLOSED: chưa xác thực chữ ký JWS (x5c) của Apple thì KHÔNG trừ ví.
+      // Endpoint là @Public() — không có guard này, kẻ tấn công tự chế
+      // signedPayload REFUND + transactionId hợp lệ để trừ purchasedBalance của
+      // nạn nhân (griefing tài chính). Chỉ bật sau khi đã wire verify x5c thật.
+      if (process.env.APPLE_WEBHOOK_CLAWBACK_ENABLED !== 'true') {
+        this.logger.warn(
+          `Apple ${notificationType} txn ${transactionId}: clawback đang TẮT ` +
+            `(chưa xác thực chữ ký) — bỏ qua. Bật APPLE_WEBHOOK_CLAWBACK_ENABLED khi đã verify.`,
+        );
+        return { ok: true };
+      }
+
       await this.clawbackPayment({
         provider: PaymentProvider.APPLE_IAP,
         providerTxn: transactionId,
@@ -969,6 +1007,16 @@ export class PaymentsService {
       }
       if (!providerTxn) {
         this.logger.warn(`Google CANCEL: cannot resolve orderId for token ${purchaseToken.slice(0, 12)}…`);
+        return { ok: true };
+      }
+
+      // FAIL-CLOSED: chỉ clawback khi đã cấu hình xác thực OIDC của Pub/Sub.
+      // Không có audience thì webhook không được xác thực → không trừ ví (tránh
+      // POST giả trigger clawback qua nhánh fallback quét purchaseToken).
+      if (!process.env.GOOGLE_PUBSUB_AUDIENCE) {
+        this.logger.warn(
+          `Google CANCEL ${providerTxn}: clawback bỏ qua vì GOOGLE_PUBSUB_AUDIENCE chưa đặt (webhook chưa xác thực).`,
+        );
         return { ok: true };
       }
 

@@ -132,7 +132,14 @@ export class VnpayProvider implements OnModuleInit {
       .update(signData, 'utf-8')
       .digest('hex');
 
-    const valid = computed.toLowerCase() === rawHash.toLowerCase();
+    // So sánh timing-safe (chống dò chữ ký qua thời gian phản hồi). Cả hai là
+    // hex SHA-512; length khác nhau ⇒ chắc chắn không khớp (timingSafeEqual ném
+    // khi khác độ dài nên phải kiểm trước).
+    const computedBuf = Buffer.from(computed.toLowerCase(), 'hex');
+    const rawBuf = Buffer.from((rawHash || '').toLowerCase(), 'hex');
+    const valid =
+      computedBuf.length === rawBuf.length &&
+      crypto.timingSafeEqual(computedBuf, rawBuf);
     const responseCode = params['vnp_ResponseCode'];
     const transactionStatus = params['vnp_TransactionStatus'];
     // VNPay: ResponseCode "00" + TransactionStatus "00" means success
