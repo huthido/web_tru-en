@@ -40,7 +40,13 @@ export const API_BASE_URL: string =
 
 /** Unwrap the `{ success, data, timestamp }` envelope to the inner payload. */
 export function unwrap<T>(res: AxiosResponse<ApiResponse<T>>): T {
-    return (res.data?.data ?? res.data) as T;
+    const body = res.data as any;
+    // Nhận diện envelope tường minh để `data: null` trả về null thay vì lọt cả
+    // object envelope ra ngoài (bug khi dùng `?? res.data`).
+    if (body && typeof body === 'object' && 'success' in body && 'data' in body) {
+        return body.data as T;
+    }
+    return body as T;
 }
 
 const ACCESS_TOKEN_KEY = 'webtruyen.accessToken';

@@ -137,9 +137,9 @@ export const EarningsScreen: React.FC = () => {
             <SectionCard title="Hôm nay" loading={todayQ.isLoading}>
                 {todayQ.data ? (
                     <View style={styles.gridSm}>
-                        <Cell label="Donate" value={formatNumber(todayQ.data.donations)} />
-                        <Cell label="Bán chương" value={formatNumber(todayQ.data.chapterSales)} />
-                        <Cell label="Bán truyện" value={formatNumber(todayQ.data.storySales)} />
+                        <Cell label="Donate" value={formatNumber(todayQ.data.donationNet)} />
+                        <Cell label="Bán chương" value={formatNumber(todayQ.data.chapterNet)} />
+                        <Cell label="Bán truyện" value={formatNumber(todayQ.data.storyNet)} />
                         <Cell label="Tổng" value={formatNumber(todayQ.data.total)} highlight />
                     </View>
                 ) : null}
@@ -188,13 +188,13 @@ function BreakdownRows({ data }: { data: EarningsBreakdown }) {
     const styles = useMemo(() => makeStyles(colors), [colors]);
     return (
         <View style={{ gap: spacing.xs }}>
-            <KV k="Doanh thu gốc" v={`${formatNumber(data.gross)} xu`} />
+            <KV k="Doanh thu gốc" v={`${formatNumber(data.totalGross)} xu`} />
             <KV
-                k={`Phí nền tảng (${Math.round((data.feeRate ?? 0) * 100)}%)`}
-                v={`- ${formatNumber(data.platformFee)} xu`}
+                k={`Phí nền tảng (${Math.round(data.platformFeePercent ?? 0)}%)`}
+                v={`- ${formatNumber(data.totalPlatformFee)} xu`}
             />
             <View style={styles.divider} />
-            <KV k="Thực nhận" v={`${formatNumber(data.net)} xu`} highlight />
+            <KV k="Thực nhận" v={`${formatNumber(data.totalNet)} xu`} highlight />
         </View>
     );
 }

@@ -164,6 +164,10 @@ services:
     # (prisma migrate). Xem .env.example để biết format.
     environment:
       NODE_ENV: production
+      # Múi giờ VN cho mọi mốc "hôm nay/tuần/tháng" (doanh thu hôm nay, best-of-week/
+      # month, giới hạn tạo truyện/ngày). Không có TZ thì container chạy UTC ⇒ ngày
+      # reset lúc 07:00 giờ VN. Postgres vẫn lưu timestamp ở UTC nên không đụng dữ liệu.
+      TZ: Asia/Ho_Chi_Minh
       PORT: 3009
       DATABASE_URL: ${DATABASE_URL}
       DIRECT_URL: ${DIRECT_URL}

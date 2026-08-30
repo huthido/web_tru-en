@@ -17,20 +17,20 @@ export interface TransactionHistoryResult {
 }
 
 export interface EarningsBreakdown {
-    /** Tiền đã trừ phí nền tảng — tác giả nhận thực. */
-    net: number;
     /** Doanh thu gross trước phí. */
-    gross: number;
+    totalGross: number;
+    /** Tiền đã trừ phí nền tảng — tác giả nhận thực. */
+    totalNet: number;
     /** Phần phí nền tảng (gross - net). */
-    platformFee: number;
-    /** Tỉ lệ phí (vd 0.3 = 30%). */
-    feeRate: number;
+    totalPlatformFee: number;
+    /** Tỉ lệ phí hiện tại tính theo phần trăm (vd 30 = 30%). */
+    platformFeePercent: number;
 }
 
 export interface TodayEarnings {
-    donations: number;
-    chapterSales: number;
-    storySales: number;
+    donationNet: number;
+    chapterNet: number;
+    storyNet: number;
     total: number;
 }
 

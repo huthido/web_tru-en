@@ -173,7 +173,8 @@ export type TransactionType =
     | 'WITHDRAWAL'
     | 'TRANSFER'
     | 'TTS_GENERATION'
-    | 'TTS_SUBSCRIPTION';
+    | 'TTS_SUBSCRIPTION'
+    | 'PURCHASE_ITEM';
 
 export interface CoinTransaction {
     id: string;
