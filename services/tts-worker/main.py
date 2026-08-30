@@ -16,6 +16,7 @@ import asyncio
 import ctypes
 import gc
 import hashlib
+import hmac
 import ipaddress
 import logging
 import os
@@ -40,6 +41,11 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 log = logging.getLogger("tts-worker")
 
 API_KEY = os.environ.get("TTS_API_KEY", "")
+if not API_KEY:
+    log.warning(
+        "TTS_API_KEY chưa được set — worker sẽ TỪ CHỐI mọi request /synthesize "
+        "(fail-closed). Đặt TTS_API_KEY trùng với backend để bật worker."
+    )
 DEFAULT_VOICE = os.environ.get("TTS_DEFAULT_VOICE", "")
 MAX_CHARS = int(os.environ.get("TTS_MAX_CHARS", "200000"))
 CHUNK_CHARS = int(os.environ.get("TTS_CHUNK_CHARS", "400"))
@@ -402,7 +408,15 @@ async def synthesize(
     x_api_key: str | None = Header(default=None),
     x_timeout_ms: int | None = Header(default=None),
 ):
-    if API_KEY and x_api_key != API_KEY:
+    # Fail-closed: thiếu TTS_API_KEY thì TỪ CHỐI phục vụ, không mở cửa tự do.
+    # (Trước đây `if API_KEY and ...` khiến key rỗng = chấp nhận mọi request.)
+    if not API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="Worker chưa cấu hình TTS_API_KEY",
+        )
+    # So sánh timing-safe để chống dò key qua thời gian phản hồi.
+    if not x_api_key or not hmac.compare_digest(x_api_key, API_KEY):
         raise HTTPException(status_code=401, detail="Invalid API key")
     if _model is None:
         raise HTTPException(status_code=503, detail="Model not loaded yet")
