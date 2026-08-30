@@ -1322,6 +1322,7 @@ export class StoriesService {
       return await this.prisma.story.findMany({
         where: {
           ...PUBLIC_STORY_WHERE,
+          ...MATURITY_WHERE(allowAdultContent),
           ratingCount: {
             gte: 5, // At least 5 ratings to be considered
           },
@@ -1339,6 +1340,7 @@ export class StoriesService {
         return await this.prisma.story.findMany({
           where: {
             ...PUBLIC_STORY_WHERE,
+            ...MATURITY_WHERE(allowAdultContent),
             ratingCount: {
               gte: 5,
             },
@@ -1808,7 +1810,7 @@ export class StoriesService {
 
     // If not enough recommendations, fill with popular stories
     if (recommendedStories.length < limit) {
-      const popularStories = await this.getTopRated(limit - recommendedStories.length);
+      const popularStories = await this.getTopRated(limit - recommendedStories.length, allowAdultContent);
       const popularIds = new Set(recommendedStories.map(s => s.id));
       const additionalStories = popularStories.filter(s => !popularIds.has(s.id));
       return [...recommendedStories, ...additionalStories].slice(0, limit);

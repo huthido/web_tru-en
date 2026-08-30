@@ -47,13 +47,20 @@ export class ChaptersController {
             select: {
                 id: true,
                 authorId: true,
+                maturity: true,
             },
         });
         if (!story) {
             throw new NotFoundException('Truyện không tồn tại');
         }
+        const isOwnerOrAdmin = !!user && (story.authorId === user.id || user.role === UserRole.ADMIN);
+        // Nội dung MATURE (Families Policy): chỉ chủ truyện/admin hoặc user đã bật
+        // xem nội dung người lớn mới được liệt kê chương — chặn liệt kê ẩn danh.
+        if (story.maturity === 'MATURE' && !isOwnerOrAdmin && user?.allowAdultContent !== true) {
+            throw new NotFoundException('Truyện không tồn tại');
+        }
         // For story authors, include unpublished chapters
-        const includeUnpublished = user && (story.authorId === user.id || user.role === UserRole.ADMIN);
+        const includeUnpublished = isOwnerOrAdmin;
         return this.chaptersService.findAll(story.id, includeUnpublished);
     }
 

@@ -91,11 +91,28 @@ export class ChaptersService {
         // Find story first
         const story = await this.prisma.story.findUnique({
             where: { slug: storySlug },
-            select: { id: true, authorId: true, isPublished: true, accessType: true, price: true },
+            select: { id: true, authorId: true, isPublished: true, accessType: true, price: true, maturity: true },
         });
 
         if (!story) {
             throw new NotFoundException('Truyện không tồn tại');
+        }
+
+        // Nội dung MATURE (Families Policy): chỉ chủ truyện/admin hoặc user đã bật
+        // xem nội dung người lớn mới được đọc. Trả 404 để không lộ sự tồn tại.
+        if (story.maturity === 'MATURE') {
+            const isMatureAuthor = !!userId && story.authorId === userId;
+            let matureAllowed = isMatureAuthor;
+            if (!matureAllowed && userId) {
+                const u = await this.prisma.user.findUnique({
+                    where: { id: userId },
+                    select: { role: true, allowAdultContent: true },
+                });
+                matureAllowed = !!u && (u.role === UserRole.ADMIN || u.allowAdultContent === true);
+            }
+            if (!matureAllowed) {
+                throw new NotFoundException('Chương không tồn tại');
+            }
         }
 
         // Find chapter
