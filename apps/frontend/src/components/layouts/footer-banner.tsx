@@ -88,7 +88,9 @@ export function FooterBanner() {
 
     return (
         // mb-16 md:mb-0: chừa chỗ cho thanh điều hướng dưới cùng (fixed h-16) trên mobile.
-        <div className="w-full mb-16 md:mb-0 bg-surface-container border-t border-outline-variant/40">
+        // md:ml-60 md:w-auto: bỏ qua phần sidebar cố định (w-60) trên desktop để không bị che.
+        // Khi sidebar thu gọn (html[data-sidebar='collapsed']) thì globals.css tự đổi thành ml-20.
+        <div className="w-full md:ml-60 md:w-auto mb-16 md:mb-0 bg-surface-container border-t border-outline-variant/40">
             {/* Khung cố định 3:1 (1500×500), tối đa 1500px, căn giữa. */}
             <div className="relative w-full mx-auto overflow-hidden" style={{ maxWidth: 1500 }}>
                 {/* Spacer giữ tỉ lệ 500/1500 = 33.3333% (không dùng aspect-ratio để hợp iOS 12). */}

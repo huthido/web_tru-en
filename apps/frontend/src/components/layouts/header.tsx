@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { OptimizedImage } from '@/components/ui/optimized-image';
@@ -11,7 +11,7 @@ import { useSearchSuggestions } from '@/lib/api/hooks/use-search';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { useSettings } from '@/lib/api/hooks/use-settings';
 import { useWalletBalance } from '@/lib/api/hooks/use-wallet';
-import { Coins, LayoutDashboard, Users, Package } from 'lucide-react';
+import { Coins, LayoutDashboard, Users, Package, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { BrandMark } from '@/components/ui/brand-mark';
 
 export function Header() {
@@ -84,8 +84,29 @@ export function Header() {
     }
   };
 
+  const toggleSidebar = useCallback(() => {
+    const root = document.documentElement;
+    const next = root.dataset.sidebar === 'collapsed' ? 'expanded' : 'collapsed';
+    if (next === 'collapsed') root.dataset.sidebar = 'collapsed';
+    else delete root.dataset.sidebar;
+    try {
+      localStorage.setItem('sidebar', next);
+    } catch {}
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 w-full h-[60px] flex items-center justify-between px-3 md:px-6 bg-primary-container/80 dark:bg-surface/95 md:bg-surface/95 backdrop-blur-xl border-b border-outline-variant/40 transition-colors duration-300">
+      {/* Nút thu gọn sidebar — chỉ hiện trên web (desktop), toggle html[data-sidebar] */}
+      <button
+        type="button"
+        onClick={toggleSidebar}
+        aria-label="Thu gọn hoặc mở rộng menu"
+        title="Thu gọn / mở rộng menu"
+        className="hidden md:flex items-center justify-center w-9 h-9 rounded-full hover:bg-surface-variant text-on-surface-variant hover:text-on-surface transition-colors flex-shrink-0 mr-1"
+      >
+        <PanelLeftClose size={20} className="sidebar-when-expanded flex-shrink-0" />
+        <PanelLeftOpen size={20} className="sidebar-when-collapsed flex-shrink-0" />
+      </button>
       {/* Mobile Logo only — bỏ brand wordmark "YÊU" để giải phóng ~50px chỗ
           cho theme/coin/bell items bên phải khỏi bị overflow crop. Brand
           identity vẫn truyền tải qua logo icon + soft pink background. */}

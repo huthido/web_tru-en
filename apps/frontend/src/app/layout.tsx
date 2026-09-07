@@ -14,6 +14,7 @@ import { ConsentBanner } from '@/components/ads/consent-banner';
 import { AdsenseScript } from '@/components/ads/adsense-script';
 import { WebpFallback } from '@/components/compat/webp-fallback';
 import { FooterBanner } from '@/components/layouts/footer-banner';
+import { AndroidAppBanner } from '@/components/layouts/android-app-banner';
 import { getSiteUrl } from '@/lib/seo/site-url';
 
 // Body / UI font — Inter (full Vietnamese support).
@@ -162,6 +163,7 @@ export default async function RootLayout({
                   <AdsConsentProvider>
                     <MaintenanceCheck initialMaintenanceMode={maintenanceMode}>
                       {children}
+                      <AndroidAppBanner />
                       <FooterBanner />
                     </MaintenanceCheck>
                     <ConsentBanner />

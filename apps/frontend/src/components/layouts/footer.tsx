@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { ImageSizes } from '@/utils/image-utils';
-import { Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
-import { SiX, SiTiktok, SiLinkedin, SiThreads } from 'react-icons/si';
+import { Facebook, Twitter, Youtube, Instagram, Smartphone } from 'lucide-react';
+import { SiX, SiTiktok, SiLinkedin, SiThreads, SiGoogleplay } from 'react-icons/si';
 
 import { useSettings } from '@/lib/api/hooks/use-settings';
 import { BrandMark } from '@/components/ui/brand-mark';
@@ -48,6 +48,26 @@ export function Footer() {
                                 {settings.siteDescription}
                             </p>
                         )}
+                        {/* Cài ứng dụng Android — Google Play */}
+                        <div className="mt-1">
+                            <p className="text-sm font-semibold text-on-surface flex items-center gap-2">
+                                <Smartphone className="w-4 h-4" />
+                                Tải ứng dụng
+                            </p>
+                            <a
+                                href="https://play.google.com/store/apps/details?id=com.yeuyeu.webtruyen&pcampaignid=web_share"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-2 inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-black text-white hover:bg-zinc-800 active:scale-[0.98] transition-all shadow-md"
+                            >
+                                <SiGoogleplay className="w-5 h-5 flex-shrink-0" />
+                                <span className="flex flex-col items-start leading-none">
+                                    <span className="text-[10px] uppercase tracking-wider opacity-80">Tải ngay trên</span>
+                                    <span className="text-sm font-bold">Google Play</span>
+                                </span>
+                            </a>
+                            <p className="text-xs text-on-surface-variant mt-2">Miễn phí cho Android — đọc nhanh hơn, offline</p>
+                        </div>
                     </div>
 
                     {/* Công việc */}

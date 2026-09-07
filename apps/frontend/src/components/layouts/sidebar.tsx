@@ -7,6 +7,7 @@ import { useEffect as useClientEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
 import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, UserCircle, HelpCircle, Plus, Bug, Megaphone, PanelLeftClose, PanelLeftOpen, type LucideIcon } from 'lucide-react';
+import { SiGoogleplay } from 'react-icons/si';
 import { BrandMark } from '@/components/ui/brand-mark';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
@@ -125,6 +126,17 @@ export function Sidebar() {
     <>
       {/* Desktop Sidebar — Vivid Reader expanded rail */}
       <aside className="sidebar-rail hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col py-8 bg-surface-container border-r border-outline-variant/40 transition-colors duration-300 z-40">
+        {/* Nút thu gọn nổi trên mép phải sidebar — dễ thấy trên web, hoạt động cả khi thu gọn */}
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          aria-label="Thu gọn hoặc mở rộng menu"
+          title="Thu gọn / mở rộng menu"
+          className="hidden md:flex absolute -right-3 top-5 w-7 h-7 rounded-full bg-surface-container border border-outline-variant/40 shadow-sm items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors z-50"
+        >
+          <PanelLeftClose size={14} className="sidebar-when-expanded flex-shrink-0" />
+          <PanelLeftOpen size={14} className="sidebar-when-collapsed flex-shrink-0" />
+        </button>
         {/* Logo / wordmark */}
         <Link
           href="/"
@@ -154,6 +166,22 @@ export function Sidebar() {
             <NavPill key={l.label} link={l} />
           ))}
         </nav>
+
+        {/* Tải ứng dụng Android — Google Play (hiển thị toàn site) */}
+        <a
+            href="https://play.google.com/store/apps/details?id=com.yeuyeu.webtruyen&pcampaignid=web_share"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sidebar-center flex items-center gap-3 mx-3 mb-2 px-4 py-3 rounded-xl bg-black text-white hover:bg-zinc-800 active:scale-[0.98] transition-all shadow-sm flex-shrink-0"
+            aria-label="Tải ứng dụng Android trên Google Play"
+            title="Tải ứng dụng Android"
+        >
+            <SiGoogleplay size={18} className="flex-shrink-0" />
+            <span className="sidebar-label flex flex-col leading-none text-left">
+                <span className="text-[10px] uppercase tracking-wider opacity-80">Tải ứng dụng</span>
+                <span className="text-xs font-bold">Google Play</span>
+            </span>
+        </a>
 
         {/* Secondary section + user card */}
         <div className="flex-shrink-0 px-3 pt-3 mt-2 border-t border-outline-variant/30 space-y-1.5">
