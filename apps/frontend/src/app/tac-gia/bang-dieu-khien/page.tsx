@@ -16,7 +16,8 @@ import { Story } from '@/lib/api/stories.service';
 import { useToastContext } from '@/components/providers/toast-provider';
 import { MonetizationProgressBanner } from '@/components/author/monetization-progress-banner';
 import { VoiceSettings } from '@/components/author/voice-settings';
-import { BookOpen, Eye, Star, Edit, Trash2, Send, LayoutGrid, List, BarChart3, Package } from 'lucide-react';
+import { BookOpen, Eye, Star, Edit, Trash2, Send, LayoutGrid, List, BarChart3, Package, FilePlus2 } from 'lucide-react';
+import { AuthorOnboarding } from '@/components/author/author-onboarding';
 
 export default function AuthorDashboardPage() {
     const router = useRouter();
@@ -115,12 +116,16 @@ export default function AuthorDashboardPage() {
                 <div className="md:ml-60 pb-16 md:pb-0">
                 <Header />
                 <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
-                    <div className="max-w-7xl mx-auto">
-                        {/* Banner tiến độ mở khoá Trung tâm Kiếm tiền — tự ẩn khi đủ điều kiện */}
-                        <MonetizationProgressBanner />
+                    <div className="max-w-7xl mx-auto flex flex-col">
+                        {/* Mobile: banner kiếm tiền + giọng AI xuống cuối trang để danh sách
+                            truyện (việc chính của tác giả mới) hiện ngay đầu. Desktop giữ như cũ. */}
+                        <div className="order-last md:order-none">
+                            {/* Banner tiến độ mở khoá Trung tâm Kiếm tiền — tự ẩn khi đủ điều kiện */}
+                            <MonetizationProgressBanner />
 
-                        {/* Giọng đọc AI: chọn preset / clone giọng + hướng dẫn biểu cảm */}
-                        <VoiceSettings />
+                            {/* Giọng đọc AI: chọn preset / clone giọng + hướng dẫn biểu cảm */}
+                            <VoiceSettings />
+                        </div>
                         {/* Header */}
                         <div className="bg-surface-container rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-outline-variant">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -297,15 +302,18 @@ export default function AuthorDashboardPage() {
                             <div className="text-center py-12">
                                 <p className="text-red-500 dark:text-red-400">Có lỗi xảy ra khi tải danh sách truyện</p>
                             </div>
+                        ) : stories.length === 0 && !search && !status ? (
+                            <AuthorOnboarding />
                         ) : stories.length === 0 ? (
                             <div className="text-center py-12 bg-surface-container rounded-lg">
-                                <p className="text-on-surface-variant mb-4">Bạn chưa có truyện nào</p>
-                                <Link
-                                    href="/tac-gia/truyen/tao"
-                                    className="inline-block px-6 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors"
+                                <p className="text-on-surface-variant mb-4">Không có truyện nào khớp bộ lọc</p>
+                                <button
+                                    type="button"
+                                    onClick={() => { setSearch(''); setStatus(''); setPage(1); }}
+                                    className="inline-block px-6 py-3 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg font-medium transition-colors"
                                 >
-                                    Tạo truyện đầu tiên
-                                </Link>
+                                    Xoá bộ lọc
+                                </button>
                             </div>
                         ) : (
                             <>
@@ -424,7 +432,17 @@ export default function AuthorDashboardPage() {
                                                             <Package className="w-4 h-4" />
                                                             Vật phẩm
                                                         </Link>
-                                                        {!story.isPublished && (
+                                                        {!story.isPublished && (story._count?.chapters || 0) === 0 && (
+                                                            <Link
+                                                                href={`/tac-gia/truyen/${story.slug}/chuong/tao`}
+                                                                className="w-full px-3 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
+                                                                title="Truyện cần ít nhất 1 chương mới gửi duyệt được"
+                                                            >
+                                                                <FilePlus2 className="w-4 h-4" />
+                                                                Thêm chương đầu tiên
+                                                            </Link>
+                                                        )}
+                                                        {!story.isPublished && (story._count?.chapters || 0) > 0 && (
                                                             <button
                                                                 onClick={() => handlePublish(story.id, story.title, (story._count?.chapters || 0) > 0)}
                                                                 disabled={publishMutation.isPending || createApprovalMutation.isPending}
@@ -559,7 +577,17 @@ export default function AuthorDashboardPage() {
                                                                 <BarChart3 className="w-4 h-4" />
                                                                 Thống kê
                                                             </Link>
-                                                            {!story.isPublished && (
+                                                            {!story.isPublished && (story._count?.chapters || 0) === 0 && (
+                                                                <Link
+                                                                    href={`/tac-gia/truyen/${story.slug}/chuong/tao`}
+                                                                    className="px-3 py-1.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-xs font-medium transition-colors inline-flex items-center gap-1.5"
+                                                                    title="Truyện cần ít nhất 1 chương mới gửi duyệt được"
+                                                                >
+                                                                    <FilePlus2 className="w-4 h-4" />
+                                                                    Thêm chương đầu tiên
+                                                                </Link>
+                                                            )}
+                                                            {!story.isPublished && (story._count?.chapters || 0) > 0 && (
                                                                 <button
                                                                     onClick={() => handlePublish(story.id, story.title, (story._count?.chapters || 0) > 0)}
                                                                     disabled={publishMutation.isPending || createApprovalMutation.isPending}

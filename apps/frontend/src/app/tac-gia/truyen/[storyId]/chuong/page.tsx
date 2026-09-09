@@ -520,11 +520,11 @@ export default function ChapterManagementPage() {
                                                     <div className="flex flex-col md:flex-row md:items-end gap-3">
                                                         {/* Chapter Info — cố định 2 dòng: tiêu đề + badge, rồi số liệu. */}
                                                         <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-2 mb-1.5">
+                                                            <div className="flex flex-wrap items-center gap-2 mb-1.5">
                                                                 <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-primary font-semibold text-sm">
                                                                     {chapter.order || 0}
                                                                 </span>
-                                                                <h3 className="min-w-0 truncate text-lg md:text-xl font-bold text-on-surface" title={chapter.title}>
+                                                                <h3 className="flex-1 min-w-[8rem] truncate text-base md:text-xl font-bold text-on-surface" title={chapter.title}>
                                                                     {chapter.title}
                                                                 </h3>
                                                                 <span className={`flex-shrink-0 px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${chapter.isPublished
@@ -543,8 +543,9 @@ export default function ChapterManagementPage() {
                                                                         🎵 Audio
                                                                     </span>
                                                                 )}
-                                                                {/* Xem / Chỉnh sửa nằm cùng dòng tên chương, bên phải */}
-                                                                <div className="ml-auto flex-shrink-0 flex items-center gap-2">
+                                                                {/* Xem / Chỉnh sửa: desktop cùng dòng tên chương bên phải;
+                                                                    mobile xuống dòng riêng để tên chương không bị cắt cụt */}
+                                                                <div className="basis-full md:basis-auto md:ml-auto flex-shrink-0 flex items-center justify-end gap-2">
                                                                     <Link
                                                                         href={`/truyen/${storySlug}/chuong/${chapter.slug}`}
                                                                         className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg text-xs font-medium transition-colors"
@@ -569,7 +570,7 @@ export default function ChapterManagementPage() {
                                                         </div>
 
                                                         {/* Actions */}
-                                                        <div className="flex items-center gap-1.5 ml-10 md:ml-0 md:flex-shrink-0 md:self-end whitespace-nowrap">
+                                                        <div className="flex flex-wrap items-center gap-1.5 ml-10 md:ml-0 md:flex-shrink-0 md:self-end whitespace-nowrap">
                                                             {/* Giọng đọc AI cho từng chương (chương miễn phí đã đăng,
                                                                 không có audio tác giả). Job chạy nền vài phút. */}
                                                             {canTts(chapter) && (() => {

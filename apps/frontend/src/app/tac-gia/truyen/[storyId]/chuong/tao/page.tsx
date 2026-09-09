@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
@@ -32,6 +32,15 @@ export default function CreateChapterPage() {
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    // ?moi=1 = vừa tạo truyện xong được dẫn thẳng sang đây → hiện hướng dẫn bước tiếp.
+    // Đọc từ window thay vì useSearchParams để không cần Suspense boundary.
+    const [justCreated, setJustCreated] = useState(false);
+    useEffect(() => {
+        try {
+            setJustCreated(new URLSearchParams(window.location.search).get('moi') === '1');
+        } catch {}
+    }, []);
 
     const handleSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault();
@@ -102,9 +111,18 @@ export default function CreateChapterPage() {
                     <Header />
                     <main className="pt-4 md:pt-8 pb-12 min-h-[calc(100vh-60px)] px-4 md:px-6 lg:px-8">
                         <div className="max-w-5xl mx-auto">
+                            {justCreated && (
+                                <div className="mb-4 rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4 text-sm text-green-800 dark:text-green-200">
+                                    <p className="font-semibold mb-1">Đã tạo truyện 🎉 Bước 2: viết chương đầu tiên.</p>
+                                    <p>
+                                        Nhập tên chương và nội dung (tối thiểu 100 ký tự) rồi bấm <b>Tạo chương</b>.
+                                        Sau đó vào <Link href="/tac-gia/bang-dieu-khien" className="underline font-medium">Kênh tác giả</Link> bấm <b>Gửi duyệt</b> để truyện hiển thị công khai.
+                                    </p>
+                                </div>
+                            )}
                             {/* Header */}
-                            <div className="bg-surface-container rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-outline-variant">
-                                <div className="flex items-center justify-between">
+                            <div className="bg-surface-container rounded-lg p-4 md:p-8 mb-6 shadow-sm border border-outline-variant">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                     <div>
                                         <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-2">
                                             Tạo chương mới
@@ -118,7 +136,7 @@ export default function CreateChapterPage() {
                                     <div className="flex items-center gap-2">
                                         <Link
                                             href={`/tac-gia/truyen/${storySlug}/chuong`}
-                                            className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg font-medium transition-colors"
+                                            className="flex-1 sm:flex-none text-center px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant rounded-lg font-medium transition-colors"
                                         >
                                             Hủy
                                         </Link>
@@ -127,7 +145,7 @@ export default function CreateChapterPage() {
                                             form="chapter-form"
                                             title="Ctrl/⌘+S để lưu"
                                             disabled={createMutation.isPending || formData.content.replace(/<[^>]*>/g, '').length < 100}
-                                            className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                                            className="flex-1 sm:flex-none justify-center px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                                         >
                                             {createMutation.isPending ? 'Đang tạo...' : 'Tạo chương'}
                                         </button>

@@ -87,7 +87,7 @@ export default function CreateStoryPage() {
             );
             const tags = selectedCategories.map((cat: any) => cat.name);
 
-            await createMutation.mutateAsync({
+            const created: any = await createMutation.mutateAsync({
                 title: formData.title,
                 description: formData.description || undefined,
                 coverImage: formData.coverImage || undefined,
@@ -98,7 +98,10 @@ export default function CreateStoryPage() {
                 price: formData.accessType === 'VIP' ? Math.max(0, Math.floor(formData.price) || 0) : 0,
             });
 
-            router.push('/tac-gia/bang-dieu-khien');
+            // Dẫn thẳng tới bước tiếp theo (viết chương đầu tiên) thay vì về
+            // dashboard — người mới hay dừng lại ở truyện rỗng vì không biết làm gì tiếp.
+            const slug: string | undefined = created?.slug || created?.data?.slug;
+            router.push(slug ? `/tac-gia/truyen/${slug}/chuong/tao?moi=1` : '/tac-gia/bang-dieu-khien');
         } catch (error: any) {
             console.error('Error creating story:', error);
             setErrors({ submit: error?.response?.data?.error || 'Có lỗi xảy ra khi tạo truyện' });

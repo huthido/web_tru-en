@@ -22,6 +22,8 @@ import { StarRating } from '@/components/stories/star-rating';
 import { DonateAuthorModal } from '@/components/stories/donate-author-modal';
 import { StoryItemsSection } from '@/components/stories/story-items-section';
 import { StoryVipBanner } from '@/components/stories/story-vip-banner';
+import { StoryOwnerBar } from '@/components/author/story-owner-bar';
+import { useAuth } from '@/lib/api/hooks/use-auth';
 import { ArrowLeft, BookOpen, HeartHandshake, Share2, Megaphone, Lock } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import {
@@ -47,6 +49,10 @@ export default function BookDetailPage() {
     if (status) setStoryErrorStatus(status);
   }, [storyError]);
   const isUnpublished = storyErrorStatus === 403;
+
+  // Tác giả (hoặc admin) xem truyện của mình → hiện thanh công cụ sửa/thêm chương.
+  const { user: me } = useAuth();
+  const isOwner = !!me && !!story && (me.id === story.authorId || me.role === 'ADMIN');
 
   // Fetch chapters separately since API doesn't include them in story response
   const { data: chaptersResponse, isLoading: chaptersLoading } = useChapters(slug);
@@ -360,6 +366,16 @@ export default function BookDetailPage() {
             />
             <span className="text-sm font-medium">Trở lại</span>
           </button>
+
+          {isOwner && (
+            <StoryOwnerBar
+              storyId={story.id}
+              storySlug={story.slug}
+              isPublished={story.isPublished}
+              chapterCount={chaptersLoading ? undefined : chapters.length}
+              className="mb-6"
+            />
+          )}
 
           {/* Book Detail Content */}
           <div

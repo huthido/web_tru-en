@@ -14,7 +14,7 @@ import { ShareProfileMenu } from '@/components/users/share-profile-menu';
 import { VerifiedBadge } from '@/components/users/verified-badge';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useAuthorProfile } from '@/lib/api/hooks/use-authors';
-import { HeartHandshake, Eye, Users, BookOpen, UserCircle2, Pencil, Image as ImageIcon, Palette } from 'lucide-react';
+import { HeartHandshake, Eye, Users, BookOpen, UserCircle2, Pencil, Image as ImageIcon, Palette, LayoutDashboard, Upload, Wallet, Settings } from 'lucide-react';
 
 /** Điều hướng giữa 3 trang tác phẩm (mỗi loại là 1 trang riêng, không tab). */
 const WORK_NAV = [
@@ -159,6 +159,31 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
                     </div>
                   </div>
                 </section>
+
+                {/* Lối tắt tác giả — chỉ chủ tài khoản thấy. Trên mobile đây là nơi
+                    người dùng hay vào nhất nên đặt luôn Kênh tác giả/Đăng truyện ở đây. */}
+                {isMe && (
+                  <section className="mb-6 rounded-2xl border border-primary/30 bg-primary/5 p-3 md:p-4">
+                    <p className="text-sm font-semibold text-on-surface mb-2.5">Quản lý sáng tác của bạn</p>
+                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                      <Link href="/tac-gia/truyen/tao" className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-primary text-on-primary hover:bg-primary/90 transition-colors">
+                        <Upload className="w-4 h-4" /> Đăng truyện mới
+                      </Link>
+                      <Link href="/tac-gia/bang-dieu-khien" className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-surface-container text-on-surface border border-outline-variant hover:bg-surface-container-high transition-colors">
+                        <LayoutDashboard className="w-4 h-4" /> Kênh tác giả
+                      </Link>
+                      <Link href="/tac-gia/thu-nhap" className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-surface-container text-on-surface border border-outline-variant hover:bg-surface-container-high transition-colors">
+                        <Wallet className="w-4 h-4" /> Kiếm tiền
+                      </Link>
+                      <Link href="/tai-khoan" className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-surface-container text-on-surface border border-outline-variant hover:bg-surface-container-high transition-colors">
+                        <Settings className="w-4 h-4" /> Cài đặt
+                      </Link>
+                    </div>
+                    <p className="mt-2 text-xs text-on-surface-variant">
+                      Muốn sửa một truyện: mở truyện đó, thanh "Bạn là tác giả" sẽ có nút Sửa truyện / Thêm chương.
+                    </p>
+                  </section>
+                )}
 
                 {/* Tác phẩm đã đăng — điều hướng tới 3 trang riêng biệt */}
                 <section>

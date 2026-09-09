@@ -3,12 +3,14 @@
 import Link from 'next/link';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePathname } from 'next/navigation';
-import { useEffect as useClientEffect, useRef, useCallback } from 'react';
+import { useEffect as useClientEffect, useRef, useCallback, useState } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, UserCircle, HelpCircle, Plus, Bug, Megaphone, PanelLeftClose, PanelLeftOpen, type LucideIcon } from 'lucide-react';
+import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, UserCircle, HelpCircle, Plus, Bug, Megaphone, PanelLeftClose, PanelLeftOpen, Menu, type LucideIcon } from 'lucide-react';
 import { SiGoogleplay } from 'react-icons/si';
 import { BrandMark } from '@/components/ui/brand-mark';
+import { MobileAccountSheet } from '@/components/layouts/mobile-account-sheet';
+import { MobileCreateSheet } from '@/components/layouts/mobile-create-sheet';
 
 /** Nhãn vai trò hiển thị dưới tên người dùng. */
 function roleLabel(role?: string): string {
@@ -59,6 +61,11 @@ export function Sidebar() {
   const { data: settings } = useSettings();
 
   const navRef = useRef<HTMLElement>(null);
+  // Hai sheet của bottom nav mobile: "+" (sáng tác) và "Menu" (tài khoản + mọi mục).
+  const [createOpen, setCreateOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const closeCreate = useCallback(() => setCreateOpen(false), []);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   // Khôi phục vị trí scroll trước khi paint (tránh nhảy)
   useClientEffect(() => {
@@ -116,11 +123,11 @@ export function Sidebar() {
 
   const visibleLinks = links.filter((l) => !l.authOnly || canCreateStories);
 
-  // Mobile bottom nav: Trang chủ · Truyện · [FAB Mày tao] · Thư viện · Tài khoản
+  // Mobile bottom nav: Trang chủ · Truyện · [+ Sáng tác] · Thư viện · Menu
   // Tìm theo label để không lệch index khi thêm/bớt mục trong `links`.
   const byLabel = (label: string) => links.find((l) => l.label === label)!;
   const mobileLeft = [byLabel('Trang chủ'), byLabel('Truyện')];
-  const mobileRight = [byLabel('Thư viện'), byLabel('Trang cá nhân')];
+  const mobileRight = [byLabel('Thư viện')];
 
   return (
     <>
@@ -267,39 +274,58 @@ export function Sidebar() {
             );
           })}
 
-          {/* FAB Đăng truyện — nổi giữa */}
-          <div className="flex-1 flex items-center justify-center">
-            <Link
-              href={uploadHref}
-              aria-label="Đăng truyện"
-              className="flex items-center justify-center -mt-6 bg-primary text-on-primary rounded-full shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+          {/* Nút "+" — mở sheet Sáng tác (đăng truyện / thêm chương / quản lý) */}
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              aria-label="Sáng tác: đăng truyện, thêm chương"
+              className="flex items-center justify-center -mt-8 bg-primary text-on-primary rounded-full shadow-lg shadow-primary/30 active:scale-95 transition-transform"
               style={{ width: 52, height: 52 }}
             >
               <Plus size={26} strokeWidth={2.5} />
-            </Link>
+            </button>
+            <span className="text-[10px] font-medium text-primary leading-none mt-1">Sáng tác</span>
           </div>
 
           {mobileRight.map((l) => {
             const Icon = l.icon;
-            const isAccount = l.label === 'Trang cá nhân';
             return (
               <Link key={l.label} href={l.href} aria-label={l.label}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
-                {isAccount && user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={l.label}
-                    className={`w-5 h-5 rounded-full object-cover ${l.active ? 'ring-2 ring-primary' : ''}`}
-                  />
-                ) : (
-                  <Icon size={20} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
-                )}
-                <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{isAccount ? 'Cá nhân' : l.label}</span>
+                <Icon size={20} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
+                <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{l.label}</span>
               </Link>
             );
           })}
+
+          {/* Menu — avatar + mọi mục (Kênh tác giả, Kiếm tiền, Cài đặt, Đăng xuất…) */}
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Menu tài khoản"
+            className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${menuOpen ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}
+          >
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt="Menu"
+                className={`w-5 h-5 rounded-full object-cover ${menuOpen ? 'ring-2 ring-primary' : ''}`}
+              />
+            ) : user ? (
+              <span className={`w-5 h-5 rounded-full bg-primary-container text-on-primary-container text-[10px] font-bold flex items-center justify-center ${menuOpen ? 'ring-2 ring-primary' : ''}`}>
+                {(user.displayName || user.username || '?').charAt(0).toUpperCase()}
+              </span>
+            ) : (
+              <Menu size={20} className={menuOpen ? 'text-primary' : 'text-on-surface-variant'} />
+            )}
+            <span className={`text-[10px] font-medium ${menuOpen ? 'text-primary' : 'text-on-surface-variant'}`}>Menu</span>
+          </button>
         </div>
       </nav>
+
+      <MobileCreateSheet open={createOpen} onClose={closeCreate} />
+      <MobileAccountSheet open={menuOpen} onClose={closeMenu} />
     </>
   );
 }
