@@ -7,7 +7,6 @@ import { ApprovalsModule } from '../approvals/approvals.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { NotificationsModule } from '../notifications/notifications.module';
-import { MonetizationModule } from '../monetization/monetization.module';
 import { TtsModule } from '../tts/tts.module';
 
 @Module({
@@ -17,7 +16,6 @@ import { TtsModule } from '../tts/tts.module';
     forwardRef(() => ApprovalsModule),
     WalletModule,
     NotificationsModule,
-    MonetizationModule,
     // Tự sinh audio AI khi chương được xuất bản.
     TtsModule,
   ],

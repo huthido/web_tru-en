@@ -12,7 +12,6 @@ import { Loading } from '@/components/ui/loading';
 import { storiesService } from '@/lib/api/stories.service';
 import { useToastContext } from '@/components/providers/toast-provider';
 import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES, isImageFile } from '@/lib/utils/compress-image';
-import { MonetizationLockedNotice, useMonetizationLocked } from '@/components/author/monetization-locked-notice';
 import { AdRevenueToggle } from '@/components/author/ad-revenue-toggle';
 
 export default function EditStoryPage() {
@@ -26,7 +25,6 @@ export default function EditStoryPage() {
     const updateMutation = useUpdateStory();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { showToast } = useToastContext();
-    const monetizationLocked = useMonetizationLocked();
 
     const [formData, setFormData] = useState({
         title: '',
@@ -351,22 +349,17 @@ export default function EditStoryPage() {
                                         value={formData.accessType}
                                         onChange={(e) => {
                                             const next = e.target.value as 'FREE' | 'FREEMIUM' | 'VIP';
-                                            if (monetizationLocked && next !== 'FREE') {
-                                                setFormData({ ...formData, accessType: 'FREE', price: 0 });
-                                                return;
-                                            }
                                             setFormData({ ...formData, accessType: next });
                                         }}
                                         className="w-full px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                     >
                                         <option value="FREE">Miễn phí — ai cũng đọc được</option>
-                                        <option value="FREEMIUM" disabled={monetizationLocked}>Freemium — đặt giá coin từng chương</option>
-                                        <option value="VIP" disabled={monetizationLocked}>VIP — mua một lần mở khóa cả truyện</option>
+                                        <option value="FREEMIUM">Freemium — đặt giá coin từng chương</option>
+                                        <option value="VIP">VIP — mua một lần mở khóa cả truyện</option>
                                     </select>
                                     <p className="mt-2 text-xs text-on-surface-variant">
                                         FREEMIUM: vào từng chương để đặt giá; nhãn trả phí được ẩn với độc giả.
                                     </p>
-                                    <MonetizationLockedNotice feature="vip-story" />
                                 </div>
 
                                 {formData.accessType === 'VIP' && (
@@ -379,9 +372,8 @@ export default function EditStoryPage() {
                                             min={0}
                                             step={1}
                                             value={formData.price}
-                                            disabled={monetizationLocked}
                                             onChange={(e) => setFormData({ ...formData, price: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
-                                            className="w-full md:w-48 px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant disabled:opacity-60 disabled:cursor-not-allowed"
+                                            className="w-full md:w-48 px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-container text-on-surface placeholder:text-on-surface-variant"
                                             placeholder="0"
                                         />
                                         <p className="mt-2 text-xs text-on-surface-variant">

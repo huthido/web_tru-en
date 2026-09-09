@@ -12,7 +12,7 @@ import {
 } from './monetization.constants';
 
 /**
- * Điều kiện bật tính năng nâng cao — theo docs/Điều Kiện Bật Kiếm Tiền.docx:
+ * Điều kiện "bật kiếm tiền" — theo docs/Điều Kiện Bật Kiếm Tiền.docx:
  *   1. Tổng lượt xem ≥ 10.000
  *   2. Followers ≥ 100 (đếm AuthorFollow.authorId)
  *   3. Tài khoản không vi phạm: isActive=true, !deletedAt, không có
@@ -20,14 +20,16 @@ import {
  *   4. Nội dung không vi phạm: không có RESOLVED UgcReport targetType=
  *      STORY|CHAPTER trên bất kỳ truyện/chương nào của tác giả trong N ngày.
  *
- * Khi đủ 4 điều kiện, tác giả mở khoá:
- *   - Nhận xu từ quảng cáo (chia doanh thu ads — phase B2).
- *   - Tạo paid chapter (`Chapter.price > 0`) cho truyện FREEMIUM.
- *   - Tạo truyện VIP (`Story.accessType = VIP` + `Story.price > 0`).
+ * (09/09/2026) Đủ 4 điều kiện CHỈ mở khoá:
+ *   - Nhận xu từ quảng cáo trong truyện (`Story.adRevenueEnabled`, chia
+ *     doanh thu ads — phase B2).
  *   - Verified badge ✓ (live-compute = `eligible`).
  *
- * Donate / mua chương / mua truyện đã được tạo trước đó: MỞ TỰ DO cho mọi
- * tác giả — không gate. Coin về wallet + rút bình thường.
+ * Truyện VIP (`Story.accessType = VIP`), truyện FREEMIUM và chương trả phí
+ * (`Chapter.price > 0`) đã tách khỏi gate này — MỞ TỰ DO cho mọi tác giả kể
+ * từ 09/09/2026 (trước đó dùng chung điều kiện, đã bỏ ở StoriesService/
+ * ChaptersService). Donate / mua chương / mua truyện đã tạo trước đó cũng
+ * MỞ TỰ DO — không gate. Coin về wallet + rút bình thường.
  */
 @Injectable()
 export class MonetizationService {
@@ -93,9 +95,9 @@ export class MonetizationService {
 
   /**
    * Throw ForbiddenException với code ELIGIBILITY_REQUIRED nếu user chưa đủ
-   * điều kiện. Dùng ở các luồng "tạo paid content" (set VIP / chapter price)
-   * và "bật ad revenue" — KHÔNG dùng ở donate / mua chương / mua truyện
-   * (các luồng đó mở tự do cho mọi tác giả).
+   * điều kiện. Chỉ còn dùng ở luồng "bật ad revenue" (StoriesService.
+   * setAdRevenueEnabled) — KHÔNG dùng cho VIP story / paid chapter / donate /
+   * mua chương / mua truyện (các luồng đó mở tự do cho mọi tác giả).
    */
   async assertEligibleForAdvancedFeatures(authorId: string): Promise<void> {
     const ok = await this.isEligible(authorId);
@@ -103,7 +105,7 @@ export class MonetizationService {
       throw new ForbiddenException({
         code: ELIGIBILITY_REQUIRED_ERROR,
         message:
-          'Cần mở khoá tính năng nâng cao (10.000 view + 100 follower + tài khoản/nội dung không vi phạm)',
+          'Cần mở khoá tính năng kiếm tiền từ quảng cáo (10.000 view + 100 follower + tài khoản/nội dung không vi phạm)',
       });
     }
   }

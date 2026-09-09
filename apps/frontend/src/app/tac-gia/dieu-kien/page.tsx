@@ -7,15 +7,15 @@ import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useMyMonetizationEligibility } from '@/lib/api/hooks/use-monetization';
 import { Loading } from '@/components/ui/loading';
-import { Eye, Users, ShieldCheck, FileCheck2, ArrowRight, Check, X, Megaphone, Coins, Crown, BadgeCheck } from 'lucide-react';
+import { Eye, Users, ShieldCheck, FileCheck2, ArrowRight, Check, X, Megaphone, BadgeCheck } from 'lucide-react';
 
 /**
- * Trang tiến độ mở khoá TÍNH NĂNG NÂNG CAO — theo
+ * Trang tiến độ mở khoá KIẾM TIỀN TỪ QUẢNG CÁO — theo
  * docs/Điều Kiện Bật Kiếm Tiền.docx.
  *
- * Donate / bán nội dung đã tạo: tự do cho mọi tác giả. Đủ 4 điều kiện
- * dưới đây sẽ unlock 4 quyền lợi: ads revenue, paid chapter, VIP story,
- * verified badge ✓.
+ * Đăng truyện VIP / chương trả phí / donate: mở tự do cho mọi tác giả
+ * (09/09/2026, tách khỏi gate này). Đủ 4 điều kiện dưới đây chỉ còn unlock:
+ * nhận xu quảng cáo trong truyện + verified badge ✓.
  */
 export default function AuthorEligibilityPage() {
   const { isAuthenticated } = useAuth();
@@ -35,10 +35,10 @@ export default function AuthorEligibilityPage() {
             <div className="max-w-4xl mx-auto">
               <div className="mb-6">
                 <h1 className="font-display text-2xl md:text-3xl font-bold text-on-surface">
-                  Mở khoá tính năng nâng cao
+                  Mở khoá kiếm tiền từ quảng cáo
                 </h1>
                 <p className="text-on-surface-variant mt-1">
-                  Donate và rút xu đã mở tự do cho mọi tác giả. Đạt đủ 4 điều kiện bên dưới để mở thêm các quyền lợi nâng cao.
+                  Đăng truyện VIP, đặt giá chương, donate và rút xu đã mở tự do cho mọi tác giả. Đạt đủ 4 điều kiện bên dưới để mở thêm quyền nhận xu từ quảng cáo trong truyện.
                 </p>
               </div>
 
@@ -51,18 +51,13 @@ export default function AuthorEligibilityPage() {
                     Nhận xu từ quảng cáo trong truyện
                   </li>
                   <li className="flex items-center gap-2">
-                    <Coins className="w-4 h-4 text-primary flex-shrink-0" />
-                    Đặt giá coin cho chương (FREEMIUM)
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Crown className="w-4 h-4 text-primary flex-shrink-0" />
-                    Bán truyện VIP (mua 1 lần đọc cả truyện)
-                  </li>
-                  <li className="flex items-center gap-2">
                     <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
                     Tick xanh ✓ + ưu tiên hiển thị
                   </li>
                 </ul>
+                <p className="mt-3 text-xs text-on-surface-variant">
+                  Đăng truyện VIP, đặt giá coin cho chương (FREEMIUM) và nhận donate không cần điều kiện — mọi tác giả dùng được ngay.
+                </p>
               </div>
 
               {isLoading || !data ? (
@@ -74,7 +69,7 @@ export default function AuthorEligibilityPage() {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-on-surface">Chúc mừng!</h3>
                         <p className="text-sm text-on-surface-variant mt-1">
-                          Bạn đã đủ điều kiện — 4 quyền lợi nâng cao đã được mở khoá.
+                          Bạn đã đủ điều kiện — có thể bật nhận xu từ quảng cáo trong truyện.
                         </p>
                       </div>
                       <Link

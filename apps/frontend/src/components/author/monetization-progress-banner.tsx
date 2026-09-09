@@ -5,9 +5,9 @@ import { Sparkles, Lock, ArrowRight } from 'lucide-react';
 import { useMyMonetizationEligibility } from '@/lib/api/hooks/use-monetization';
 
 /**
- * Banner trên /tac-gia/bang-dieu-khien mời tác giả mở khoá tính năng nâng cao
- * (ads revenue, paid chapter, VIP story, verified ✓). Tự ẩn khi đã đủ.
- * Donate / bán content đã tạo trước đó vẫn mở tự do — không gate.
+ * Banner trên /tac-gia/bang-dieu-khien mời tác giả mở khoá kiếm tiền từ
+ * quảng cáo trong truyện + verified ✓. Tự ẩn khi đã đủ.
+ * Đăng truyện VIP, chương trả phí, donate: mở tự do cho mọi tác giả — không gate.
  */
 export function MonetizationProgressBanner() {
   const { data, isLoading } = useMyMonetizationEligibility(true);
@@ -37,10 +37,10 @@ export function MonetizationProgressBanner() {
         <div className="min-w-0">
           <h3 className="font-semibold text-on-surface flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-primary" />
-            Mở khoá tính năng nâng cao
+            Mở khoá kiếm tiền từ quảng cáo
           </h3>
           <p className="text-sm text-on-surface-variant mt-1">
-            Cần {hints.length > 0 ? hints.join(', ') : 'đủ 4 điều kiện'} để nhận xu từ quảng cáo, bán chương trả phí, truyện VIP và gắn tick xanh ✓.
+            Cần {hints.length > 0 ? hints.join(', ') : 'đủ 4 điều kiện'} để nhận xu từ quảng cáo trong truyện và gắn tick xanh ✓.
           </p>
         </div>
       </div>

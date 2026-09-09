@@ -58,25 +58,10 @@ export class StoriesService {
     private monetization: MonetizationService,
   ) { }
 
-  /**
-   * Gate "tạo paid content" — chỉ tác giả đủ 4 điều kiện monetization mới
-   * được đặt accessType=VIP/FREEMIUM hoặc story.price>0. Donate/mua truyện
-   * đã tạo trước đó không bị ảnh hưởng (đã mở tự do trong wallet.service).
-   *
-   * Gọi từ create() + update() khi DTO có set accessType ngoài FREE hoặc
-   * price > 0. Bỏ qua khi accessType=FREE (giá luôn = 0).
-   */
-  private async assertCanSetPaidStory(
-    authorId: string,
-    accessType?: string,
-    price?: number,
-  ) {
-    const isPaidAccess =
-      accessType && accessType !== 'FREE' && accessType !== undefined;
-    const hasPrice = (price ?? 0) > 0;
-    if (!isPaidAccess && !hasPrice) return;
-    await this.monetization.assertEligibleForAdvancedFeatures(authorId);
-  }
+  // Truyện VIP/FREEMIUM + giá chương mở tự do cho mọi tác giả (tách khỏi
+  // "bật kiếm tiền" — mục đó giờ CHỈ áp dụng cho quảng cáo trong truyện, xem
+  // MonetizationService). Không còn gate `assertEligibleForAdvancedFeatures`
+  // ở đây nữa.
 
   /**
    * Buy a VIP whole-story (accessType=VIP). Mirrors ChaptersService.buyChapter:
@@ -549,11 +534,6 @@ export class StoriesService {
     }
 
     await this.validateStoryAccess(createStoryDto.accessType, createStoryDto.price);
-    await this.assertCanSetPaidStory(
-      userId,
-      createStoryDto.accessType,
-      createStoryDto.price,
-    );
 
     // Create story
     let story;
@@ -726,14 +706,6 @@ export class StoriesService {
       const effectiveType = updateStoryDto.accessType ?? story.accessType;
       const effectivePrice = updateStoryDto.price ?? story.price;
       await this.validateStoryAccess(effectiveType, effectivePrice);
-      // Gate paid setup theo eligibility — chỉ check khi DTO ĐANG ĐỔI sang
-      // paid (không khoá nếu user chỉ edit metadata khác mà truyện đã paid).
-      const switchingToPaid =
-        (updateStoryDto.accessType !== undefined && updateStoryDto.accessType !== 'FREE') ||
-        (updateStoryDto.price !== undefined && (updateStoryDto.price ?? 0) > 0);
-      if (switchingToPaid) {
-        await this.assertCanSetPaidStory(userId, effectiveType, effectivePrice);
-      }
       if (updateStoryDto.accessType !== undefined) updateData.accessType = updateStoryDto.accessType;
       if (updateStoryDto.price !== undefined) updateData.price = updateStoryDto.price;
     }

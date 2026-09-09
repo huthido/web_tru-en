@@ -11,7 +11,6 @@ import { chaptersService } from '@/lib/api/chapters.service';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Loading } from '@/components/ui/loading';
 import { RichTextEditor } from '@/components/editor/rich-text-editor';
-import { MonetizationLockedNotice, useMonetizationLocked } from '@/components/author/monetization-locked-notice';
 import { ChapterAudioUpload } from '@/components/author/chapter-audio-upload';
 import { useEditorShortcuts } from '@/lib/hooks/use-editor-shortcuts';
 
@@ -24,7 +23,6 @@ export default function EditChapterPage() {
     const { data: story, isLoading: storyLoading } = useStory(storyIdOrSlug);
     const storySlug = story?.slug || storyIdOrSlug;
     const updateMutation = useUpdateChapter(storySlug);
-    const monetizationLocked = useMonetizationLocked();
 
     const [formData, setFormData] = useState({
         title: '',
@@ -266,15 +264,13 @@ export default function EditChapterPage() {
                                         min={0}
                                         step={1}
                                         value={formData.price}
-                                        disabled={monetizationLocked}
                                         onChange={(e) => setFormData({ ...formData, price: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
-                                        className="w-full md:w-48 px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed"
+                                        className="w-full md:w-48 px-4 py-2 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                                         placeholder="0"
                                     />
                                     <p className="mt-1 text-xs text-on-surface-variant">
                                         Để <span className="font-medium">0</span> nếu chương miễn phí. Khi {'>'} 0, độc giả phải trả số coin này để mở khóa; bạn nhận phần coin sau khi trừ phí nền tảng.
                                     </p>
-                                    <MonetizationLockedNotice feature="paid-chapter" />
                                 </div>
 
                                 {/* Error Message */}

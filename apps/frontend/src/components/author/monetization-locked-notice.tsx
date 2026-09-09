@@ -5,20 +5,19 @@ import { Lock, ArrowRight } from 'lucide-react';
 import { useMyMonetizationEligibility } from '@/lib/api/hooks/use-monetization';
 
 interface MonetizationLockedNoticeProps {
-  feature: 'paid-chapter' | 'vip-story' | 'donation' | 'ad-revenue';
+  /** Chỉ còn "ad-revenue" — VIP story / paid chapter / donate đã mở tự do (09/09/2026). */
+  feature: 'ad-revenue';
 }
 
 const FEATURE_LABEL: Record<MonetizationLockedNoticeProps['feature'], string> = {
-  'paid-chapter': 'đặt giá coin cho chương',
-  'vip-story': 'bán truyện VIP',
-  'donation': 'nhận donate từ độc giả',
   'ad-revenue': 'nhận xu từ quảng cáo',
 };
 
 /**
- * Tự ẩn khi tác giả đã đủ điều kiện kiếm tiền. Nếu chưa, hiển thị 1 hộp
- * inline giải thích vì sao tính năng paid/VIP/donate bị disable và link
- * dẫn tới trang tiến độ /tac-gia/dieu-kien.
+ * Tự ẩn khi tác giả đã đủ điều kiện "bật kiếm tiền". Nếu chưa, hiển thị 1 hộp
+ * inline giải thích vì sao nút bật quảng cáo trong truyện bị khoá và link
+ * dẫn tới trang tiến độ /tac-gia/dieu-kien. VIP story / paid chapter mở tự
+ * do cho mọi tác giả, không còn dùng component này.
  *
  * Pattern: đặt cạnh / phía trên trường input liên quan, đồng thời disable
  * trường input bằng prop `disabled` thông qua `useMonetizationLocked()`.

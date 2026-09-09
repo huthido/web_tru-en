@@ -16,7 +16,6 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { getPaginationParams, createPaginatedResult } from '../common/utils/pagination.util';
 
 import { WalletService } from '../wallet/wallet.service';
-import { MonetizationService } from '../monetization/monetization.service';
 import { TtsService } from '../tts/tts.service';
 
 @Injectable()
@@ -26,19 +25,13 @@ export class ChaptersService {
         private approvalsService: ApprovalsService,
         private walletService: WalletService,
         private notificationsService: NotificationsService,
-        private monetization: MonetizationService,
         // Optional: thiếu TtsModule (test cũ) thì publish vẫn chạy bình thường.
         @Optional() private ttsService?: TtsService,
     ) { }
 
-    /**
-     * Gate "tạo paid chapter" — chỉ tác giả đủ điều kiện monetization mới
-     * được đặt `price > 0`. Free chapter không bị ảnh hưởng.
-     */
-    private async assertCanSetPaidChapter(authorId: string, price?: number) {
-        if ((price ?? 0) <= 0) return;
-        await this.monetization.assertEligibleForAdvancedFeatures(authorId);
-    }
+    // Giá chương (paid chapter) mở tự do cho mọi tác giả — tách khỏi "bật
+    // kiếm tiền" (mục đó giờ chỉ áp dụng cho quảng cáo trong truyện). Không
+    // còn gate `assertEligibleForAdvancedFeatures` ở đây nữa.
 
     /**
      * Reject a paid price so small that the platform fee would leave the
@@ -279,7 +272,6 @@ export class ChaptersService {
         const slug = await generateUniqueSlug(baseSlug, slugExists);
 
         await this.validateChapterPrice(createChapterDto.price);
-        await this.assertCanSetPaidChapter(userId, createChapterDto.price);
 
         // Calculate word count and reading time
         const wordCount = createChapterDto.content.split(/\s+/).length;
@@ -391,10 +383,6 @@ export class ChaptersService {
 
         if (updateChapterDto.price !== undefined) {
             await this.validateChapterPrice(updateChapterDto.price);
-            // Chỉ check eligibility khi SET price>0 (bỏ giá → free thì OK).
-            if ((updateChapterDto.price ?? 0) > 0) {
-                await this.assertCanSetPaidChapter(chapter.story.authorId, updateChapterDto.price);
-            }
             updateData.price = updateChapterDto.price;
         }
 

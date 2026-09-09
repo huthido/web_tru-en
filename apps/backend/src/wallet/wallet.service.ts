@@ -585,8 +585,8 @@ export class WalletService implements OnModuleInit {
         const author = await this.prisma.user.findUnique({ where: { id: authorId } });
         if (!author) throw new BadRequestException('Không tìm thấy tác giả');
 
-        // Donate mở tự do cho mọi tác giả — eligibility chỉ gate "tạo paid
-        // content" + ad revenue (xem MonetizationService docstring).
+        // Donate mở tự do cho mọi tác giả — eligibility (09/09/2026) chỉ còn
+        // gate ad revenue (xem MonetizationService docstring).
 
         const donationResult = await this.prisma.$transaction(async (tx) => {
             // 1. Debit donor (soft: purchased first, fall back to earned). Lock + funds checked.
@@ -689,9 +689,8 @@ export class WalletService implements OnModuleInit {
             );
         }
 
-        // Mua chương mở tự do — nếu tác giả đã tạo được chapter trả phí
-        // thì có nghĩa đã có eligibility hoặc chapter được tạo trước khi
-        // policy đổi; ở luồng mua không gate lại để khỏi block người mua.
+        // Mua chương mở tự do cho mọi tác giả. Tạo chapter trả phí không còn
+        // gate eligibility từ 09/09/2026 (tách khỏi "bật kiếm tiền").
 
         const chapterResult = await this.prisma.$transaction(async (tx) => {
             // 1. Idempotency — bail out (no charge) if already purchased.
@@ -887,8 +886,9 @@ export class WalletService implements OnModuleInit {
             );
         }
 
-        // Mua truyện VIP mở tự do — gate eligibility chỉ áp dụng khi tác giả
-        // setup `accessType=VIP` ở stories.service.create/update.
+        // Mua truyện VIP mở tự do cho mọi tác giả. Setup `accessType=VIP` ở
+        // stories.service.create/update không còn gate eligibility từ
+        // 09/09/2026 (tách khỏi "bật kiếm tiền").
 
         const storyResult = await this.prisma.$transaction(async (tx) => {
             const existing = await tx.storyPurchase.findUnique({
