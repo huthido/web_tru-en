@@ -180,7 +180,7 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
                       </Link>
                     </div>
                     <p className="mt-2 text-xs text-on-surface-variant">
-                      Muốn sửa một truyện: mở truyện đó, thanh "Bạn là tác giả" sẽ có nút Sửa truyện / Thêm chương.
+                      Muốn sửa một truyện: mở truyện đó, thanh “Bạn là tác giả” sẽ có nút Sửa truyện / Thêm chương.
                     </p>
                   </section>
                 )}

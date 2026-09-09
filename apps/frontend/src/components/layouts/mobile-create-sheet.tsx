@@ -119,7 +119,7 @@ export function MobileCreateSheet({ open, onClose }: Props) {
             </div>
             {isAuthenticated && user && (
                 <p className="text-xs text-on-surface-variant mt-4 px-1">
-                    Quy trình: tạo truyện → thêm ít nhất 1 chương → bấm "Gửi duyệt" trong Kênh tác giả. Admin duyệt xong truyện sẽ hiển thị công khai.
+                    Quy trình: tạo truyện → thêm ít nhất 1 chương → bấm “Gửi duyệt” trong Kênh tác giả. Admin duyệt xong truyện sẽ hiển thị công khai.
                 </p>
             )}
         </BottomSheet>
