@@ -49,10 +49,10 @@ export class ChaptersService {
         }
     }
 
-    async findAll(storyId: string, includeUnpublished: boolean = false) {
+    async findAll(storyId: string, includeUnpublished: boolean = false, userId?: string) {
         const story = await this.prisma.story.findUnique({
             where: { id: storyId },
-            select: { id: true },
+            select: { id: true, authorId: true, accessType: true, price: true },
         });
 
         if (!story) {
@@ -64,7 +64,7 @@ export class ChaptersService {
             where.isPublished = true;
         }
 
-        return this.prisma.chapter.findMany({
+        const chapters = await this.prisma.chapter.findMany({
             where,
             include: {
                 uploader: {
@@ -78,6 +78,69 @@ export class ChaptersService {
             },
             orderBy: { order: 'asc' },
         });
+
+        // Danh sách chương cũng phải khoá nội dung trả phí như findOne() bên
+        // dưới — trước đây thiếu bước này nên ai gọi thẳng API danh sách là
+        // đọc được full text chương đã đặt giá coin, kể cả khi truyện FREEMIUM.
+        if (await this.isPrivileged(userId, story.authorId)) {
+            return chapters;
+        }
+
+        let chapterPurchaseIds = new Set<string>();
+        let hasStoryPurchase = false;
+        if (userId) {
+            if (story.accessType === 'FREEMIUM') {
+                const purchases = await this.prisma.chapterPurchase.findMany({
+                    where: { userId, chapterId: { in: chapters.map((c) => c.id) } },
+                    select: { chapterId: true },
+                });
+                chapterPurchaseIds = new Set(purchases.map((p) => p.chapterId));
+            } else if (story.accessType === 'VIP') {
+                const purchase = await this.prisma.storyPurchase.findUnique({
+                    where: { userId_storyId: { userId, storyId: story.id } },
+                });
+                hasStoryPurchase = !!purchase;
+            }
+        }
+
+        return chapters.map((chapter) => {
+            if (story.accessType === 'VIP' && story.price > 0) {
+                return this.applyLock(chapter, !hasStoryPurchase, 'STORY', story.price);
+            }
+            if (story.accessType === 'FREEMIUM' && chapter.price > 0) {
+                return this.applyLock(chapter, !chapterPurchaseIds.has(chapter.id), 'CHAPTER', chapter.price);
+            }
+            return { ...chapter, isLocked: false, lockType: null, lockPrice: 0 };
+        });
+    }
+
+    private async isPrivileged(userId: string | undefined, authorId: string) {
+        if (!userId) return false;
+        if (userId === authorId) return true;
+        const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+        return !!user && user.role === UserRole.ADMIN;
+    }
+
+    /** Strip full content/audio khỏi 1 chương bị khoá, chỉ giữ teaser 300 ký tự. */
+    private applyLock(chapter: any, isLocked: boolean, lockType: 'CHAPTER' | 'STORY', lockPrice: number) {
+        if (!isLocked) {
+            return { ...chapter, isLocked: false, lockType: null, lockPrice: 0 };
+        }
+        const plain = chapter.content
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        const preview = plain.slice(0, 300);
+        return {
+            ...chapter,
+            content: preview + (plain.length > 300 ? '…' : ''),
+            audioUrl: null,
+            ttsAudioUrl: null,
+            ttsAudioStatus: null,
+            isLocked: true,
+            lockType,
+            lockPrice,
+        };
     }
 
     async findOne(storySlug: string, chapterSlug: string, userId?: string) {

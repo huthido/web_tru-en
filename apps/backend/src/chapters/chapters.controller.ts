@@ -61,7 +61,7 @@ export class ChaptersController {
         }
         // For story authors, include unpublished chapters
         const includeUnpublished = isOwnerOrAdmin;
-        return this.chaptersService.findAll(story.id, includeUnpublished);
+        return this.chaptersService.findAll(story.id, includeUnpublished, user?.id);
     }
 
     @Public()

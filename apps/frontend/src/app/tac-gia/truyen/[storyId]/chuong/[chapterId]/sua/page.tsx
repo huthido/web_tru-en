@@ -6,12 +6,13 @@ import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { useUpdateChapter } from '@/lib/api/hooks/use-chapters';
-import { useStory } from '@/lib/api/hooks/use-stories';
+import { useStory, useUpdateStory } from '@/lib/api/hooks/use-stories';
 import { chaptersService } from '@/lib/api/chapters.service';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Loading } from '@/components/ui/loading';
 import { RichTextEditor } from '@/components/editor/rich-text-editor';
 import { ChapterAudioUpload } from '@/components/author/chapter-audio-upload';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { useEditorShortcuts } from '@/lib/hooks/use-editor-shortcuts';
 
 export default function EditChapterPage() {
@@ -23,6 +24,7 @@ export default function EditChapterPage() {
     const { data: story, isLoading: storyLoading } = useStory(storyIdOrSlug);
     const storySlug = story?.slug || storyIdOrSlug;
     const updateMutation = useUpdateChapter(storySlug);
+    const updateStoryMutation = useUpdateStory();
 
     const [formData, setFormData] = useState({
         title: '',
@@ -34,6 +36,8 @@ export default function EditChapterPage() {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(true);
     const [chapter, setChapter] = useState<any>(null);
+    const [showFreeWarning, setShowFreeWarning] = useState(false);
+    const [freeWarningDismissed, setFreeWarningDismissed] = useState(false);
 
     useEffect(() => {
         const fetchChapter = async () => {
@@ -68,6 +72,27 @@ export default function EditChapterPage() {
         }
     }, [storySlug, chapterId]);
 
+    const doUpdateChapter = async () => {
+        try {
+            await updateMutation.mutateAsync({
+                id: chapterId,
+                data: {
+                    title: formData.title.trim(),
+                    content: formData.content.trim(),
+                    price: Math.max(0, Math.floor(formData.price) || 0),
+                    audioUrl: formData.audioUrl,
+                },
+            });
+
+            router.push(`/tac-gia/truyen/${storySlug}/chuong`);
+        } catch (error: any) {
+            console.error('Error updating chapter:', error);
+            setErrors({
+                submit: error?.response?.data?.error || 'Có lỗi xảy ra khi cập nhật chương'
+            });
+        }
+    };
+
     const handleSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault();
         setErrors({});
@@ -88,24 +113,35 @@ export default function EditChapterPage() {
             return;
         }
 
-        try {
-            await updateMutation.mutateAsync({
-                id: chapterId,
-                data: {
-                    title: formData.title.trim(),
-                    content: formData.content.trim(),
-                    price: Math.max(0, Math.floor(formData.price) || 0),
-                    audioUrl: formData.audioUrl,
-                },
-            });
-
-            router.push(`/tac-gia/truyen/${storySlug}/chuong`);
-        } catch (error: any) {
-            console.error('Error updating chapter:', error);
-            setErrors({
-                submit: error?.response?.data?.error || 'Có lỗi xảy ra khi cập nhật chương'
-            });
+        // Đặt giá coin nhưng truyện còn "Miễn phí" thì giá sẽ bị bỏ qua — hỏi
+        // chuyển sang Freemium ngay để giá thực sự có tác dụng.
+        if (formData.price > 0 && story?.accessType === 'FREE' && !freeWarningDismissed) {
+            setShowFreeWarning(true);
+            return;
         }
+
+        await doUpdateChapter();
+    };
+
+    const handleSwitchToFreemium = async () => {
+        if (!story?.id) {
+            setShowFreeWarning(false);
+            return;
+        }
+        try {
+            await updateStoryMutation.mutateAsync({ id: story.id, data: { accessType: 'FREEMIUM' } });
+            setShowFreeWarning(false);
+            await doUpdateChapter();
+        } catch (error: any) {
+            setShowFreeWarning(false);
+            setErrors({ submit: error?.response?.data?.error || 'Không đổi được hình thức truyện' });
+        }
+    };
+
+    const handleSkipFreeWarning = () => {
+        setShowFreeWarning(false);
+        setFreeWarningDismissed(true);
+        doUpdateChapter();
     };
 
     useEditorShortcuts({
@@ -301,6 +337,17 @@ export default function EditChapterPage() {
                     </main>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={showFreeWarning}
+                onClose={handleSkipFreeWarning}
+                onConfirm={handleSwitchToFreemium}
+                title="Truyện đang ở chế độ Miễn phí"
+                message="Bạn vừa đặt giá coin cho chương này, nhưng truyện đang là Miễn phí nên giá sẽ bị bỏ qua — chương vẫn đọc được miễn phí. Chuyển truyện sang Freemium (đặt giá theo từng chương) ngay bây giờ?"
+                confirmText="Chuyển sang Freemium"
+                cancelText="Để sau, vẫn lưu chương"
+                isLoading={updateStoryMutation.isPending}
+            />
         </ProtectedRoute>
     );
 }

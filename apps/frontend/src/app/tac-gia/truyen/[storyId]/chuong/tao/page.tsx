@@ -6,11 +6,12 @@ import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { useCreateChapter } from '@/lib/api/hooks/use-chapters';
-import { useStory } from '@/lib/api/hooks/use-stories';
+import { useStory, useUpdateStory } from '@/lib/api/hooks/use-stories';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { Loading } from '@/components/ui/loading';
 import { RichTextEditor } from '@/components/editor/rich-text-editor';
 import { ChapterAudioUpload } from '@/components/author/chapter-audio-upload';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { useEditorShortcuts } from '@/lib/hooks/use-editor-shortcuts';
 
 export default function CreateChapterPage() {
@@ -21,6 +22,7 @@ export default function CreateChapterPage() {
     const { data: story, isLoading: storyLoading } = useStory(storyIdOrSlug);
     const storySlug = story?.slug || storyIdOrSlug;
     const createMutation = useCreateChapter(storySlug);
+    const updateStoryMutation = useUpdateStory();
 
     const [formData, setFormData] = useState({
         title: '',
@@ -30,6 +32,8 @@ export default function CreateChapterPage() {
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [showFreeWarning, setShowFreeWarning] = useState(false);
+    const [freeWarningDismissed, setFreeWarningDismissed] = useState(false);
 
     // ?moi=1 = vừa tạo truyện xong được dẫn thẳng sang đây → hiện hướng dẫn bước tiếp.
     // Đọc từ window thay vì useSearchParams để không cần Suspense boundary.
@@ -39,6 +43,27 @@ export default function CreateChapterPage() {
             setJustCreated(new URLSearchParams(window.location.search).get('moi') === '1');
         } catch {}
     }, []);
+
+    const doCreateChapter = async () => {
+        try {
+            await createMutation.mutateAsync({
+                title: formData.title.trim(),
+                content: formData.content.trim(),
+                price: Math.max(0, Math.floor(formData.price) || 0),
+                ...(formData.audioUrl ? { audioUrl: formData.audioUrl } : {}),
+            });
+
+            // Wait a bit to ensure cache is updated before navigation
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            router.push(`/tac-gia/truyen/${storySlug}/chuong`);
+        } catch (error: any) {
+            console.error('Error creating chapter:', error);
+            setErrors({
+                submit: error?.response?.data?.error || 'Có lỗi xảy ra khi tạo chương'
+            });
+        }
+    };
 
     const handleSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault();
@@ -60,24 +85,35 @@ export default function CreateChapterPage() {
             return;
         }
 
-        try {
-            await createMutation.mutateAsync({
-                title: formData.title.trim(),
-                content: formData.content.trim(),
-                price: Math.max(0, Math.floor(formData.price) || 0),
-                ...(formData.audioUrl ? { audioUrl: formData.audioUrl } : {}),
-            });
-
-            // Wait a bit to ensure cache is updated before navigation
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            router.push(`/tac-gia/truyen/${storySlug}/chuong`);
-        } catch (error: any) {
-            console.error('Error creating chapter:', error);
-            setErrors({
-                submit: error?.response?.data?.error || 'Có lỗi xảy ra khi tạo chương'
-            });
+        // Đặt giá coin nhưng truyện còn "Miễn phí" thì giá sẽ bị bỏ qua — hỏi
+        // chuyển sang Freemium ngay để giá thực sự có tác dụng.
+        if (formData.price > 0 && story?.accessType === 'FREE' && !freeWarningDismissed) {
+            setShowFreeWarning(true);
+            return;
         }
+
+        await doCreateChapter();
+    };
+
+    const handleSwitchToFreemium = async () => {
+        if (!story?.id) {
+            setShowFreeWarning(false);
+            return;
+        }
+        try {
+            await updateStoryMutation.mutateAsync({ id: story.id, data: { accessType: 'FREEMIUM' } });
+            setShowFreeWarning(false);
+            await doCreateChapter();
+        } catch (error: any) {
+            setShowFreeWarning(false);
+            setErrors({ submit: error?.response?.data?.error || 'Không đổi được hình thức truyện' });
+        }
+    };
+
+    const handleSkipFreeWarning = () => {
+        setShowFreeWarning(false);
+        setFreeWarningDismissed(true);
+        doCreateChapter();
     };
 
     useEditorShortcuts({
@@ -273,6 +309,17 @@ export default function CreateChapterPage() {
                     </main>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={showFreeWarning}
+                onClose={handleSkipFreeWarning}
+                onConfirm={handleSwitchToFreemium}
+                title="Truyện đang ở chế độ Miễn phí"
+                message="Bạn vừa đặt giá coin cho chương này, nhưng truyện đang là Miễn phí nên giá sẽ bị bỏ qua — chương vẫn đọc được miễn phí. Chuyển truyện sang Freemium (đặt giá theo từng chương) ngay bây giờ?"
+                confirmText="Chuyển sang Freemium"
+                cancelText="Để sau, vẫn lưu chương"
+                isLoading={updateStoryMutation.isPending}
+            />
         </ProtectedRoute>
     );
 }
