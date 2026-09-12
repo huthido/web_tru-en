@@ -637,8 +637,26 @@ export class StoriesService {
     }
 
     // Check permission
-    if (story.authorId !== userId && userRole !== UserRole.ADMIN) {
+    const isAuthor = story.authorId === userId;
+    const isAdmin = userRole === UserRole.ADMIN;
+    if (!isAuthor && !isAdmin) {
       throw new ForbiddenException('Bạn không có quyền chỉnh sửa truyện này');
+    }
+
+    // Admin không phải tác giả: chỉ được duyệt (xuất bản / phân loại độ tuổi /
+    // đề xuất), KHÔNG được sửa nội dung do tác giả sở hữu (tiêu đề, mô tả,
+    // ảnh bìa, giá, thể loại...). Admin sửa truyện của chính mình thì vẫn full quyền.
+    if (isAdmin && !isAuthor) {
+      const MODERATION_ONLY_FIELDS = new Set(['isPublished', 'maturity', 'isRecommended']);
+      const disallowedFields = Object.keys(updateStoryDto).filter(
+        (key) =>
+          (updateStoryDto as any)[key] !== undefined && !MODERATION_ONLY_FIELDS.has(key)
+      );
+      if (disallowedFields.length > 0) {
+        throw new ForbiddenException(
+          'Admin chỉ được duyệt truyện (xuất bản, phân loại độ tuổi, đề xuất), không được sửa nội dung của tác giả'
+        );
+      }
     }
 
     const updateData: any = {};

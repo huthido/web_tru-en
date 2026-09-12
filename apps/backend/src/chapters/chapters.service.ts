@@ -393,8 +393,26 @@ export class ChaptersService {
 
         // Check permission - chỉ author của story hoặc admin mới edit được
         // Không ai được edit chapter của story của người khác
-        if (chapter.story.authorId !== userId && userRole !== UserRole.ADMIN) {
+        const isAuthor = chapter.story.authorId === userId;
+        const isAdmin = userRole === UserRole.ADMIN;
+        if (!isAuthor && !isAdmin) {
             throw new ForbiddenException('Bạn không có quyền chỉnh sửa chương này');
+        }
+
+        // Admin không phải tác giả: chỉ được duyệt (isPublished), KHÔNG được
+        // sửa nội dung do tác giả sở hữu (tiêu đề, nội dung, ảnh, giá, audio...).
+        // Admin sửa chương của chính mình thì vẫn full quyền.
+        if (isAdmin && !isAuthor) {
+            const MODERATION_ONLY_FIELDS = new Set(['isPublished']);
+            const disallowedFields = Object.keys(updateChapterDto).filter(
+                (key) =>
+                    (updateChapterDto as any)[key] !== undefined && !MODERATION_ONLY_FIELDS.has(key)
+            );
+            if (disallowedFields.length > 0) {
+                throw new ForbiddenException(
+                    'Admin chỉ được duyệt xuất bản chương, không được sửa nội dung của tác giả'
+                );
+            }
         }
 
         const updateData: any = {};
