@@ -50,9 +50,11 @@ export default function BookDetailPage() {
   }, [storyError]);
   const isUnpublished = storyErrorStatus === 403;
 
-  // Tác giả (hoặc admin) xem truyện của mình → hiện thanh công cụ sửa/thêm chương.
+  // Chỉ tác giả THẬT của truyện mới thấy thanh công cụ sửa/thêm chương — admin
+  // xem truyện người khác không còn được sửa nội dung (chỉ duyệt qua /quan-tri),
+  // nên không hiện các nút thao tác nội dung này nữa.
   const { user: me } = useAuth();
-  const isOwner = !!me && !!story && (me.id === story.authorId || me.role === 'ADMIN');
+  const isOwner = !!me && !!story && me.id === story.authorId;
 
   // Fetch chapters separately since API doesn't include them in story response
   const { data: chaptersResponse, isLoading: chaptersLoading } = useChapters(slug);
