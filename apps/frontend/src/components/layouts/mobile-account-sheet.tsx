@@ -13,8 +13,6 @@ import {
     HelpCircle,
     Bug,
     Upload,
-    Camera,
-    Palette,
     Users,
     Package,
     Coins,
@@ -48,10 +46,11 @@ interface Props {
 }
 
 /**
- * Sheet "Menu" của bottom nav mobile — gom toàn bộ mục mà sidebar desktop có
+ * Sheet "Bạn" của bottom nav mobile — gom toàn bộ mục mà sidebar desktop có
  * (Kênh tác giả, Kiếm tiền, Cửa hàng, Cài đặt, Đăng xuất…) vào một chỗ dễ
  * thấy. Trước đây các mục này chỉ tới được qua "Chỉnh sửa hồ sơ" → /tai-khoan
- * nên người dùng mới không tìm ra.
+ * nên người dùng mới không tìm ra. Thẻ ví ở đầu sheet đặt "Nạp xu" và "Rút xu"
+ * cạnh nhau — trước đây chỉ có "Nạp xu", "Rút xu" bị chôn trong Kiếm tiền.
  */
 export function MobileAccountSheet({ open, onClose }: Props) {
     const router = useRouter();
@@ -69,8 +68,6 @@ export function MobileAccountSheet({ open, onClose }: Props) {
     ];
 
     const generalItems: MenuItem[] = [
-        { href: '/nghe-thuat', label: 'Mày tao', icon: Camera },
-        { href: '/tranh', label: 'Tranh', icon: Palette },
         { href: '/cua-hang', label: 'Cửa hàng', icon: Store },
         { href: '/vat-pham-cua-toi', label: 'Kho vật phẩm', icon: Package, authOnly: true },
         { href: '/lich-su', label: 'Lịch sử', icon: Clock },
@@ -117,7 +114,7 @@ export function MobileAccountSheet({ open, onClose }: Props) {
     );
 
     return (
-        <BottomSheet open={open} onClose={onClose} title="Menu">
+        <BottomSheet open={open} onClose={onClose} title="Bạn">
             {isAuthenticated && user ? (
                 <Link
                     href={profileHref}
@@ -158,17 +155,30 @@ export function MobileAccountSheet({ open, onClose }: Props) {
             )}
 
             {isAuthenticated && (
-                <Link
-                    href="/cua-hang"
-                    onClick={onClose}
-                    className="flex items-center justify-between px-4 py-3 rounded-xl border border-outline-variant/60 mb-4 hover:bg-surface-container-high transition-colors"
-                >
-                    <span className="flex items-center gap-2 text-sm font-medium text-on-surface">
-                        <Coins size={18} className="text-amber-500" />
-                        Số dư: <b>{coinBalance.toLocaleString('vi-VN')}</b> xu
+                <div className="flex items-center justify-between gap-2 px-4 py-3 rounded-xl border border-outline-variant/60 mb-4">
+                    <span className="flex items-center gap-2 text-sm font-medium text-on-surface min-w-0">
+                        <Coins size={18} className="text-amber-500 flex-shrink-0" />
+                        <span className="truncate">
+                            Số dư: <b>{coinBalance.toLocaleString('vi-VN')}</b> xu
+                        </span>
                     </span>
-                    <span className="text-xs font-semibold text-primary">Nạp xu</span>
-                </Link>
+                    <span className="flex items-center gap-1.5 flex-shrink-0">
+                        <Link
+                            href="/cua-hang"
+                            onClick={onClose}
+                            className="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary/90 active:scale-95 transition-all"
+                        >
+                            Nạp xu
+                        </Link>
+                        <Link
+                            href="/tac-gia/rut-xu"
+                            onClick={onClose}
+                            className="px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface text-xs font-semibold hover:bg-surface-variant active:scale-95 transition-all"
+                        >
+                            Rút xu
+                        </Link>
+                    </span>
+                </div>
             )}
 
             {isAuthenticated && (

@@ -123,11 +123,10 @@ export function Sidebar() {
 
   const visibleLinks = links.filter((l) => !l.authOnly || canCreateStories);
 
-  // Mobile bottom nav: Trang chủ · Truyện · [+ Sáng tác] · Thư viện · Menu
+  // Mobile bottom nav: Trang chủ · Truyện · Mày tao · Tranh · [+ Thêm] · Bạn
   // Tìm theo label để không lệch index khi thêm/bớt mục trong `links`.
   const byLabel = (label: string) => links.find((l) => l.label === label)!;
-  const mobileLeft = [byLabel('Trang chủ'), byLabel('Truyện')];
-  const mobileRight = [byLabel('Thư viện')];
+  const mobileMain = [byLabel('Trang chủ'), byLabel('Truyện'), byLabel('Mày tao'), byLabel('Tranh')];
 
   return (
     <>
@@ -260,10 +259,10 @@ export function Sidebar() {
         </div>
       </aside>
 
-      {/* Mobile Bottom Navigation: Trang chủ · Truyện · [FAB Mày tao] · Thư viện · Tài khoản */}
+      {/* Mobile Bottom Navigation: Trang chủ · Truyện · Mày tao · Tranh · Thêm · Bạn */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container/80 backdrop-blur-xl border-t border-outline-variant/40 z-50 safe-area-inset-bottom">
         <div className="flex items-stretch justify-around h-16 px-1 py-1 relative">
-          {mobileLeft.map((l) => {
+          {mobileMain.map((l) => {
             const Icon = l.icon;
             return (
               <Link key={l.label} href={l.href} aria-label={l.label}
@@ -274,42 +273,28 @@ export function Sidebar() {
             );
           })}
 
-          {/* Nút "+" — mở sheet Sáng tác (đăng truyện / thêm chương / quản lý) */}
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <button
-              type="button"
-              onClick={() => setCreateOpen(true)}
-              aria-label="Sáng tác: đăng truyện, thêm chương"
-              className="flex items-center justify-center -mt-8 bg-primary text-on-primary rounded-full shadow-lg shadow-primary/30 active:scale-95 transition-transform"
-              style={{ width: 52, height: 52 }}
-            >
-              <Plus size={26} strokeWidth={2.5} />
-            </button>
-            <span className="text-[10px] font-medium text-primary leading-none mt-1">Sáng tác</span>
-          </div>
+          {/* Thêm — mở sheet Sáng tác (đăng truyện / thêm chương / quản lý) */}
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            aria-label="Thêm: đăng truyện, thêm chương"
+            className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${createOpen ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}
+          >
+            <Plus size={20} className={createOpen ? 'text-primary' : 'text-on-surface-variant'} />
+            <span className={`text-[10px] font-medium ${createOpen ? 'text-primary' : 'text-on-surface-variant'}`}>Thêm</span>
+          </button>
 
-          {mobileRight.map((l) => {
-            const Icon = l.icon;
-            return (
-              <Link key={l.label} href={l.href} aria-label={l.label}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${l.active ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}>
-                <Icon size={20} className={l.active ? 'text-primary' : 'text-on-surface-variant'} />
-                <span className={`text-[10px] font-medium ${l.active ? 'text-primary' : 'text-on-surface-variant'}`}>{l.label}</span>
-              </Link>
-            );
-          })}
-
-          {/* Menu — avatar + mọi mục (Kênh tác giả, Kiếm tiền, Cài đặt, Đăng xuất…) */}
+          {/* Bạn — avatar + mọi mục (Kênh tác giả, Kiếm tiền, Nạp/rút xu, Cài đặt, Đăng xuất…) */}
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
-            aria-label="Menu tài khoản"
+            aria-label="Bạn: tài khoản, ví xu, cài đặt"
             className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-300 ${menuOpen ? 'bg-primary/15' : 'hover:bg-surface-variant'}`}
           >
             {user?.avatar ? (
               <img
                 src={user.avatar}
-                alt="Menu"
+                alt="Bạn"
                 className={`w-5 h-5 rounded-full object-cover ${menuOpen ? 'ring-2 ring-primary' : ''}`}
               />
             ) : user ? (
@@ -319,7 +304,7 @@ export function Sidebar() {
             ) : (
               <Menu size={20} className={menuOpen ? 'text-primary' : 'text-on-surface-variant'} />
             )}
-            <span className={`text-[10px] font-medium ${menuOpen ? 'text-primary' : 'text-on-surface-variant'}`}>Menu</span>
+            <span className={`text-[10px] font-medium ${menuOpen ? 'text-primary' : 'text-on-surface-variant'}`}>Bạn</span>
           </button>
         </div>
       </nav>
