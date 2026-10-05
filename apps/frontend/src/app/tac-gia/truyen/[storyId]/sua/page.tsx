@@ -13,6 +13,8 @@ import { storiesService } from '@/lib/api/stories.service';
 import { useToastContext } from '@/components/providers/toast-provider';
 import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES, isImageFile } from '@/lib/utils/compress-image';
 import { AdRevenueToggle } from '@/components/author/ad-revenue-toggle';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { useChapters } from '@/lib/api/hooks/use-chapters';
 
 export default function EditStoryPage() {
     const params = useParams();
@@ -39,6 +41,13 @@ export default function EditStoryPage() {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [uploading, setUploading] = useState(false);
+    const [showPaidChaptersWarning, setShowPaidChaptersWarning] = useState(false);
+
+    // Đếm chương đã đặt giá coin: nếu truyện để "Miễn phí" thì giá bị bỏ qua.
+    const { data: chaptersData } = useChapters((story as any)?.slug || (story as any)?.data?.slug || '');
+    const paidChapterCount = (Array.isArray(chaptersData) ? chaptersData : []).filter(
+        (c: any) => (c?.price ?? 0) > 0,
+    ).length;
 
     useEffect(() => {
         if (story) {
@@ -111,6 +120,34 @@ export default function EditStoryPage() {
             return;
         }
 
+        if (formData.accessType === 'VIP' && (Math.floor(formData.price) || 0) <= 0) {
+            setErrors({ submit: 'Truyện VIP phải có giá mở khóa > 0 coin. Hãy nhập giá ở ô "Giá mở khóa cả truyện" hoặc đổi sang Freemium/Miễn phí.' });
+            return;
+        }
+
+        // Có chương đã đặt giá nhưng truyện để Miễn phí → giá không có tác dụng,
+        // ai cũng đọc được. Hỏi chuyển sang Freemium ngay.
+        if (formData.accessType === 'FREE' && paidChapterCount > 0) {
+            setShowPaidChaptersWarning(true);
+            return;
+        }
+
+        await saveStory();
+    };
+
+    const handleSwitchToFreemiumAndSave = async () => {
+        setShowPaidChaptersWarning(false);
+        setFormData((f) => ({ ...f, accessType: 'FREEMIUM', price: 0 }));
+        await saveStory('FREEMIUM');
+    };
+
+    const handleKeepFreeAndSave = async () => {
+        setShowPaidChaptersWarning(false);
+        await saveStory('FREE');
+    };
+
+    const saveStory = async (accessTypeOverride?: 'FREE' | 'FREEMIUM' | 'VIP') => {
+        const accessType = accessTypeOverride ?? formData.accessType;
         try {
             await updateMutation.mutateAsync({
                 id: storyId,
@@ -121,8 +158,8 @@ export default function EditStoryPage() {
                     categoryIds: formData.categoryIds,
                     country: formData.country,
                     status: formData.status,
-                    accessType: formData.accessType,
-                    price: formData.accessType === 'VIP' ? Math.max(0, Math.floor(formData.price) || 0) : 0,
+                    accessType,
+                    price: accessType === 'VIP' ? Math.max(0, Math.floor(formData.price) || 0) : 0,
                 },
             });
 
@@ -421,6 +458,16 @@ export default function EditStoryPage() {
                     </main>
                 </div>
             </div>
+            <ConfirmModal
+                isOpen={showPaidChaptersWarning}
+                onClose={handleKeepFreeAndSave}
+                onConfirm={handleSwitchToFreemiumAndSave}
+                title="Có chương đã đặt giá nhưng truyện đang Miễn phí"
+                message={`Truyện có ${paidChapterCount} chương đã đặt giá coin, nhưng ở chế độ Miễn phí thì giá bị bỏ qua và ai cũng đọc được. Chuyển sang Freemium để các chương đó thực sự thu phí? (Muốn bán cả truyện một lần thì chọn VIP.)`}
+                confirmText="Chuyển sang Freemium & lưu"
+                cancelText="Giữ Miễn phí & lưu"
+                isLoading={updateMutation.isPending}
+            />
         </ProtectedRoute>
     );
 }
