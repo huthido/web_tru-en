@@ -221,6 +221,11 @@ services:
       # 6k ký tự = 15 chunk ≈ 14 phút ở 55s/chunk (vps103), nằm trong
       # TTS_WORKER_TIMEOUT_MS 20 phút. Để 12k thì vps103 luôn quá hạn.
       TTS_PART_CHARS: ${TTS_PART_CHARS:-}
+      # Web Push (thông báo trình duyệt). Để trống = tắt, web ẩn nút bật thông báo.
+      # Sinh khoá: `npx web-push generate-vapid-keys` (trong apps/backend).
+      WEB_PUSH_VAPID_PUBLIC_KEY: ${WEB_PUSH_VAPID_PUBLIC_KEY:-}
+      WEB_PUSH_VAPID_PRIVATE_KEY: ${WEB_PUSH_VAPID_PRIVATE_KEY:-}
+      WEB_PUSH_SUBJECT: ${WEB_PUSH_SUBJECT:-}
     ports:
       - "${BACKEND_PORT:-3009}:3009"
     volumes:
