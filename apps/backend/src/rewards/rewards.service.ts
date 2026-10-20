@@ -367,6 +367,8 @@ export class RewardsService {
     async redeemGiftCode(userId: string, rawCode: string) {
         const code = String(rawCode || '').trim().toUpperCase();
         if (!code || code.length > 64) throw new BadRequestException('Mã quà tặng không hợp lệ');
+        const cfg = await this.getConfig();
+        if (!cfg.enabled) throw new BadRequestException('Tính năng thưởng đang tạm tắt');
         await this.assertEligibleUser(userId);
 
         const gift = await this.prisma.giftCode.findUnique({ where: { code } });
