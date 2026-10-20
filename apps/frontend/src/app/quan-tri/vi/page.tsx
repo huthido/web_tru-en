@@ -118,7 +118,8 @@ export default function AdminWalletsPage() {
                                 <div className="mt-3 text-sm text-on-surface-variant space-y-0.5">
                                     <p>Xu đã nạp (không rút được): <b>{info.purchasedBalance.toLocaleString('vi-VN')} xu</b></p>
                                     <p>Xu doanh thu (rút được): <b className="text-emerald-600 dark:text-emerald-400">{info.earnedBalance.toLocaleString('vi-VN')} xu</b></p>
-                                    <p className="text-on-surface-variant">Tổng: <b>{info.balance.toLocaleString('vi-VN')} xu</b></p>
+                                    <p className="text-on-surface-variant">Tổng (nạp + doanh thu): <b>{info.balance.toLocaleString('vi-VN')} xu</b></p>
+                                    <p>Xu thưởng (chỉ mua chương/VIP, không rút/chuyển): <b className="text-primary">{(info.bonusBalance ?? 0).toLocaleString('vi-VN')} xu</b></p>
                                 </div>
                                 <p className="mt-1 text-sm">
                                     Trạng thái ví:{' '}

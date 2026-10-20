@@ -40,7 +40,7 @@ export class StoryQueryDto {
 
   @IsOptional()
   @IsString()
-  sortBy?: 'newest' | 'popular' | 'rating' | 'viewCount' = 'newest';
+  sortBy?: 'newest' | 'updated' | 'popular' | 'rating' | 'viewCount' = 'newest';
 
   @IsOptional()
   @IsString()

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { vnDay } from '../common/vn-day';
 import { PrismaService } from '../prisma/prisma.service';
 import { getPaginationParams, createPaginatedResult } from '../common/utils/pagination.util';
 
@@ -118,6 +119,17 @@ export class ReadingHistoryService {
     }
 
     console.log('Chapter found:', { chapterId: chapter.id, storyId: chapter.storyId });
+
+    // Nhiệm vụ "đọc hết N chương": đọc tới ≥80% chương thì tính 1 lượt/ngày
+    // (unique theo chương — đọc lại không cộng). Không chặn luồng lưu tiến độ.
+    if (progress >= 80) {
+      this.prisma.userDailyActivity
+        .createMany({
+          data: [{ userId, day: vnDay(), kind: 'read', refId: chapterId }],
+          skipDuplicates: true,
+        })
+        .catch(() => undefined);
+    }
 
     // Upsert reading history by storyId (one entry per story per user)
     // When reading a new chapter of the same story, update the existing entry

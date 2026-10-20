@@ -25,6 +25,7 @@ import { PagesModule } from './pages/pages.module';
 import { SettingsModule } from './settings/settings.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { WalletModule } from './wallet/wallet.module';
+import { RewardsModule } from './rewards/rewards.module';
 import { PaymentsModule } from './payments/payments.module';
 import { UgcReportsModule } from './ugc-reports/ugc-reports.module';
 import { MonetizationModule } from './monetization/monetization.module';
@@ -104,6 +105,7 @@ import { HomepageSectionsModule } from './homepage-sections/homepage-sections.mo
     SettingsModule,
     NotificationsModule,
     WalletModule,
+    RewardsModule,
     PaymentsModule,
     UgcReportsModule,
     MonetizationModule,

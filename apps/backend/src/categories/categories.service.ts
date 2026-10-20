@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { generateSlug, generateUniqueSlug } from '../common/utils/slug.util';
+import { PUBLIC_STORY_WHERE, MATURITY_WHERE } from '../stories/stories.service';
 
 @Injectable()
 export class CategoriesService {
@@ -12,6 +13,27 @@ export class CategoriesService {
     return this.prisma.category.findMany({
       orderBy: { name: 'asc' },
     });
+  }
+
+  /** Thể loại + số truyện công khai (đã lọc độ tuổi), sắp theo tên. */
+  async findAllWithCounts(allowAdultContent = false) {
+    const categories = await this.prisma.category.findMany({
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        _count: {
+          select: {
+            storyCategories: {
+              where: { story: { ...PUBLIC_STORY_WHERE, ...MATURITY_WHERE(allowAdultContent) } },
+            },
+          },
+        },
+      },
+    });
+    return categories.map(({ _count, ...c }) => ({ ...c, storyCount: _count.storyCategories }));
   }
 
   async findOne(slug: string) {

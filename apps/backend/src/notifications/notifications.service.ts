@@ -4,6 +4,7 @@ import { filter, map } from 'rxjs/operators';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { PushService } from './push.service';
+import { WebPushService } from './web-push.service';
 import { RedisService } from '../redis/redis.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
@@ -30,6 +31,7 @@ export class NotificationsService implements OnModuleInit {
         private emailService: EmailService,
         private redis: RedisService,
         private pushService: PushService,
+        private webPushService: WebPushService,
     ) {}
 
     async onModuleInit() {
@@ -151,6 +153,15 @@ export class NotificationsService implements OnModuleInit {
                 data: { actionUrl: data.actionUrl, type: notification.type },
             })
             .catch((e: any) => this.logger.warn(`Push notify failed: ${e?.message ?? e}`));
+        // Web Push (trình duyệt) — cũng best-effort, chỉ chạy khi đã cấu hình VAPID.
+        this.webPushService
+            .sendToUser(userId, {
+                title: data.title,
+                body: data.content,
+                url: data.actionUrl,
+                tag: notification.id,
+            })
+            .catch((e: any) => this.logger.warn(`Web push notify failed: ${e?.message ?? e}`));
         return notification;
     }
 

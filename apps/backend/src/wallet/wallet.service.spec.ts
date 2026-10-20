@@ -21,6 +21,7 @@ type MockWallet = {
     userId: string;
     purchasedBalance: number;
     earnedBalance: number;
+    bonusBalance: number;
     balance: number;
     isLocked: boolean;
 };
@@ -31,6 +32,7 @@ function makeWallet(userId: string, init: Partial<MockWallet> = {}): MockWallet 
         userId,
         purchasedBalance: init.purchasedBalance ?? 0,
         earnedBalance: init.earnedBalance ?? 0,
+        bonusBalance: init.bonusBalance ?? 0,
         balance: init.balance ?? (init.purchasedBalance ?? 0) + (init.earnedBalance ?? 0),
         isLocked: init.isLocked ?? false,
     };
@@ -41,6 +43,8 @@ function applyDelta(target: MockWallet, data: any) {
     if (data.purchasedBalance?.decrement) target.purchasedBalance -= data.purchasedBalance.decrement;
     if (data.earnedBalance?.increment) target.earnedBalance += data.earnedBalance.increment;
     if (data.earnedBalance?.decrement) target.earnedBalance -= data.earnedBalance.decrement;
+    if (data.bonusBalance?.increment) target.bonusBalance += data.bonusBalance.increment;
+    if (data.bonusBalance?.decrement) target.bonusBalance -= data.bonusBalance.decrement;
     if (data.balance?.increment) target.balance += data.balance.increment;
     if (data.balance?.decrement) target.balance -= data.balance.decrement;
     if (data.isLocked !== undefined) target.isLocked = data.isLocked;
@@ -65,6 +69,7 @@ function makeMockTx(store: Record<string, MockWallet>) {
                     store[where.userId] = makeWallet(where.userId, {
                         purchasedBalance: create.purchasedBalance ?? 0,
                         earnedBalance: create.earnedBalance ?? 0,
+                        bonusBalance: create.bonusBalance ?? 0,
                         balance: create.balance ?? 0,
                     });
                 }
@@ -340,5 +345,119 @@ describe('WalletService — adminDebitBucket', () => {
         };
         const tx = makeMockTx(store);
         await expect((svc as any).adminDebitBucket(tx, 'u1', 'PURCHASED', 50)).rejects.toThrow(BadRequestException);
+    });
+});
+
+describe('WalletService — xu thưởng (bonusBalance)', () => {
+    it('creditBonus cộng bonusBalance, KHÔNG đụng balance mirror', async () => {
+        const svc = makeService();
+        const store: Record<string, MockWallet> = {
+            u1: makeWallet('u1', { purchasedBalance: 10 }),
+        };
+        const tx = makeMockTx(store);
+        await svc.creditBonus(tx as any, 'u1', 5, 'CHECKIN_REWARD' as any, 'test');
+        expect(store.u1.bonusBalance).toBe(5);
+        expect(store.u1.purchasedBalance).toBe(10);
+        expect(store.u1.balance).toBe(10);
+        expect(tx.coinTransaction.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('creditBonus từ chối số không hợp lệ', async () => {
+        const svc = makeService();
+        const tx = makeMockTx({});
+        await expect(svc.creditBonus(tx as any, 'u1', 0, 'BONUS' as any, 'x')).rejects.toBeInstanceOf(BadRequestException);
+        await expect(svc.creditBonus(tx as any, 'u1', 1.5, 'BONUS' as any, 'x')).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('debitForPaidContent trừ xu thưởng trước, rồi purchased, rồi earned', async () => {
+        const svc = makeService();
+        const store: Record<string, MockWallet> = {
+            u1: makeWallet('u1', { bonusBalance: 3, purchasedBalance: 4, earnedBalance: 10 }),
+        };
+        const tx = makeMockTx(store);
+        const { fromBonus } = await (svc as any).debitForPaidContent(tx, 'u1', 9);
+        expect(fromBonus).toBe(3);
+        expect(store.u1).toMatchObject({ bonusBalance: 0, purchasedBalance: 0, earnedBalance: 8, balance: 8 });
+    });
+
+    it('debitForPaidContent tính cả xu thưởng khi kiểm tra đủ tiền', async () => {
+        const svc = makeService();
+        const store: Record<string, MockWallet> = {
+            u1: makeWallet('u1', { bonusBalance: 5, purchasedBalance: 5 }),
+        };
+        const tx = makeMockTx(store);
+        await expect((svc as any).debitForPaidContent(tx, 'u1', 11)).rejects.toBeInstanceOf(BadRequestException);
+        await expect((svc as any).debitForPaidContent(tx, 'u1', 10)).resolves.toMatchObject({ fromBonus: 5 });
+        expect(store.u1).toMatchObject({ bonusBalance: 0, purchasedBalance: 0 });
+    });
+
+    it('debitForPaidContent chặn ví bị khoá', async () => {
+        const svc = makeService();
+        const tx = makeMockTx({ u1: makeWallet('u1', { bonusBalance: 100, isLocked: true }) });
+        await expect((svc as any).debitForPaidContent(tx, 'u1', 1)).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('debitForContent (donate/vật phẩm) KHÔNG dùng xu thưởng', async () => {
+        const svc = makeService();
+        const store: Record<string, MockWallet> = {
+            u1: makeWallet('u1', { bonusBalance: 100, purchasedBalance: 2 }),
+        };
+        const tx = makeMockTx(store);
+        await expect((svc as any).debitForContent(tx, 'u1', 5)).rejects.toBeInstanceOf(BadRequestException);
+        expect(store.u1.bonusBalance).toBe(100);
+    });
+
+    it('splitPaidPortion chỉ chia phần trả bằng xu thật', () => {
+        expect(WalletService.splitPaidPortion(100, 100, 10)).toEqual({ paidNet: 0, paidFee: 0 });
+        expect(WalletService.splitPaidPortion(100, 40, 10)).toEqual({ paidNet: 54, paidFee: 6 });
+        expect(WalletService.splitPaidPortion(100, 0, 10)).toEqual({ paidNet: 90, paidFee: 10 });
+    });
+
+    it('payForChapter: tác giả chỉ nhận phần không phải xu thưởng', async () => {
+        const svc = makeService();
+        const store: Record<string, MockWallet> = {
+            buyer: makeWallet('buyer', { bonusBalance: 30, purchasedBalance: 100 }),
+            author: makeWallet('author'),
+        };
+        const tx: any = makeMockTx(store);
+        tx.chapterPurchase = {
+            findUnique: jest.fn(async () => null),
+            create: jest.fn(async ({ data }: any) => data),
+        };
+        (svc as any).prisma.$transaction = async (fn: any) => fn(tx);
+        (svc as any).getChapterSaleFeePercent = async () => 10;
+        (svc as any).notifyAuthor = () => undefined;
+
+        await svc.payForChapter('buyer', 'author', { id: 'c1', title: 'Chương 1', price: 50 });
+
+        // 30 xu thưởng + 20 xu nạp; tác giả nhận net của 20 (phí 10% → 2) = 18.
+        expect(store.buyer).toMatchObject({ bonusBalance: 0, purchasedBalance: 80, balance: 80 });
+        expect(store.author.earnedBalance).toBe(18);
+        expect(tx.chapterPurchase.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({ pricePaid: 50, bonusPaid: 30, netAmount: 18, platformFee: 2 }),
+        });
+    });
+
+    it('payForChapter trả hoàn toàn bằng xu thưởng: tác giả không nhận gì', async () => {
+        const svc = makeService();
+        const store: Record<string, MockWallet> = {
+            buyer: makeWallet('buyer', { bonusBalance: 50 }),
+        };
+        const tx: any = makeMockTx(store);
+        tx.chapterPurchase = {
+            findUnique: jest.fn(async () => null),
+            create: jest.fn(async ({ data }: any) => data),
+        };
+        (svc as any).prisma.$transaction = async (fn: any) => fn(tx);
+        (svc as any).getChapterSaleFeePercent = async () => 10;
+        (svc as any).notifyAuthor = () => undefined;
+
+        await svc.payForChapter('buyer', 'author', { id: 'c1', title: 'Chương 1', price: 50 });
+
+        expect(store.buyer.bonusBalance).toBe(0);
+        expect(store.author).toBeUndefined();
+        expect(tx.chapterPurchase.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({ bonusPaid: 50, netAmount: 0, platformFee: 0 }),
+        });
     });
 });

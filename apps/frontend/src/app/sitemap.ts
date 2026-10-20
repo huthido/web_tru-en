@@ -100,6 +100,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = ([
     { url: baseUrl, changeFrequency: 'daily', priority: 1.0 },
     { url: `${baseUrl}/truyen`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/bang-xep-hang`, changeFrequency: 'daily', priority: 0.7 },
+    { url: `${baseUrl}/the-loai`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${baseUrl}/tranh`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${baseUrl}/nghe-thuat`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${baseUrl}/gioi-thieu`, changeFrequency: 'monthly', priority: 0.5 },
@@ -155,6 +157,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   );
 
+  // Trang thể loại: chỉ thể loại có truyện công khai (trang rỗng bị noindex).
+  // Lỗi lấy thể loại KHÔNG làm hỏng sitemap — chỉ bỏ nhóm URL này.
+  const categories = await serverGet<Array<{ slug: string; storyCount?: number }>>(
+    '/categories/with-counts',
+    { revalidate: SITEMAP_REVALIDATE }
+  );
+  const categoryUrls: MetadataRoute.Sitemap = (Array.isArray(categories) ? categories : [])
+    .filter((c) => c.slug && (c.storyCount ?? 0) > 0)
+    .map((c) => ({
+      url: `${baseUrl}/the-loai/${c.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.7,
+    }));
+
   const skipped = stories.length - indexable.length;
   if (skipped > 0) {
     console.log(
@@ -162,5 +179,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
   }
 
-  return [...staticPages, ...storyUrls, ...chapterUrls];
+  return [...staticPages, ...categoryUrls, ...storyUrls, ...chapterUrls];
 }

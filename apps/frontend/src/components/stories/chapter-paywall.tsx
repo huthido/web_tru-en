@@ -43,7 +43,9 @@ export function ChapterPaywall({
     const pending = isStory ? buyStory.isPending : buyChapter.isPending;
     // SOFT debit: chapter/story purchase consumes purchased first, then earned
     // (see WalletService.debitForContent). The UI gate is the combined total.
-    const balance = (wallet?.purchasedBalance ?? 0) + (wallet?.earnedBalance ?? 0);
+    // Mua chương/truyện VIP dùng được cả xu thưởng (backend trừ xu thưởng trước).
+    const bonus = wallet?.bonusBalance ?? 0;
+    const balance = (wallet?.purchasedBalance ?? 0) + (wallet?.earnedBalance ?? 0) + bonus;
     const insufficient = isAuthenticated && balance < price;
     const chapterPath = `/truyen/${storySlug}/chuong/${chapterSlug}`;
     const loginHref = `/dang-nhap?redirect=${encodeURIComponent(chapterPath)}`;
@@ -125,6 +127,11 @@ export function ChapterPaywall({
                             <span className="font-semibold text-on-surface">
                                 {balance.toLocaleString('vi-VN')} coin
                             </span>
+                            {bonus > 0 && (
+                                <span className="block text-xs mt-0.5">
+                                    (gồm {bonus.toLocaleString('vi-VN')} xu thưởng — được trừ trước)
+                                </span>
+                            )}
                         </p>
 
                         {insufficient && (

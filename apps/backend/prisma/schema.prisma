@@ -44,6 +44,16 @@ model User {
   /// Cho phép tài khoản xem nội dung người lớn (MATURE) — quyền do phụ huynh/
   /// người giám hộ cấp cho tài khoản trẻ, hoặc tự xác nhận 18+. Mặc định tắt.
   allowAdultContent Boolean @default(false)
+  /// Mã mời bạn bè (sinh khi user mở trang Nhiệm vụ lần đầu). NULL = chưa có.
+  referralCode  String?   @unique
+  /// Người đã mời user này (gắn lúc đăng ký qua ?ref=MA).
+  referredById  String?
+  /// Đã trả thưởng mời bạn cho cặp (người mời, user này) — chỉ trả 1 lần.
+  referralRewardedAt DateTime?
+  /// Thể loại yêu thích chọn lúc mới vào (id Category) — gợi ý "Dành cho bạn".
+  favoriteCategoryIds String[] @default([])
+  /// Đã qua bước chọn thể loại (chọn xong hoặc bỏ qua) — không hỏi lại.
+  genreOnboardedAt DateTime?
   /// Soft-delete timestamp. Khi user tự xoá tài khoản trong app (Apple
   /// §5.1.1(v)): PII bị nullify, email/username đổi thành placeholder
   /// unique theo id, isActive = false, deletedAt = now(). NULL = tài khoản
@@ -109,12 +119,22 @@ model User {
   authorFollowsFollowing  AuthorFollow[]           @relation("AuthorFollowFollower")
   authorFollowers         AuthorFollow[]           @relation("AuthorFollowTarget")
   paintings               Painting[]
+  // Phase 3 — giữ chân người đọc
+  referredBy              User?                    @relation("UserReferral", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals               User[]                   @relation("UserReferral")
+  dailyCheckIns           DailyCheckIn[]
+  dailyActivities         UserDailyActivity[]
+  missionClaims           UserMissionClaim[]
+  giftCodeRedemptions     GiftCodeRedemption[]
+  createdGiftCodes        GiftCode[]               @relation("GiftCodeCreator")
+  webPushSubscriptions    WebPushSubscription[]
 
   @@index([email])
   @@index([username])
   @@index([role])
   @@index([isActive])
   @@index([provider, providerId]) // Composite index cho OAuth lookup
+  @@index([referredById])
   @@map("users")
 }
 
@@ -939,6 +959,18 @@ model Settings {
   // giới hạn chương trong thời hạn (User.ttsSubscriptionExpiresAt, 1 tháng
   // = 30 ngày). Mảng RỖNG = miễn phí cho mọi tác giả. Admin không cần gói.
   ttsSubscriptionPlans        Json    @default("[]")
+  // ─── Thưởng giữ chân (xu thưởng — chỉ mua chương, không ra tiền) ───
+  rewardsEnabled              Boolean @default(true)
+  // Xu thưởng theo ngày trong chuỗi điểm danh (ngày 1..n, hết mảng thì lặp lại).
+  checkinRewards              Json    @default("[2,2,3,3,5,5,10]")
+  // Nhiệm vụ ngày [{key: 'read'|'listen'|'comment', target, reward}].
+  dailyMissions               Json    @default("[{\"key\":\"read\",\"target\":3,\"reward\":5},{\"key\":\"listen\",\"target\":1,\"reward\":3},{\"key\":\"comment\",\"target\":1,\"reward\":2}]")
+  // Mời bạn: thưởng khi người được mời xác minh email + điểm danh lần đầu.
+  referralEnabled             Boolean @default(true)
+  referralRewardReferrer      Int     @default(20)
+  referralRewardReferee       Int     @default(10)
+  // Số lượt mời được thưởng tối đa / người mời / 30 ngày (chống farm).
+  referralMonthlyCap          Int     @default(20)
   // Quảng cáo — global kill switch + cấu hình network ID. Client gọi
   // GET /ads/config để lấy snapshot dạng JSON.
   adsEnabled                 Boolean  @default(true)
@@ -1128,6 +1160,102 @@ model NotificationRecipient {
 /// Expo push token per device. Một user có thể có nhiều thiết bị (mobile,
 /// tablet); mỗi thiết bị 1 row. Logout xoá token tương ứng; cron 90 ngày
 /// inactive dọn token cũ.
+/// Điểm danh hằng ngày (ngày theo giờ Việt Nam, 'YYYY-MM-DD').
+model DailyCheckIn {
+  id        String   @id @default(cuid())
+  userId    String
+  day       String
+  streak    Int // Ngày thứ mấy trong chuỗi liên tiếp
+  reward    Int // Xu thưởng đã cộng
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+  @@index([userId, createdAt])
+  @@map("daily_check_ins")
+}
+
+/// Hoạt động trong ngày phục vụ nhiệm vụ: 'read' (đọc xong ≥80% chương),
+/// 'listen' (bấm nghe chương), 'comment'. refId = chapterId / commentId —
+/// unique để mỗi chương chỉ tính 1 lần/ngày.
+model UserDailyActivity {
+  id        String   @id @default(cuid())
+  userId    String
+  day       String
+  kind      String
+  refId     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day, kind, refId])
+  @@index([userId, day])
+  @@map("user_daily_activities")
+}
+
+/// Đã nhận thưởng nhiệm vụ nào trong ngày.
+model UserMissionClaim {
+  id         String   @id @default(cuid())
+  userId     String
+  day        String
+  missionKey String
+  reward     Int
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day, missionKey])
+  @@index([userId])
+  @@map("user_mission_claims")
+}
+
+/// Mã quà tặng admin phát — nhập để nhận xu thưởng (mỗi user 1 lần/mã).
+model GiftCode {
+  id          String               @id @default(cuid())
+  code        String               @unique // Lưu CHỮ HOA
+  reward      Int
+  maxUses     Int? // NULL = không giới hạn tổng lượt
+  usedCount   Int                  @default(0)
+  expiresAt   DateTime?
+  isActive    Boolean              @default(true)
+  note        String?
+  createdById String?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  createdBy   User?                @relation("GiftCodeCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  redemptions GiftCodeRedemption[]
+
+  @@map("gift_codes")
+}
+
+model GiftCodeRedemption {
+  id         String   @id @default(cuid())
+  giftCodeId String
+  userId     String
+  reward     Int
+  createdAt  DateTime @default(now())
+  giftCode   GiftCode @relation(fields: [giftCodeId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([giftCodeId, userId])
+  @@index([userId])
+  @@map("gift_code_redemptions")
+}
+
+/// Đăng ký Web Push (trình duyệt) — chuẩn VAPID, khác token Expo của app.
+model WebPushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  lastUsed  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("web_push_subscriptions")
+}
+
 model UserPushToken {
   id        String   @id @default(cuid())
   userId    String
@@ -1151,6 +1279,11 @@ model UserWallet {
   /// Received from chapter/story sales, donations, withdrawal-reject refunds.
   /// Withdrawable as VND. NOT transferable (anti-laundering).
   earnedBalance    Int               @default(0)
+  /// Xu thưởng (điểm danh, nhiệm vụ, mời bạn, giftcode). CHỈ dùng mua chương
+  /// / truyện VIP; không chuyển, không donate, không rút. Phần giá trả bằng
+  /// xu thưởng KHÔNG cộng doanh thu cho tác giả → không farm ra tiền được.
+  /// Không tính vào `balance` (mirror purchased + earned).
+  bonusBalance     Int               @default(0)
   /// @deprecated denormalized total = purchasedBalance + earnedBalance.
   /// Kept during transition; will be dropped in a follow-up migration.
   balance          Int               @default(0)
@@ -1209,6 +1342,7 @@ model ChapterPurchase {
   pricePaid   Int // Gross coins paid by the buyer (= platformFee + netAmount)
   platformFee Int      @default(0) // Coins kept by the platform (donationPlatformFeePercent of pricePaid, rounded up)
   netAmount   Int      @default(0) // Coins actually credited to the author (pricePaid - platformFee)
+  bonusPaid   Int      @default(0) // Phần pricePaid trả bằng xu thưởng (không chia cho tác giả)
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   chapter     Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
@@ -1229,6 +1363,7 @@ model StoryPurchase {
   pricePaid   Int // Gross coins paid by the buyer (= platformFee + netAmount)
   platformFee Int      @default(0) // Coins kept by the platform
   netAmount   Int      @default(0) // Coins credited to the author
+  bonusPaid   Int      @default(0) // Phần pricePaid trả bằng xu thưởng (không chia cho tác giả)
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   story       Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
@@ -1301,6 +1436,10 @@ enum TransactionType {
   TRANSFER
   TTS_GENERATION // (cũ) trả xu theo chương — giữ để đọc lịch sử, không tạo mới
   TTS_SUBSCRIPTION // Tác giả mua gói tháng giọng đọc AI
+  CHECKIN_REWARD // Xu thưởng điểm danh
+  MISSION_REWARD // Xu thưởng nhiệm vụ ngày
+  REFERRAL_REWARD // Xu thưởng mời bạn bè
+  GIFTCODE_REWARD // Xu thưởng nhập giftcode
   PURCHASE_ITEM // Mua vật phẩm của truyện
 }
 

@@ -20,6 +20,9 @@ import {
     LogOut,
     Shield,
     ChevronRight,
+    Gift,
+    Trophy,
+    Tags,
     type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
@@ -68,6 +71,9 @@ export function MobileAccountSheet({ open, onClose }: Props) {
     ];
 
     const generalItems: MenuItem[] = [
+        { href: '/nhiem-vu', label: 'Nhiệm vụ & quà', icon: Gift },
+        { href: '/bang-xep-hang', label: 'Xếp hạng', icon: Trophy },
+        { href: '/the-loai', label: 'Thể loại', icon: Tags },
         { href: '/cua-hang', label: 'Cửa hàng', icon: Store },
         { href: '/vat-pham-cua-toi', label: 'Kho vật phẩm', icon: Package, authOnly: true },
         { href: '/lich-su', label: 'Lịch sử', icon: Clock },

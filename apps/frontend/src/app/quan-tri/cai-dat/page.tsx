@@ -59,10 +59,34 @@ const SETTINGS_TABS = [
     { id: 'system', label: 'Hệ thống' },
     { id: 'tts', label: 'Giọng đọc AI & phí' },
     { id: 'payment', label: 'Thanh toán' },
+    { id: 'rewards', label: 'Thưởng & giữ chân' },
     { id: 'ads', label: 'Quảng cáo' },
     { id: 'domains', label: 'Domain ảnh' },
 ] as const;
 type SettingsTabId = (typeof SETTINGS_TABS)[number]['id'];
+
+// Nhiệm vụ ngày — mỗi key tối đa 1 dòng; key nào không có trong mảng = tắt.
+type MissionKey = 'read' | 'listen' | 'comment';
+interface DailyMission {
+    key: MissionKey;
+    target: number;
+    reward: number;
+}
+const MISSION_DEFS: { key: MissionKey; label: (n: number) => string; defaultTarget: number; defaultReward: number }[] = [
+    { key: 'read', label: (n) => `Đọc hết ${n} chương`, defaultTarget: 3, defaultReward: 5 },
+    { key: 'listen', label: (n) => `Nghe ${n} chương`, defaultTarget: 1, defaultReward: 3 },
+    { key: 'comment', label: (n) => `Bình luận ${n} lần`, defaultTarget: 1, defaultReward: 2 },
+];
+const DEFAULT_CHECKIN_REWARDS = [2, 2, 3, 3, 5, 5, 10];
+const DEFAULT_DAILY_MISSIONS: DailyMission[] = MISSION_DEFS.map((m) => ({
+    key: m.key,
+    target: m.defaultTarget,
+    reward: m.defaultReward,
+}));
+const clampInt = (raw: string, min: number, max: number) => {
+    const v = parseInt(raw, 10);
+    return Number.isNaN(v) ? min : Math.max(min, Math.min(max, v));
+};
 
 export default function AdminSettingsPage() {
     const { data: settings, isLoading } = useSettings();
@@ -107,6 +131,14 @@ export default function AdminSettingsPage() {
         // --- Giọng đọc AI ---
         ttsAutoGenerateOnPublish: false,
         ttsSubscriptionPlans: [] as TtsSubscriptionPlan[],
+        // --- Thưởng & giữ chân (xu thưởng) ---
+        rewardsEnabled: false,
+        checkinRewards: DEFAULT_CHECKIN_REWARDS as number[],
+        dailyMissions: DEFAULT_DAILY_MISSIONS as DailyMission[],
+        referralEnabled: false,
+        referralRewardReferrer: 20,
+        referralRewardReferee: 10,
+        referralMonthlyCap: 20,
         // --- Thanh toán thủ công (chuyển khoản) ---
         vnpayPaymentEnabled: true,
         manualPaymentEnabled: false,
@@ -139,6 +171,46 @@ export default function AdminSettingsPage() {
         setFormData({ ...formData, ttsSubscriptionPlans: plans });
         setNewPlan({ months: String(Math.min(36, months + 1)), coins: '' });
     };
+    // --- Thưởng & giữ chân ---
+    const setCheckinDay = (index: number, raw: string) =>
+        setFormData((prev) => ({
+            ...prev,
+            checkinRewards: prev.checkinRewards.map((v, i) => (i === index ? clampInt(raw, 0, 10000) : v)),
+        }));
+    const addCheckinDay = () =>
+        setFormData((prev) =>
+            prev.checkinRewards.length >= 31
+                ? prev
+                : {
+                      ...prev,
+                      checkinRewards: [
+                          ...prev.checkinRewards,
+                          prev.checkinRewards.length > 0 ? prev.checkinRewards[prev.checkinRewards.length - 1] : 2,
+                      ],
+                  },
+        );
+    const removeCheckinDay = (index: number) =>
+        setFormData((prev) => ({ ...prev, checkinRewards: prev.checkinRewards.filter((_, i) => i !== index) }));
+    const missionOrder = (key: MissionKey) => MISSION_DEFS.findIndex((d) => d.key === key);
+    const toggleMission = (key: MissionKey, on: boolean) =>
+        setFormData((prev) => {
+            const rest = prev.dailyMissions.filter((m) => m.key !== key);
+            if (!on) return { ...prev, dailyMissions: rest };
+            const def = MISSION_DEFS[missionOrder(key)];
+            const next = [...rest, { key, target: def.defaultTarget, reward: def.defaultReward }];
+            next.sort((a, b) => missionOrder(a.key) - missionOrder(b.key));
+            return { ...prev, dailyMissions: next };
+        });
+    const setMissionField = (key: MissionKey, field: 'target' | 'reward', raw: string) =>
+        setFormData((prev) => ({
+            ...prev,
+            dailyMissions: prev.dailyMissions.map((m) =>
+                m.key === key
+                    ? { ...m, [field]: field === 'target' ? clampInt(raw, 1, 100) : clampInt(raw, 0, 10000) }
+                    : m,
+            ),
+        }));
+
     // Tab đang mở — nhớ qua hash URL (#payment) để reload/ chia sẻ link vào đúng tab.
     const [activeTab, setActiveTab] = useState<SettingsTabId>('basic');
     useEffect(() => {
@@ -208,6 +280,17 @@ export default function AdminSettingsPage() {
                 ttsSubscriptionPlans: Array.isArray((settings as any).ttsSubscriptionPlans)
                     ? (settings as any).ttsSubscriptionPlans
                     : [],
+                rewardsEnabled: (settings as any).rewardsEnabled ?? false,
+                checkinRewards: Array.isArray((settings as any).checkinRewards)
+                    ? (settings as any).checkinRewards
+                    : DEFAULT_CHECKIN_REWARDS,
+                dailyMissions: Array.isArray((settings as any).dailyMissions)
+                    ? (settings as any).dailyMissions
+                    : DEFAULT_DAILY_MISSIONS,
+                referralEnabled: (settings as any).referralEnabled ?? false,
+                referralRewardReferrer: (settings as any).referralRewardReferrer ?? 20,
+                referralRewardReferee: (settings as any).referralRewardReferee ?? 10,
+                referralMonthlyCap: (settings as any).referralMonthlyCap ?? 20,
                 vnpayPaymentEnabled: (settings as any).vnpayPaymentEnabled ?? true,
                 manualPaymentEnabled: (settings as any).manualPaymentEnabled ?? false,
                 manualPaymentBankBin: (settings as any).manualPaymentBankBin || '',
@@ -1098,6 +1181,238 @@ export default function AdminSettingsPage() {
                                     Giới hạn 0–50%. Người mua không thấy phí — chỉ thấy giá gross.
                                 </p>
                             </div>
+                        </div>
+                    </div>
+                        </>
+                    )}
+
+                    {activeTab === 'rewards' && (
+                        <>
+                    {/* === Thưởng & giữ chân (xu thưởng) === */}
+                    <div className="bg-surface-container rounded-lg shadow-sm border border-outline-variant p-6 space-y-6">
+                        <div>
+                            <h2 className="text-xl font-semibold text-on-surface mb-1">Thưởng &amp; giữ chân</h2>
+                            <p className="text-sm text-on-surface-variant">
+                                Điểm danh hằng ngày, nhiệm vụ ngày, mời bạn và giftcode đều thưởng bằng <b>xu thưởng</b>.
+                                Tạo/khoá giftcode ở{' '}
+                                <a href="/quan-tri/qua-tang" className="text-primary hover:underline">Quà tặng (giftcode)</a>.
+                            </p>
+                            <p className="mt-2 text-xs rounded-lg px-3 py-2 bg-primary/10 text-on-surface border border-primary/30">
+                                Xu thưởng chỉ dùng mua chương/truyện VIP; phần trả bằng xu thưởng không cộng doanh thu cho tác giả, không rút/chuyển được.
+                            </p>
+                        </div>
+
+                        {/* Công tắc tổng */}
+                        <div className="flex items-center justify-between gap-4">
+                            <div>
+                                <label htmlFor="rewardsEnabled" className="text-sm font-medium text-on-surface-variant">
+                                    Bật chương trình thưởng
+                                </label>
+                                <p className="text-xs text-on-surface-variant">
+                                    Công tắc tổng cho điểm danh, nhiệm vụ ngày, thưởng mời bạn và nhập giftcode
+                                </p>
+                            </div>
+                            <input
+                                id="rewardsEnabled"
+                                type="checkbox"
+                                checked={formData.rewardsEnabled}
+                                onChange={(e) => setFormData({ ...formData, rewardsEnabled: e.target.checked })}
+                                className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                            />
+                        </div>
+
+                        {/* Điểm danh */}
+                        <div className="border-t border-outline-variant pt-4">
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                                <label className="text-sm font-medium text-on-surface-variant">
+                                    Điểm danh theo chuỗi ngày liên tiếp (xu thưởng)
+                                </label>
+                                <span className="text-xs text-on-surface-variant shrink-0">{formData.checkinRewards.length}/31 ngày</span>
+                            </div>
+                            <p className="text-xs text-on-surface-variant mb-3">
+                                Thưởng cho ngày 1..n của chuỗi điểm danh liên tiếp; hết ngày cuối thì lặp lại từ ngày 1.
+                                Mỗi ngày 0–10.000 xu.
+                            </p>
+                            {formData.checkinRewards.length === 0 ? (
+                                <p className="text-sm text-on-surface-variant italic mb-3">Chưa có ngày nào — điểm danh sẽ không thưởng xu.</p>
+                            ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-3">
+                                    {formData.checkinRewards.map((v, i) => (
+                                        <div key={i} className="rounded-lg border border-outline-variant bg-surface p-2">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-xs font-medium text-on-surface-variant">Ngày {i + 1}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeCheckinDay(i)}
+                                                    className="text-xs text-on-surface-variant hover:text-error transition-colors"
+                                                    aria-label={`Xoá ngày ${i + 1}`}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                max={10000}
+                                                step={1}
+                                                value={v}
+                                                onChange={(e) => setCheckinDay(i, e.target.value)}
+                                                aria-label={`Xu thưởng ngày ${i + 1}`}
+                                                className="w-full px-2 py-1.5 border border-outline-variant rounded-md bg-surface-container text-on-surface text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <div className="flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    onClick={addCheckinDay}
+                                    disabled={formData.checkinRewards.length >= 31}
+                                    className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                                >
+                                    + Thêm ngày
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, checkinRewards: [...DEFAULT_CHECKIN_REWARDS] })}
+                                    className="px-4 py-2 rounded-lg text-sm font-medium border border-outline-variant text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                                >
+                                    Khôi phục mặc định
+                                </button>
+                            </div>
+                            <p className="text-xs text-on-surface-variant mt-2">
+                                Tổng một vòng {formData.checkinRewards.length} ngày:{' '}
+                                <b>{formData.checkinRewards.reduce((a, b) => a + b, 0).toLocaleString('vi-VN')} xu thưởng</b>
+                            </p>
+                        </div>
+
+                        {/* Nhiệm vụ ngày */}
+                        <div className="border-t border-outline-variant pt-4">
+                            <label className="text-sm font-medium text-on-surface-variant block mb-1">Nhiệm vụ hằng ngày</label>
+                            <p className="text-xs text-on-surface-variant mb-3">
+                                Mỗi nhiệm vụ thưởng tối đa một lần/ngày. Bỏ chọn để tắt nhiệm vụ. Mục tiêu 1–100, thưởng 0–10.000 xu.
+                            </p>
+                            <div className="space-y-2">
+                                {MISSION_DEFS.map((def) => {
+                                    const m = formData.dailyMissions.find((x) => x.key === def.key);
+                                    return (
+                                        <div
+                                            key={def.key}
+                                            className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-lg border border-outline-variant bg-surface p-3"
+                                        >
+                                            <label className="flex items-center gap-2 sm:w-56 shrink-0 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!m}
+                                                    onChange={(e) => toggleMission(def.key, e.target.checked)}
+                                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                                />
+                                                <span className={`text-sm font-medium ${m ? 'text-on-surface' : 'text-on-surface-variant'}`}>
+                                                    {def.label(m ? m.target : def.defaultTarget)}
+                                                </span>
+                                            </label>
+                                            {m ? (
+                                                <div className="flex flex-wrap items-center gap-3">
+                                                    <label className="flex items-center gap-2 text-xs text-on-surface-variant">
+                                                        Mục tiêu
+                                                        <input
+                                                            type="number"
+                                                            min={1}
+                                                            max={100}
+                                                            step={1}
+                                                            value={m.target}
+                                                            onChange={(e) => setMissionField(def.key, 'target', e.target.value)}
+                                                            className="w-20 px-2 py-1.5 border border-outline-variant rounded-md bg-surface-container text-on-surface text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                        />
+                                                    </label>
+                                                    <label className="flex items-center gap-2 text-xs text-on-surface-variant">
+                                                        Thưởng (xu)
+                                                        <input
+                                                            type="number"
+                                                            min={0}
+                                                            max={10000}
+                                                            step={1}
+                                                            value={m.reward}
+                                                            onChange={(e) => setMissionField(def.key, 'reward', e.target.value)}
+                                                            className="w-24 px-2 py-1.5 border border-outline-variant rounded-md bg-surface-container text-on-surface text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                        />
+                                                    </label>
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-on-surface-variant italic">Đang tắt</span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Mời bạn */}
+                        <div className="border-t border-outline-variant pt-4 space-y-4">
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <label htmlFor="referralEnabled" className="text-sm font-medium text-on-surface-variant">
+                                        Thưởng mời bạn
+                                    </label>
+                                    <p className="text-xs text-on-surface-variant">
+                                        Bạn bè đăng ký bằng mã mời → người mời và người được mời đều nhận xu thưởng
+                                        (cần bật chương trình thưởng ở trên)
+                                    </p>
+                                </div>
+                                <input
+                                    id="referralEnabled"
+                                    type="checkbox"
+                                    checked={formData.referralEnabled}
+                                    onChange={(e) => setFormData({ ...formData, referralEnabled: e.target.checked })}
+                                    className="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label htmlFor="referralRewardReferrer" className="block text-xs text-on-surface-variant mb-1">Người mời nhận (xu)</label>
+                                    <input
+                                        id="referralRewardReferrer"
+                                        type="number"
+                                        min={0}
+                                        max={10000}
+                                        step={1}
+                                        value={formData.referralRewardReferrer}
+                                        onChange={(e) => setFormData({ ...formData, referralRewardReferrer: clampInt(e.target.value, 0, 10000) })}
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="referralRewardReferee" className="block text-xs text-on-surface-variant mb-1">Người được mời nhận (xu)</label>
+                                    <input
+                                        id="referralRewardReferee"
+                                        type="number"
+                                        min={0}
+                                        max={10000}
+                                        step={1}
+                                        value={formData.referralRewardReferee}
+                                        onChange={(e) => setFormData({ ...formData, referralRewardReferee: clampInt(e.target.value, 0, 10000) })}
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="referralMonthlyCap" className="block text-xs text-on-surface-variant mb-1">Tối đa lượt mời được thưởng / 30 ngày</label>
+                                    <input
+                                        id="referralMonthlyCap"
+                                        type="number"
+                                        min={0}
+                                        max={10000}
+                                        step={1}
+                                        value={formData.referralMonthlyCap}
+                                        onChange={(e) => setFormData({ ...formData, referralMonthlyCap: clampInt(e.target.value, 0, 10000) })}
+                                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+                            <p className="text-xs text-on-surface-variant">
+                                Giới hạn lượt mời chống lạm dụng tài khoản ảo: vượt mức thì người mời không nhận thêm thưởng
+                                trong 30 ngày. Nhớ bấm Lưu cài đặt.
+                            </p>
                         </div>
                     </div>
                         </>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
+import { WebPushToggle } from '@/components/notifications/web-push-toggle';
 import { Loading } from '@/components/ui/loading';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { useMyNotifications, useMarkAsRead, useMarkAllAsRead } from '@/lib/api/hooks/use-notifications';
@@ -121,6 +122,7 @@ export default function NotificationsPage() {
                                 <p className="text-on-surface-variant">
                                     Tất cả thông báo từ hệ thống
                                 </p>
+                                <WebPushToggle className="mt-3" />
                             </div>
 
                             {/* Filters */}

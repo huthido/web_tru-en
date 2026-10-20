@@ -57,6 +57,24 @@ export class UsersController {
     return this.usersService.setAllowAdultContent(user.id, body?.allow === true);
   }
 
+  /** Thể loại yêu thích + đã qua bước chọn thể loại chưa (onboarding). */
+  @Get('me/preferences')
+  async getPreferences(@CurrentUser() user: any) {
+    return this.usersService.getPreferences(user.id);
+  }
+
+  /**
+   * Lưu thể loại yêu thích (tối đa 10 id Category) — mảng rỗng = bỏ qua bước
+   * chọn. Dùng cho gợi ý "Dành cho bạn" khi chưa có lịch sử đọc.
+   */
+  @Patch('me/favorite-categories')
+  async setFavoriteCategories(@CurrentUser() user: any, @Body() body: { categoryIds?: unknown }) {
+    const ids = Array.isArray(body?.categoryIds)
+      ? body.categoryIds.filter((v): v is string => typeof v === 'string' && v.length > 0 && v.length <= 64)
+      : [];
+    return this.usersService.setFavoriteCategories(user.id, ids.slice(0, 10));
+  }
+
   /**
    * Self-delete tài khoản (Apple §5.1.1(v) — bắt buộc cho App Store). Soft
    * delete + anonymise PII; xem `UsersService.deleteMyAccount`.

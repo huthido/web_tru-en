@@ -307,6 +307,13 @@ export class StoriesService {
       case 'viewCount':
         orderBy = { viewCount: 'desc' };
         break;
+      case 'updated':
+        // "Mới cập nhật" (trang thể loại): chương mới đăng gần nhất lên đầu.
+        orderBy = [
+          { lastChapterAt: { sort: 'desc', nulls: 'last' } },
+          { updatedAt: 'desc' },
+        ];
+        break;
       case 'newest':
       default:
         // "Mới nhất" theo ngày duyệt (đồng bộ với chip trang chủ); truyện
@@ -1498,6 +1505,133 @@ export class StoriesService {
     return sorted;
   }
 
+  // ── Bảng xếp hạng (/bang-xep-hang) ─────────────────────────────────────────
+  //
+  // Cửa sổ thời gian là cửa sổ TRƯỢT tính từ lúc gọi: day = 24 giờ qua,
+  // week = 7 ngày qua, month = 30 ngày qua; all = tổng dồn từ trước tới nay.
+  //
+  // Nguồn dữ liệu theo từng chỉ số (đều là dữ liệu thật, không phải proxy):
+  //   views   — đếm hàng `view_logs` (mỗi lần mở trang chi tiết truyện ghi 1
+  //             hàng, xem StoriesService.incrementViewCount). Lưu ý: view_logs
+  //             chỉ có từ khi bật ghi log, nên "Mọi lúc" dùng Story.viewCount
+  //             (tổng dồn) chứ không cộng view_logs.
+  //   follows — đếm hàng `follows` có createdAt trong cửa sổ = lượt theo dõi MỚI
+  //             còn giữ tới hiện tại (bỏ theo dõi thì hàng bị xoá nên không tính).
+  //             "Mọi lúc" dùng Story.followCount.
+  //   rating  — điểm trung bình các đánh giá được tạo/sửa (updatedAt) trong cửa
+  //             sổ, hoà điểm thì nhiều lượt đánh giá hơn đứng trên (giống
+  //             getBestOfWeek). "Mọi lúc" dùng Story.rating, cần tối thiểu
+  //             RANKING_MIN_RATINGS lượt để một lượt 5★ lẻ không đứng đầu.
+  //
+  // Kết quả cache trong bộ nhớ 5 phút / instance: groupBy trên view_logs không
+  // rẻ, và trang SSR đã có ISR 5 phút nên dữ liệu tươi hơn cũng không ai thấy.
+  private static readonly RANKING_TTL_MS = 5 * 60 * 1000;
+  private static readonly RANKING_MIN_RATINGS = 3;
+  private rankingsCache = new Map<string, { at: number; data: any }>();
+
+  async getRankings(
+    period: 'day' | 'week' | 'month' | 'all',
+    metric: 'views' | 'follows' | 'rating',
+    limit: number = 50,
+    allowAdultContent = false,
+  ) {
+    const cacheKey = `${period}:${metric}:${limit}:${allowAdultContent ? 1 : 0}`;
+    const cached = this.rankingsCache.get(cacheKey);
+    if (cached && Date.now() - cached.at < StoriesService.RANKING_TTL_MS) {
+      return cached.data;
+    }
+
+    const storyWhere = { ...PUBLIC_STORY_WHERE, ...MATURITY_WHERE(allowAdultContent) };
+    const days = period === 'day' ? 1 : period === 'week' ? 7 : period === 'month' ? 30 : 0;
+    const since = days > 0 ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) : null;
+
+    // Danh sách (storyId, giá trị xếp hạng, số lượt) theo đúng thứ tự hạng.
+    let ranked: Array<{ storyId: string; value: number; count?: number }> = [];
+
+    if (!since) {
+      const orderBy: any =
+        metric === 'views'
+          ? [{ viewCount: 'desc' }, { followCount: 'desc' }]
+          : metric === 'follows'
+            ? [{ followCount: 'desc' }, { viewCount: 'desc' }]
+            : [{ rating: 'desc' }, { ratingCount: 'desc' }];
+      const stories = await this.prisma.story.findMany({
+        where: {
+          ...storyWhere,
+          ...(metric === 'rating' ? { ratingCount: { gte: StoriesService.RANKING_MIN_RATINGS } } : {}),
+        },
+        select: storyCardSelect,
+        orderBy,
+        take: limit,
+      });
+      const items = stories.map((story, i) => ({
+        ...story,
+        rank: i + 1,
+        rankValue:
+          metric === 'views' ? story.viewCount : metric === 'follows' ? story.followCount : story.rating,
+        rankCount: metric === 'rating' ? story.ratingCount : undefined,
+      }));
+      const data = { period, metric, since: null, items };
+      this.rankingsCache.set(cacheKey, { at: Date.now(), data });
+      return data;
+    }
+
+    if (metric === 'views') {
+      const rows: any[] = await (this.prisma.viewLog.groupBy as any)({
+        by: ['storyId'],
+        where: { createdAt: { gte: since }, storyId: { not: null }, story: { is: storyWhere } },
+        _count: { _all: true },
+        orderBy: { _count: { storyId: 'desc' } },
+        take: limit,
+      });
+      ranked = rows.map((r) => ({ storyId: r.storyId, value: r._count?._all ?? 0 }));
+    } else if (metric === 'follows') {
+      const rows: any[] = await (this.prisma.follow.groupBy as any)({
+        by: ['storyId'],
+        where: { createdAt: { gte: since }, story: { is: storyWhere } },
+        _count: { _all: true },
+        orderBy: { _count: { storyId: 'desc' } },
+        take: limit,
+      });
+      ranked = rows.map((r) => ({ storyId: r.storyId, value: r._count?._all ?? 0 }));
+    } else {
+      const rows: any[] = await (this.prisma.rating.groupBy as any)({
+        by: ['storyId'],
+        where: { updatedAt: { gte: since }, story: { is: storyWhere } },
+        _avg: { rating: true },
+        _count: { _all: true },
+        orderBy: [{ _avg: { rating: 'desc' } }, { _count: { storyId: 'desc' } }],
+        take: limit,
+      });
+      ranked = rows.map((r) => ({
+        storyId: r.storyId,
+        value: Math.round((r._avg?.rating ?? 0) * 10) / 10,
+        count: r._count?._all ?? 0,
+      }));
+    }
+
+    const ids = ranked.map((r) => r.storyId);
+    const stories = ids.length
+      ? await this.prisma.story.findMany({
+          where: { id: { in: ids }, ...storyWhere },
+          select: storyCardSelect,
+        })
+      : [];
+    const byId = new Map(stories.map((s) => [s.id, s]));
+    const items = ranked
+      .filter((r) => byId.has(r.storyId))
+      .map((r, i) => ({
+        ...byId.get(r.storyId)!,
+        rank: i + 1,
+        rankValue: r.value,
+        rankCount: r.count,
+      }));
+
+    const data = { period, metric, since: since.toISOString(), items };
+    this.rankingsCache.set(cacheKey, { at: Date.now(), data });
+    return data;
+  }
+
   /**
    * Dispatch dynamic algorithm — gọi từ endpoint /stories/homepage/section/:sectionId.
    * Admin tạo section auto, chọn algorithm → frontend gọi endpoint này.
@@ -1743,13 +1877,21 @@ export class StoriesService {
       take: 20, // Get last 20 stories user read
     });
 
-    if (readingHistory.length === 0) {
+    // Thể loại yêu thích chọn lúc mới vào — dùng cho người chưa đọc gì
+    // (cold start) và trộn thêm vào tín hiệu từ lịch sử đọc.
+    const prefs = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { favoriteCategoryIds: true },
+    });
+    const favoriteCategoryIds = prefs?.favoriteCategoryIds ?? [];
+
+    if (readingHistory.length === 0 && favoriteCategoryIds.length === 0) {
       // If no reading history, return popular stories
       return this.getTopRated(limit, allowAdultContent);
     }
 
     // Extract categories and tags from reading history
-    const categoryIds = new Set<string>();
+    const categoryIds = new Set<string>(favoriteCategoryIds);
     const tagIds = new Set<string>();
     const readStoryIds = new Set<string>();
 

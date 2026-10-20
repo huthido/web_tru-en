@@ -10,10 +10,13 @@ import {
     Query,
     Sse,
     MessageEvent,
+    Headers,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { NotificationsService } from './notifications.service';
 import { PushService } from './push.service';
+import { WebPushService } from './web-push.service';
+import { WebPushSubscribeDto, WebPushUnsubscribeDto } from './dto/web-push.dto';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { RegisterPushTokenDto } from './dto/register-push-token.dto';
@@ -21,6 +24,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 import { UserRole } from '@prisma/client';
 
 @Controller('notifications')
@@ -29,6 +33,7 @@ export class NotificationsController {
     constructor(
         private readonly notificationsService: NotificationsService,
         private readonly pushService: PushService,
+        private readonly webPushService: WebPushService,
     ) {}
 
     // Admin endpoints
@@ -113,6 +118,28 @@ export class NotificationsController {
     @Post('mark-all-read')
     markAllAsRead(@CurrentUser() user: any) {
         return this.notificationsService.markAllAsRead(user.id);
+    }
+
+    // --- Web Push (trình duyệt) ---
+
+    @Public()
+    @Get('web-push/config')
+    webPushConfig() {
+        return this.webPushService.getConfig();
+    }
+
+    @Post('web-push/subscribe')
+    webPushSubscribe(
+        @CurrentUser() user: any,
+        @Body() dto: WebPushSubscribeDto,
+        @Headers('user-agent') ua?: string,
+    ) {
+        return this.webPushService.subscribe(user.id, dto, ua);
+    }
+
+    @Post('web-push/unsubscribe')
+    webPushUnsubscribe(@CurrentUser() user: any, @Body() dto: WebPushUnsubscribeDto) {
+        return this.webPushService.unsubscribe(user.id, dto.endpoint);
     }
 
     // --- Mobile push tokens ---

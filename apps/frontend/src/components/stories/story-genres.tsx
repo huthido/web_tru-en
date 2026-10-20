@@ -33,7 +33,7 @@ export function StoryGenres({ genres, limit = 3 }: StoryGenresProps) {
                 g.slug ? (
                     <Link
                         key={g.slug}
-                        href={`/truyen?category=${encodeURIComponent(g.slug)}`}
+                        href={`/the-loai/${encodeURIComponent(g.slug)}`}
                         className={`${chipClass} hover:text-primary`}
                     >
                         {g.name}

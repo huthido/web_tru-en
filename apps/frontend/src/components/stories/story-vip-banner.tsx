@@ -23,7 +23,8 @@ export function StoryVipBanner({ slug }: { slug: string }) {
     const price = access.price;
     const owned = access.purchased || access.privileged;
     // SOFT debit (see WalletService.debitForContent) — gate on combined total.
-    const balance = (wallet?.purchasedBalance ?? 0) + (wallet?.earnedBalance ?? 0);
+    // Mua truyện VIP dùng được cả xu thưởng (backend trừ xu thưởng trước).
+    const balance = (wallet?.purchasedBalance ?? 0) + (wallet?.earnedBalance ?? 0) + (wallet?.bonusBalance ?? 0);
     const insufficient = isAuthenticated && !owned && balance < price;
     const loginHref = `/dang-nhap?redirect=${encodeURIComponent(`/truyen/${slug}`)}`;
 

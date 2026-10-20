@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsEmail, IsUrl, ValidateIf, IsInt, Min, Max, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsEmail, IsUrl, ValidateIf, IsInt, Min, Max, IsArray, ValidateNested, IsIn, ArrayMaxSize } from 'class-validator';
 import { Type } from 'class-transformer';
 
 /** Một slide banner footer: ảnh + link bấm vào (tuỳ chọn). */
@@ -23,6 +23,22 @@ export class TtsSubscriptionPlanDto {
   @IsInt()
   @Min(0)
   coins: number;
+}
+
+/** Một nhiệm vụ ngày: loại + số lần cần làm + xu thưởng. */
+export class DailyMissionDto {
+  @IsIn(['read', 'listen', 'comment'])
+  key: 'read' | 'listen' | 'comment';
+
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  target: number;
+
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  reward: number;
 }
 
 export class UpdateSettingsDto {
@@ -206,6 +222,49 @@ export class UpdateSettingsDto {
   @ValidateNested({ each: true })
   @Type(() => TtsSubscriptionPlanDto)
   ttsSubscriptionPlans?: TtsSubscriptionPlanDto[];
+
+  // --- Thưởng giữ chân (xu thưởng: chỉ mua chương, không ra tiền) ---
+  @IsOptional()
+  @IsBoolean()
+  rewardsEnabled?: boolean;
+
+  // Xu thưởng theo ngày trong chuỗi điểm danh (ngày 1..n, lặp lại).
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(31)
+  @IsInt({ each: true })
+  @Min(0, { each: true })
+  @Max(10000, { each: true })
+  checkinRewards?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(3)
+  @ValidateNested({ each: true })
+  @Type(() => DailyMissionDto)
+  dailyMissions?: DailyMissionDto[];
+
+  @IsOptional()
+  @IsBoolean()
+  referralEnabled?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  referralRewardReferrer?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  referralRewardReferee?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10000)
+  referralMonthlyCap?: number;
 
   // --- Cấu hình quảng cáo (3rd-party) ---
   @IsOptional()

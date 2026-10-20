@@ -11,6 +11,10 @@ import {
     Send,
     Sparkles,
     Undo2,
+    CalendarCheck,
+    Target,
+    UserPlus,
+    Ticket,
     type LucideIcon,
 } from 'lucide-react';
 import type { CoinTransaction, TransactionType } from '@/lib/api/wallet.service';
@@ -28,6 +32,10 @@ const TYPE_META: Record<TransactionType, { label: string; icon: LucideIcon; colo
     TTS_GENERATION: { label: 'Tạo giọng đọc AI', icon: Sparkles, color: 'text-fuchsia-600 dark:text-fuchsia-400' },
     TTS_SUBSCRIPTION: { label: 'Gói giọng đọc AI', icon: Sparkles, color: 'text-fuchsia-600 dark:text-fuchsia-400' },
     PURCHASE_ITEM: { label: 'Mua vật phẩm', icon: Gift, color: 'text-amber-600 dark:text-amber-400' },
+    CHECKIN_REWARD: { label: 'Điểm danh', icon: CalendarCheck, color: 'text-primary' },
+    MISSION_REWARD: { label: 'Nhiệm vụ', icon: Target, color: 'text-primary' },
+    REFERRAL_REWARD: { label: 'Mời bạn', icon: UserPlus, color: 'text-primary' },
+    GIFTCODE_REWARD: { label: 'Giftcode', icon: Ticket, color: 'text-primary' },
 };
 
 export const TRANSACTION_TYPE_OPTIONS: { value: TransactionType; label: string }[] = (

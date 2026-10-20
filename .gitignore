@@ -59,6 +59,8 @@ tmp/backup_clean.sql
 **/public/sw.js.map
 **/public/workbox-*.js
 **/public/workbox-*.js.map
+**/public/worker-*.js
+**/public/worker-*.js.map
 
 # Uploaded files (local storage)
 uploads/

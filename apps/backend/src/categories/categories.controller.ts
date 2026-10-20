@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
 
 @Controller('categories')
@@ -25,6 +26,18 @@ export class CategoriesController {
   @Get()
   findAll() {
     return this.categoriesService.findAll();
+  }
+
+  /**
+   * Danh sách thể loại kèm số truyện CÔNG KHAI (trang /the-loai + sitemap).
+   * Đếm theo đúng bộ lọc của danh sách truyện công khai + bộ lọc độ tuổi.
+   * Đặt TRƯỚC @Get(':slug') để không bị route đó nuốt mất.
+   */
+  @Public()
+  @Get('with-counts')
+  findAllWithCounts(@CurrentUser() user?: any) {
+    const adultOk = user?.role === 'ADMIN' || user?.allowAdultContent === true;
+    return this.categoriesService.findAllWithCounts(adultOk);
   }
 
   @Public()

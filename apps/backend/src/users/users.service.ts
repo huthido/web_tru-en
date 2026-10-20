@@ -259,6 +259,32 @@ export class UsersService {
     });
   }
 
+  async getPreferences(userId: string) {
+    const u = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { favoriteCategoryIds: true, genreOnboardedAt: true },
+    });
+    return {
+      favoriteCategoryIds: u?.favoriteCategoryIds ?? [],
+      genreOnboarded: !!u?.genreOnboardedAt,
+    };
+  }
+
+  async setFavoriteCategories(userId: string, categoryIds: string[]) {
+    // Chỉ giữ id thể loại có thật (bỏ rác client gửi lên).
+    const unique = Array.from(new Set(categoryIds));
+    const valid = unique.length
+      ? await this.prisma.category.findMany({ where: { id: { in: unique } }, select: { id: true } })
+      : [];
+    const validIds = new Set(valid.map((c) => c.id));
+    const kept = unique.filter((id) => validIds.has(id));
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { favoriteCategoryIds: kept, genreOnboardedAt: new Date() },
+    });
+    return { favoriteCategoryIds: kept, genreOnboarded: true };
+  }
+
   async getUserById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
@@ -305,7 +331,7 @@ export class UsersService {
         createdAt: true,
         updatedAt: true,
         wallet: {
-          select: { balance: true, purchasedBalance: true, earnedBalance: true, isLocked: true },
+          select: { balance: true, purchasedBalance: true, earnedBalance: true, bonusBalance: true, isLocked: true },
         },
         _count: {
           select: {
@@ -344,7 +370,7 @@ export class UsersService {
     const { _count, wallet, ...profile } = user;
     return {
       ...profile,
-      wallet: wallet || { balance: 0, purchasedBalance: 0, earnedBalance: 0, isLocked: false },
+      wallet: wallet || { balance: 0, purchasedBalance: 0, earnedBalance: 0, bonusBalance: 0, isLocked: false },
       stats: {
         authoredStories: _count.authoredStories,
         publishedStories,

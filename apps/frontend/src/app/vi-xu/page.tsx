@@ -14,6 +14,7 @@ export default function WalletPage() {
 
     const purchased = wallet?.purchasedBalance ?? 0;
     const earned = wallet?.earnedBalance ?? 0;
+    const bonus = wallet?.bonusBalance ?? 0;
     const total = purchased + earned;
 
     return (
@@ -74,6 +75,19 @@ export default function WalletPage() {
                                                 </p>
                                             </div>
                                         </div>
+                                        <Link
+                                            href="/nhiem-vu"
+                                            className="mt-3 flex items-center justify-between gap-3 rounded-lg bg-primary-container/60 p-3 text-sm hover:bg-primary-container transition-colors"
+                                        >
+                                            <span>
+                                                <span className="block text-xs text-on-primary-container/80">Xu thưởng</span>
+                                                <span className="block font-semibold text-on-primary-container">{bonus.toLocaleString('vi-VN')}</span>
+                                                <span className="block text-[11px] text-on-primary-container/70 mt-0.5">
+                                                    Chỉ dùng mở khoá chương / truyện VIP — không chuyển, không rút
+                                                </span>
+                                            </span>
+                                            <span className="text-xs font-semibold text-primary whitespace-nowrap">Kiếm thêm →</span>
+                                        </Link>
                                         {wallet?.isLocked && (
                                             <p className="mt-3 text-sm text-rose-600 dark:text-rose-400 font-medium">
                                                 ⚠️ Ví đang bị khoá — không thể chi tiêu, rút hoặc chuyển xu.

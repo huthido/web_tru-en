@@ -785,10 +785,11 @@ function ViewUserModal({
                             <label className="block text-sm font-medium text-on-surface-variant mb-2">
                                 Ví xu {detail?.wallet?.isLocked && <span className="text-xs text-error">(đang khoá)</span>}
                             </label>
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 <StatCell label="Số dư" value={<span className="text-primary">{fmt(detail?.wallet?.balance)}</span>} />
                                 <StatCell label="Xu đã nạp" value={fmt(detail?.wallet?.purchasedBalance)} />
                                 <StatCell label="Xu kiếm được" value={fmt(detail?.wallet?.earnedBalance)} />
+                                <StatCell label="Xu thưởng" value={fmt(detail?.wallet?.bonusBalance)} />
                             </div>
                         </div>
 

@@ -98,6 +98,28 @@ export class StoriesController {
     }
 
     /**
+     * Bảng xếp hạng: GET /stories/rankings?period=day|week|month|all
+     *   &metric=views|follows|rating&limit=1..50
+     * Trả { period, metric, since, items: [story card + rank, rankValue, rankCount?] }.
+     * Đặt TRƯỚC @Get(':slug') để không bị route đó nuốt mất.
+     */
+    @Public()
+    @Get('rankings')
+    async getRankings(
+        @Query('period') period?: string,
+        @Query('metric') metric?: string,
+        @Query('limit') limit?: string,
+        @CurrentUser() user?: any,
+    ) {
+        const p = (['day', 'week', 'month', 'all'] as const).find((v) => v === period) ?? 'week';
+        const m = (['views', 'follows', 'rating'] as const).find((v) => v === metric) ?? 'views';
+        const parsed = limit ? parseInt(limit, 10) : 50;
+        const limitNum = Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, 50) : 50;
+        const adultOk = user?.role === 'ADMIN' || user?.allowAdultContent === true;
+        return this.storiesService.getRankings(p, m, limitNum, adultOk);
+    }
+
+    /**
      * Toàn bộ slug truyện + slug chương công khai, trong MỘT lần gọi.
      *
      * Trước đây sitemap tự ghép: gọi /stories phân trang rồi gọi

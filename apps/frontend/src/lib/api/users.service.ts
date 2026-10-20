@@ -79,7 +79,7 @@ export interface AdminUserDetail {
   ttsVoicePreset?: string | null;
   createdAt: string;
   updatedAt: string;
-  wallet: { balance: number; purchasedBalance: number; earnedBalance: number; isLocked: boolean };
+  wallet: { balance: number; purchasedBalance: number; earnedBalance: number; bonusBalance?: number; isLocked: boolean };
   stats: {
     authoredStories: number;
     publishedStories: number;

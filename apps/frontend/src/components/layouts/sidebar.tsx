@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect as useClientEffect, useRef, useCallback, useState } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, UserCircle, HelpCircle, Plus, Bug, Megaphone, PanelLeftClose, PanelLeftOpen, Menu, type LucideIcon } from 'lucide-react';
+import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, UserCircle, HelpCircle, Plus, Bug, Megaphone, PanelLeftClose, PanelLeftOpen, Menu, Gift, Trophy, type LucideIcon } from 'lucide-react';
 import { SiGoogleplay } from 'react-icons/si';
 import { BrandMark } from '@/components/ui/brand-mark';
 import { MobileAccountSheet } from '@/components/layouts/mobile-account-sheet';
@@ -103,6 +103,7 @@ export function Sidebar() {
   const links: NavLink[] = [
     { href: '/', label: 'Trang chủ', icon: Home, active: pathname === '/' },
     { href: '/truyen', label: 'Truyện', icon: BookOpen, active: pathname === '/truyen' },
+    { href: '/bang-xep-hang', label: 'Bảng xếp hạng', icon: Trophy, active: pathname === '/bang-xep-hang' },
     { href: '/nghe-thuat', label: 'Mày tao', icon: Camera, active: pathname === '/nghe-thuat' },
     { href: '/tranh', label: 'Tranh', icon: Palette, active: pathname === '/tranh' },
     { href: uploadHref, label: 'Đăng truyện', icon: Upload, active: pathname === '/tac-gia/truyen/tao' },
@@ -110,6 +111,7 @@ export function Sidebar() {
     { href: '/cua-hang', label: 'Cửa hàng', icon: Store, active: pathname === '/cua-hang' },
     { href: '/tac-gia/bang-dieu-khien', label: 'Kênh tác giả', icon: LayoutDashboard, active: !!pathname?.startsWith('/tac-gia/bang-dieu-khien'), authOnly: true },
     { href: '/thu-vien', label: 'Thư viện', icon: Library, active: pathname === '/thu-vien' },
+    { href: '/nhiem-vu', label: 'Nhiệm vụ & quà', icon: Gift, active: pathname === '/nhiem-vu' },
     { href: '/quang-cao', label: 'Quảng cáo', icon: Megaphone, active: pathname === '/quang-cao' },
     { href: myProfileHref, label: 'Trang cá nhân', icon: UserCircle, active: myProfileActive },
   ];

@@ -11,6 +11,7 @@ import { MaintenanceCheck } from '@/components/maintenance-check';
 import { getServerSettings } from '@/lib/api/server-settings';
 import { AdsConsentProvider } from '@/lib/ads/consent-context';
 import { ConsentBanner } from '@/components/ads/consent-banner';
+import { RetentionBootstrap } from '@/components/retention/retention-bootstrap';
 import { AdsenseScript } from '@/components/ads/adsense-script';
 import { WebpFallback } from '@/components/compat/webp-fallback';
 import { FooterBanner } from '@/components/layouts/footer-banner';
@@ -167,6 +168,7 @@ export default async function RootLayout({
                       <FooterBanner />
                     </MaintenanceCheck>
                     <ConsentBanner />
+                    <RetentionBootstrap />
                     <AdsenseScript />
                   </AdsConsentProvider>
                 </ToastProvider>

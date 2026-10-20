@@ -135,6 +135,74 @@ export class WalletService implements OnModuleInit {
         });
     }
 
+    /**
+     * Cộng XU THƯỞNG (điểm danh, nhiệm vụ, mời bạn, giftcode) + ghi giao dịch.
+     * Xu thưởng chỉ dùng mua chương/truyện VIP (xem debitForPaidContent), không
+     * chuyển/donate/rút, và không nằm trong `balance` mirror.
+     */
+    async creditBonus(
+        tx: WalletTx,
+        userId: string,
+        amount: number,
+        type: TransactionType,
+        description: string,
+        referenceId?: string,
+    ) {
+        if (!Number.isInteger(amount) || amount <= 0) {
+            throw new BadRequestException('Số xu thưởng không hợp lệ');
+        }
+        const wallet = await tx.userWallet.upsert({
+            where: { userId },
+            update: { bonusBalance: { increment: amount } },
+            create: { userId, bonusBalance: amount },
+        });
+        await tx.coinTransaction.create({
+            data: { walletId: wallet.id, amount, type, description, referenceId },
+        });
+        return wallet;
+    }
+
+    /**
+     * Trừ tiền khi mua CHƯƠNG / TRUYỆN VIP: dùng xu thưởng trước, rồi xu nạp,
+     * cuối cùng xu kiếm được. Trả về `fromBonus` để người gọi KHÔNG chia phần
+     * đó cho tác giả (xu thưởng là xu miễn phí — chia cho tác giả sẽ thành
+     * đường rút tiền từ xu farm được).
+     */
+    private async debitForPaidContent(tx: WalletTx, userId: string, amount: number) {
+        const w = await tx.userWallet.findUnique({ where: { userId } });
+        if (!w) throw new BadRequestException('Ví chưa được khởi tạo');
+        if (w.isLocked) throw new ForbiddenException('Ví của bạn đang bị khóa');
+        if (w.bonusBalance + w.purchasedBalance + w.earnedBalance < amount) {
+            throw new BadRequestException('Số dư không đủ');
+        }
+        const fromBonus = Math.min(w.bonusBalance, amount);
+        const rest = amount - fromBonus;
+        const fromPurchased = Math.min(w.purchasedBalance, rest);
+        const fromEarned = rest - fromPurchased;
+        const wallet = await tx.userWallet.update({
+            where: { userId },
+            data: {
+                bonusBalance: { decrement: fromBonus },
+                purchasedBalance: { decrement: fromPurchased },
+                earnedBalance: { decrement: fromEarned },
+                balance: { decrement: rest },
+            },
+        });
+        return { wallet, fromBonus };
+    }
+
+    /**
+     * Chia phần giá trả bằng xu THẬT (price - fromBonus) cho tác giả/nền tảng.
+     * Phần xu thưởng không ai nhận.
+     */
+    static splitPaidPortion(price: number, fromBonus: number, feePercent: number) {
+        const paid = price - fromBonus;
+        if (paid <= 0) return { paidNet: 0, paidFee: 0 };
+        const { net } = WalletService.splitDonation(paid, feePercent);
+        const paidNet = Math.max(0, net);
+        return { paidNet, paidFee: paid - paidNet };
+    }
+
     /** 1 "tháng" gói giọng đọc AI = 30 ngày; gia hạn cộng dồn vào hạn còn lại. */
     static readonly TTS_SUBSCRIPTION_DAYS_PER_MONTH = 30;
 
@@ -706,39 +774,46 @@ export class WalletService implements OnModuleInit {
                 };
             }
 
-            // 2. Debit buyer (soft: purchased first, fall back to earned). Lock + funds checked.
-            const updatedBuyerWallet = await this.debitForContent(tx, buyerId, chapter.price);
+            // 2. Debit buyer: xu thưởng trước, rồi purchased, rồi earned. Lock + funds checked.
+            const { wallet: updatedBuyerWallet, fromBonus } =
+                await this.debitForPaidContent(tx, buyerId, chapter.price);
 
-            // 3. Credit only `net` to the author's earned bucket; `fee` is
-            //    retained by the platform (tracked on ChapterPurchase.platformFee
-            //    — no platform wallet is credited, mirroring the donation behaviour).
-            const authorWallet = await this.creditEarned(tx, authorId, net);
+            // 3. Chỉ phần trả bằng xu thật được chia: tác giả nhận net của phần
+            //    đó, nền tảng giữ fee (không ví nền tảng nào được cộng — như
+            //    donate). Phần xu thưởng không ai nhận.
+            const { paidNet, paidFee } = fromBonus > 0
+                ? WalletService.splitPaidPortion(chapter.price, fromBonus, feePercent)
+                : { paidNet: net, paidFee: fee };
 
             // 5. Buyer transaction — fee is internal, buyer just "bought a chapter".
+            const bonusNote = fromBonus > 0 ? ` (dùng ${fromBonus} xu thưởng)` : '';
             await tx.coinTransaction.create({
                 data: {
                     walletId: updatedBuyerWallet.id,
                     amount: -chapter.price,
                     type: TransactionType.PURCHASE_CHAPTER,
-                    description: `Mua chương: ${chapter.title}`,
+                    description: `Mua chương: ${chapter.title}${bonusNote}`,
                     referenceId: chapter.id,
                 },
             });
 
-            // 6. Author transaction — surfaces the fee so the recipient sees the
-            //    real number they received.
-            const feeNote = fee > 0
-                ? ` (đã trừ ${fee} coin phí nền tảng ${feePercent}%)`
-                : '';
-            await tx.coinTransaction.create({
-                data: {
-                    walletId: authorWallet.id,
-                    amount: net,
-                    type: TransactionType.PURCHASE_CHAPTER,
-                    description: `Bán chương "${chapter.title}": +${net} coin${feeNote}`,
-                    referenceId: buyerId,
-                },
-            });
+            // 6. Author credit + transaction — surfaces the fee so the recipient
+            //    sees the real number they received.
+            if (paidNet > 0) {
+                const authorWallet = await this.creditEarned(tx, authorId, paidNet);
+                const feeNote = paidFee > 0
+                    ? ` (đã trừ ${paidFee} coin phí nền tảng ${feePercent}%)`
+                    : '';
+                await tx.coinTransaction.create({
+                    data: {
+                        walletId: authorWallet.id,
+                        amount: paidNet,
+                        type: TransactionType.PURCHASE_CHAPTER,
+                        description: `Bán chương "${chapter.title}": +${paidNet} coin${feeNote}`,
+                        referenceId: buyerId,
+                    },
+                });
+            }
 
             // 7. Purchase record with the full breakdown for revenue reporting.
             await tx.chapterPurchase.create({
@@ -746,8 +821,9 @@ export class WalletService implements OnModuleInit {
                     userId: buyerId,
                     chapterId: chapter.id,
                     pricePaid: chapter.price, // gross
-                    platformFee: fee,
-                    netAmount: net,
+                    platformFee: paidFee,
+                    netAmount: paidNet,
+                    bonusPaid: fromBonus,
                 },
             });
 
@@ -903,39 +979,48 @@ export class WalletService implements OnModuleInit {
                 };
             }
 
-            const updatedBuyerWallet = await this.debitForContent(tx, buyerId, story.price);
-            const authorWallet = await this.creditEarned(tx, authorId, net);
+            // Xu thưởng trừ trước; phần đó không chia cho tác giả (xem payForChapter).
+            const { wallet: updatedBuyerWallet, fromBonus } =
+                await this.debitForPaidContent(tx, buyerId, story.price);
+            const { paidNet, paidFee } = fromBonus > 0
+                ? WalletService.splitPaidPortion(story.price, fromBonus, feePercent)
+                : { paidNet: net, paidFee: fee };
 
+            const bonusNote = fromBonus > 0 ? ` (dùng ${fromBonus} xu thưởng)` : '';
             await tx.coinTransaction.create({
                 data: {
                     walletId: updatedBuyerWallet.id,
                     amount: -story.price,
                     type: TransactionType.PURCHASE_STORY,
-                    description: `Mua truyện VIP: ${story.title}`,
+                    description: `Mua truyện VIP: ${story.title}${bonusNote}`,
                     referenceId: story.id,
                 },
             });
 
-            const feeNote = fee > 0
-                ? ` (đã trừ ${fee} coin phí nền tảng ${feePercent}%)`
-                : '';
-            await tx.coinTransaction.create({
-                data: {
-                    walletId: authorWallet.id,
-                    amount: net,
-                    type: TransactionType.PURCHASE_STORY,
-                    description: `Bán truyện "${story.title}": +${net} coin${feeNote}`,
-                    referenceId: buyerId,
-                },
-            });
+            if (paidNet > 0) {
+                const authorWallet = await this.creditEarned(tx, authorId, paidNet);
+                const feeNote = paidFee > 0
+                    ? ` (đã trừ ${paidFee} coin phí nền tảng ${feePercent}%)`
+                    : '';
+                await tx.coinTransaction.create({
+                    data: {
+                        walletId: authorWallet.id,
+                        amount: paidNet,
+                        type: TransactionType.PURCHASE_STORY,
+                        description: `Bán truyện "${story.title}": +${paidNet} coin${feeNote}`,
+                        referenceId: buyerId,
+                    },
+                });
+            }
 
             await tx.storyPurchase.create({
                 data: {
                     userId: buyerId,
                     storyId: story.id,
                     pricePaid: story.price,
-                    platformFee: fee,
-                    netAmount: net,
+                    platformFee: paidFee,
+                    netAmount: paidNet,
+                    bonusPaid: fromBonus,
                 },
             });
 

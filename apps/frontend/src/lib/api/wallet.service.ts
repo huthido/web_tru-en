@@ -7,6 +7,9 @@ export interface WalletBalance {
     purchasedBalance: number;
     /** Received from chapter/story sales, donations — withdrawable, NOT transferable. */
     earnedBalance: number;
+    /** Xu thưởng (điểm danh, nhiệm vụ, mời bạn, giftcode) — chỉ mua chương /
+     *  truyện VIP; không chuyển, donate hay rút. Không nằm trong `balance`. */
+    bonusBalance?: number;
     /** @deprecated Denormalized total = purchasedBalance + earnedBalance. */
     balance: number;
     isLocked?: boolean;
@@ -79,6 +82,8 @@ export interface AdminWalletInfo {
     user: { id: string; username: string; displayName: string | null; email: string };
     purchasedBalance: number;
     earnedBalance: number;
+    /** Xu thưởng — chỉ mua chương/truyện VIP, không rút/chuyển được. */
+    bonusBalance?: number;
     /** @deprecated Denormalized total = purchasedBalance + earnedBalance. */
     balance: number;
     isLocked: boolean;
@@ -174,7 +179,11 @@ export type TransactionType =
     | 'TRANSFER'
     | 'TTS_GENERATION'
     | 'TTS_SUBSCRIPTION'
-    | 'PURCHASE_ITEM';
+    | 'PURCHASE_ITEM'
+    | 'CHECKIN_REWARD'
+    | 'MISSION_REWARD'
+    | 'REFERRAL_REWARD'
+    | 'GIFTCODE_REWARD';
 
 export interface CoinTransaction {
     id: string;
