@@ -831,6 +831,7 @@ export class WalletService implements OnModuleInit {
                 alreadyOwned: false,
                 newBalance: updatedBuyerWallet.balance,
                 pricePaid: chapter.price,
+                authorNet: paidNet,
             };
         });
 
@@ -838,7 +839,7 @@ export class WalletService implements OnModuleInit {
             this.notifyAuthor(
                 authorId,
                 'Có người mua chương 📖',
-                `Chương "${chapter.title}" vừa được mua (${chapter.price} xu).`,
+                `Chương "${chapter.title}" vừa được mua — bạn nhận ${(chapterResult as any).authorNet ?? 0} xu.`,
                 { type: NotificationType.CHAPTER_PURCHASED, actionUrl: '/tac-gia/thu-nhap' },
             );
         }
@@ -1028,6 +1029,7 @@ export class WalletService implements OnModuleInit {
                 alreadyOwned: false,
                 newBalance: updatedBuyerWallet.balance,
                 pricePaid: story.price,
+                authorNet: paidNet,
             };
         });
 
@@ -1035,7 +1037,7 @@ export class WalletService implements OnModuleInit {
             this.notifyAuthor(
                 authorId,
                 'Có người mua truyện VIP 👑',
-                `Truyện "${story.title}" vừa được mua (${story.price} xu).`,
+                `Truyện "${story.title}" vừa được mua — bạn nhận ${(storyResult as any).authorNet ?? 0} xu.`,
                 { type: NotificationType.STORY_PURCHASED, actionUrl: '/tac-gia/thu-nhap' },
             );
         }
@@ -1565,6 +1567,7 @@ export class WalletService implements OnModuleInit {
             isLocked: wallet.isLocked,
             purchasedBalance: wallet.purchasedBalance,
             earnedBalance: wallet.earnedBalance,
+            bonusBalance: wallet.bonusBalance,
             balance: wallet.balance,
         };
     }
@@ -1576,6 +1579,7 @@ export class WalletService implements OnModuleInit {
             user,
             purchasedBalance: wallet?.purchasedBalance ?? 0,
             earnedBalance: wallet?.earnedBalance ?? 0,
+            bonusBalance: wallet?.bonusBalance ?? 0,
             balance: wallet?.balance ?? 0,
             isLocked: wallet?.isLocked ?? false,
         };
@@ -1678,6 +1682,7 @@ export class WalletService implements OnModuleInit {
             user,
             purchasedBalance: updated.purchasedBalance,
             earnedBalance: updated.earnedBalance,
+            bonusBalance: updated.bonusBalance,
             balance: updated.balance,
             isLocked: updated.isLocked,
         };

@@ -275,6 +275,8 @@ model Comment {
   parentId  String?
   isDeleted Boolean   @default(false)
   likeCount Int       @default(0) // denormalised — cập nhật cùng transaction với CommentLike
+  /// Ghim bình luận (cột có sẵn trên prod từ trước, khai báo để schema khớp DB).
+  isPinned  Boolean   @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   chapter   Chapter?  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
@@ -293,6 +295,10 @@ model Comment {
   @@index([storyId, isDeleted, createdAt]) // Composite index for story comments query
   @@index([chapterId, isDeleted, createdAt]) // Composite index for chapter comments query
   @@index([parentId, createdAt]) // Composite index for nested replies
+  @@index([isPinned])
+  @@index([isPinned, createdAt])
+  @@index([storyId, isPinned, createdAt])
+  @@index([chapterId, isPinned, createdAt])
   @@map("comments")
 }
 

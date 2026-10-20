@@ -4,7 +4,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentResponseDto } from './dto/comment-response.dto';
-import { UserRole, NotificationType, Prisma } from '@prisma/client';
+import { UserRole, NotificationType } from '@prisma/client';
 
 export type CommentSort = 'newest' | 'top';
 
@@ -290,10 +290,27 @@ export class CommentsService {
     const names = extractMentions(comment.content);
     if (names.length === 0) return;
 
+    // Truyện chứa bình luận: cần độ tuổi (MATURE) để không gửi cho tài khoản trẻ.
+    const story = comment.storyId
+      ? await this.prisma.story.findUnique({ where: { id: comment.storyId }, select: { maturity: true } })
+      : comment.chapterId
+        ? (await this.prisma.chapter.findUnique({
+          where: { id: comment.chapterId },
+          select: { story: { select: { maturity: true } } },
+        }))?.story ?? null
+        : null;
+    const isMature = story?.maturity === 'MATURE';
+
+    // Khớp CHÍNH XÁC username (không dùng ILIKE: '_' / '%' là ký tự đại diện).
+    const candidates = Array.from(new Set([...names, ...names.map((n) => n.toLowerCase())]));
     const users = await this.prisma.user.findMany({
       where: {
-        OR: names.map((n) => ({ username: { equals: n, mode: Prisma.QueryMode.insensitive } })),
+        username: { in: candidates },
         isActive: true,
+        // Người đã chặn tác giả bình luận thì không nhận thông báo từ họ.
+        blocks: { none: { blockedId: comment.userId } },
+        // Bình luận trong truyện 18+: chỉ báo cho tài khoản được xem nội dung người lớn.
+        ...(isMature ? { OR: [{ allowAdultContent: true }, { role: UserRole.ADMIN }] } : {}),
       },
       select: { id: true },
       take: MAX_MENTIONS_PER_COMMENT,

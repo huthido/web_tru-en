@@ -129,9 +129,10 @@ export class WebPushService implements OnModuleInit {
         });
         if (subs.length === 0) return;
 
+        // Giới hạn payload Web Push ~4KB → cắt ngắn tiêu đề/nội dung.
         const body = JSON.stringify({
-            title: payload.title,
-            body: payload.body,
+            title: payload.title.slice(0, 120),
+            body: payload.body.slice(0, 300),
             url: payload.url || '/thong-bao',
             tag: payload.tag,
         });

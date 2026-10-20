@@ -126,7 +126,20 @@ export class NotificationsService implements OnModuleInit {
      * Truyện MATURE chỉ báo cho follower đã bật xem nội dung người lớn (hoặc ADMIN).
      * Caller tự chặn gửi lặp (chỉ gọi khi chuyển chưa xuất bản → xuất bản lần đầu).
      */
+    /** Truyện đã báo "truyện mới" gần đây — chặn báo trùng khi 2 luồng xuất
+     *  bản (duyệt + sửa, hoặc 2 lần duyệt song song) cùng gọi. */
+    private recentNewStoryFanouts = new Map<string, number>();
+
     async fanoutAuthorNewStory(storyId: string) {
+        const now = Date.now();
+        const last = this.recentNewStoryFanouts.get(storyId);
+        if (last && now - last < 24 * 60 * 60 * 1000) return;
+        this.recentNewStoryFanouts.set(storyId, now);
+        if (this.recentNewStoryFanouts.size > 5000) {
+            for (const [id, at] of this.recentNewStoryFanouts) {
+                if (now - at > 24 * 60 * 60 * 1000) this.recentNewStoryFanouts.delete(id);
+            }
+        }
         const BATCH = 500;
         let cursor: { id: string } | undefined;
         let totalNotified = 0;

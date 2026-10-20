@@ -33,9 +33,15 @@ self.addEventListener('notificationclick', function (event) {
       for (var i = 0; i < clients.length; i++) {
         var client = clients[i];
         if (client.url.indexOf(self.location.origin) === 0 && 'focus' in client) {
-          return client.focus().then(function (c) {
-            return c && 'navigate' in c ? c.navigate(target.href) : undefined;
-          });
+          return client
+            .focus()
+            .then(function (c) {
+              return c && 'navigate' in c ? c.navigate(target.href) : self.clients.openWindow(target.href);
+            })
+            // navigate() lỗi với tab SW chưa kiểm soát → mở tab mới thay vì im lặng.
+            .catch(function () {
+              return self.clients.openWindow(target.href);
+            });
         }
       }
       return self.clients.openWindow(target.href);

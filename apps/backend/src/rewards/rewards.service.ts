@@ -104,11 +104,11 @@ export class RewardsService {
         const [read, listenRows, comment] = await Promise.all([
             this.prisma.userDailyActivity.count({ where: { userId, day, kind: 'read' } }),
             this.prisma.audioListen.findMany({
-                where: { userId, createdAt: { gte: since } },
+                where: { userId, createdAt: { gte: since }, chapter: { isPublished: true } },
                 select: { chapterId: true },
                 distinct: ['chapterId'],
             }),
-            this.prisma.comment.count({ where: { userId, createdAt: { gte: since } } }),
+            this.prisma.comment.count({ where: { userId, createdAt: { gte: since }, isDeleted: false } }),
         ]);
         return { read, listen: listenRows.length, comment };
     }
@@ -268,9 +268,10 @@ export class RewardsService {
                     data: { referralCode: code },
                 });
                 if (updated.count === 0) {
-                    // Request khác vừa sinh mã — đọc lại.
+                    // Request khác vừa sinh mã — đọc lại; chưa có thì thử vòng sau.
                     const again = await this.prisma.user.findUnique({ where: { id: userId }, select: { referralCode: true } });
                     if (again?.referralCode) return again.referralCode;
+                    continue;
                 }
                 return code;
             } catch (e) {

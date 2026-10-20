@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsString, IsUrl, MaxLength, ValidateNested } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsUrl, MaxLength, ValidateNested } from 'class-validator';
 
 class WebPushKeysDto {
     @IsString()
@@ -20,6 +20,12 @@ export class WebPushSubscribeDto {
     @ValidateNested()
     @Type(() => WebPushKeysDto)
     keys!: WebPushKeysDto;
+
+    /** Chrome/Firefox luôn gửi kèm trong toJSON() (thường là null) — không dùng,
+     *  nhưng phải khai báo vì ValidationPipe bật forbidNonWhitelisted. */
+    @IsOptional()
+    @IsNumber()
+    expirationTime?: number | null;
 }
 
 export class WebPushUnsubscribeDto {

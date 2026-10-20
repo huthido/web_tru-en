@@ -469,9 +469,13 @@ function ChapterAudioPlayerInner(props, ref) {
         setProgress(0);
     }, []);
 
-    // Đổi chương / rời trang → dừng đọc.
+    // Đổi chương / rời trang → dừng đọc. Phải đặt cờ dừng TRƯỚC cancel():
+    // trình duyệt bắn onend/onerror khi huỷ, nếu không chặn thì chuỗi đọc cũ
+    // chạy tiếp (đọc chương cũ đè trang mới) rồi tự chuyển sang chương kế
+    // của chương CŨ khi hết.
     useEffect(() => {
         return () => {
+            stoppedRef.current = true;
             if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
             }
@@ -711,14 +715,18 @@ function ChapterAudioPlayerInner(props, ref) {
             if (p && typeof p.catch === 'function') p.catch(() => setAutoplayBlocked(true));
             return;
         }
-        // Không có file audio: đọc bằng giọng thiết bị (nếu không đang chờ AI).
-        if (!audioUrl && !aiUrl && ttsSupported) {
+        // Không có file audio: đọc bằng giọng thiết bị — trừ khi audio AI đang
+        // được tạo (khi xong sẽ tự hiện player).
+        const aiPending = aiStatus === 'PENDING' || aiStatus === 'PROCESSING';
+        if (!audioUrl && !aiUrl && !aiPending && ttsSupported) {
             autoPlayDoneRef.current = true;
             startTts();
         }
-    }, [autoPlay, getFileAudio, audioUrl, aiUrl, ttsSupported, fileRate, startTts]);
+    }, [autoPlay, getFileAudio, audioUrl, aiUrl, aiStatus, ttsSupported, fileRate, startTts]);
 
     // Media Session: tên chương + nút bài trước/sau trên màn hình khoá, tai nghe.
+    // Boolean thay vì hàm: cha truyền arrow mới mỗi lần render → tránh đăng ký lại handler liên tục.
+    const hasPrev = !!onRequestPrev;
     const metaTitle = mediaMeta?.title;
     const metaArtist = mediaMeta?.artist;
     const metaArtwork = mediaMeta?.artwork;
@@ -739,7 +747,7 @@ function ChapterAudioPlayerInner(props, ref) {
             try { ms.setActionHandler(action, handler); } catch { /* action không hỗ trợ */ }
         };
         set('nexttrack', hasNext ? () => onRequestNextRef.current?.() : null);
-        set('previoustrack', onRequestPrev ? () => onRequestPrevRef.current?.() : null);
+        set('previoustrack', hasPrev ? () => onRequestPrevRef.current?.() : null);
         set('seekbackward', (d) => {
             const el = getFileAudio();
             if (el) el.currentTime = Math.max(0, el.currentTime - (d.seekOffset || 15));
@@ -754,7 +762,7 @@ function ChapterAudioPlayerInner(props, ref) {
             set('seekbackward', null);
             set('seekforward', null);
         };
-    }, [metaTitle, metaArtist, metaArtwork, hasNext, onRequestPrev, getFileAudio]);
+    }, [metaTitle, metaArtist, metaArtwork, hasNext, hasPrev, getFileAudio]);
 
     const extras = (fileMode: boolean) => (
         <ListenExtras

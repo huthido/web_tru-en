@@ -104,10 +104,12 @@ export class ReadingHistoryService {
       select: {
         id: true,
         storyId: true,
+        isPublished: true,
         story: {
           select: {
             id: true,
             authorId: true,
+            isPublished: true,
           },
         },
       },
@@ -122,7 +124,8 @@ export class ReadingHistoryService {
 
     // Nhiệm vụ "đọc hết N chương": đọc tới ≥80% chương thì tính 1 lượt/ngày
     // (unique theo chương — đọc lại không cộng). Không chặn luồng lưu tiến độ.
-    if (progress >= 80) {
+    // Chỉ chương đã xuất bản của truyện đã xuất bản mới tính nhiệm vụ.
+    if (progress >= 80 && chapter.isPublished && chapter.story?.isPublished) {
       this.prisma.userDailyActivity
         .createMany({
           data: [{ userId, day: vnDay(), kind: 'read', refId: chapterId }],

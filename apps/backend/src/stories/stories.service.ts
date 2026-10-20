@@ -1549,7 +1549,13 @@ export class StoriesService {
   // rẻ, và trang SSR đã có ISR 5 phút nên dữ liệu tươi hơn cũng không ai thấy.
   private static readonly RANKING_TTL_MS = 5 * 60 * 1000;
   private static readonly RANKING_MIN_RATINGS = 3;
+  /** Luôn tính top này rồi cắt theo `limit` → khoá cache không phụ thuộc limit
+   *  (tránh khách gọi đủ kiểu limit để né cache, mỗi lần một groupBy nặng). */
+  private static readonly RANKING_MAX = 50;
+  /** Xếp hạng điểm theo kỳ (ngày/tuần/tháng) cần tối thiểu ngần này lượt trong kỳ. */
+  private static readonly RANKING_MIN_RATINGS_WINDOW = 2;
   private rankingsCache = new Map<string, { at: number; data: any }>();
+  private rankingsInflight = new Map<string, Promise<any>>();
 
   async getRankings(
     period: 'day' | 'week' | 'month' | 'all',
@@ -1557,11 +1563,33 @@ export class StoriesService {
     limit: number = 50,
     allowAdultContent = false,
   ) {
-    const cacheKey = `${period}:${metric}:${limit}:${allowAdultContent ? 1 : 0}`;
+    const cacheKey = `${period}:${metric}:${allowAdultContent ? 1 : 0}`;
     const cached = this.rankingsCache.get(cacheKey);
-    if (cached && Date.now() - cached.at < StoriesService.RANKING_TTL_MS) {
-      return cached.data;
+    let data = cached && Date.now() - cached.at < StoriesService.RANKING_TTL_MS ? cached.data : null;
+    if (!data) {
+      // Nhiều request cùng lúc khi cache hết hạn → chỉ chạy truy vấn một lần.
+      let pending = this.rankingsInflight.get(cacheKey);
+      if (!pending) {
+        pending = this.computeRankings(period, metric, allowAdultContent)
+          .then((d) => {
+            this.rankingsCache.set(cacheKey, { at: Date.now(), data: d });
+            return d;
+          })
+          .finally(() => this.rankingsInflight.delete(cacheKey));
+        this.rankingsInflight.set(cacheKey, pending);
+      }
+      data = await pending;
     }
+    const n = Math.max(1, Math.min(StoriesService.RANKING_MAX, limit));
+    return { ...data, items: data.items.slice(0, n) };
+  }
+
+  private async computeRankings(
+    period: 'day' | 'week' | 'month' | 'all',
+    metric: 'views' | 'follows' | 'rating',
+    allowAdultContent: boolean,
+  ) {
+    const limit = StoriesService.RANKING_MAX;
 
     const storyWhere = { ...PUBLIC_STORY_WHERE, ...MATURITY_WHERE(allowAdultContent) };
     const days = period === 'day' ? 1 : period === 'week' ? 7 : period === 'month' ? 30 : 0;
@@ -1593,9 +1621,7 @@ export class StoriesService {
           metric === 'views' ? story.viewCount : metric === 'follows' ? story.followCount : story.rating,
         rankCount: metric === 'rating' ? story.ratingCount : undefined,
       }));
-      const data = { period, metric, since: null, items };
-      this.rankingsCache.set(cacheKey, { at: Date.now(), data });
-      return data;
+      return { period, metric, since: null, items };
     }
 
     if (metric === 'views') {
@@ -1622,6 +1648,8 @@ export class StoriesService {
         where: { updatedAt: { gte: since }, story: { is: storyWhere } },
         _avg: { rating: true },
         _count: { _all: true },
+        // Một lượt 5★ lẻ không được đứng đầu bảng.
+        having: { storyId: { _count: { gte: StoriesService.RANKING_MIN_RATINGS_WINDOW } } },
         orderBy: [{ _avg: { rating: 'desc' } }, { _count: { storyId: 'desc' } }],
         take: limit,
       });
@@ -1649,9 +1677,7 @@ export class StoriesService {
         rankCount: r.count,
       }));
 
-    const data = { period, metric, since: since.toISOString(), items };
-    this.rankingsCache.set(cacheKey, { at: Date.now(), data });
-    return data;
+    return { period, metric, since: since.toISOString(), items };
   }
 
   /**

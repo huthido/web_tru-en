@@ -26,8 +26,12 @@ const withPWA = require('next-pwa')({
     // nội dung chương nằm sẵn trong HTML render phía server, nên mất mạng vẫn
     // đọc lại được. Chỉ là bản công khai (ISR, không đăng nhập) → chương trả
     // phí không bị lưu nội dung. Mạng chậm >4s thì dùng bản đã lưu.
+    // Chỉ request ĐIỀU HƯỚNG (mở trang) — loại payload RSC `?_rsc=` và prefetch
+    // của <Link>, vốn chiếm chỗ cache mà gần như không bao giờ khớp lại.
+    // (Workbox serialize hàm này vào sw.js — giữ cú pháp đơn giản, không closure.)
     {
-      urlPattern: /\/truyen\/[^/?#]+\/chuong\/[^/?#]+\/?(\?.*)?$/i,
+      urlPattern: ({ request, url }) =>
+        request.mode === 'navigate' && /^\/truyen\/[^/]+\/chuong\/[^/]+\/?$/.test(url.pathname),
       handler: 'NetworkFirst',
       options: {
         cacheName: 'chapter-pages',

@@ -103,6 +103,8 @@ export default function ChapterReadingPage() {
     const [showMobileChapterList, setShowMobileChapterList] = useState(false);
     // Quảng cáo popup hiện thành lớp phủ (không còn chuyển trang).
     const [activePopupAd, setActivePopupAd] = useState<any>(null);
+    const activePopupAdRef = useRef<any>(null);
+    activePopupAdRef.current = activePopupAd;
     // Vào chương bằng "tự nghe chương sau" (?nghe=1) → tự phát audio.
     const [autoPlayAudio, setAutoPlayAudio] = useState(false);
     // Mặc định danh sách chương luôn được bật (hiển thị) khi vào trang
@@ -356,6 +358,8 @@ export default function ChapterReadingPage() {
             const target = e.target as HTMLElement | null;
             const tag = target?.tagName;
             if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+            // ←/→ trên trình phát audio là tua; khi quảng cáo đang hiện thì không cho lách.
+            if (tag === 'AUDIO' || tag === 'VIDEO' || activePopupAdRef.current) return;
             if (e.key === 'ArrowLeft' && prevChapter?.slug) {
                 router.push(`/truyen/${storySlug}/chuong/${prevChapter.slug}`);
             } else if (e.key === 'ArrowRight' && nextChapter?.slug) {
@@ -735,7 +739,10 @@ export default function ChapterReadingPage() {
     // Áp cài đặt đọc
     const readerFontCss = (READER_FONTS.find((f) => f.value === readerSettings.font) || READER_FONTS[0]).css;
     const readerMaxWidth = (READER_WIDTHS.find((w) => w.value === readerSettings.width) || READER_WIDTHS[1]).maxWidth;
-    const readerTheme = READER_THEMES.find((t) => t.value === readerSettings.theme) || READER_THEMES[0];
+    // Chương còn khoá: màn mở khoá dùng màu theo theme site → không áp nền cố định.
+    const readerTheme = chapterData?.isLocked
+        ? READER_THEMES[0]
+        : READER_THEMES.find((t) => t.value === readerSettings.theme) || READER_THEMES[0];
     const storyTitleText: string = (story as any)?.data?.title || (story as any)?.title || '';
     const storyCover: string | null = (story as any)?.data?.coverImage || (story as any)?.coverImage || null;
 
