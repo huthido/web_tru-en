@@ -339,7 +339,7 @@ function ProfileContent() {
   if (isLoadingAuth || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-surface-container-low">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -449,7 +449,7 @@ function ProfileContent() {
                                 ? 'Chưa có mật khẩu — nhấn để tạo'
                                 : '••••••••'
                           }
-                          className="flex-1 px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
+                          className="flex-1 px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors"
                         />
                         {showPasswordForm && (
                           <button
@@ -463,7 +463,7 @@ function ProfileContent() {
                               });
                               setErrors({ password: '' });
                             }}
-                            className="px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface dark:hover:text-white"
+                            className="px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface"
                           >
                             Hủy
                           </button>
@@ -482,7 +482,7 @@ function ProfileContent() {
                               value={passwordData.currentPassword}
                               onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
                               placeholder="Mật khẩu hiện tại"
-                              className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
+                              className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors"
                             />
                           )}
                           <input
@@ -490,7 +490,7 @@ function ProfileContent() {
                             value={passwordData.confirmNewPassword}
                             onChange={(e) => handlePasswordChange('confirmNewPassword', e.target.value)}
                             placeholder="Xác nhận mật khẩu mới"
-                            className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
+                            className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors"
                           />
                         </div>
                       )}
@@ -508,7 +508,7 @@ function ProfileContent() {
                         type="text"
                         value={formData.displayName}
                         onChange={(e) => handleInputChange('displayName', e.target.value)}
-                        className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
+                        className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors"
                       />
                       {errors.displayName && (
                         <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.displayName}</p>
@@ -526,7 +526,7 @@ function ProfileContent() {
                         maxLength={500}
                         rows={4}
                         placeholder="Vài dòng giới thiệu về bạn — hiển thị trên trang cá nhân công khai của bạn."
-                        className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors resize-none"
+                        className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors resize-none"
                       />
                       <p className="mt-1 text-xs text-on-surface-variant text-right">
                         {formData.bio.length}/500
@@ -538,7 +538,7 @@ function ProfileContent() {
                       <label className="absolute -top-2.5 left-3 px-2 bg-surface-container text-sm font-medium text-on-surface-variant z-10">
                         Đường dẫn chia sẻ
                       </label>
-                      <div className="flex items-center w-full border-2 border-outline-variant rounded-lg bg-surface-container focus-within:border-primary dark:focus-within:border-blue-400 transition-colors overflow-hidden">
+                      <div className="flex items-center w-full border-2 border-outline-variant rounded-lg bg-surface-container focus-within:border-primary transition-colors overflow-hidden">
                         <span className="pl-4 pr-0.5 py-3 text-on-surface-variant text-sm select-none whitespace-nowrap">
                           yeuyeu.net/u/
                         </span>
@@ -597,7 +597,7 @@ function ProfileContent() {
                 <div className="bg-surface-container rounded-2xl shadow-lg p-6 md:p-8 flex flex-col items-center sticky top-4">
                   {/* Avatar */}
                   <div className="relative mb-6">
-                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-orange-400 p-1">
+                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-gradient-to-br from-primary to-tertiary p-1">
                       <div className="w-full h-full rounded-full bg-surface-container flex items-center justify-center overflow-hidden">
                         {user?.avatar ? (
                           <img
@@ -686,7 +686,8 @@ function ProfileContent() {
                   setAvatarUrl('');
                   setErrors({ avatar: '' });
                 }}
-                className="text-on-surface-variant hover:text-on-surface dark:hover:text-white transition-colors"
+                className="text-on-surface-variant hover:text-on-surface transition-colors"
+                aria-label="Đóng"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 6L6 18M6 6l12 12" />
@@ -704,8 +705,8 @@ function ProfileContent() {
                   setErrors({ avatar: '' });
                 }}
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${uploadMode === 'url'
-                  ? 'text-primary border-b-2 border-blue-500'
-                  : 'text-on-surface-variant hover:text-on-surface dark:hover:text-white'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-on-surface-variant hover:text-on-surface'
                   }`}
               >
                 Dán URL
@@ -718,8 +719,8 @@ function ProfileContent() {
                   setErrors({ avatar: '' });
                 }}
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${uploadMode === 'upload'
-                  ? 'text-primary border-b-2 border-blue-500'
-                  : 'text-on-surface-variant hover:text-on-surface dark:hover:text-white'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-on-surface-variant hover:text-on-surface'
                   }`}
               >
                 Tải ảnh lên
@@ -741,7 +742,7 @@ function ProfileContent() {
                       if (errors.avatar) setErrors({ avatar: '' });
                     }}
                     placeholder="https://example.com/avatar.jpg"
-                    className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary dark:focus:border-blue-400 focus:outline-none transition-colors"
+                    className="w-full px-4 py-3 border-2 border-outline-variant rounded-lg bg-surface-container text-on-surface focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors"
                   />
                 </div>
                 {errors.avatar && (
@@ -778,7 +779,7 @@ function ProfileContent() {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full px-4 py-3 border-2 border-dashed border-outline-variant rounded-lg text-on-surface-variant hover:border-blue-500 dark:hover:border-blue-400 hover:bg-surface-container-high transition-colors"
+                    className="w-full px-4 py-3 border-2 border-dashed border-outline-variant rounded-lg text-on-surface-variant hover:border-primary hover:bg-surface-container-high transition-colors"
                   >
                     <div className="flex flex-col items-center gap-2">
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { SiGoogleplay } from 'react-icons/si';
+import { SiGoogleplay } from '@/components/ui/brand-icons';
 import { Smartphone, X } from 'lucide-react';
 
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.yeuyeu.webtruyen&pcampaignid=web_share';

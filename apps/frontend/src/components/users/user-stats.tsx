@@ -31,7 +31,7 @@ export function UserStats({ className = '' }: UserStatsProps) {
           <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
         </svg>
       ),
-      color: 'bg-blue-100 text-primary dark:bg-blue-900/30 dark:text-blue-400',
+      color: 'bg-primary/10 text-primary',
     },
     {
       label: 'Đang theo dõi',
@@ -62,7 +62,7 @@ export function UserStats({ className = '' }: UserStatsProps) {
           <path d="M8 7h6M8 11h6M8 15h4" />
         </svg>
       ),
-      color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+      color: 'bg-tertiary/10 text-tertiary',
     },
     {
       label: 'Bình luận',
@@ -93,7 +93,7 @@ export function UserStats({ className = '' }: UserStatsProps) {
           <circle cx="12" cy="12" r="3" />
         </svg>
       ),
-      color: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400',
+      color: 'bg-surface-container-highest text-on-surface-variant',
     },
   ];
 

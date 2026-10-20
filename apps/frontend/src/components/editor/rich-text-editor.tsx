@@ -589,7 +589,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                         <div className="flex-1 overflow-y-auto p-6">
                             {galleryLoading ? (
                                 <div className="flex items-center justify-center py-12">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                                     <span className="ml-3 text-on-surface-variant">Đang tải...</span>
                                 </div>
                             ) : galleryImages.length === 0 ? (
@@ -603,7 +603,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, upload
                                     {galleryImages.map((image) => (
                                         <div
                                             key={image.id}
-                                            className="group relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 cursor-pointer transition-all bg-surface-container-high"
+                                            className="group relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-primary cursor-pointer transition-all bg-surface-container-high"
                                             onClick={() => handleSelectGalleryImage(image.url)}
                                         >
                                             <img

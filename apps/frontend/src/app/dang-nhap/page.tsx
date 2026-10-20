@@ -73,7 +73,7 @@ export default function LoginPage() {
   if (isLoading || isAuthLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-container-low transition-colors duration-300">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -139,7 +139,7 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={toggleTheme}
-          className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-surface-container border-blue-500 dark:border-blue-400 shadow-sm hover:shadow-md"
+          className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-surface-container border-primary shadow-sm hover:shadow-md"
           aria-label="Chuyển đổi giao diện"
         >
           {theme === 'light' ? (
@@ -328,7 +328,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant transition-all duration-300 hover:text-on-surface dark:hover:text-white hover:scale-110 active:scale-95"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant transition-all duration-300 hover:text-on-surface hover:scale-110 active:scale-95"
                   aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   {showPassword ? (
@@ -364,11 +364,11 @@ export default function LoginPage() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-5 h-5 rounded border-2 border-outline accent-blue-500 transition-all duration-300 cursor-pointer appearance-none checked:bg-blue-500 checked:border-blue-500"
+                    className="w-5 h-5 rounded border-2 border-outline accent-primary transition-all duration-300 cursor-pointer appearance-none checked:bg-primary checked:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   />
                   {rememberMe && (
                     <svg
-                      className="absolute top-0.5 left-0.5 w-4 h-4 text-white pointer-events-none animate-in zoom-in duration-200"
+                      className="absolute top-0.5 left-0.5 w-4 h-4 text-on-primary pointer-events-none animate-in zoom-in duration-200"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -383,7 +383,7 @@ export default function LoginPage() {
               </label>
               <Link
                 href="/quen-mat-khau"
-                className="text-base text-primary hover:underline transition-all duration-300 hover:text-primary dark:hover:text-blue-300"
+                className="text-base text-primary hover:underline transition-all duration-300 hover:text-primary"
               >
                 Quên mật khẩu?
               </Link>
@@ -393,14 +393,14 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoggingIn}
-              className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] text-white font-medium text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 shadow-md hover:shadow-lg relative overflow-hidden group"
+              className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] text-on-primary font-medium text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg relative overflow-hidden group"
             >
               {isLoggingIn && (
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
               )}
               {isLoggingIn ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent" />
                   <span>Đang đăng nhập...</span>
                 </>
               ) : (
@@ -408,7 +408,7 @@ export default function LoginPage() {
                   <svg width="30" height="30" viewBox="0 0 30 30" fill="none" className="transition-transform duration-300 group-hover:translate-x-1">
                     <path
                       d="M3.75 5.625L15 15L26.25 5.625M26.25 5.625H3.75M26.25 5.625V24.375H3.75V5.625"
-                      stroke="white"
+                      stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -426,7 +426,7 @@ export default function LoginPage() {
               Chưa có tài khoản?{' '}
               <Link
                 href="/dang-ky"
-                className="font-medium text-primary hover:underline transition-all duration-300 hover:text-primary dark:hover:text-blue-300"
+                className="font-medium text-primary hover:underline transition-all duration-300 hover:text-primary"
               >
                 Đăng ký ngay
               </Link>

@@ -105,6 +105,8 @@ export const useAuth = () => {
     onSuccess: () => {
       setSessionHint(false);
       queryClient.setQueryData(['auth', 'me'], null);
+      // Danh sách bình luận chứa likedByMe của người vừa đăng xuất → tải lại.
+      queryClient.invalidateQueries({ queryKey: ['comments'] });
       router.push('/dang-nhap');
     },
   });

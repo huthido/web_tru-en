@@ -42,8 +42,10 @@ export class CategoriesController {
 
   @Public()
   @Get(':slug')
-  findOne(@Param('slug') slug: string) {
-    return this.categoriesService.findOne(slug);
+  findOne(@Param('slug') slug: string, @CurrentUser() user?: any) {
+    const isAdmin = user?.role === 'ADMIN';
+    const adultOk = isAdmin || user?.allowAdultContent === true;
+    return this.categoriesService.findOne(slug, adultOk, isAdmin);
   }
 
   @Post()

@@ -56,8 +56,8 @@ export default function RegistrationSuccessPage() {
           {/* Header */}
           <div className="px-6 py-5 border-b border-outline-variant">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <div className="w-10 h-10 bg-primary rounded flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-on-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
@@ -157,7 +157,7 @@ export default function RegistrationSuccessPage() {
               <button
                 onClick={handleResendEmail}
                 disabled={isResending || !email}
-                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-surface-variant disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors duration-200 flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 bg-primary hover:bg-primary/90 disabled:bg-surface-variant disabled:cursor-not-allowed text-on-primary text-sm font-medium rounded transition-colors duration-200 flex items-center justify-center gap-2"
               >
                 {isResending ? (
                   <>
@@ -184,7 +184,7 @@ export default function RegistrationSuccessPage() {
           <div className="px-6 py-4 bg-surface-container-low/50 border-t border-outline-variant rounded-b">
             <Link
               href="/dang-nhap"
-              className="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 font-medium inline-flex items-center gap-1 transition-colors"
+              className="text-sm text-primary hover:text-primary/80 font-medium inline-flex items-center gap-1 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />

@@ -16,5 +16,8 @@ export interface CommentResponseDto {
   };
   replies?: CommentResponseDto[];
   replyCount?: number;
+  likeCount?: number;
+  /** Người xem hiện tại đã thích chưa (false khi chưa đăng nhập). */
+  likedByMe?: boolean;
 }
 

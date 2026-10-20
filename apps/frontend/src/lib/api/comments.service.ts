@@ -28,6 +28,16 @@ export interface Comment {
   };
   replies?: Comment[];
   replyCount?: number;
+  likeCount?: number;
+  /** Người xem hiện tại đã thích chưa (false khi chưa đăng nhập). */
+  likedByMe?: boolean;
+}
+
+export type CommentSort = 'newest' | 'top';
+
+export interface CommentLikeState {
+  liked: boolean;
+  likeCount: number;
 }
 
 export interface AdminComment extends Comment {
@@ -85,11 +95,13 @@ export const commentsService = {
   getStoryComments: async (
     storyId: string,
     page?: number,
-    limit?: number
+    limit?: number,
+    sort?: CommentSort
   ): Promise<CommentsResponse> => {
     const params = new URLSearchParams();
     if (page) params.append('page', page.toString());
     if (limit) params.append('limit', limit.toString());
+    if (sort && sort !== 'newest') params.append('sort', sort);
 
     const response = await apiClient.get<CommentsResponse>(
       `/comments/stories/${storyId}?${params.toString()}`
@@ -105,11 +117,13 @@ export const commentsService = {
   getChapterComments: async (
     chapterId: string,
     page?: number,
-    limit?: number
+    limit?: number,
+    sort?: CommentSort
   ): Promise<CommentsResponse> => {
     const params = new URLSearchParams();
     if (page) params.append('page', page.toString());
     if (limit) params.append('limit', limit.toString());
+    if (sort && sort !== 'newest') params.append('sort', sort);
 
     const response = await apiClient.get<CommentsResponse>(
       `/comments/chapters/${chapterId}?${params.toString()}`
@@ -193,6 +207,17 @@ export const commentsService = {
       return (response.data as any).data as Comment;
     }
     return (response.data as unknown as Comment);
+  },
+
+  // Thích / bỏ thích bình luận (idempotent) — trả trạng thái mới từ server.
+  likeComment: async (commentId: string): Promise<CommentLikeState> => {
+    const response = await apiClient.post<CommentLikeState>(`/comments/${commentId}/like`);
+    return response.data as unknown as CommentLikeState;
+  },
+
+  unlikeComment: async (commentId: string): Promise<CommentLikeState> => {
+    const response = await apiClient.delete<CommentLikeState>(`/comments/${commentId}/like`);
+    return response.data as unknown as CommentLikeState;
   },
 
   // Delete comment

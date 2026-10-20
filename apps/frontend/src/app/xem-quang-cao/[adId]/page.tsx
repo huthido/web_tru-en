@@ -197,7 +197,7 @@ export default function AdPage() {
                             <div className="w-full px-2 sm:px-3 md:px-4 py-2 md:py-3">
                                 <button
                                     onClick={handleContinue}
-                                    className="w-full px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 dark:from-blue-600 dark:to-indigo-600 dark:hover:from-blue-700 dark:hover:to-indigo-700 rounded-md text-white font-medium text-xs sm:text-sm transition-all duration-200 shadow hover:shadow-md"
+                                    className="w-full px-3 sm:px-4 py-1.5 sm:py-2 bg-primary hover:bg-primary/90 rounded-md text-on-primary font-medium text-xs sm:text-sm transition-all duration-200 shadow hover:shadow-md"
                                 >
                                     Tiếp tục đọc
                                 </button>

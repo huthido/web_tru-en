@@ -164,6 +164,19 @@ textarea::placeholder {
   color: rgb(var(--md-on-surface-variant));
 }
 
+/* === Vien focus cho ban phim (a11y) ===
+   Chi hien khi dieu huong bang ban phim (:focus-visible), khong hien khi bam
+   chuot. Nam trong @layer base de cac utility `outline-none` /
+   `focus:outline-none` (da co ring rieng) van thang. Phan tu nao dung
+   outline-none ma khong co ring thay the thi them
+   `focus-visible:ring-2 focus-visible:ring-primary`. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid rgb(var(--md-primary));
+    outline-offset: 2px;
+  }
+}
+
 /* Vivid Reader — glassmorphism surface used for cards & overlays. */
 .glass-card {
   background: rgb(var(--md-surface-container) / 0.7);

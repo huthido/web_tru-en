@@ -85,7 +85,9 @@ export function NotificationBell() {
             {/* Bell Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 text-on-surface-variant hover:text-on-surface dark:hover:text-white hover:bg-surface-container-high rounded-lg transition-colors"
+                aria-label={unreadCount > 0 ? `Thông báo (${unreadCount} chưa đọc)` : 'Thông báo'}
+                aria-expanded={isOpen}
+                className="relative p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors"
             >
                 <svg
                     className="w-6 h-6"
@@ -185,7 +187,7 @@ export function NotificationBell() {
                                                 </p>
                                             </div>
                                             {!notification.isRead && (
-                                                <span className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2"></span>
+                                                <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-2"></span>
                                             )}
                                         </div>
                                     </Link>
@@ -200,7 +202,7 @@ export function NotificationBell() {
                             <Link
                                 href="/thong-bao"
                                 onClick={() => setIsOpen(false)}
-                                className="block w-full text-center text-sm font-medium text-primary hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                                className="block w-full text-center text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                             >
                                 Xem tất cả thông báo
                             </Link>

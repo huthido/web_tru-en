@@ -128,7 +128,7 @@ export default function RegisterPage() {
           </p>
           <Link
             href="/dang-nhap"
-            className="inline-block px-6 py-3 bg-primary text-on-primary rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-block px-6 py-3 bg-primary text-on-primary rounded-lg hover:bg-primary/90 transition-colors"
           >
             Quay lại đăng nhập
           </Link>
@@ -175,7 +175,7 @@ export default function RegisterPage() {
         <button
           type="button"
           onClick={toggleTheme}
-          className="flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-surface-container border-blue-500 dark:border-blue-400 shadow-sm hover:shadow-md"
+          className="flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all duration-300 hover:scale-105 active:scale-95 bg-surface-container border-primary shadow-sm hover:shadow-md"
           aria-label="Chuyển đổi giao diện"
         >
           {theme === 'light' ? (
@@ -407,7 +407,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant transition-all duration-300 hover:text-on-surface dark:hover:text-white hover:scale-110 active:scale-95"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant transition-all duration-300 hover:text-on-surface hover:scale-110 active:scale-95"
                   aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   {showPassword ? (
@@ -459,7 +459,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant transition-all duration-300 hover:text-on-surface dark:hover:text-white hover:scale-110 active:scale-95"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant transition-all duration-300 hover:text-on-surface hover:scale-110 active:scale-95"
                   aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   {showConfirmPassword ? (
@@ -491,14 +491,14 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isRegistering}
-              className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] text-white font-medium text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 shadow-md hover:shadow-lg relative overflow-hidden group"
+              className="w-full h-12 flex items-center justify-center gap-2.5 rounded-[10px] text-on-primary font-medium text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg relative overflow-hidden group"
             >
               {isRegistering && (
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
               )}
               {isRegistering ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent" />
                   <span>Đang đăng ký...</span>
                 </>
               ) : (
@@ -506,7 +506,7 @@ export default function RegisterPage() {
                   <svg width="30" height="30" viewBox="0 0 30 30" fill="none" className="transition-transform duration-300 group-hover:translate-x-1">
                     <path
                       d="M3.75 5.625L15 15L26.25 5.625M26.25 5.625H3.75M26.25 5.625V24.375H3.75V5.625"
-                      stroke="white"
+                      stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -523,7 +523,7 @@ export default function RegisterPage() {
             Đã có tài khoản?{' '}
             <Link
               href="/dang-nhap"
-              className="font-medium text-primary hover:underline transition-all duration-300 hover:text-primary dark:hover:text-blue-300"
+              className="font-medium text-primary hover:underline transition-all duration-300 hover:text-primary"
             >
               Đăng nhập
             </Link>

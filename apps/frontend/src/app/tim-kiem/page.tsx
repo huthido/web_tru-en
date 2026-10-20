@@ -411,7 +411,7 @@ function SearchContent() {
                                             >
                                                 <ChevronLeft className="w-5 h-5" />
                                             </button>
-                                            <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-primary rounded-lg font-semibold text-sm">
+                                            <div className="px-4 py-2 bg-primary/10 text-primary rounded-lg font-semibold text-sm">
                                                 {page}
                                             </div>
                                             <button
@@ -446,7 +446,7 @@ export default function SearchPage() {
         <Suspense fallback={
             <div className="min-h-screen bg-surface flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                     <p className="mt-4 text-on-surface-variant">Đang tải...</p>
                 </div>
             </div>

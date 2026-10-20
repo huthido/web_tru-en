@@ -53,11 +53,11 @@ export default function TransferPage() {
                         <div className="max-w-xl mx-auto">
                             <div className="bg-surface-container rounded-lg p-6 md:p-8 mb-6 shadow-sm border border-outline-variant">
                                 <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-2 flex items-center gap-2">
-                                    <ArrowLeftRight className="w-7 h-7 text-indigo-600" /> Chuyển xu
+                                    <ArrowLeftRight className="w-7 h-7 text-primary" /> Chuyển xu
                                 </h1>
                                 <p className="text-on-surface-variant">
                                     Xu có thể chuyển:{' '}
-                                    <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                                    <span className="font-bold text-primary">
                                         {purchased.toLocaleString('vi-VN')} xu
                                     </span>
                                 </p>
@@ -72,18 +72,18 @@ export default function TransferPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-on-surface-variant mb-2">Người nhận (username hoặc email)</label>
                                     <input value={form.recipient} onChange={(e) => setForm({ ...form, recipient: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-indigo-500" placeholder="vd: nguyenvana hoặc a@email.com" />
+                                        className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary" placeholder="vd: nguyenvana hoặc a@email.com" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-on-surface-variant mb-2">Số xu</label>
                                     <input type="number" min={0} step={1} value={form.amount}
                                         onChange={(e) => setForm({ ...form, amount: Math.max(0, Math.floor(Number(e.target.value)) || 0) })}
-                                        className="w-full md:w-48 px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-indigo-500" placeholder="0" />
+                                        className="w-full md:w-48 px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary" placeholder="0" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-on-surface-variant mb-2">Lời nhắn (tùy chọn)</label>
                                     <input value={form.message} maxLength={200} onChange={(e) => setForm({ ...form, message: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-indigo-500" placeholder="Lời nhắn ngắn" />
+                                        className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:ring-2 focus:ring-primary" placeholder="Lời nhắn ngắn" />
                                 </div>
 
                                 {insufficient && (
@@ -103,7 +103,7 @@ export default function TransferPage() {
                                 )}
 
                                 <button type="submit" disabled={transfer.isPending || insufficient}
-                                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50">
+                                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors disabled:opacity-50">
                                     {transfer.isPending ? (<><Loader2 size={18} className="animate-spin" /> Đang chuyển...</>) : 'Chuyển xu'}
                                 </button>
                                 <p className="text-xs text-on-surface-variant">

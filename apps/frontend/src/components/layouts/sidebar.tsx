@@ -7,7 +7,7 @@ import { useEffect as useClientEffect, useRef, useCallback, useState } from 'rea
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
 import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, UserCircle, HelpCircle, Plus, Bug, Megaphone, PanelLeftClose, PanelLeftOpen, Menu, Gift, Trophy, type LucideIcon } from 'lucide-react';
-import { SiGoogleplay } from 'react-icons/si';
+import { SiGoogleplay } from '@/components/ui/brand-icons';
 import { BrandMark } from '@/components/ui/brand-mark';
 import { MobileAccountSheet } from '@/components/layouts/mobile-account-sheet';
 import { MobileCreateSheet } from '@/components/layouts/mobile-create-sheet';

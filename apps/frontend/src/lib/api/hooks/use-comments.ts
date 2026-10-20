@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { commentsService, Comment, CommentsResponse, CreateCommentRequest, UpdateCommentRequest, AdminCommentsResponse, AdminCommentQuery } from '../comments.service';
+import { commentsService, Comment, CommentsResponse, CommentSort, CreateCommentRequest, UpdateCommentRequest, AdminCommentsResponse, AdminCommentQuery } from '../comments.service';
 import { useToastContext } from '@/components/providers/toast-provider';
 
 // Query keys
@@ -15,19 +15,19 @@ export const commentKeys = {
 };
 
 // Get story comments
-export function useStoryComments(storyId: string, page?: number, limit?: number) {
+export function useStoryComments(storyId: string, page?: number, limit?: number, sort: CommentSort = 'newest') {
   return useQuery({
-    queryKey: [...commentKeys.story(storyId), page, limit],
-    queryFn: () => commentsService.getStoryComments(storyId, page, limit),
+    queryKey: [...commentKeys.story(storyId), page, limit, sort],
+    queryFn: () => commentsService.getStoryComments(storyId, page, limit, sort),
     enabled: !!storyId,
   });
 }
 
 // Get chapter comments
-export function useChapterComments(chapterId: string, page?: number, limit?: number) {
+export function useChapterComments(chapterId: string, page?: number, limit?: number, sort: CommentSort = 'newest') {
   return useQuery({
-    queryKey: [...commentKeys.chapter(chapterId), page, limit],
-    queryFn: () => commentsService.getChapterComments(chapterId, page, limit),
+    queryKey: [...commentKeys.chapter(chapterId), page, limit, sort],
+    queryFn: () => commentsService.getChapterComments(chapterId, page, limit, sort),
     enabled: !!chapterId,
   });
 }
@@ -144,6 +144,75 @@ export function useDeleteComment() {
     },
     onError: () => {
       showToast('Không thể xóa bình luận. Vui lòng thử lại.', 'error');
+    },
+  });
+}
+
+/** Áp `fn` lên bình luận có id trùng, đi sâu vào các trả lời. */
+function patchCommentTree(comments: Comment[], id: string, fn: (c: Comment) => Comment): Comment[] {
+  let changed = false;
+  const next = comments.map((c) => {
+    if (c.id === id) {
+      changed = true;
+      return fn(c);
+    }
+    if (c.replies && c.replies.length > 0) {
+      const replies = patchCommentTree(c.replies, id, fn);
+      if (replies !== c.replies) {
+        changed = true;
+        return { ...c, replies };
+      }
+    }
+    return c;
+  });
+  return changed ? next : comments;
+}
+
+function isCommentsResponse(data: unknown): data is CommentsResponse {
+  return !!data && typeof data === 'object' && Array.isArray((data as CommentsResponse).comments);
+}
+
+/**
+ * Thích / bỏ thích bình luận — cập nhật lạc quan mọi danh sách bình luận
+ * trong cache (truyện + chương, mọi trang/kiểu sắp xếp), hoàn tác khi lỗi.
+ */
+export function useToggleCommentLike() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToastContext();
+
+  const setLike = (commentId: string, liked: boolean, likeCount?: number) => {
+    queryClient.setQueriesData({ queryKey: commentKeys.all }, (old: unknown) => {
+      if (!isCommentsResponse(old)) return old;
+      const comments = patchCommentTree(old.comments, commentId, (c) => {
+        const current = c.likeCount ?? 0;
+        const wasLiked = !!c.likedByMe;
+        const count =
+          likeCount !== undefined
+            ? likeCount
+            : Math.max(0, current + (liked === wasLiked ? 0 : liked ? 1 : -1));
+        return { ...c, likedByMe: liked, likeCount: count };
+      });
+      return comments === old.comments ? old : { ...old, comments };
+    });
+  };
+
+  return useMutation({
+    mutationFn: ({ commentId, like }: { commentId: string; like: boolean }) =>
+      like ? commentsService.likeComment(commentId) : commentsService.unlikeComment(commentId),
+    onMutate: async ({ commentId, like }) => {
+      await queryClient.cancelQueries({ queryKey: commentKeys.all });
+      const snapshot = queryClient.getQueriesData({ queryKey: commentKeys.all });
+      setLike(commentId, like);
+      return { snapshot };
+    },
+    onError: (_err, _vars, context) => {
+      context?.snapshot.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      showToast('Không thể thích bình luận. Vui lòng thử lại.', 'error');
+    },
+    onSuccess: (state, { commentId }) => {
+      if (state && typeof state.likeCount === 'number') {
+        setLike(commentId, state.liked, state.likeCount);
+      }
     },
   });
 }

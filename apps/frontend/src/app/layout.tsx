@@ -131,7 +131,7 @@ export default async function RootLayout({
         {/* PWA Meta Tags */}
         <link rel="manifest" href="/manifest.json" />
         {/* Light surface là mặc định; script trong <body> đổi sang màu tối nếu cần. */}
-        <meta name="theme-color" content="#fff8f7" />
+        <meta name="theme-color" content="#fcf2f6" />
         {/* Web App Manifest spec — Chrome / Edge / Firefox. */}
         <meta name="mobile-web-app-capable" content="yes" />
         {/* iOS Safari vẫn cần apple-* tag để add-to-homescreen hoạt động. */}
@@ -153,7 +153,7 @@ export default async function RootLayout({
             thường nên không gây hydration mismatch như khi đặt trong <head>. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme')||'light';var d=t==='dark';if(d)document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#0b1326':'#fff8f7');var s=localStorage.getItem('sidebar');if(s==='collapsed'||(!s&&window.matchMedia('(min-width:768px) and (max-width:1279px)').matches))document.documentElement.setAttribute('data-sidebar','collapsed');}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('theme')||'light';var d=t==='dark';if(d)document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#0b1326':'#fcf2f6');var s=localStorage.getItem('sidebar');if(s==='collapsed'||(!s&&window.matchMedia('(min-width:768px) and (max-width:1279px)').matches))document.documentElement.setAttribute('data-sidebar','collapsed');}catch(e){}})();`,
           }}
         />
         <ErrorBoundary>

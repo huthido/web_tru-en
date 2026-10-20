@@ -1,11 +1,13 @@
 {
     "name": "YÊU",
     "short_name": "YÊU",
+    "id": "/",
     "description": "Mạng Xã Hội Giải Trí Nghệ Thuật",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
-    "background_color": "#fff8f7",
-    "theme_color": "#fff8f7",
+    "background_color": "#fcf2f6",
+    "theme_color": "#fcf2f6",
     "orientation": "portrait-primary",
     "icons": [
         {
@@ -39,5 +41,59 @@
         "lifestyle"
     ],
     "lang": "vi",
-    "dir": "ltr"
+    "dir": "ltr",
+    "shortcuts": [
+        {
+            "name": "Đọc tiếp",
+            "short_name": "Đọc tiếp",
+            "description": "Truyện bạn đang đọc dở",
+            "url": "/lich-su",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Tủ truyện",
+            "short_name": "Tủ truyện",
+            "description": "Truyện theo dõi và yêu thích",
+            "url": "/thu-vien",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Nhiệm vụ & quà",
+            "short_name": "Nhiệm vụ",
+            "description": "Điểm danh nhận xu thưởng",
+            "url": "/nhiem-vu",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Bảng xếp hạng",
+            "short_name": "Xếp hạng",
+            "description": "Truyện hot nhất",
+            "url": "/bang-xep-hang",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        }
+    ]
 }

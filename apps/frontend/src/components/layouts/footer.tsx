@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { ImageSizes } from '@/utils/image-utils';
 import { Facebook, Twitter, Youtube, Instagram, Smartphone } from 'lucide-react';
-import { SiX, SiTiktok, SiLinkedin, SiThreads, SiGoogleplay } from 'react-icons/si';
+import { SiX, SiTiktok, SiLinkedin, SiThreads, SiGoogleplay } from '@/components/ui/brand-icons';
 
 import { useSettings } from '@/lib/api/hooks/use-settings';
 import { BrandMark } from '@/components/ui/brand-mark';

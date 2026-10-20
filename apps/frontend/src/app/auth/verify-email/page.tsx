@@ -62,7 +62,7 @@ function VerifyEmailContent() {
       <div className="max-w-md w-full bg-surface-container rounded-lg shadow-lg p-8 text-center">
         {status === 'loading' && (
           <>
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto mb-4"></div>
             <h1 className="text-2xl font-bold text-on-surface mb-2">
               Đang xác thực email...
             </h1>
@@ -113,7 +113,7 @@ function VerifyEmailContent() {
               </Link>
               <button
                 onClick={() => window.location.reload()}
-                className="px-6 py-3 border-2 border-outline-variant hover:border-blue-500 text-on-surface-variant font-medium rounded-lg transition-colors"
+                className="px-6 py-3 border-2 border-outline-variant hover:border-primary text-on-surface-variant font-medium rounded-lg transition-colors"
               >
                 Thử lại
               </button>

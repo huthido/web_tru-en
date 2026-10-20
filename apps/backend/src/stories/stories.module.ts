@@ -6,9 +6,10 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { SearchModule } from '../search/search.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { MonetizationModule } from '../monetization/monetization.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, CloudinaryModule, forwardRef(() => SearchModule), WalletModule, MonetizationModule],
+  imports: [PrismaModule, CloudinaryModule, forwardRef(() => SearchModule), WalletModule, MonetizationModule, NotificationsModule],
   controllers: [StoriesController],
   providers: [StoriesService],
   exports: [StoriesService],

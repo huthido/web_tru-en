@@ -28,7 +28,7 @@ const TYPE_META: Record<TransactionType, { label: string; icon: LucideIcon; colo
     TRANSFER: { label: 'Chuyển xu', icon: Send, color: 'text-sky-600 dark:text-sky-400' },
     BONUS: { label: 'Quà tặng', icon: Gift, color: 'text-amber-600 dark:text-amber-400' },
     REFUND: { label: 'Hoàn xu', icon: Undo2, color: 'text-teal-600 dark:text-teal-400' },
-    ADMIN_ADJUST: { label: 'Điều chỉnh', icon: Settings, color: 'text-zinc-600 dark:text-zinc-400' },
+    ADMIN_ADJUST: { label: 'Điều chỉnh', icon: Settings, color: 'text-on-surface-variant' },
     TTS_GENERATION: { label: 'Tạo giọng đọc AI', icon: Sparkles, color: 'text-fuchsia-600 dark:text-fuchsia-400' },
     TTS_SUBSCRIPTION: { label: 'Gói giọng đọc AI', icon: Sparkles, color: 'text-fuchsia-600 dark:text-fuchsia-400' },
     PURCHASE_ITEM: { label: 'Mua vật phẩm', icon: Gift, color: 'text-amber-600 dark:text-amber-400' },

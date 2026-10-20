@@ -545,8 +545,11 @@ export class ApprovalsService {
     ): Promise<number> {
         const currentStory = await this.prisma.story.findUnique({
             where: { id: storyId },
-            select: { status: true, publishedAt: true },
+            select: { status: true, publishedAt: true, isPublished: true },
         });
+        // Xuất bản LẦN ĐẦU (chưa từng có publishedAt và đang ẩn) → báo follower
+        // của tác giả. Duyệt lại truyện đã từng xuất bản thì không báo lặp.
+        const isFirstPublish = !!currentStory && !currentStory.isPublished && !currentStory.publishedAt;
 
         const newStatus = currentStory?.status === StoryStatus.DRAFT
             ? StoryStatus.ONGOING
@@ -562,7 +565,14 @@ export class ApprovalsService {
             },
         });
 
-        return this.publishStoryChapters(storyId, adminId);
+        const publishedChapters = await this.publishStoryChapters(storyId, adminId);
+
+        if (isFirstPublish) {
+            // Fire-and-forget, sau khi đã commit — không bao giờ làm hỏng việc duyệt.
+            void this.notificationsService.fanoutAuthorNewStory(storyId);
+        }
+
+        return publishedChapters;
     }
 
     /**

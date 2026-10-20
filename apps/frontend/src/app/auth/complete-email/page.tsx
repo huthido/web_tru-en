@@ -79,7 +79,7 @@ function CompleteEmailContent() {
         {!isSuccess ? (
           <>
             <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
                 <svg
                   className="w-8 h-8 text-primary"
                   fill="none"

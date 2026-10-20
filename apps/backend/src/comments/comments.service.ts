@@ -4,7 +4,34 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentResponseDto } from './dto/comment-response.dto';
-import { UserRole, NotificationType } from '@prisma/client';
+import { UserRole, NotificationType, Prisma } from '@prisma/client';
+
+export type CommentSort = 'newest' | 'top';
+
+/** Tối đa số người được @nhắc tới mỗi bình luận (chống spam thông báo). */
+const MAX_MENTIONS_PER_COMMENT = 5;
+
+/**
+ * Tách các `@username` trong nội dung bình luận. KHÔNG dùng regex lookbehind
+ * (iOS 12 Safari — giữ cùng cú pháp với frontend): nhóm 1 bắt ký tự đứng
+ * trước `@` (đầu chuỗi hoặc không phải chữ/số/_ — để "a@b.com" không bị
+ * tính là nhắc tên). Dấu chấm cuối ("@abc.") bị bỏ vì thường là hết câu.
+ * Trả về danh sách username (chữ thường) không trùng, theo thứ tự xuất hiện.
+ */
+export function extractMentions(content: string, max = MAX_MENTIONS_PER_COMMENT): string[] {
+  const re = /(^|[^A-Za-z0-9_])@([A-Za-z0-9_.]{3,32})/g;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(content || '')) !== null) {
+    const name = m[2].replace(/\.+$/, '').toLowerCase();
+    if (name.length < 3 || seen.has(name)) continue;
+    seen.add(name);
+    out.push(name);
+    if (out.length >= max) break;
+  }
+  return out;
+}
 
 @Injectable()
 export class CommentsService {
@@ -18,7 +45,7 @@ export class CommentsService {
   /**
    * Transform Prisma comment to response DTO
    */
-  private transformComment(comment: any): CommentResponseDto {
+  private transformComment(comment: any, likedIds?: Set<string>): CommentResponseDto {
     return {
       id: comment.id,
       userId: comment.userId,
@@ -36,6 +63,8 @@ export class CommentsService {
         avatar: comment.user.avatar,
       },
       replyCount: comment._count?.replies || 0,
+      likeCount: comment.likeCount ?? 0,
+      likedByMe: likedIds ? likedIds.has(comment.id) : false,
     };
   }
 
@@ -43,13 +72,17 @@ export class CommentsService {
    * Build nested comment tree with depth limit (max 3 levels)
    * This prevents performance issues with deeply nested comments
    */
-  private buildCommentTree(comments: any[], maxDepth: number = 3): CommentResponseDto[] {
+  private buildCommentTree(
+    comments: any[],
+    maxDepth: number = 3,
+    likedIds?: Set<string>,
+  ): CommentResponseDto[] {
     const commentMap = new Map<string, CommentResponseDto>();
     const rootComments: CommentResponseDto[] = [];
 
     // First pass: create all comment objects
     comments.forEach((comment) => {
-      const commentDto = this.transformComment(comment);
+      const commentDto = this.transformComment(comment, likedIds);
       commentMap.set(commentDto.id, commentDto);
     });
 
@@ -93,7 +126,11 @@ export class CommentsService {
       });
     };
 
-    sortComments(rootComments);
+    // Bình luận gốc giữ nguyên thứ tự query (Mới nhất / Nổi bật — đã sort ở
+    // DB); chỉ các trả lời bên trong được xếp theo thời gian tăng dần.
+    rootComments.forEach((root) => {
+      if (root.replies && root.replies.length > 0) sortComments(root.replies, 1);
+    });
     return rootComments;
   }
 
@@ -185,6 +222,13 @@ export class CommentsService {
       );
     }
 
+    // @nhắc tên (best-effort, không chặn response).
+    if (comment.content && comment.content.indexOf('@') !== -1) {
+      this.notifyMentions(comment, createCommentDto.parentId || null).catch((e) =>
+        this.logger.warn(`Notify mention failed: ${e?.message ?? e}`),
+      );
+    }
+
     return this.transformComment(comment);
   }
 
@@ -228,13 +272,139 @@ export class CommentsService {
   }
 
   /**
+   * Gửi thông báo cho những người được `@username` trong bình luận. Bỏ qua:
+   * chính người viết, và chủ bình luận cha (đã nhận thông báo "trả lời").
+   * Tối đa MAX_MENTIONS_PER_COMMENT người; username khớp không phân biệt hoa thường.
+   */
+  private async notifyMentions(
+    comment: {
+      id: string;
+      userId: string;
+      content: string;
+      storyId: string | null;
+      chapterId: string | null;
+      user: { username: string; displayName: string | null };
+    },
+    parentId: string | null,
+  ) {
+    const names = extractMentions(comment.content);
+    if (names.length === 0) return;
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        OR: names.map((n) => ({ username: { equals: n, mode: Prisma.QueryMode.insensitive } })),
+        isActive: true,
+      },
+      select: { id: true },
+      take: MAX_MENTIONS_PER_COMMENT,
+    });
+    if (users.length === 0) return;
+
+    let parentUserId: string | null = null;
+    if (parentId) {
+      const parent = await this.prisma.comment.findUnique({
+        where: { id: parentId },
+        select: { userId: true },
+      });
+      parentUserId = parent?.userId ?? null;
+    }
+
+    const recipients = Array.from(new Set(users.map((u) => u.id))).filter(
+      (id) => id !== comment.userId && id !== parentUserId,
+    );
+    if (recipients.length === 0) return;
+
+    let actionUrl: string | undefined;
+    if (comment.chapterId) {
+      const chapter = await this.prisma.chapter.findUnique({
+        where: { id: comment.chapterId },
+        select: { slug: true, story: { select: { slug: true } } },
+      });
+      if (chapter?.slug && chapter.story?.slug) {
+        actionUrl = `/truyen/${chapter.story.slug}/chuong/${chapter.slug}#comment-${comment.id}`;
+      }
+    } else if (comment.storyId) {
+      const story = await this.prisma.story.findUnique({
+        where: { id: comment.storyId },
+        select: { slug: true },
+      });
+      if (story?.slug) actionUrl = `/truyen/${story.slug}#comment-${comment.id}`;
+    }
+
+    const authorName = comment.user.displayName || comment.user.username;
+    const snippet =
+      comment.content.length > 80 ? `${comment.content.slice(0, 80)}…` : comment.content;
+    await Promise.allSettled(
+      recipients.map((uid) =>
+        this.notificationsService.notifyUser(uid, {
+          title: 'Bạn được nhắc đến trong một bình luận 💬',
+          content: `${authorName}: ${snippet}`,
+          type: NotificationType.COMMENT_MENTION,
+          actionUrl,
+        }),
+      ),
+    );
+  }
+
+  /**
+   * Thích bình luận (idempotent). Tạo CommentLike + tăng likeCount trong cùng
+   * transaction; đã thích rồi (P2002) thì giữ nguyên.
+   */
+  async like(commentId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
+    const comment = await this.prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { id: true, isDeleted: true },
+    });
+    if (!comment || comment.isDeleted) {
+      throw new NotFoundException('Comment không tồn tại');
+    }
+    try {
+      await this.prisma.$transaction([
+        this.prisma.commentLike.create({ data: { commentId, userId } }),
+        this.prisma.comment.update({
+          where: { id: commentId },
+          data: { likeCount: { increment: 1 } },
+        }),
+      ]);
+    } catch (e: any) {
+      if (e?.code !== 'P2002') throw e; // đã thích — idempotent
+    }
+    return this.likeState(commentId, true);
+  }
+
+  /** Bỏ thích (idempotent). Chỉ giảm likeCount khi thật sự xoá được 1 dòng. */
+  async unlike(commentId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
+    await this.prisma.$transaction(async (tx) => {
+      const removed = await tx.commentLike.deleteMany({ where: { commentId, userId } });
+      if (removed.count > 0) {
+        await tx.comment.updateMany({
+          where: { id: commentId, likeCount: { gt: 0 } },
+          data: { likeCount: { decrement: 1 } },
+        });
+      }
+    });
+    return this.likeState(commentId, false);
+  }
+
+  private async likeState(commentId: string, liked: boolean) {
+    const c = await this.prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { likeCount: true },
+    });
+    if (!c) throw new NotFoundException('Comment không tồn tại');
+    return { liked, likeCount: c.likeCount };
+  }
+
+  /**
    * Find all comments for a story or chapter
    */
   async findAll(
     storyId: string | undefined,
     chapterId: string | undefined,
     page?: number,
-    limit?: number
+    limit?: number,
+    sort: CommentSort = 'newest',
+    viewerId?: string,
   ): Promise<{ comments: CommentResponseDto[]; total: number; page: number; limit: number }> {
     if (!storyId && !chapterId) {
       throw new BadRequestException('Phải có storyId hoặc chapterId');
@@ -264,7 +434,10 @@ export class CommentsService {
       where,
       skip,
       take: limitNum,
-      orderBy: { createdAt: 'desc' },
+      orderBy:
+        sort === 'top'
+          ? [{ likeCount: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }]
+          : [{ createdAt: 'desc' }, { id: 'desc' }],
       include: {
         user: {
           select: {
@@ -309,7 +482,18 @@ export class CommentsService {
 
     // Combine and build tree
     const allComments = [...rootComments, ...allReplies];
-    const commentTree = this.buildCommentTree(allComments);
+
+    // Bình luận nào người xem đã thích (chỉ khi đăng nhập).
+    let likedIds: Set<string> | undefined;
+    if (viewerId && allComments.length > 0) {
+      const likes = await this.prisma.commentLike.findMany({
+        where: { userId: viewerId, commentId: { in: allComments.map((c) => c.id) } },
+        select: { commentId: true },
+      });
+      likedIds = new Set(likes.map((l) => l.commentId));
+    }
+
+    const commentTree = this.buildCommentTree(allComments, 3, likedIds);
 
     return {
       comments: commentTree,

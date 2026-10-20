@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { CommentsService } from './comments.service';
+import { CommentsService, CommentSort } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { AdminCommentQueryDto } from './dto/admin-comment-query.dto';
@@ -20,6 +20,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { UserRole } from '@prisma/client';
+
+const parseSort = (sort?: string): CommentSort => (sort === 'top' ? 'top' : 'newest');
 
 @Controller('comments')
 export class CommentsController {
@@ -44,14 +46,18 @@ export class CommentsController {
   async getStoryComments(
     @Param('storyId') storyId: string,
     @Query('page') page?: string,
-    @Query('limit') limit?: string
+    @Query('limit') limit?: string,
+    @Query('sort') sort?: string,
+    @CurrentUser() user?: any
   ) {
     try {
       return await this.commentsService.findAll(
         storyId,
         undefined,
         page ? parseInt(page) : undefined,
-        limit ? parseInt(limit) : undefined
+        limit ? parseInt(limit) : undefined,
+        parseSort(sort),
+        user?.id
       );
     } catch (error) {
       console.error('Error in getStoryComments:', error);
@@ -64,13 +70,17 @@ export class CommentsController {
   async getChapterComments(
     @Param('chapterId') chapterId: string,
     @Query('page') page?: string,
-    @Query('limit') limit?: string
+    @Query('limit') limit?: string,
+    @Query('sort') sort?: string,
+    @CurrentUser() user?: any
   ) {
     return this.commentsService.findAll(
       undefined,
       chapterId,
       page ? parseInt(page) : undefined,
-      limit ? parseInt(limit) : undefined
+      limit ? parseInt(limit) : undefined,
+      parseSort(sort),
+      user?.id
     );
   }
 
@@ -108,6 +118,25 @@ export class CommentsController {
       chapterId,
       createCommentDto
     );
+  }
+
+  // Thích / bỏ thích bình luận — idempotent, trả { liked, likeCount }.
+  @Post(':commentId/like')
+  @UseGuards(JwtAuthGuard)
+  async likeComment(
+    @Param('commentId') commentId: string,
+    @CurrentUser() user: any
+  ) {
+    return this.commentsService.like(commentId, user.id);
+  }
+
+  @Delete(':commentId/like')
+  @UseGuards(JwtAuthGuard)
+  async unlikeComment(
+    @Param('commentId') commentId: string,
+    @CurrentUser() user: any
+  ) {
+    return this.commentsService.unlike(commentId, user.id);
   }
 
   @Post(':commentId/reply')

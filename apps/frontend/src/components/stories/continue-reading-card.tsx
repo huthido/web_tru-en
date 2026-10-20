@@ -57,7 +57,7 @@ export function ContinueReadingCard({ history, className = '' }: ContinueReading
         {/* Content */}
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           <div className="flex-1">
-            <h3 className="text-base md:text-lg font-bold text-on-surface mb-2 line-clamp-2 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors duration-200">
+            <h3 className="text-base md:text-lg font-bold text-on-surface mb-2 line-clamp-2 group-hover:text-primary transition-colors duration-200">
               {history.story.title}
             </h3>
             <p className="text-sm text-on-surface-variant mb-3 line-clamp-1 font-medium">
@@ -75,7 +75,7 @@ export function ContinueReadingCard({ history, className = '' }: ContinueReading
             {/* Progress Bar */}
             <div className="w-full bg-surface-variant rounded-full h-2.5 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 h-2.5 rounded-full transition-all duration-500 ease-out shadow-sm"
+                className="bg-primary h-2.5 rounded-full transition-all duration-500 ease-out shadow-sm"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -93,7 +93,7 @@ export function ContinueReadingCard({ history, className = '' }: ContinueReading
 
         {/* Arrow Icon */}
         <div className="flex items-center flex-shrink-0 pt-1">
-          <div className="w-8 h-8 rounded-full bg-surface-container-high group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 flex items-center justify-center transition-all duration-300 group-hover:scale-110">
+          <div className="w-8 h-8 rounded-full bg-surface-container-high group-hover:bg-primary/10 flex items-center justify-center transition-all duration-300 group-hover:scale-110">
             <svg
               width="18"
               height="18"
@@ -103,7 +103,7 @@ export function ContinueReadingCard({ history, className = '' }: ContinueReading
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-on-surface-variant group-hover:text-primary dark:group-hover:text-blue-400 transition-colors duration-300 group-hover:translate-x-0.5"
+              className="text-on-surface-variant group-hover:text-primary transition-colors duration-300 group-hover:translate-x-0.5"
             >
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>

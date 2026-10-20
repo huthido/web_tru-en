@@ -5,8 +5,11 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { ImageSizes } from '@/utils/image-utils';
 import { Comment } from '@/lib/api/comments.service';
 import { useAuth } from '@/contexts/auth-context';
-import { useReplyToComment, useUpdateComment, useDeleteComment } from '@/lib/api/hooks/use-comments';
+import { useReplyToComment, useUpdateComment, useDeleteComment, useToggleCommentLike } from '@/lib/api/hooks/use-comments';
+import Link from 'next/link';
+import { Heart } from 'lucide-react';
 import { CommentForm } from './comment-form';
+import { CommentContent } from './comment-content';
 
 interface CommentItemProps {
   comment: Comment;
@@ -26,6 +29,9 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
   const replyMutation = useReplyToComment();
   const updateMutation = useUpdateComment();
   const deleteMutation = useDeleteComment();
+  const likeMutation = useToggleCommentLike();
+  const likeCount = comment.likeCount ?? 0;
+  const liked = !!comment.likedByMe;
 
   const isOwnComment = useMemo(() => user?.id === comment.userId, [user?.id, comment.userId]);
   const canReply = useMemo(() => depth < maxDepth && !comment.isDeleted, [depth, maxDepth, comment.isDeleted]);
@@ -87,7 +93,7 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
   };
 
   return (
-    <div className={`${depth > 0 ? 'ml-8 md:ml-12 mt-4' : 'mt-4'}`}>
+    <div id={`comment-${comment.id}`} className={`scroll-mt-24 ${depth > 0 ? 'ml-8 md:ml-12 mt-4' : 'mt-4'}`}>
       <div className="flex gap-3">
         {/* Avatar */}
         <div className="flex-shrink-0 w-10 h-10">
@@ -104,7 +110,7 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
               />
             </div>
           ) : (
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white font-semibold">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-semibold">
               {(comment.user.displayName || comment.user.username)[0].toUpperCase()}
             </div>
           )}
@@ -142,19 +148,42 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
             ) : (
               <>
                 <p className="text-on-surface-variant whitespace-pre-wrap break-words">
-                  {comment.content}
+                  <CommentContent content={comment.content} />
                 </p>
 
                 {/* Actions */}
                 {!comment.isDeleted && (
                   <div className="flex items-center gap-4 mt-3 pt-3 border-t border-outline-variant">
+                    {user ? (
+                      <button
+                        type="button"
+                        onClick={() => likeMutation.mutate({ commentId: comment.id, like: !liked })}
+                        aria-pressed={liked}
+                        aria-label={liked ? 'Bỏ thích bình luận' : 'Thích bình luận'}
+                        className={`inline-flex items-center gap-1 text-sm transition-colors ${
+                          liked ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
+                        }`}
+                      >
+                        <Heart className="w-4 h-4" fill={liked ? 'currentColor' : 'none'} />
+                        {likeCount > 0 && <span>{likeCount}</span>}
+                      </button>
+                    ) : (
+                      <Link
+                        href="/dang-nhap"
+                        aria-label="Đăng nhập để thích bình luận"
+                        className="inline-flex items-center gap-1 text-sm text-on-surface-variant hover:text-primary transition-colors"
+                      >
+                        <Heart className="w-4 h-4" />
+                        {likeCount > 0 && <span>{likeCount}</span>}
+                      </Link>
+                    )}
                     {canReply && (
                       <button
                         onClick={() => {
                           setIsReplying(!isReplying);
                           setShowReplies(true);
                         }}
-                        className="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                        className="text-sm text-primary hover:text-primary/80 transition-colors"
                       >
                         {isReplying ? 'Hủy' : 'Trả lời'}
                       </button>
@@ -163,7 +192,7 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
                       <>
                         <button
                           onClick={() => setIsEditing(true)}
-                          className="text-sm text-on-surface-variant hover:text-on-surface-variant transition-colors"
+                          className="text-sm text-on-surface-variant hover:text-on-surface transition-colors"
                         >
                           Chỉnh sửa
                         </button>
@@ -200,7 +229,7 @@ export const CommentItem = memo(function CommentItem({ comment, depth = 0, maxDe
             <div className="mt-4">
               <button
                 onClick={() => setShowReplies(!showReplies)}
-                className="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 transition-colors mb-2"
+                className="text-sm text-primary hover:text-primary/80 transition-colors mb-2"
               >
                 {showReplies ? 'Ẩn' : 'Hiện'} {comment.replyCount || comment.replies?.length} trả lời
               </button>

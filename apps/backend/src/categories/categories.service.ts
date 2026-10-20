@@ -36,11 +36,19 @@ export class CategoriesService {
     return categories.map(({ _count, ...c }) => ({ ...c, storyCount: _count.storyCategories }));
   }
 
-  async findOne(slug: string) {
+  /**
+   * Thể loại + truyện thuộc thể loại. Endpoint công khai → chỉ trả truyện đã
+   * xuất bản (không nháp/chờ duyệt) và lọc nội dung người lớn theo quyền xem
+   * (Families Policy); ADMIN thấy hết.
+   */
+  async findOne(slug: string, allowAdultContent = false, isAdmin = false) {
     const category = await this.prisma.category.findUnique({
       where: { slug },
       include: {
         storyCategories: {
+          where: isAdmin
+            ? undefined
+            : { story: { ...PUBLIC_STORY_WHERE, ...MATURITY_WHERE(allowAdultContent) } },
           include: {
             story: {
               select: {

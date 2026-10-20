@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStoryDto } from './dto/create-story.dto';
@@ -19,6 +20,7 @@ import { StoryStatus, StoryMaturity, UserRole } from '@prisma/client';
 import { SearchIndexerService } from '../search/search-indexer.service';
 import { WalletService } from '../wallet/wallet.service';
 import { MonetizationService } from '../monetization/monetization.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 /**
  * Điều kiện "truyện đáng hiển thị cho khách" dùng chung cho trang chủ và danh
@@ -56,7 +58,19 @@ export class StoriesService {
     private searchIndexer: SearchIndexerService,
     private walletService: WalletService,
     private monetization: MonetizationService,
+    // Optional: thiếu NotificationsModule thì xuất bản vẫn chạy, chỉ không báo follower.
+    @Optional() private notificationsService?: NotificationsService,
   ) { }
+
+  /**
+   * Báo "truyện mới" cho follower của tác giả — chỉ khi truyện xuất bản LẦN
+   * ĐẦU (trước đó ẩn + chưa từng có publishedAt). Fire-and-forget sau khi
+   * update đã commit, lỗi không ảnh hưởng thao tác xuất bản.
+   */
+  private notifyFirstPublish(storyId: string, wasPublished: boolean, prevPublishedAt: Date | null) {
+    if (wasPublished || prevPublishedAt) return;
+    void this.notificationsService?.fanoutAuthorNewStory(storyId);
+  }
 
   // Truyện VIP/FREEMIUM + giá chương mở tự do cho mọi tác giả (tách khỏi
   // "bật kiếm tiền" — mục đó giờ CHỈ áp dụng cho quảng cáo trong truyện, xem
@@ -631,6 +645,7 @@ export class StoriesService {
         accessType: true,
         price: true,
         publishedAt: true,
+        isPublished: true,
         storyCategories: {
           select: {
             categoryId: true,
@@ -763,6 +778,9 @@ export class StoriesService {
       }
     }
 
+    // Xuất bản lần đầu qua PATCH (chỉ admin) → báo follower của tác giả.
+    const firstPublish = updateData.isPublished === true;
+
     // Update story fields (excluding isRecommended for now)
     try {
       const updated = await this.prisma.story.update({
@@ -770,6 +788,7 @@ export class StoriesService {
         data: updateData,
         include: storyInclude,
       });
+      if (firstPublish) this.notifyFirstPublish(id, story.isPublished, story.publishedAt);
 
       // If isRecommended needs to be updated, try using raw SQL
       if (isRecommendedValue !== undefined) {
@@ -831,6 +850,7 @@ export class StoriesService {
             data: safeUpdateData,
             include: storyInclude,
           });
+          if (firstPublish) this.notifyFirstPublish(id, story.isPublished, story.publishedAt);
 
           // Try to update isRecommended using raw SQL if needed
           if (isRecommendedValue !== undefined) {
@@ -965,6 +985,7 @@ export class StoriesService {
         include: storyInclude,
       });
       this.searchIndexer.syncStory(id);
+      this.notifyFirstPublish(id, story.isPublished, story.publishedAt);
       return published;
     } catch (error: any) {
       // If column doesn't exist, use select instead
@@ -975,6 +996,7 @@ export class StoriesService {
           select: safeStorySelect,
         });
         this.searchIndexer.syncStory(id);
+        this.notifyFirstPublish(id, story.isPublished, story.publishedAt);
         return published;
       }
       throw error;

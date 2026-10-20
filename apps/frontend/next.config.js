@@ -22,6 +22,23 @@ const withPWA = require('next-pwa')({
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
   runtimeCaching: [
+    // Đọc offline: HTML (và payload RSC khi chuyển trang) của chương đã mở —
+    // nội dung chương nằm sẵn trong HTML render phía server, nên mất mạng vẫn
+    // đọc lại được. Chỉ là bản công khai (ISR, không đăng nhập) → chương trả
+    // phí không bị lưu nội dung. Mạng chậm >4s thì dùng bản đã lưu.
+    {
+      urlPattern: /\/truyen\/[^/?#]+\/chuong\/[^/?#]+\/?(\?.*)?$/i,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'chapter-pages',
+        networkTimeoutSeconds: 4,
+        expiration: {
+          maxEntries: 80,
+          maxAgeSeconds: 60 * 60 * 24 * 14, // 14 ngày
+        },
+        cacheableResponse: { statuses: [200] },
+      },
+    },
     ...cdnRuntimeCache,
     {
       urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
@@ -233,7 +250,7 @@ const nextConfig = {
   poweredByHeader: false,
   // Code splitting
   experimental: {
-    optimizePackageImports: ['@tanstack/react-query', 'axios'],
+    optimizePackageImports: ['@tanstack/react-query', 'axios', 'lucide-react'],
   },
   /**
    * Security headers + CSP whitelist cho 3rd-party ad networks.

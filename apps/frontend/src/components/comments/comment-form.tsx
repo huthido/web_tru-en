@@ -101,7 +101,7 @@ export function CommentForm({
         maxLength={maxLength}
         className="w-full px-4 py-3 border border-outline-variant rounded-lg 
                    bg-surface-container text-on-surface
-                   focus:ring-2 focus:ring-pink-500 dark:focus:ring-pink-400 focus:border-transparent
+                   focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
                    resize-none transition-colors"
         disabled={isLoading}
       />
@@ -129,9 +129,9 @@ export function CommentForm({
           <button
             type="submit"
             disabled={!content.trim() || content.length > maxLength || isLoading}
-            className="px-4 py-2 text-sm font-medium text-white 
-                       bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg 
-                       hover:from-pink-600 hover:to-purple-700 
+            className="px-4 py-2 text-sm font-medium text-on-primary 
+                       bg-primary rounded-lg 
+                       hover:bg-primary/90 
                        disabled:opacity-50 disabled:cursor-not-allowed
                        transition-all shadow-sm hover:shadow-md"
           >

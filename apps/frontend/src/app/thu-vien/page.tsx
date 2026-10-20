@@ -147,7 +147,7 @@ function LibraryContent() {
                                   </div>
                                 )}
                               </div>
-                              <h3 className="text-sm font-medium text-on-surface line-clamp-2 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
+                              <h3 className="text-sm font-medium text-on-surface line-clamp-2 group-hover:text-primary transition-colors">
                                 {story.title}
                               </h3>
                             </Link>
@@ -207,7 +207,7 @@ function LibraryContent() {
                                   </div>
                                 )}
                               </div>
-                              <h3 className="text-sm font-medium text-on-surface line-clamp-2 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
+                              <h3 className="text-sm font-medium text-on-surface line-clamp-2 group-hover:text-primary transition-colors">
                                 {story.title}
                               </h3>
                             </Link>
@@ -261,7 +261,7 @@ function LibraryContent() {
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-lg font-semibold text-on-surface mb-1 line-clamp-2 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
+                                <h3 className="text-lg font-semibold text-on-surface mb-1 line-clamp-2 group-hover:text-primary transition-colors">
                                   {item.story.title}
                                 </h3>
                                 <p className="text-sm text-on-surface-variant mb-2">
@@ -274,7 +274,7 @@ function LibraryContent() {
                                   </div>
                                   <div className="w-full bg-surface-variant rounded-full h-2">
                                     <div
-                                      className="bg-blue-500 dark:bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                      className="bg-primary h-2 rounded-full transition-all duration-300"
                                       style={{ width: `${item.progress}%` }}
                                     />
                                   </div>

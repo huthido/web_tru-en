@@ -7,6 +7,7 @@ import { CommentItem } from './comment-item';
 import { CommentForm } from './comment-form';
 import { Loading } from '@/components/ui/loading';
 import { Story } from '@/lib/api/stories.service';
+import type { CommentSort } from '@/lib/api/comments.service';
 import { useRateStory } from '@/lib/api/hooks/use-ratings';
 import Link from 'next/link';
 
@@ -21,18 +22,27 @@ interface CommentSectionProps {
 export function CommentSection({ storyId, chapterId, story, page = 1, limit = 5 }: CommentSectionProps) {
   const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(page);
+  const [sort, setSort] = useState<CommentSort>('newest');
 
   // Fetch comments
   const { data: storyComments, isLoading: storyLoading } = useStoryComments(
     storyId || '',
     currentPage,
-    limit
+    limit,
+    sort
   );
   const { data: chapterComments, isLoading: chapterLoading } = useChapterComments(
     chapterId || '',
     currentPage,
-    limit
+    limit,
+    sort
   );
+
+  const changeSort = (next: CommentSort) => {
+    if (next === sort) return;
+    setSort(next);
+    setCurrentPage(1);
+  };
 
   const commentsData = storyId ? storyComments : chapterComments;
   const isLoading = storyId ? storyLoading : chapterLoading;
@@ -87,6 +97,32 @@ export function CommentSection({ storyId, chapterId, story, page = 1, limit = 5 
         <h2 className="text-2xl font-bold text-on-surface">
           Bình luận {total > 0 && `(${total})`}
         </h2>
+        {total > 1 && (
+          <div
+            role="group"
+            aria-label="Sắp xếp bình luận"
+            className="inline-flex rounded-full border border-outline-variant bg-surface-container p-0.5 text-sm"
+          >
+            {([
+              { key: 'newest', label: 'Mới nhất' },
+              { key: 'top', label: 'Nổi bật' },
+            ] as { key: CommentSort; label: string }[]).map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => changeSort(opt.key)}
+                aria-pressed={sort === opt.key}
+                className={`px-3 py-1 rounded-full transition-colors ${
+                  sort === opt.key
+                    ? 'bg-primary text-on-primary'
+                    : 'text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Comment Form with Rating */}

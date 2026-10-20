@@ -65,7 +65,7 @@ export function PopupSupportContent({ onClose }: PopupSupportContentProps) {
                     <p>
                         <strong className="text-on-surface">Rất mong mọi người ghi rõ Họ và Tên cũng như Biệt Danh</strong>
                     </p>
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 dark:border-blue-400 p-4 rounded-r-lg">
+                    <div className="bg-primary/10 border-l-4 border-primary p-4 rounded-r-lg">
                         <p className="font-semibold text-on-surface mb-2">Lưu ý:</p>
                         <p>Ghi chú ủng hộ vì lý do gì, ủng hộ tác phẩm nào và vì sao</p>
                         <p className="mt-2 text-sm text-on-surface-variant">

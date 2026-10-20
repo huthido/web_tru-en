@@ -91,7 +91,7 @@ function HistoryContent() {
                         setLimit(Number(e.target.value));
                         setPage(1);
                       }}
-                      className="px-3 py-2 rounded-lg border border-outline-variant bg-surface-container text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 transition-colors duration-300 cursor-pointer"
+                      className="px-3 py-2 rounded-lg border border-outline-variant bg-surface-container text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors duration-300 cursor-pointer"
                     >
                       <option value="10">10</option>
                       <option value="20">20</option>
@@ -178,7 +178,7 @@ function HistoryContent() {
                         {/* Story Info */}
                         <div className="flex-1 flex flex-col justify-between min-w-0">
                           <div>
-                            <h3 className="text-base md:text-lg font-semibold text-on-surface mb-1 line-clamp-2 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
+                            <h3 className="text-base md:text-lg font-semibold text-on-surface mb-1 line-clamp-2 group-hover:text-primary transition-colors">
                               {item.story.title}
                             </h3>
                             <p className="text-sm text-on-surface-variant mb-2">
@@ -195,7 +195,7 @@ function HistoryContent() {
                             {/* Progress Bar */}
                             <div className="w-full bg-surface-variant rounded-full h-2">
                               <div
-                                className="bg-blue-500 dark:bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                className="bg-primary h-2 rounded-full transition-all duration-300"
                                 style={{ width: `${item.storyProgress ?? item.progress}%` }}
                               />
                             </div>
@@ -265,7 +265,7 @@ function HistoryContent() {
                                 onClick={() => setPage(pageNum)}
                                 className={`px-3 py-2 border rounded-lg text-sm transition-colors ${
                                   page === pageNum
-                                    ? 'bg-primary text-on-primary border-blue-500'
+                                    ? 'bg-primary text-on-primary border-primary'
                                     : 'border-outline-variant hover:bg-surface-container-high'
                                 }`}
                               >

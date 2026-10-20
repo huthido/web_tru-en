@@ -45,7 +45,7 @@ function FollowsContent() {
             {/* Page Header */}
             <div className="mb-6 md:mb-8">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-500 dark:bg-blue-600 flex items-center justify-center">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary flex items-center justify-center">
                   <svg
                     width="24"
                     height="24"

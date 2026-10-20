@@ -69,6 +69,7 @@ model User {
   // Relations
   uploadedChapters        Chapter[]                @relation("ChapterUploader")
   comments                Comment[]
+  commentLikes            CommentLike[]
   favorites               Favorite[]
   follows                 Follow[]
   ratings                 Rating[]
@@ -273,11 +274,13 @@ model Comment {
   content   String
   parentId  String?
   isDeleted Boolean   @default(false)
+  likeCount Int       @default(0) // denormalised — cập nhật cùng transaction với CommentLike
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   chapter   Chapter?  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
   replies   Comment[] @relation("CommentReplies")
+  likes     CommentLike[]
   story     Story?    @relation(fields: [storyId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -291,6 +294,19 @@ model Comment {
   @@index([chapterId, isDeleted, createdAt]) // Composite index for chapter comments query
   @@index([parentId, createdAt]) // Composite index for nested replies
   @@map("comments")
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  commentId String
+  userId    String
+  createdAt DateTime @default(now())
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@index([userId])
+  @@map("comment_likes")
 }
 
 model Follow {
@@ -616,6 +632,8 @@ enum NotificationType {
   COIN_DEPOSITED // Nạp xu thành công
   COMMENT_REPLY // Có người trả lời bình luận
   ITEM_PURCHASED // Có người mua vật phẩm của truyện
+  COMMENT_MENTION // Được nhắc đến (@username) trong bình luận
+  AUTHOR_NEW_STORY // Tác giả đang theo dõi ra truyện mới
 }
 
 enum NotificationPriority {

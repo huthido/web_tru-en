@@ -16,7 +16,7 @@ export default function OfflinePage() {
 
             <p className="text-on-surface-variant max-w-md mb-8">
                 Không có kết nối mạng. Hãy kiểm tra lại đường truyền WiFi hoặc 4G của bạn.
-                Trang sẽ tự hoạt động lại ngay khi có mạng.
+                Bạn vẫn đọc lại được các chương miễn phí đã mở gần đây — trang sẽ tự hoạt động lại khi có mạng.
             </p>
 
             <div className="flex gap-4">

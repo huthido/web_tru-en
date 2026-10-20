@@ -119,6 +119,74 @@ export class NotificationsService implements OnModuleInit {
         }
     }
 
+    /**
+     * Thông báo "truyện mới" tới mọi người theo dõi TÁC GIẢ (AuthorFollow) khi
+     * một truyện được xuất bản LẦN ĐẦU. Best-effort, batched cursor 500/round
+     * như fanoutChapterPublished; gọi fire-and-forget SAU khi publish đã commit.
+     * Truyện MATURE chỉ báo cho follower đã bật xem nội dung người lớn (hoặc ADMIN).
+     * Caller tự chặn gửi lặp (chỉ gọi khi chuyển chưa xuất bản → xuất bản lần đầu).
+     */
+    async fanoutAuthorNewStory(storyId: string) {
+        const BATCH = 500;
+        let cursor: { id: string } | undefined;
+        let totalNotified = 0;
+        try {
+            const story = await this.prisma.story.findUnique({
+                where: { id: storyId },
+                select: {
+                    id: true,
+                    title: true,
+                    slug: true,
+                    authorId: true,
+                    maturity: true,
+                    isPublished: true,
+                    author: { select: { username: true, displayName: true } },
+                },
+            });
+            if (!story || !story.isPublished) return;
+            const authorName = story.author?.displayName || story.author?.username || 'Tác giả';
+            const followerWhere: any = {
+                authorId: story.authorId,
+                userId: { not: story.authorId },
+            };
+            if (story.maturity === 'MATURE') {
+                followerWhere.user = {
+                    OR: [{ allowAdultContent: true }, { role: UserRole.ADMIN }],
+                };
+            }
+            while (true) {
+                const followers = await this.prisma.authorFollow.findMany({
+                    where: followerWhere,
+                    select: { id: true, userId: true },
+                    orderBy: { id: 'asc' },
+                    take: BATCH,
+                    ...(cursor ? { cursor, skip: 1 } : {}),
+                });
+                if (followers.length === 0) break;
+                await Promise.allSettled(
+                    followers.map((f) =>
+                        this.notifyUser(f.userId, {
+                            title: `Truyện mới từ ${authorName}`,
+                            content: story.title,
+                            type: NotificationType.AUTHOR_NEW_STORY,
+                            actionUrl: `/truyen/${story.slug}`,
+                        }),
+                    ),
+                );
+                totalNotified += followers.length;
+                if (followers.length < BATCH) break;
+                cursor = { id: followers[followers.length - 1].id };
+            }
+            if (totalNotified > 0) {
+                this.logger.log(
+                    `Fanout truyện mới "${story.title}" tới ${totalNotified} người theo dõi tác giả.`,
+                );
+            }
+        } catch (e: any) {
+            this.logger.warn(`fanoutAuthorNewStory failed: ${e?.message ?? e}`);
+        }
+    }
+
     async notifyUser(
         userId: string,
         data: {

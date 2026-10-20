@@ -330,7 +330,7 @@ function StoriesContent() {
                                                             key={pageNum}
                                                             onClick={() => setPage(pageNum)}
                                                             className={`px-3 py-2 text-sm border rounded-lg transition-colors ${page === pageNum
-                                                                    ? 'bg-primary text-on-primary border-blue-500'
+                                                                    ? 'bg-primary text-on-primary border-primary'
                                                                     : 'bg-surface-container border-outline-variant text-on-surface-variant hover:bg-surface-container-high'
                                                                 }`}
                                                         >
@@ -384,7 +384,7 @@ export default function StoriesPage() {
         <Suspense fallback={
             <div className="min-h-screen bg-surface flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                     <p className="mt-4 text-on-surface-variant">Đang tải...</p>
                 </div>
             </div>

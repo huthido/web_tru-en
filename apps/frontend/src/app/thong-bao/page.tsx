@@ -88,7 +88,7 @@ export default function NotificationsPage() {
     const getPriorityBadge = (priority: string) => {
         const badges: Record<string, { bg: string; text: string }> = {
             LOW: { bg: 'bg-surface-container-high', text: 'text-on-surface-variant' },
-            NORMAL: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400' },
+            NORMAL: { bg: 'bg-primary/10', text: 'text-primary' },
             HIGH: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-400' },
             URGENT: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-400' },
         };
@@ -198,7 +198,7 @@ export default function NotificationsPage() {
                                                 } ${
                                                     notification.isRead
                                                         ? 'border-outline-variant'
-                                                        : 'border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10'
+                                                        : 'border-primary/30 bg-primary/5'
                                                 }`}
                                             >
                                                 <div className="flex items-start gap-4">
@@ -215,7 +215,7 @@ export default function NotificationsPage() {
                                                                 {getTypeLabel(notification.type)}
                                                             </span>
                                                             {!notification.isRead && (
-                                                                <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                                                                <span className="w-2 h-2 bg-primary rounded-full"></span>
                                                             )}
                                                         </div>
                                                         <p className="text-on-surface-variant mb-3 whitespace-pre-wrap">
@@ -239,7 +239,7 @@ export default function NotificationsPage() {
                                                                         handleMarkAsRead(notification.recipientId);
                                                                     }}
                                                                     disabled={markAsReadMutation.isPending}
-                                                                    className="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors disabled:opacity-50"
+                                                                    className="text-sm text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
                                                                 >
                                                                     Đánh dấu đã đọc
                                                                 </button>
