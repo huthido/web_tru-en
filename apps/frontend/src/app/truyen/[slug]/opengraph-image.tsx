@@ -30,12 +30,33 @@ async function loadFont(text: string, weight: number): Promise<ArrayBuffer | nul
     }
 }
 
-/** Tải ảnh bìa (thường là WebP — Satori không đọc được) → PNG data URL bằng sharp. */
-async function loadCover(url?: string | null): Promise<string | null> {
-    if (!url || !/^https?:\/\//.test(url)) return null;
+/**
+ * Chỉ tải ảnh bìa từ CDN/kho ảnh của chính site. coverImage là chuỗi do tác
+ * giả lưu → không kiểm thì máy chủ có thể bị lừa gọi vào địa chỉ nội bộ (SSRF).
+ */
+const COVER_HOSTS = new Set(
+    ['cdn.yeuyeu.net', 'res.cloudinary.com', (process.env.NEXT_PUBLIC_CDN_HOST || '').trim().toLowerCase()].filter(Boolean),
+);
+
+function safeCoverUrl(raw?: string | null): URL | null {
+    if (!raw) return null;
     try {
-        const res = await fetch(url, { next: { revalidate: 86400 } });
-        if (!res.ok) return null;
+        const u = new URL(raw);
+        if (u.protocol !== 'https:' || (u.port && u.port !== '443') || u.username || u.password) return null;
+        return COVER_HOSTS.has(u.hostname.toLowerCase()) ? u : null;
+    } catch {
+        return null;
+    }
+}
+
+/** Tải ảnh bìa (thường là WebP — Satori không đọc được) → PNG data URL bằng sharp. */
+async function loadCover(raw?: string | null): Promise<string | null> {
+    const url = safeCoverUrl(raw);
+    if (!url) return null;
+    try {
+        // Không đi theo chuyển hướng (redirect có thể dẫn sang host không được phép).
+        const res = await fetch(url, { redirect: 'manual', next: { revalidate: 86400 } });
+        if (!res.ok || res.status >= 300) return null;
         const input = Buffer.from(await res.arrayBuffer());
         if (input.length > 8 * 1024 * 1024) return null;
         const sharp = (await import('sharp')).default;
