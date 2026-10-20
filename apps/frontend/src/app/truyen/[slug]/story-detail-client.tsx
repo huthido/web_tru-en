@@ -24,7 +24,8 @@ import { StoryItemsSection } from '@/components/stories/story-items-section';
 import { StoryVipBanner } from '@/components/stories/story-vip-banner';
 import { StoryOwnerBar } from '@/components/author/story-owner-bar';
 import { useAuth } from '@/lib/api/hooks/use-auth';
-import { ArrowLeft, BookOpen, HeartHandshake, Share2, Megaphone, Lock } from 'lucide-react';
+import { useStoryProgress } from '@/lib/api/hooks/use-reading-history';
+import { ArrowLeft, BookOpen, HeartHandshake, Share2, Megaphone, Lock, ArrowDownUp, RotateCcw } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import { StoryGenres } from '@/components/stories/story-genres';
 import {
@@ -56,14 +57,19 @@ export default function BookDetailPage() {
   // nên không hiện các nút thao tác nội dung này nữa.
   const { user: me } = useAuth();
   const isOwner = !!me && !!story && me.id === story.authorId;
+  // Chương đang đọc dở (một bản ghi/truyện) → nút "Đọc tiếp" + đánh dấu đã đọc.
+  const { data: storyProgress } = useStoryProgress(story?.id, !!me);
 
   // Fetch chapters separately since API doesn't include them in story response
   const { data: chaptersResponse, isLoading: chaptersLoading } = useChapters(slug);
-  const chapters = Array.isArray(chaptersResponse)
-    ? chaptersResponse
-    : (Array.isArray((chaptersResponse as any)?.data)
-      ? (chaptersResponse as any).data
-      : []);
+  const chapters = useMemo(
+    () => Array.isArray(chaptersResponse)
+      ? chaptersResponse
+      : (Array.isArray((chaptersResponse as any)?.data)
+        ? (chaptersResponse as any).data
+        : []),
+    [chaptersResponse],
+  );
 
   // Get back URL - always go to parent page (home page)
   // Except if coming from author edit context
@@ -167,7 +173,8 @@ export default function BookDetailPage() {
 
   // Pagination state for chapters
   const [chaptersPage, setChaptersPage] = useState(1);
-  const [chaptersPerPage, setChaptersPerPage] = useState(3);
+  const [chaptersPerPage, setChaptersPerPage] = useState(20);
+  const [chaptersNewestFirst, setChaptersNewestFirst] = useState(false);
 
   // Related books scroll refs and state
   const relatedBooksScrollRef = useRef<HTMLDivElement>(null);
@@ -184,17 +191,23 @@ export default function BookDetailPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Reset to page 1 when chaptersPerPage changes
+  // Reset to page 1 when chaptersPerPage / thứ tự thay đổi
   useEffect(() => {
     setChaptersPage(1);
-  }, [chaptersPerPage]);
+  }, [chaptersPerPage, chaptersNewestFirst]);
 
   // Calculate pagination for chapters
   const totalChapters = chapters?.length || 0;
   const totalPages = Math.ceil(totalChapters / chaptersPerPage);
   const startIndex = (chaptersPage - 1) * chaptersPerPage;
   const endIndex = startIndex + chaptersPerPage;
-  const displayedChapters = chapters?.slice(startIndex, endIndex) || [];
+  const orderedChapters = useMemo(
+    () => (chaptersNewestFirst ? [...(chapters || [])].reverse() : chapters || []),
+    [chapters, chaptersNewestFirst],
+  );
+  const displayedChapters = orderedChapters.slice(startIndex, endIndex);
+  const currentChapterOrder: number | null = storyProgress?.chapter?.order ?? null;
+  const latestChapter = chapters && chapters.length > 0 ? chapters[chapters.length - 1] : null;
 
   if (isLoading) {
     return (
@@ -516,7 +529,24 @@ export default function BookDetailPage() {
                 token màu khác nhau nữa.
               */}
               <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-6 md:mb-8">
-                {chapters && chapters.length > 0 ? (
+                {chapters && chapters.length > 0 && storyProgress ? (
+                  <>
+                    <Link
+                      href={`/truyen/${story.slug}/chuong/${storyProgress.chapter.slug}`}
+                      className={BTN_FILLED}
+                    >
+                      <BookOpen size={20} className="md:w-6 md:h-6" />
+                      <span>Đọc tiếp · Chương {storyProgress.chapter.order}</span>
+                    </Link>
+                    <Link
+                      href={`/truyen/${story.slug}/chuong/${chapters[0].slug}`}
+                      className={BTN_TONAL}
+                    >
+                      <RotateCcw size={20} className="md:w-6 md:h-6" />
+                      <span>Từ đầu</span>
+                    </Link>
+                  </>
+                ) : chapters && chapters.length > 0 ? (
                   <Link
                     href={`/truyen/${story.slug}/chuong/${chapters[0].slug}`}
                     className={BTN_FILLED}
@@ -588,42 +618,70 @@ export default function BookDetailPage() {
               ) : (
                 chapters && chapters.length > 0 ? (
                   <div className="mb-8">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                       <h2 className="font-display text-xl font-bold text-on-surface">
                         Danh sách chương ({totalChapters})
                       </h2>
                       <div className="flex items-center gap-2">
-                        <label className="text-sm text-on-surface-variant">
-                          Hiển thị:
-                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setChaptersNewestFirst((v) => !v)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors"
+                          aria-label="Đổi thứ tự chương"
+                        >
+                          <ArrowDownUp size={14} />
+                          {chaptersNewestFirst ? 'Mới nhất' : 'Cũ nhất'}
+                        </button>
                         <select
                           value={chaptersPerPage}
                           onChange={(e) => setChaptersPerPage(Number(e.target.value))}
+                          aria-label="Số chương mỗi trang"
                           className="px-3 py-1.5 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         >
-                          <option value={3}>3</option>
-                          <option value={5}>5</option>
-                          <option value={10}>10</option>
-                          <option value={20}>20</option>
-                          <option value={50}>50</option>
+                          <option value={10}>10 / trang</option>
+                          <option value={20}>20 / trang</option>
+                          <option value={50}>50 / trang</option>
+                          <option value={100}>100 / trang</option>
                         </select>
                       </div>
                     </div>
+                    {latestChapter && totalChapters > 1 && (
+                      <Link
+                        href={`/truyen/${story.slug}/chuong/${latestChapter.slug}`}
+                        className="mb-3 flex items-center justify-between gap-3 px-4 py-3 rounded-lg bg-primary-container/40 border border-outline-variant/60 hover:bg-primary-container/60 transition-colors"
+                      >
+                        <span className="text-sm text-on-surface min-w-0 truncate">
+                          <span className="font-semibold text-primary">Mới nhất: </span>
+                          {latestChapter.title}
+                        </span>
+                        <span className="text-xs text-on-surface-variant flex-shrink-0">
+                          {new Date(latestChapter.createdAt).toLocaleDateString('vi-VN')}
+                        </span>
+                      </Link>
+                    )}
                     <div className="bg-surface-container rounded-lg shadow-sm overflow-hidden">
                       <div className="divide-y divide-outline-variant">
-                        {displayedChapters.map((chapter: any) => (
+                        {displayedChapters.map((chapter: any) => {
+                          const isCurrent = currentChapterOrder !== null && chapter.order === currentChapterOrder;
+                          const isRead = currentChapterOrder !== null && chapter.order < currentChapterOrder;
+                          return (
                           <Link
                             key={chapter.id}
                             href={`/truyen/${story.slug}/chuong/${chapter.slug}`}
-                            className="flex items-center justify-between p-4 hover:bg-surface-container-high/50 transition-colors duration-200 group"
+                            className={`flex items-center justify-between p-4 hover:bg-surface-container-high/50 transition-colors duration-200 group ${isCurrent ? 'bg-primary-container/30' : ''}`}
                           >
                             <div className="flex items-center gap-4 flex-1 min-w-0">
-                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-semibold text-sm">
+                              <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm ${isRead ? 'bg-surface-variant text-on-surface-variant' : 'bg-primary-container text-on-primary-container'}`}>
                                 {chapter.order || 0}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-base font-medium text-on-surface group-hover:text-primary transition-colors duration-200 truncate flex items-center gap-2">
+                                <h3 className={`text-base font-medium group-hover:text-primary transition-colors duration-200 truncate flex items-center gap-2 ${isRead ? 'text-on-surface-variant' : 'text-on-surface'}`}>
                                   <span className="truncate">{chapter.title}</span>
+                                  {isCurrent && (
+                                    <span className="flex-shrink-0 text-[11px] font-semibold text-primary bg-primary/10 rounded-full px-2 py-0.5">
+                                      Đang đọc
+                                    </span>
+                                  )}
                                   {story.accessType !== 'FREEMIUM' && chapter.price > 0 && (
                                     <span className="flex-shrink-0 inline-flex items-center gap-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-full px-2 py-0.5" title={`${chapter.price} coin để mở khóa`}>
                                     <Lock size={11} />
@@ -654,7 +712,8 @@ export default function BookDetailPage() {
                               <path d="M9 18l6-6-6-6" />
                             </svg>
                           </Link>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
 

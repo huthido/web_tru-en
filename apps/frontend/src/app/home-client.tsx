@@ -7,6 +7,7 @@ import { Sidebar } from '@/components/layouts/sidebar';
 import { AdSlot } from '@/components/ads/ad-slot';
 import { BookSectionSkeleton } from '@/components/ui/loading';
 import { BookSection } from '@/components/books/book-section';
+import { ContinueReadingRow, ForYouRow } from '@/components/home/personal-rows';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { Story } from '@/lib/api/stories.service';
@@ -89,6 +90,9 @@ export default function HomeClient({ initialSections }: HomeClientProps) {
       <div className="md:ml-60 pb-16 md:pb-0">
         <Header />
 
+        {/* Cá nhân hoá (chỉ khi đăng nhập): truyện đang đọc dở */}
+        <ContinueReadingRow />
+
         {/* Dynamic chip/tab bar */}
         <div className="sticky top-[60px] z-30 flex items-center gap-3 bg-background/90 backdrop-blur-md px-4 md:px-6 py-3 border-b border-outline-variant/20">
           <div className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide" role="tablist" aria-label="Danh mục truyện">
@@ -128,6 +132,7 @@ export default function HomeClient({ initialSections }: HomeClientProps) {
           <div className="sm:hidden px-4 -mt-6 mb-6 text-right">
             <Link href={seeMoreUrl} className="text-xs font-semibold text-primary hover:underline">Xem tất cả →</Link>
           </div>
+          <ForYouRow />
           <div className="px-4 md:px-6 mt-8"><AdSlot slotKey="home.bottom" /></div>
         </main>
 

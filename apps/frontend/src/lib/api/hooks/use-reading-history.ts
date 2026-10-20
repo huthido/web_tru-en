@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { readingHistoryService, ReadingHistory, ChapterProgress } from '../reading-history.service';
+import { readingHistoryService, ReadingHistory, ChapterProgress, StoryProgress } from '../reading-history.service';
 
 export const useReadingHistory = (query?: { page?: number; limit?: number }) => {
   return useQuery({
@@ -15,6 +15,15 @@ export const useContinueReading = (limit?: number, enabled: boolean = true) => {
     queryFn: () => readingHistoryService.getContinueReading(limit),
     enabled,
     staleTime: 30 * 1000, // 30 seconds
+  });
+};
+
+export const useStoryProgress = (storyId: string | undefined, enabled: boolean = true) => {
+  return useQuery<StoryProgress | null>({
+    queryKey: ['reading-history', 'story', storyId],
+    queryFn: () => readingHistoryService.getStoryProgress(storyId as string),
+    enabled: enabled && !!storyId,
+    staleTime: 30 * 1000,
   });
 };
 

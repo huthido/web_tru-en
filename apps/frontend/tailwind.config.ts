@@ -69,21 +69,23 @@ const config: Config = {
           variant: 'rgb(var(--md-outline-variant) / <alpha-value>)',
         },
       },
-    },
-    keyframes: {
-      'slide-in-right': {
-        '0%': {
-          opacity: '0',
-          transform: 'translateX(30px)',
-        },
-        '100%': {
-          opacity: '1',
-          transform: 'translateX(0)',
+      // Phải nằm trong `extend`: đặt ngoài sẽ GHI ĐÈ animation mặc định của
+      // Tailwind → animate-spin / animate-pulse (spinner, skeleton) đứng yên.
+      keyframes: {
+        'slide-in-right': {
+          '0%': {
+            opacity: '0',
+            transform: 'translateX(30px)',
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateX(0)',
+          },
         },
       },
-    },
-    animation: {
-      'slide-in-right': 'slide-in-right 0.3s ease-out',
+      animation: {
+        'slide-in-right': 'slide-in-right 0.3s ease-out',
+      },
     },
   },
 

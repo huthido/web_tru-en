@@ -213,9 +213,9 @@ export class CommentsService {
 
     let actionUrl: string | undefined;
     if (parent.chapter?.slug && parent.chapter?.story?.slug) {
-      actionUrl = `/story/${parent.chapter.story.slug}/chapter/${parent.chapter.slug}#comment-${parentId}`;
+      actionUrl = `/truyen/${parent.chapter.story.slug}/chuong/${parent.chapter.slug}#comment-${parentId}`;
     } else if (parent.story?.slug) {
-      actionUrl = `/story/${parent.story.slug}#comment-${parentId}`;
+      actionUrl = `/truyen/${parent.story.slug}#comment-${parentId}`;
     }
 
     const replierName = replier.displayName || replier.username;

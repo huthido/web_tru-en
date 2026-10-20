@@ -44,6 +44,12 @@ export interface ReadingHistory {
   };
 }
 
+export interface StoryProgress {
+  progress: number;
+  lastRead: string;
+  chapter: { id: string; slug: string; title: string; order: number };
+}
+
 export interface ChapterProgress {
   progress: number;
   lastRead: string | null;
@@ -77,6 +83,13 @@ export const readingHistoryService = {
       return (response.data as any).data as ChapterProgress;
     }
     return (response.data as unknown as ChapterProgress);
+  },
+
+  /** Chương đang đọc dở của một truyện; null nếu chưa đọc. */
+  getStoryProgress: async (storyId: string): Promise<StoryProgress | null> => {
+    const response = await apiClient.get<StoryProgress | null>(`/reading-history/story/${storyId}`);
+    const data: any = response.data;
+    return data && data.chapter ? (data as StoryProgress) : null;
   },
 
   getContinueReading: async (limit?: number): Promise<ReadingHistory[]> => {

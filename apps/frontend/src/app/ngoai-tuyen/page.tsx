@@ -16,7 +16,7 @@ export default function OfflinePage() {
 
             <p className="text-on-surface-variant max-w-md mb-8">
                 Không có kết nối mạng. Hãy kiểm tra lại đường truyền WiFi hoặc 4G của bạn.
-                Bạn vẫn có thể đọc những truyện đã lưu trong máy.
+                Trang sẽ tự hoạt động lại ngay khi có mạng.
             </p>
 
             <div className="flex gap-4">

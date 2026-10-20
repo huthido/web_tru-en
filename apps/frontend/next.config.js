@@ -344,7 +344,12 @@ const nextConfig = {
       ['/shop', '/cua-hang'],
       ['/wallet/transactions', '/vi-xu/giao-dich'],
       ['/wallet/payment-result', '/vi-xu/ket-qua-thanh-toan'],
+      // Link trong thông báo cũ (đã lưu DB) từng trỏ các path không tồn tại.
+      ['/wallet/history', '/vi-xu/giao-dich'],
+      ['/wallet/withdrawals', '/tac-gia/rut-xu'],
       ['/wallet', '/vi-xu'],
+      ['/story/:storySlug/chapter/:chapterSlug', '/truyen/:storySlug/chuong/:chapterSlug'],
+      ['/story/:storySlug', '/truyen/:storySlug'],
       ['/profile', '/tai-khoan'],
       ['/favorites', '/yeu-thich'],
       ['/follows', '/dang-theo-doi'],

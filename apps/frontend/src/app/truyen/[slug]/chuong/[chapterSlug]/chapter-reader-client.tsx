@@ -24,10 +24,10 @@ import {
     updateChapterScrollProgress,
     hasValidReading,
     getPopupDelay,
-    getVisitCount
 } from '@/utils/reading-tracker';
 import { useSaveProgress, useChapterProgress } from '@/lib/api/hooks/use-reading-history';
 import { ChapterPaywall } from '@/components/stories/chapter-paywall';
+import { LazyChapterComments } from '@/components/comments/lazy-chapter-comments';
 import { ChapterAudioPlayer, countryToTtsLang, type ChapterAudioPlayerHandle } from '@/components/stories/chapter-audio-player';
 import { stripTtsEmotionTags } from '@/utils/tts-emotion';
 import { useSettings } from '@/lib/api/hooks/use-settings';
@@ -274,60 +274,26 @@ export default function ChapterReadingPage() {
         // Check if should redirect to ad page immediately (after visiting enough chapters)
         // Use popupInterval from ad if available, otherwise use default
         // Use popupAds directly to avoid dependency array size changes
-        console.log('Popup ads check:', {
-            popupAdsLength: popupAds?.length || 0,
-            popupAds: popupAds,
-            chapterId,
-            visitCount: getVisitCount(),
-        });
-
         if (Array.isArray(popupAds) && popupAds.length > 0) {
-            // Filter valid ads
             const validAds = popupAds.filter((ad: any) => ad.imageUrl);
-            console.log('Valid popup ads:', {
-                validAdsLength: validAds.length,
-                validAds: validAds.map((ad: any) => ({
-                    id: ad.id,
-                    title: ad.title,
-                    popupInterval: ad.popupInterval,
-                    isActive: ad.isActive,
-                })),
-            });
 
             if (validAds.length > 0) {
-                // Find ad with popupInterval (prefer ads with custom interval)
+                // Ưu tiên quảng cáo có popupInterval riêng, mặc định 3 chương
                 const adWithInterval = validAds.find((ad: any) => ad.popupInterval) || validAds[0];
                 const popupInterval = adWithInterval?.popupInterval || 3;
 
-                console.log('Popup interval check:', {
-                    popupInterval,
-                    chapterId,
-                    visitCount: getVisitCount(),
-                });
-
-                // Check if should show popup (check immediately, no delay)
                 if (shouldShowPopup(chapterId, popupInterval)) {
-                    // Select ad with rotation when popup is triggered
                     const adIndex = getNextPopupAdIndex(validAds.length);
                     const selectedAd = validAds[adIndex] || validAds[0];
 
                     if (selectedAd && selectedAd.imageUrl) {
-                        // Redirect immediately to ad page
                         const returnUrl = `/truyen/${storySlug}/chuong/${chapterSlug}`;
                         const adUrl = `/xem-quang-cao/${selectedAd.id}?return=${encodeURIComponent(returnUrl)}&story=${storySlug}&chapter=${chapterSlug}`;
-
-                        console.log('Redirecting to ad page:', { adUrl, visitCount: getVisitCount(), selectedAd });
                         router.push(adUrl);
-                        return; // Don't continue with page setup, we're redirecting
+                        return; // Đang chuyển sang trang quảng cáo
                     }
-                } else {
-                    console.log('Popup should NOT be shown for this chapter');
                 }
-            } else {
-                console.log('No valid popup ads (no imageUrl)');
             }
-        } else {
-            console.log('No popup ads found or popupAds is not an array');
         }
 
         // Start tracking reading time (only if not redirecting)
@@ -1008,6 +974,11 @@ export default function ChapterReadingPage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Bình luận chương (tải khi cuộn tới; ẩn khi chương còn khoá) */}
+                    {chapterData?.id && !chapterData.isLocked && (
+                        <LazyChapterComments chapterId={chapterData.id} />
+                    )}
                 </main>
             </div >
 

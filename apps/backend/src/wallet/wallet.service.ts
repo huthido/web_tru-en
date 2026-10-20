@@ -1352,7 +1352,7 @@ export class WalletService implements OnModuleInit {
             action === 'APPROVE'
                 ? `Yêu cầu rút ${processed.amount} xu của bạn đã được chuyển khoản.`
                 : `Yêu cầu rút ${processed.amount} xu bị từ chối, xu đã được hoàn lại.${processed.note ? ` Lý do: ${processed.note}` : ''}`,
-            { type: NotificationType.WITHDRAWAL_PROCESSED, actionUrl: '/wallet/withdrawals' },
+            { type: NotificationType.WITHDRAWAL_PROCESSED, actionUrl: '/tac-gia/rut-xu' },
         );
         return processed;
     }
@@ -1441,7 +1441,7 @@ export class WalletService implements OnModuleInit {
             recipient.id,
             'Bạn nhận được xu 💰',
             `Bạn vừa nhận ${amount} xu từ chuyển khoản.`,
-            { type: NotificationType.COIN_TRANSFER_RECEIVED, actionUrl: '/wallet/history' },
+            { type: NotificationType.COIN_TRANSFER_RECEIVED, actionUrl: '/vi-xu/giao-dich' },
         );
         // Notify sender — đã tự confirm trên UI nhưng vẫn ghi lại bell để có
         // history tổng quát mọi sự kiện ví.
@@ -1449,7 +1449,7 @@ export class WalletService implements OnModuleInit {
             senderId,
             'Chuyển xu thành công',
             `Bạn đã chuyển ${amount} xu cho ${recipient.displayName || recipient.username}.`,
-            { type: NotificationType.INFO, actionUrl: '/wallet/history' },
+            { type: NotificationType.INFO, actionUrl: '/vi-xu/giao-dich' },
         );
         return transferResult;
     }
@@ -1586,7 +1586,7 @@ export class WalletService implements OnModuleInit {
             user.id,
             'Ví của bạn vừa được điều chỉnh bởi admin',
             `Admin ${adminLabel} đã ${delta > 0 ? 'cộng' : 'trừ'} ${Math.abs(delta).toLocaleString('vi-VN')} ${bucketLabel}. Lý do: ${trimmed}`,
-            { type: NotificationType.INFO, actionUrl: '/wallet/history' },
+            { type: NotificationType.INFO, actionUrl: '/vi-xu/giao-dich' },
         );
 
         return {

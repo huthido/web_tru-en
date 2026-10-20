@@ -1,6 +1,7 @@
 'use client';
 
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { getTopupReturn, clearTopupReturn } from '@/utils/topup-return';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
@@ -16,6 +17,7 @@ import {
     Loader2,
     Store,
     Home,
+    BookOpen,
 } from 'lucide-react';
 
 /** Nhãn + màu cho từng trạng thái giao dịch. */
@@ -179,8 +181,23 @@ function PaymentResultInner() {
 
 /** Nút điều hướng dùng chung cho cả hai trạng thái của trang. */
 function ResultActions() {
+    // Người dùng đi nạp xu từ màn khoá chương → cho quay lại đúng chương.
+    const [returnPath, setReturnPath] = useState<string | null>(null);
+    useEffect(() => {
+        setReturnPath(getTopupReturn());
+    }, []);
+
     return (
         <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
+            {returnPath && (
+                <Link
+                    href={returnPath}
+                    onClick={() => clearTopupReturn()}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:opacity-90 text-on-primary rounded-lg font-medium transition-all"
+                >
+                    <BookOpen size={18} /> Quay lại đọc tiếp
+                </Link>
+            )}
             <Link
                 href="/cua-hang"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:opacity-90 text-on-primary rounded-lg font-medium transition-all"

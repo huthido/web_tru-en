@@ -4,6 +4,9 @@
 import { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
 
+const DISMISS_KEY = 'pwa_prompt_dismissed';
+const DISMISS_MS = 7 * 24 * 60 * 60 * 1000;
+
 export default function InstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [showPrompt, setShowPrompt] = useState(false);
@@ -12,9 +15,13 @@ export default function InstallPrompt() {
         const handler = (e: any) => {
             e.preventDefault();
             setDeferredPrompt(e);
-            // Check if user has already dismissed it recently
-            const isDismissed = localStorage.getItem('pwa_prompt_dismissed');
-            if (!isDismissed) {
+            // Ẩn nếu user bấm "Để sau" trong vòng 7 ngày (lưu mốc thời gian;
+            // giá trị cũ 'true' không phải số → coi như hết hạn).
+            let dismissedAt = 0;
+            try {
+                dismissedAt = Number(localStorage.getItem(DISMISS_KEY)) || 0;
+            } catch { }
+            if (Date.now() - dismissedAt > DISMISS_MS) {
                 setShowPrompt(true);
             }
         };
@@ -40,11 +47,9 @@ export default function InstallPrompt() {
 
     const handleDismiss = () => {
         setShowPrompt(false);
-        // Remember dismissal for 7 days
-        localStorage.setItem('pwa_prompt_dismissed', 'true');
-        setTimeout(() => {
-            localStorage.removeItem('pwa_prompt_dismissed');
-        }, 7 * 24 * 60 * 60 * 1000);
+        try {
+            localStorage.setItem(DISMISS_KEY, String(Date.now()));
+        } catch { }
     };
 
     if (!showPrompt) return null;
@@ -61,7 +66,7 @@ export default function InstallPrompt() {
                         Cài đặt ứng dụng
                     </h3>
                     <p className="text-sm text-on-surface-variant mb-3">
-                        Cài đặt YÊU để đọc nhanh hơn và dùng khi không có mạng!
+                        Cài đặt YÊU để mở nhanh từ màn hình chính và đọc mượt hơn!
                     </p>
 
                     <div className="flex gap-2">

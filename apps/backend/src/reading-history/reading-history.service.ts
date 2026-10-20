@@ -281,6 +281,20 @@ export class ReadingHistoryService {
     return createPaginatedResult(historyWithProgress, total, pageNum, limitNum);
   }
 
+  async getStoryProgress(userId: string, storyId: string) {
+    const history = await this.prisma.readingHistory.findUnique({
+      where: { userId_storyId: { userId, storyId } },
+      select: {
+        progress: true,
+        lastRead: true,
+        chapter: { select: { id: true, slug: true, title: true, order: true, isPublished: true } },
+      },
+    });
+    if (!history?.chapter || !history.chapter.isPublished) return null;
+    const { isPublished, ...chapter } = history.chapter;
+    return { progress: history.progress, lastRead: history.lastRead, chapter };
+  }
+
   async getChapterProgress(userId: string, chapterId: string) {
     // First get the chapter to find its storyId
     const chapter = await this.prisma.chapter.findUnique({

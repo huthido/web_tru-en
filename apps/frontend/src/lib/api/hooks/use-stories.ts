@@ -91,13 +91,18 @@ export const useSimilarStories = (storyId: string, limit: number = 10) => {
     });
 };
 
-export const useRecommendedStoriesForUser = (limit: number = 10) => {
+/** Gợi ý theo lịch sử đọc của user (endpoint yêu cầu đăng nhập). */
+export const useRecommendedStoriesForUser = (limit: number = 10, enabled: boolean = true) => {
     return useQuery<Story[]>({
         queryKey: ['stories', 'recommended', 'user', limit],
         queryFn: async () => {
             const response = await apiClient.get(`/stories/recommended?limit=${limit}`);
-            return response.data.data || [];
+            // client.ts đã bóc envelope → response.data là mảng; giữ nhánh cũ phòng hờ.
+            const payload: any = response.data;
+            if (Array.isArray(payload)) return payload;
+            return Array.isArray(payload?.data) ? payload.data : [];
         },
+        enabled,
         staleTime: 5 * 60 * 1000,
     });
 };

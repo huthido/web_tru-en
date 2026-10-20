@@ -99,7 +99,7 @@ export class NotificationsService implements OnModuleInit {
                             title: `Chương mới: ${chapter.title}`,
                             content: `"${chapter.story.title}" vừa cập nhật chương mới.`,
                             type: NotificationType.STORY_NEW_CHAPTER,
-                            actionUrl: `/story/${chapter.story.slug}/chapter/${chapter.slug}`,
+                            actionUrl: `/truyen/${chapter.story.slug}/chuong/${chapter.slug}`,
                         }),
                     ),
                 );

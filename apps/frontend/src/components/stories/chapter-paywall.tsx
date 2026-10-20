@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Lock, Coins, AlertCircle, Loader2 } from 'lucide-react';
+import { Lock, Coins, AlertCircle, Loader2, PlusCircle } from 'lucide-react';
+import { saveTopupReturn } from '@/utils/topup-return';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useWalletBalance } from '@/lib/api/hooks/use-wallet';
 import { useBuyChapter } from '@/lib/api/hooks/use-chapters';
@@ -44,7 +45,8 @@ export function ChapterPaywall({
     // (see WalletService.debitForContent). The UI gate is the combined total.
     const balance = (wallet?.purchasedBalance ?? 0) + (wallet?.earnedBalance ?? 0);
     const insufficient = isAuthenticated && balance < price;
-    const loginHref = `/dang-nhap?redirect=${encodeURIComponent(`/truyen/${storySlug}/chuong/${chapterSlug}`)}`;
+    const chapterPath = `/truyen/${storySlug}/chuong/${chapterSlug}`;
+    const loginHref = `/dang-nhap?redirect=${encodeURIComponent(chapterPath)}`;
 
     const unlockLabel = isStory ? 'Mở khóa cả truyện' : 'Mở khóa chương';
     const heading = isStory ? 'Truyện VIP — cần mở khóa' : 'Chương này cần mở khóa';
@@ -142,9 +144,24 @@ export function ChapterPaywall({
                             </div>
                         )}
 
+                        {insufficient ? (
+                            <div>
+                                <Link
+                                    href="/cua-hang"
+                                    onClick={() => saveTopupReturn(chapterPath)}
+                                    className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    <PlusCircle size={18} />
+                                    Nạp xu để mở khóa
+                                </Link>
+                                <p className="mt-3 text-xs text-on-surface-variant">
+                                    Nạp xong bạn có thể quay lại đúng chương này để đọc tiếp.
+                                </p>
+                            </div>
+                        ) : (
                         <button
                             onClick={handleUnlock}
-                            disabled={insufficient || pending}
+                            disabled={pending}
                             className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {pending ? (
@@ -159,6 +176,7 @@ export function ChapterPaywall({
                                 </>
                             )}
                         </button>
+                        )}
                     </div>
                 )}
             </div>

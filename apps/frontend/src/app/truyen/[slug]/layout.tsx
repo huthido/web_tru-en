@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const storyUrl = absoluteUrl(`/truyen/${story.slug}`);
-  const coverImage = story.coverImage || absoluteUrl('/default-cover.jpg');
+  const coverImage = story.coverImage || absoluteUrl('/icon-512.png');
   const authorName = story.authorName || story.author?.displayName || 'Tác giả';
   const description = story.description
     ? truncate(story.description, 160)

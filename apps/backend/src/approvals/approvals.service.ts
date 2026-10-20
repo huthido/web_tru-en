@@ -614,8 +614,8 @@ export class ApprovalsService {
     /**
      * Bell + push cho author khi yêu cầu được duyệt/từ chối.
      *
-     * - APPROVED story → click vào `/story/<slug>` (trang công khai).
-     * - REJECTED story → click vào `/tac-gia/truyen/<slug>` (trang sửa).
+     * - APPROVED story → click vào `/truyen/<slug>` (trang công khai).
+     * - REJECTED story → click vào `/tac-gia/truyen/<id>/sua` (trang sửa).
      * - APPROVED/REJECTED chapter → trỏ thẳng chapter reader hoặc edit page.
      *
      * Tách helper để giữ `review()` đọc dễ; gọi best-effort ngoài transaction.
@@ -641,12 +641,12 @@ export class ApprovalsService {
             if (isApproved) {
                 title = 'Truyện đã được duyệt ✅';
                 content = `"${story.title}" của bạn đã được duyệt và xuất bản.`;
-                actionUrl = `/story/${story.slug}`;
+                actionUrl = `/truyen/${story.slug}`;
                 type = NotificationType.STORY_APPROVED;
             } else {
                 title = 'Truyện bị từ chối';
                 content = `"${story.title}" bị từ chối${reviewDto.adminNote ? `: ${reviewDto.adminNote}` : '.'}`;
-                actionUrl = `/tac-gia/truyen/${story.slug}`;
+                actionUrl = `/tac-gia/truyen/${story.id}/sua`;
                 type = NotificationType.STORY_REJECTED;
             }
         } else if (chapter) {
@@ -655,12 +655,12 @@ export class ApprovalsService {
             if (isApproved) {
                 title = 'Chương đã được duyệt ✅';
                 content = `Chương "${chapter.title}" của "${storyTitle}" đã được duyệt.`;
-                actionUrl = storySlug ? `/story/${storySlug}/chapter/${chapter.slug}` : undefined;
+                actionUrl = storySlug ? `/truyen/${storySlug}/chuong/${chapter.slug}` : undefined;
                 type = NotificationType.STORY_APPROVED;
             } else {
                 title = 'Chương bị từ chối';
                 content = `Chương "${chapter.title}" bị từ chối${reviewDto.adminNote ? `: ${reviewDto.adminNote}` : '.'}`;
-                actionUrl = storySlug ? `/tac-gia/truyen/${storySlug}` : undefined;
+                actionUrl = chapter.storyId ? `/tac-gia/truyen/${chapter.storyId}/chuong/${chapter.id}/sua` : undefined;
                 type = NotificationType.STORY_REJECTED;
             }
         } else {
