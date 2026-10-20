@@ -8,7 +8,7 @@ interface CategoryOption {
 }
 
 /** Số thể loại tối đa mỗi truyện — khớp ArrayMaxSize ở backend DTO. */
-export const MAX_STORY_CATEGORIES = 5;
+export const MAX_STORY_CATEGORIES = 10;
 
 interface CategoryPickerProps {
     categories: CategoryOption[];

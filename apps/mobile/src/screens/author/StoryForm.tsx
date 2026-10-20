@@ -18,8 +18,8 @@ import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
 import { useAppTheme } from '@/contexts/theme-context';
 import { CategoriesApi } from '@/lib/api/categories.service';
 
-/** Khớp ArrayMaxSize(5) ở backend DTO. */
-const MAX_STORY_CATEGORIES = 5;
+/** Khớp ArrayMaxSize(10) ở backend DTO. */
+const MAX_STORY_CATEGORIES = 10;
 import { StoriesApi, type CreateStoryInput } from '@/lib/api/stories.service';
 import { MonetizationService } from '@/lib/api/monetization.service';
 import type { StoryAccessType } from '@/lib/api/types';

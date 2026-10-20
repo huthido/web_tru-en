@@ -28,7 +28,7 @@ export class CreateStoryDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayMaxSize(5, { message: 'Mỗi truyện chỉ được chọn tối đa 5 thể loại' })
+  @ArrayMaxSize(10, { message: 'Mỗi truyện chỉ được chọn tối đa 10 thể loại' })
   @IsString({ each: true })
   categoryIds?: string[];
 
