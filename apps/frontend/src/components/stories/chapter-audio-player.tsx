@@ -31,6 +31,112 @@ interface ChapterAudioPlayerProps {
     /** Admin bật cho phép tải xuống audio (Settings.chapterAudioDownloadEnabled).
      *  false = ẩn nút download của player (chặn mềm). */
     allowDownload?: boolean;
+    /** Tự phát ngay khi mount (vào chương do "tự chuyển chương" khi nghe). */
+    autoPlay?: boolean;
+    /** Có chương sau không — bật tuỳ chọn tự chuyển chương. */
+    hasNext?: boolean;
+    /** Gọi khi nghe hết chương (và người dùng bật tự chuyển) hoặc bấm "bài sau"
+     *  trên màn hình khoá/tai nghe. */
+    onRequestNext?: () => void;
+    /** Bấm "bài trước" trên màn hình khoá/tai nghe. */
+    onRequestPrev?: () => void;
+    /** Thông tin hiện trên màn hình khoá (Media Session). */
+    mediaMeta?: { title: string; artist?: string; artwork?: string | null };
+}
+
+// --- Tiện ích nghe: tốc độ file audio, hẹn giờ tắt, tự chuyển chương ---
+const FILE_RATES = [0.75, 1, 1.25, 1.5, 1.75, 2];
+const RATE_KEY = 'yeu-audio-rate';
+const AUTONEXT_KEY = 'yeu-audio-autonext';
+/** sessionStorage: hẹn giờ phải sống qua các lần tự chuyển chương. */
+const SLEEP_KEY = 'yeu-audio-sleep';
+const SLEEP_OPTIONS = [15, 30, 45, 60];
+
+type SleepState = { kind: 'time'; until: number } | { kind: 'end' } | null;
+
+function readSleep(): SleepState {
+    try {
+        const raw = sessionStorage.getItem(SLEEP_KEY);
+        if (!raw) return null;
+        const s = JSON.parse(raw);
+        if (s?.kind === 'time' && Number(s.until) > Date.now()) return { kind: 'time', until: Number(s.until) };
+        if (s?.kind === 'end') return { kind: 'end' };
+    } catch { /* bị chặn storage */ }
+    return null;
+}
+
+function writeSleep(s: SleepState) {
+    try {
+        if (s) sessionStorage.setItem(SLEEP_KEY, JSON.stringify(s));
+        else sessionStorage.removeItem(SLEEP_KEY);
+    } catch { /* bị chặn storage */ }
+}
+
+interface ListenExtrasProps {
+    showRate: boolean;
+    rate: number;
+    onRate: (r: number) => void;
+    sleep: SleepState;
+    onSleep: (s: SleepState) => void;
+    showAutoNext: boolean;
+    autoNext: boolean;
+    onAutoNext: (v: boolean) => void;
+}
+
+/** Hàng tuỳ chọn dưới trình phát: tốc độ · hẹn giờ · tự chuyển chương. */
+function ListenExtras({ showRate, rate, onRate, sleep, onSleep, showAutoNext, autoNext, onAutoNext }: ListenExtrasProps) {
+    // Đếm ngược hiển thị (cập nhật mỗi 15s là đủ, đơn vị phút).
+    const [now, setNow] = useState(() => Date.now());
+    useEffect(() => {
+        if (sleep?.kind !== 'time') return;
+        const t = setInterval(() => setNow(Date.now()), 15000);
+        return () => clearInterval(t);
+    }, [sleep]);
+
+    const sleepValue = !sleep ? '' : sleep.kind === 'end' ? 'end' : 'time';
+    const minutesLeft = sleep?.kind === 'time' ? Math.max(1, Math.ceil((sleep.until - now) / 60000)) : 0;
+    const selectCls = 'px-2 py-1.5 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface';
+
+    return (
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+            {showRate && (
+                <select value={rate} onChange={(e) => onRate(Number(e.target.value))} className={selectCls} aria-label="Tốc độ nghe">
+                    {FILE_RATES.map((r) => (
+                        <option key={r} value={r}>{r}x</option>
+                    ))}
+                </select>
+            )}
+            <select
+                value={sleepValue}
+                onChange={(e) => {
+                    const v = e.target.value;
+                    if (!v) onSleep(null);
+                    else if (v === 'end') onSleep({ kind: 'end' });
+                    else if (v !== 'time') onSleep({ kind: 'time', until: Date.now() + Number(v) * 60000 });
+                }}
+                className={selectCls}
+                aria-label="Hẹn giờ tắt"
+            >
+                <option value="">Hẹn giờ tắt</option>
+                {sleep?.kind === 'time' && <option value="time">Tắt sau {minutesLeft} phút</option>}
+                {SLEEP_OPTIONS.map((m) => (
+                    <option key={m} value={m}>{m} phút</option>
+                ))}
+                <option value="end">Hết chương này</option>
+            </select>
+            {showAutoNext && (
+                <label className="inline-flex items-center gap-2 cursor-pointer select-none text-on-surface-variant">
+                    <input
+                        type="checkbox"
+                        checked={autoNext}
+                        onChange={(e) => onAutoNext(e.target.checked)}
+                        className="w-4 h-4 accent-primary"
+                    />
+                    Tự nghe chương sau
+                </label>
+            )}
+        </div>
+    );
 }
 
 /**
@@ -150,6 +256,11 @@ function ChapterAudioPlayerInner(props, ref) {
         canRequestTts,
         canRegenerateTts,
         allowDownload,
+        autoPlay,
+        hasNext,
+        onRequestNext,
+        onRequestPrev,
+        mediaMeta,
     } = props;
     // Chặn mềm tải xuống khi admin chưa bật (ẩn nút download + menu chuột phải).
     const audioGuardProps = allowDownload
@@ -227,6 +338,73 @@ function ChapterAudioPlayerInner(props, ref) {
     rateRef.current = rate;
     const voiceURIRef = useRef('');
     voiceURIRef.current = voiceURI;
+
+    // --- Tốc độ file audio, hẹn giờ, tự chuyển chương ---
+    const [fileRate, setFileRate] = useState(1);
+    const [autoNext, setAutoNext] = useState(true);
+    const [sleep, setSleepState] = useState<SleepState>(null);
+    const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+
+    useEffect(() => {
+        try {
+            const r = Number(localStorage.getItem(RATE_KEY));
+            if (FILE_RATES.indexOf(r) !== -1) setFileRate(r);
+            if (localStorage.getItem(AUTONEXT_KEY) === '0') setAutoNext(false);
+        } catch { /* private mode */ }
+        setSleepState(readSleep());
+    }, []);
+
+    const getFileAudio = useCallback(
+        () => aiAudioRef.current || authorAudioRef.current,
+        []
+    );
+
+    const changeFileRate = useCallback((r: number) => {
+        setFileRate(r);
+        try { localStorage.setItem(RATE_KEY, String(r)); } catch { /* private mode */ }
+    }, []);
+
+    const changeAutoNext = useCallback((v: boolean) => {
+        setAutoNext(v);
+        try { localStorage.setItem(AUTONEXT_KEY, v ? '1' : '0'); } catch { /* private mode */ }
+    }, []);
+
+    const setSleep = useCallback((s: SleepState) => {
+        setSleepState(s);
+        writeSleep(s);
+    }, []);
+
+    // Trình duyệt reset playbackRate khi nạp nguồn mới → áp lại mỗi lần.
+    const applyFileRate = useCallback(() => {
+        const el = getFileAudio();
+        if (el) el.playbackRate = fileRate;
+    }, [getFileAudio, fileRate]);
+    useEffect(() => {
+        applyFileRate();
+    }, [applyFileRate, aiUrl, audioUrl]);
+
+    // Refs cho các callback gọi từ sự kiện (tránh closure cũ).
+    const autoNextRef = useRef(autoNext);
+    autoNextRef.current = autoNext;
+    const sleepRef = useRef<SleepState>(sleep);
+    sleepRef.current = sleep;
+    const hasNextRef = useRef(hasNext);
+    hasNextRef.current = hasNext;
+    const onRequestNextRef = useRef(onRequestNext);
+    onRequestNextRef.current = onRequestNext;
+    const onRequestPrevRef = useRef(onRequestPrev);
+    onRequestPrevRef.current = onRequestPrev;
+
+    /** Nghe hết chương: dừng nếu hẹn "hết chương", không thì tự sang chương sau. */
+    const handleNaturalEnd = useCallback(() => {
+        if (sleepRef.current?.kind === 'end') {
+            setSleep(null);
+            return;
+        }
+        if (autoNextRef.current && hasNextRef.current) onRequestNextRef.current?.();
+    }, [setSleep]);
+    const onNaturalEndRef = useRef(handleNaturalEnd);
+    onNaturalEndRef.current = handleNaturalEnd;
 
     useEffect(() => {
         const supported =
@@ -314,6 +492,7 @@ function ChapterAudioPlayerInner(props, ref) {
         const chunks = chunksRef.current;
         if (index >= chunks.length) {
             stopTts();
+            onNaturalEndRef.current();
             return;
         }
         chunkIndexRef.current = index;
@@ -499,6 +678,104 @@ function ChapterAudioPlayerInner(props, ref) {
         }
     }, [chapterId]);
 
+    // Hẹn giờ theo phút: tới giờ thì tạm dừng mọi nguồn đang phát.
+    useEffect(() => {
+        if (sleep?.kind !== 'time') return;
+        const stopAll = () => {
+            getFileAudio()?.pause();
+            if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.speaking) {
+                window.speechSynthesis.pause();
+                setTtsState('paused');
+            }
+            setSleep(null);
+        };
+        const ms = sleep.until - Date.now();
+        if (ms <= 0) {
+            stopAll();
+            return;
+        }
+        const t = setTimeout(stopAll, ms);
+        return () => clearTimeout(t);
+    }, [sleep, getFileAudio, setSleep]);
+
+    // Tự phát khi vào chương bằng "tự nghe chương sau". Trình duyệt chặn
+    // (thường là iOS) thì hiện nhắc bấm ▶.
+    const autoPlayDoneRef = useRef(false);
+    useEffect(() => {
+        if (!autoPlay || autoPlayDoneRef.current) return;
+        const el = getFileAudio();
+        if (el) {
+            autoPlayDoneRef.current = true;
+            el.playbackRate = fileRate;
+            const p = el.play();
+            if (p && typeof p.catch === 'function') p.catch(() => setAutoplayBlocked(true));
+            return;
+        }
+        // Không có file audio: đọc bằng giọng thiết bị (nếu không đang chờ AI).
+        if (!audioUrl && !aiUrl && ttsSupported) {
+            autoPlayDoneRef.current = true;
+            startTts();
+        }
+    }, [autoPlay, getFileAudio, audioUrl, aiUrl, ttsSupported, fileRate, startTts]);
+
+    // Media Session: tên chương + nút bài trước/sau trên màn hình khoá, tai nghe.
+    const metaTitle = mediaMeta?.title;
+    const metaArtist = mediaMeta?.artist;
+    const metaArtwork = mediaMeta?.artwork;
+    useEffect(() => {
+        if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
+        const ms = navigator.mediaSession;
+        try {
+            if (metaTitle && typeof MediaMetadata !== 'undefined') {
+                ms.metadata = new MediaMetadata({
+                    title: metaTitle,
+                    artist: metaArtist || '',
+                    album: 'YÊU',
+                    artwork: metaArtwork ? [{ src: metaArtwork, sizes: '512x512' }] : [],
+                });
+            }
+        } catch { /* trình duyệt cũ */ }
+        const set = (action: MediaSessionAction, handler: MediaSessionActionHandler | null) => {
+            try { ms.setActionHandler(action, handler); } catch { /* action không hỗ trợ */ }
+        };
+        set('nexttrack', hasNext ? () => onRequestNextRef.current?.() : null);
+        set('previoustrack', onRequestPrev ? () => onRequestPrevRef.current?.() : null);
+        set('seekbackward', (d) => {
+            const el = getFileAudio();
+            if (el) el.currentTime = Math.max(0, el.currentTime - (d.seekOffset || 15));
+        });
+        set('seekforward', (d) => {
+            const el = getFileAudio();
+            if (el) el.currentTime = Math.min(el.duration || Infinity, el.currentTime + (d.seekOffset || 15));
+        });
+        return () => {
+            set('nexttrack', null);
+            set('previoustrack', null);
+            set('seekbackward', null);
+            set('seekforward', null);
+        };
+    }, [metaTitle, metaArtist, metaArtwork, hasNext, onRequestPrev, getFileAudio]);
+
+    const extras = (fileMode: boolean) => (
+        <ListenExtras
+            showRate={fileMode}
+            rate={fileRate}
+            onRate={changeFileRate}
+            sleep={sleep}
+            onSleep={setSleep}
+            showAutoNext={!!hasNext && !!onRequestNext}
+            autoNext={autoNext}
+            onAutoNext={changeAutoNext}
+        />
+    );
+    const blockedHint = autoplayBlocked ? (
+        <p className="mt-2 text-xs text-primary">Bấm ▶ để nghe tiếp chương này.</p>
+    ) : null;
+    const fileAudioEvents = {
+        onLoadedMetadata: applyFileRate,
+        onEnded: handleNaturalEnd,
+    };
+
     // --- Trường hợp 1: có file audio của tác giả ---
     if (audioUrl) {
         return (
@@ -508,9 +785,11 @@ function ChapterAudioPlayerInner(props, ref) {
                     <span>Nghe chương này</span>
                     <span className="text-xs font-normal text-on-surface-variant">(audio do tác giả tải lên)</span>
                 </div>
-                <audio ref={authorAudioRef} controls preload="metadata" src={audioUrl} className="w-full" onPlay={() => trackListen('author')} {...audioGuardProps}>
+                <audio ref={authorAudioRef} controls preload="metadata" src={audioUrl} className="w-full" onPlay={() => { setAutoplayBlocked(false); trackListen('author'); }} {...fileAudioEvents} {...audioGuardProps}>
                     Trình duyệt không hỗ trợ phát audio.
                 </audio>
+                {blockedHint}
+                {extras(true)}
             </div>
         );
     }
@@ -541,9 +820,11 @@ function ChapterAudioPlayerInner(props, ref) {
                         </button>
                     )}
                 </div>
-                <audio ref={aiAudioRef} controls preload="metadata" src={aiUrl} className="w-full" onPlay={() => trackListen('ai')} {...audioGuardProps}>
+                <audio ref={aiAudioRef} controls preload="metadata" src={aiUrl} className="w-full" onPlay={() => { setAutoplayBlocked(false); trackListen('ai'); }} {...fileAudioEvents} {...audioGuardProps}>
                     Trình duyệt không hỗ trợ phát audio.
                 </audio>
+                {blockedHint}
+                {extras(true)}
                 {aiError && <p className="mt-2 text-xs text-error">{aiError}</p>}
             </div>
         );
@@ -631,6 +912,8 @@ function ChapterAudioPlayerInner(props, ref) {
                 </div>
                 )}
             </div>
+
+            {ttsSupported && extras(false)}
 
             {ttsState !== 'idle' && (
                 <div className="mt-3 h-1.5 bg-surface-container-high rounded-full overflow-hidden">

@@ -28,11 +28,16 @@ import {
 import { useSaveProgress, useChapterProgress } from '@/lib/api/hooks/use-reading-history';
 import { ChapterPaywall } from '@/components/stories/chapter-paywall';
 import { LazyChapterComments } from '@/components/comments/lazy-chapter-comments';
+import { PopupAdOverlay } from '@/components/ads/popup-ad-overlay';
+import { BottomSheet } from '@/components/ui/bottom-sheet';
+import { ReaderSettingsPanel } from '@/components/reader/reader-settings-panel';
+import { ReadingProgressBar } from '@/components/reader/reading-progress-bar';
+import { useReaderSettings, READER_FONTS, READER_WIDTHS, READER_THEMES } from '@/hooks/use-reader-settings';
 import { ChapterAudioPlayer, countryToTtsLang, type ChapterAudioPlayerHandle } from '@/components/stories/chapter-audio-player';
 import { stripTtsEmotionTags } from '@/utils/tts-emotion';
 import { useSettings } from '@/lib/api/hooks/use-settings';
 import { useAudioScrollSync } from '@/hooks/use-audio-scroll-sync';
-import { BookOpen, Search, Menu, Type, ChevronLeft, ChevronRight, X, Lock, ArrowDown } from 'lucide-react';
+import { BookOpen, Search, Menu, Type, ChevronLeft, ChevronRight, X, Lock, ArrowDown, List } from 'lucide-react';
 
 export default function ChapterReadingPage() {
     const params = useParams();
@@ -92,7 +97,14 @@ export default function ChapterReadingPage() {
         if (status) setChapterErrorStatus(status);
     }, [chapterError]);
 
-    const [fontSize, setFontSize] = useState(16);
+    // Cài đặt khung đọc (cỡ chữ, font, giãn dòng, độ rộng, nền) — lưu localStorage.
+    const { settings: readerSettings, update: updateReaderSettings, reset: resetReaderSettings } = useReaderSettings();
+    const [showReaderSettings, setShowReaderSettings] = useState(false);
+    const [showMobileChapterList, setShowMobileChapterList] = useState(false);
+    // Quảng cáo popup hiện thành lớp phủ (không còn chuyển trang).
+    const [activePopupAd, setActivePopupAd] = useState<any>(null);
+    // Vào chương bằng "tự nghe chương sau" (?nghe=1) → tự phát audio.
+    const [autoPlayAudio, setAutoPlayAudio] = useState(false);
     // Mặc định danh sách chương luôn được bật (hiển thị) khi vào trang
     const [showChapterList, setShowChapterList] = useState(true);
     const [chapterSearchTerm, setChapterSearchTerm] = useState('');
@@ -287,10 +299,9 @@ export default function ChapterReadingPage() {
                     const selectedAd = validAds[adIndex] || validAds[0];
 
                     if (selectedAd && selectedAd.imageUrl) {
-                        const returnUrl = `/truyen/${storySlug}/chuong/${chapterSlug}`;
-                        const adUrl = `/xem-quang-cao/${selectedAd.id}?return=${encodeURIComponent(returnUrl)}&story=${storySlug}&chapter=${chapterSlug}`;
-                        router.push(adUrl);
-                        return; // Đang chuyển sang trang quảng cáo
+                        // Hiện lớp phủ ngay trên trang đọc (trước đây chuyển
+                        // sang /xem-quang-cao rồi quay lại → mất chỗ đang đọc).
+                        setActivePopupAd(selectedAd);
                     }
                 }
             }
@@ -320,6 +331,51 @@ export default function ChapterReadingPage() {
             }
         };
     }, [chapterData, storySlug, chapterSlug, popupAds, router]);
+
+    // ?nghe=1 (do tự chuyển chương khi đang nghe) → bật tự phát, rồi bỏ
+    // param khỏi URL để tải lại trang không tự phát nữa. Đọc từ
+    // window.location thay vì useSearchParams để không phá ISR của trang.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const search = window.location.search;
+        if (search.indexOf('nghe=1') === -1) {
+            setAutoPlayAudio(false);
+            return;
+        }
+        setAutoPlayAudio(true);
+        try {
+            window.history.replaceState(window.history.state, '', window.location.pathname + window.location.hash);
+        } catch { /* bỏ qua */ }
+    }, [chapterSlug]);
+
+    // Phím ← / → chuyển chương (desktop). Bỏ qua khi đang gõ chữ hoặc có
+    // phím bổ trợ (giữ phím tắt của trình duyệt).
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+            const target = e.target as HTMLElement | null;
+            const tag = target?.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+            if (e.key === 'ArrowLeft' && prevChapter?.slug) {
+                router.push(`/truyen/${storySlug}/chuong/${prevChapter.slug}`);
+            } else if (e.key === 'ArrowRight' && nextChapter?.slug) {
+                router.push(`/truyen/${storySlug}/chuong/${nextChapter.slug}`);
+            }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [prevChapter, nextChapter, storySlug, router]);
+
+    // Mở drawer chương (mobile) → cuộn tới chương đang đọc
+    useEffect(() => {
+        if (!showMobileChapterList) return;
+        const t = setTimeout(() => {
+            const list = document.getElementById('mobile-chapter-list');
+            const active = list?.querySelector('[data-active="true"]') as HTMLElement | null;
+            if (list && active) list.scrollTop = active.offsetTop - list.clientHeight / 2;
+        }, 50);
+        return () => clearTimeout(t);
+    }, [showMobileChapterList]);
 
     // Reset completion tracking when chapter changes
     useEffect(() => {
@@ -617,6 +673,72 @@ export default function ChapterReadingPage() {
         router.push(backUrl);
     };
 
+    const normalizeSlugForCompare = (slug: string) => {
+        try {
+            return decodeURIComponent(slug).toLowerCase().trim();
+        } catch {
+            return slug.toLowerCase().trim();
+        }
+    };
+    const activeChapterSlug = chapterSlug ? normalizeSlugForCompare(chapterSlug) : '';
+
+    /** Danh sách link chương — dùng cho sidebar desktop và drawer mobile. */
+    const renderChapterLinks = (onNavigate?: () => void) =>
+        filteredChapters.length > 0 ? (
+            filteredChapters.map((ch: any, index: number) => {
+                const isActive = !!ch.slug && normalizeSlugForCompare(ch.slug) === activeChapterSlug;
+                return (
+                    <Link
+                        key={ch.id}
+                        href={`/truyen/${storySlug}/chuong/${ch.slug}`}
+                        onClick={onNavigate}
+                        data-active={isActive ? 'true' : undefined}
+                        className={`block px-3 py-2 rounded text-sm transition-colors ${isActive
+                            ? 'bg-primary text-on-primary font-semibold shadow-sm'
+                            : 'text-on-surface-variant hover:bg-surface-container-high'
+                            }`}
+                    >
+                        <span className="flex items-center justify-between gap-2">
+                            <span className="truncate">{ch.title || `Chương ${ch.order || (index + 1)}`}</span>
+                            {!hidePaidLabels && ch.price > 0 && (
+                                <span className={`flex-shrink-0 inline-flex items-center gap-0.5 text-[11px] ${isActive ? 'text-amber-100' : 'text-amber-600 dark:text-amber-400'}`} title={`${ch.price} coin`}>
+                                    <Lock size={11} />
+                                    {ch.price}
+                                </span>
+                            )}
+                        </span>
+                    </Link>
+                );
+            })
+        ) : (
+            <div className="px-3 py-4 text-center text-sm text-on-surface-variant">
+                Không tìm thấy chương nào
+            </div>
+        );
+
+    const chapterSearchInput = (
+        <div className="relative mb-3">
+            <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant"
+                size={16}
+            />
+            <input
+                type="text"
+                placeholder="Tìm kiếm chương..."
+                value={chapterSearchTerm}
+                onChange={(e) => setChapterSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-3 py-2 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary focus:border-primary"
+            />
+        </div>
+    );
+
+    // Áp cài đặt đọc
+    const readerFontCss = (READER_FONTS.find((f) => f.value === readerSettings.font) || READER_FONTS[0]).css;
+    const readerMaxWidth = (READER_WIDTHS.find((w) => w.value === readerSettings.width) || READER_WIDTHS[1]).maxWidth;
+    const readerTheme = READER_THEMES.find((t) => t.value === readerSettings.theme) || READER_THEMES[0];
+    const storyTitleText: string = (story as any)?.data?.title || (story as any)?.title || '';
+    const storyCover: string | null = (story as any)?.data?.coverImage || (story as any)?.coverImage || null;
+
     // Early returns AFTER all hooks
     if (chapterLoading) {
         return (
@@ -667,6 +789,7 @@ export default function ChapterReadingPage() {
 
     return (
         <div className="min-h-screen bg-surface transition-colors duration-300">
+            <ReadingProgressBar targetRef={contentRef} />
             <Sidebar />
             <div className="md:ml-60 pb-16 md:pb-0">
                 <Header />
@@ -733,63 +856,10 @@ export default function ChapterReadingPage() {
                                                 Danh sách chương
                                             </h3>
 
-                                            {/* Search Input */}
-                                            <div className="relative mb-3">
-                                                <Search
-                                                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant"
-                                                    size={16}
-                                                />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Tìm kiếm chương..."
-                                                    value={chapterSearchTerm}
-                                                    onChange={(e) => setChapterSearchTerm(e.target.value)}
-                                                    className="w-full pl-10 pr-3 py-2 text-sm border border-outline-variant rounded-lg bg-surface-container text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary focus:border-primary"
-                                                />
-                                            </div>
+                                            {chapterSearchInput}
 
                                             <div className="space-y-1">
-                                                {filteredChapters.length > 0 ? (
-                                                    filteredChapters.map((ch: any, index: number) => {
-                                                        // Normalize slugs for comparison (handle URL encoding)
-                                                        const normalizeSlug = (slug: string) => {
-                                                            try {
-                                                                return decodeURIComponent(slug).toLowerCase().trim();
-                                                            } catch {
-                                                                return slug.toLowerCase().trim();
-                                                            }
-                                                        };
-
-                                                        const normalizedChapterSlug = normalizeSlug(chapterSlug);
-                                                        const normalizedChSlug = ch.slug ? normalizeSlug(ch.slug) : '';
-                                                        const isActive = normalizedChSlug === normalizedChapterSlug;
-
-                                                        return (
-                                                            <Link
-                                                                key={ch.id}
-                                                                href={`/truyen/${storySlug}/chuong/${ch.slug}`}
-                                                                className={`block px-3 py-2 rounded text-sm transition-colors ${isActive
-                                                                    ? 'bg-primary text-on-primary font-semibold shadow-sm'
-                                                                    : 'text-on-surface-variant hover:bg-surface-container-high'
-                                                                    }`}
-                                                            >
-                                                                <span className="flex items-center justify-between gap-2">
-                                                                    <span className="truncate">{ch.title || `Chương ${ch.order || (index + 1)}`}</span>
-                                                                    {!hidePaidLabels && ch.price > 0 && (
-                                                                        <span className={`flex-shrink-0 inline-flex items-center gap-0.5 text-[11px] ${isActive ? 'text-amber-100' : 'text-amber-600 dark:text-amber-400'}`} title={`${ch.price} coin`}>
-                                                                            <Lock size={11} />
-                                                                            {ch.price}
-                                                                        </span>
-                                                                    )}
-                                                                </span>
-                                                            </Link>
-                                                        );
-                                                    })
-                                                ) : (
-                                                    <div className="px-3 py-4 text-center text-sm text-on-surface-variant">
-                                                        Không tìm thấy chương nào
-                                                    </div>
-                                                )}
+                                                {renderChapterLinks()}
                                             </div>
 
                                             {/* Show count if searching */}
@@ -802,8 +872,8 @@ export default function ChapterReadingPage() {
                                     </aside>
                                 )}
 
-                                {/* Chapter Content - Full Width */}
-                                <div className="flex-1 min-w-0">
+                                {/* Chapter Content — độ rộng theo cài đặt đọc */}
+                                <div className="flex-1 min-w-0 mx-auto" style={{ maxWidth: readerMaxWidth }}>
                                     {/* Nghe chương: file audio tác giả tải lên, hoặc TTS đọc nội dung.
                                         Chương khoá thì ẩn (audioUrl đã bị server ẩn, content chỉ là teaser). */}
                                     {!chapterData.isLocked && (
@@ -826,14 +896,28 @@ export default function ChapterReadingPage() {
                                             allowDownload={
                                                 (siteSettings as any)?.chapterAudioDownloadEnabled === true
                                             }
+                                            autoPlay={autoPlayAudio}
+                                            hasNext={!!nextChapter}
+                                            onRequestNext={nextChapter?.slug
+                                                ? () => router.push(`/truyen/${storySlug}/chuong/${nextChapter.slug}?nghe=1`)
+                                                : undefined}
+                                            onRequestPrev={prevChapter?.slug
+                                                ? () => router.push(`/truyen/${storySlug}/chuong/${prevChapter.slug}?nghe=1`)
+                                                : undefined}
+                                            mediaMeta={{
+                                                title: chapterData.title,
+                                                artist: storyTitleText,
+                                                artwork: storyCover,
+                                            }}
                                         />
                                     )}
                                     <div
                                         ref={contentRef}
                                         data-chapter-content={copyProtected ? 'true' : undefined}
-                                        className={`bg-surface-container rounded-lg p-6 md:p-8 lg:p-12 shadow-sm`}
+                                        className={`rounded-lg p-6 md:p-8 lg:p-12 shadow-sm transition-colors ${readerTheme.bg ? '' : 'bg-surface-container'}`}
                                         style={{
-                                            fontSize: `${fontSize}px`,
+                                            fontSize: `${readerSettings.fontSize}px`,
+                                            ...(readerTheme.bg ? { backgroundColor: readerTheme.bg, color: readerTheme.fg } : {}),
                                             // Chống chọn text: áp dụng cả CSS lẫn inline để đúng trên mọi trình duyệt.
                                             ...(copyProtected ? {
                                                 userSelect: 'none' as const,
@@ -845,9 +929,10 @@ export default function ChapterReadingPage() {
                                         {...copyGuardProps}
                                     >
                                         <div
-                                            className="text-on-surface whitespace-pre-wrap leading-relaxed"
+                                            className={`whitespace-pre-wrap ${readerTheme.bg ? '' : 'text-on-surface'}`}
                                             style={{
-                                                fontFamily: 'var(--font-quicksand), Quicksand, sans-serif',
+                                                fontFamily: readerFontCss,
+                                                lineHeight: readerSettings.lineHeight,
                                                 maxWidth: '100%',
                                                 // Kế thừa chống chọn từ div cha
                                                 ...(copyProtected ? {
@@ -982,12 +1067,54 @@ export default function ChapterReadingPage() {
                 </main>
             </div >
 
-            {/* Floating Action Button with Menu */}
-            < div ref={floatingMenuRef} className="fixed bottom-6 right-6 z-50" >
+            {activePopupAd && (
+                <PopupAdOverlay ad={activePopupAd} onClose={() => setActivePopupAd(null)} />
+            )}
+
+            {/* Cài đặt đọc */}
+            <BottomSheet open={showReaderSettings} onClose={() => setShowReaderSettings(false)} title="Cài đặt đọc">
+                <div className="px-5 pb-5 overflow-y-auto">
+                    <ReaderSettingsPanel
+                        settings={readerSettings}
+                        onChange={updateReaderSettings}
+                        onReset={resetReaderSettings}
+                    />
+                </div>
+            </BottomSheet>
+
+            {/* Danh sách chương trên mobile */}
+            <BottomSheet open={showMobileChapterList} onClose={() => setShowMobileChapterList(false)} title={`Danh sách chương (${sortedChapters.length})`}>
+                <div className="px-4 pb-4 flex flex-col min-h-0">
+                    {chapterSearchInput}
+                    <div
+                        id="mobile-chapter-list"
+                        className="relative space-y-1 overflow-y-auto max-h-[60vh] chapter-list-scrollbar"
+                    >
+                        {renderChapterLinks(() => setShowMobileChapterList(false))}
+                    </div>
+                </div>
+            </BottomSheet>
+
+            {/* Floating Action Button with Menu — nâng lên trên bottom nav ở mobile */}
+            < div ref={floatingMenuRef} className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50" >
                 {/* Menu Options */}
                 {
                     showFloatingMenu && (
                         <div className="absolute bottom-16 right-0 mb-2 bg-surface-container rounded-lg shadow-xl border border-outline-variant p-2 min-w-[200px] animate-in fade-in slide-in-from-bottom-2 duration-200">
+                            {/* Danh sách chương — mobile mở drawer */}
+                            <div className="md:hidden mb-2 pb-2 border-b border-outline-variant">
+                                <button
+                                    onClick={() => {
+                                        setShowMobileChapterList(true);
+                                        setShowFloatingMenu(false);
+                                    }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors"
+                                >
+                                    <List size={18} />
+                                    <span>Danh sách chương</span>
+                                </button>
+                            </div>
+
                             {/* Chapter List Toggle - Desktop Only */}
                             <div className="hidden md:block mb-2 pb-2 border-b border-outline-variant">
                                 <button
@@ -1021,31 +1148,19 @@ export default function ChapterReadingPage() {
                                 </button>
                             </div>
 
-                            {/* Font Size Controls */}
+                            {/* Cài đặt đọc: cỡ chữ, font, giãn dòng, nền... */}
                             <div className="mb-2 pb-2 border-b border-outline-variant">
-                                <div className="flex items-center gap-2 px-3 py-2 text-sm text-on-surface-variant">
-                                    <Type size={16} />
-                                    <span className="font-medium">Kích cỡ chữ</span>
-                                </div>
-                                <div className="flex items-center justify-between gap-2 px-3 py-2">
-                                    <button
-                                        onClick={() => setFontSize(Math.max(12, fontSize - 2))}
-                                        className="w-8 h-8 flex items-center justify-center bg-surface-container-high hover:bg-surface-container-highest rounded text-on-surface-variant transition-colors"
-                                        aria-label="Giảm kích cỡ chữ"
-                                    >
-                                        -
-                                    </button>
-                                    <span className="text-sm text-on-surface-variant min-w-[50px] text-center font-medium">
-                                        {fontSize}px
-                                    </span>
-                                    <button
-                                        onClick={() => setFontSize(Math.min(24, fontSize + 2))}
-                                        className="w-8 h-8 flex items-center justify-center bg-surface-container-high hover:bg-surface-container-highest rounded text-on-surface-variant font-bold transition-colors"
-                                        aria-label="Tăng kích cỡ chữ"
-                                    >
-                                        +
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShowReaderSettings(true);
+                                        setShowFloatingMenu(false);
+                                    }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors"
+                                >
+                                    <Type size={18} />
+                                    <span>Cài đặt đọc</span>
+                                    <span className="ml-auto text-xs text-on-surface-variant">{readerSettings.fontSize}px</span>
+                                </button>
                             </div>
 
                             {/* Chapter Navigation */}
