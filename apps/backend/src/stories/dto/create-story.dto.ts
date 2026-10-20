@@ -4,6 +4,7 @@ import {
   MaxLength,
   IsOptional,
   IsArray,
+  ArrayMaxSize,
   IsEnum,
   IsInt,
   Min,
@@ -27,6 +28,7 @@ export class CreateStoryDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(5, { message: 'Mỗi truyện chỉ được chọn tối đa 5 thể loại' })
   @IsString({ each: true })
   categoryIds?: string[];
 

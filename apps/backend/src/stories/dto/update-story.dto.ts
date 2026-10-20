@@ -4,6 +4,7 @@ import {
   MaxLength,
   IsOptional,
   IsArray,
+  ArrayMaxSize,
   IsEnum,
   IsBoolean,
   IsInt,
@@ -29,6 +30,7 @@ export class UpdateStoryDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(5, { message: 'Mỗi truyện chỉ được chọn tối đa 5 thể loại' })
   @IsString({ each: true })
   categoryIds?: string[];
 

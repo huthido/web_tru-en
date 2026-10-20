@@ -17,6 +17,9 @@ import { useNavigation } from '@react-navigation/native';
 import { fontSize, radius, spacing, type ThemeColors } from '@/theme';
 import { useAppTheme } from '@/contexts/theme-context';
 import { CategoriesApi } from '@/lib/api/categories.service';
+
+/** Khớp ArrayMaxSize(5) ở backend DTO. */
+const MAX_STORY_CATEGORIES = 5;
 import { StoriesApi, type CreateStoryInput } from '@/lib/api/stories.service';
 import { MonetizationService } from '@/lib/api/monetization.service';
 import type { StoryAccessType } from '@/lib/api/types';
@@ -99,9 +102,11 @@ export function StoryForm({
     const monetizationLocked = !!eligibilityQ.data && !eligibilityQ.data.eligible;
 
     const toggleCategory = (id: string) => {
-        setCategoryIds((prev) =>
-            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-        );
+        setCategoryIds((prev) => {
+            if (prev.includes(id)) return prev.filter((x) => x !== id);
+            if (prev.length >= MAX_STORY_CATEGORIES) return prev;
+            return [...prev, id];
+        });
     };
 
     const pickCover = async () => {
@@ -145,6 +150,13 @@ export function StoryForm({
         const t = title.trim();
         if (t.length < 3) {
             Alert.alert('Thiếu thông tin', 'Tiêu đề phải có ít nhất 3 ký tự.');
+            return;
+        }
+        if (categoryIds.length > MAX_STORY_CATEGORIES) {
+            Alert.alert(
+                'Quá nhiều thể loại',
+                `Mỗi truyện chỉ được tối đa ${MAX_STORY_CATEGORIES} thể loại. Hãy bỏ bớt ${categoryIds.length - MAX_STORY_CATEGORIES} thể loại.`,
+            );
             return;
         }
         if (accessType === 'VIP') {
@@ -229,7 +241,9 @@ export function StoryForm({
             />
 
             {/* Categories */}
-            <Text style={styles.label}>Thể loại</Text>
+            <Text style={styles.label}>
+                Thể loại ({categoryIds.length}/{MAX_STORY_CATEGORIES})
+            </Text>
             <View style={styles.chipRow}>
                 {(categoriesQuery.data ?? []).map((c) => {
                     const selected = categoryIds.includes(c.id);

@@ -6,6 +6,7 @@ import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { useStory, useUpdateStory } from '@/lib/api/hooks/use-stories';
 import { useCategories } from '@/lib/api/hooks/use-categories';
+import { CategoryPicker, MAX_STORY_CATEGORIES } from '@/components/stories/category-picker';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { UserRole } from '@shared/types';
 import { Loading } from '@/components/ui/loading';
@@ -117,6 +118,13 @@ export default function EditStoryPage() {
 
         if (!formData.title.trim()) {
             setErrors({ title: 'Vui lòng nhập tiêu đề truyện' });
+            return;
+        }
+
+        if (formData.categoryIds.length > MAX_STORY_CATEGORIES) {
+            setErrors({
+                submit: `Truyện đang có ${formData.categoryIds.length} thể loại — mỗi truyện chỉ được tối đa ${MAX_STORY_CATEGORIES}. Hãy bỏ bớt ở mục Thể loại rồi lưu lại.`,
+            });
             return;
         }
 
@@ -297,40 +305,13 @@ export default function EditStoryPage() {
                                 {/* Categories */}
                                 <div>
                                     <label className="block text-sm font-medium text-on-surface-variant mb-2">
-                                        Thể loại
+                                        Thể loại <span className="text-xs text-on-surface-variant">Chọn tối đa {MAX_STORY_CATEGORIES} thể loại</span>
                                     </label>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                                        {categories.map((category) => (
-                                            <label
-                                                key={category.id}
-                                                className="flex items-center space-x-2 cursor-pointer"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.categoryIds.includes(category.id)}
-                                                    onChange={(e) => {
-                                                        if (e.target.checked) {
-                                                            setFormData({
-                                                                ...formData,
-                                                                categoryIds: [...formData.categoryIds, category.id],
-                                                            });
-                                                        } else {
-                                                            setFormData({
-                                                                ...formData,
-                                                                categoryIds: formData.categoryIds.filter(
-                                                                    (id) => id !== category.id
-                                                                ),
-                                                            });
-                                                        }
-                                                    }}
-                                                    className="rounded border-outline-variant text-primary focus:ring-primary"
-                                                />
-                                                <span className="text-sm text-on-surface-variant">
-                                                    {category.name}
-                                                </span>
-                                            </label>
-                                        ))}
-                                    </div>
+                                    <CategoryPicker
+                                        categories={categories}
+                                        selectedIds={formData.categoryIds}
+                                        onChange={(ids) => setFormData({ ...formData, categoryIds: ids })}
+                                    />
                                 </div>
 
                                 {/* Country */}

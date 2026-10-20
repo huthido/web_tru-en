@@ -26,6 +26,7 @@ import { StoryOwnerBar } from '@/components/author/story-owner-bar';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { ArrowLeft, BookOpen, HeartHandshake, Share2, Megaphone, Lock } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
+import { StoryGenres } from '@/components/stories/story-genres';
 import {
   BTN_FILLED,
   BTN_TONAL,
@@ -466,15 +467,18 @@ export default function BookDetailPage() {
                 </div>
                 <div>
                   <p className="text-sm text-on-surface-variant mb-1">Thể loại</p>
-                  <p className="text-base font-medium text-on-surface">
-                    {(story as any).storyCategories && (story as any).storyCategories.length > 0
-                      ? (story as any).storyCategories.map((sc: any) => sc.category?.name || sc.name).join(', ')
-                      : (story as any).storyTags && (story as any).storyTags.length > 0
-                        ? (story as any).storyTags.map((st: any) => st.tag?.name || st.name).join(', ')
-                        : story.tags && story.tags.length > 0
-                          ? story.tags.join(', ')
-                          : 'Chưa phân loại'}
-                  </p>
+                  <StoryGenres
+                    genres={
+                      (story as any).storyCategories && (story as any).storyCategories.length > 0
+                        ? (story as any).storyCategories.map((sc: any) => ({
+                          name: sc.category?.name || sc.name,
+                          slug: sc.category?.slug || sc.slug,
+                        }))
+                        : (story as any).storyTags && (story as any).storyTags.length > 0
+                          ? (story as any).storyTags.map((st: any) => ({ name: st.tag?.name || st.name }))
+                          : (story.tags || []).map((t: string) => ({ name: t }))
+                    }
+                  />
                 </div>
                 <div>
                   <p className="text-sm text-on-surface-variant mb-1">Quốc gia</p>

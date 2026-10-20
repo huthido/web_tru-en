@@ -6,6 +6,7 @@ import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { useCreateStory } from '@/lib/api/hooks/use-stories';
 import { useCategories } from '@/lib/api/hooks/use-categories';
+import { CategoryPicker, MAX_STORY_CATEGORIES } from '@/components/stories/category-picker';
 import { ProtectedRoute } from '@/components/layouts/protected-route';
 import { storiesService } from '@/lib/api/stories.service';
 import { compressImageToTarget, COMPRESS_TARGET, MAX_INPUT_BYTES, isImageFile } from '@/lib/utils/compress-image';
@@ -75,6 +76,11 @@ export default function CreateStoryPage() {
         // Validation
         if (!formData.title.trim()) {
             setErrors({ title: 'Tiêu đề là bắt buộc' });
+            return;
+        }
+
+        if (formData.categoryIds.length > MAX_STORY_CATEGORIES) {
+            setErrors({ submit: `Mỗi truyện chỉ được chọn tối đa ${MAX_STORY_CATEGORIES} thể loại.` });
             return;
         }
 
@@ -203,41 +209,13 @@ export default function CreateStoryPage() {
                                 {/* Categories (Tags = Categories) */}
                                 <div>
                                     <label className="block text-sm font-medium text-on-surface-variant mb-2">
-                                        Thể loại (Tags) <span className="text-xs text-on-surface-variant">Chọn từ danh sách thể loại có sẵn</span>
+                                        Thể loại <span className="text-xs text-on-surface-variant">Chọn tối đa {MAX_STORY_CATEGORIES} thể loại</span>
                                     </label>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                        {categories.map((category: any) => (
-                                            <label
-                                                key={category.id}
-                                                className="flex items-center gap-2 p-3 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-high transition-colors"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.categoryIds.includes(category.id)}
-                                                    onChange={(e) => {
-                                                        if (e.target.checked) {
-                                                            setFormData({
-                                                                ...formData,
-                                                                categoryIds: [...formData.categoryIds, category.id],
-                                                            });
-                                                        } else {
-                                                            setFormData({
-                                                                ...formData,
-                                                                categoryIds: formData.categoryIds.filter((id) => id !== category.id),
-                                                            });
-                                                        }
-                                                    }}
-                                                    className="w-4 h-4 text-primary rounded focus:ring-primary"
-                                                />
-                                                <span className="text-sm text-on-surface-variant">{category.name}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                    {categories.length === 0 && (
-                                        <p className="text-sm text-on-surface-variant mt-2">
-                                            Chưa có thể loại nào. Vui lòng liên hệ admin để thêm thể loại.
-                                        </p>
-                                    )}
+                                    <CategoryPicker
+                                        categories={categories}
+                                        selectedIds={formData.categoryIds}
+                                        onChange={(ids) => setFormData({ ...formData, categoryIds: ids })}
+                                    />
                                 </div>
 
                                 {/* Country */}

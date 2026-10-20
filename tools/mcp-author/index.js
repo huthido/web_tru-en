@@ -270,7 +270,7 @@ server.registerTool(
       title: z.string().min(1).max(200).describe('Tiêu đề truyện'),
       description: z.string().max(5000).optional().describe('Giới thiệu truyện'),
       tags: z.array(z.string()).optional().describe('Danh sách tag'),
-      categoryIds: z.array(z.string()).optional().describe('ID thể loại (xem GET /categories)'),
+      categoryIds: z.array(z.string()).optional().describe('ID thể loại (xem GET /categories), tối đa 5'),
     },
   },
   async (input) => asText(await api('/stories', { method: 'POST', body: input })),
