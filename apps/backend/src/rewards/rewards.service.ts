@@ -81,6 +81,11 @@ export class RewardsService {
         };
     }
 
+    /** So nhiem vu ngay dang bat (tinh ngay lam du nhiem vu cho quy tai tro). */
+    async getMissionCount(): Promise<number> {
+        return (await this.getConfig()).missions.length;
+    }
+
     private static rewardForStreak(rewards: number[], streak: number): number {
         if (rewards.length === 0) return 0;
         return rewards[(streak - 1) % rewards.length];

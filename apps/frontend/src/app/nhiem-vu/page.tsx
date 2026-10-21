@@ -13,6 +13,7 @@ import {
 } from '@/lib/api/hooks/use-rewards';
 import { apiErrorMessage, type MissionKey, type RewardsStatus } from '@/lib/api/rewards.service';
 import { useToast } from '@/components/ui/toast';
+import { SponsorProgramsCard } from '@/components/rewards/sponsor-programs-card';
 import { WebPushToggle, useWebPushConfig } from '@/components/notifications/web-push-toggle';
 
 const MISSION_ICON: Record<MissionKey, typeof BookOpen> = {
@@ -306,6 +307,7 @@ export default function MissionsPage() {
                             )}
                             <CheckInCard status={status} />
                             <MissionsCard status={status} />
+                            <SponsorProgramsCard />
                             {pushConfig?.enabled && (
                             <Card>
                                 <h2 className="font-display text-lg font-bold text-on-surface mb-1">Không bỏ lỡ chương mới</h2>

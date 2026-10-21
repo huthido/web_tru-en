@@ -26,6 +26,8 @@ const DISALLOW = [
   '/lich-su',
   '/thong-bao',
   '/vi-xu',
+  '/nhiem-vu',
+  '/tai-tro',
   '/chuyen-xu',
   '/ung-ho',
   '/xem-quang-cao',

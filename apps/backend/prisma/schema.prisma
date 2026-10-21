@@ -15,120 +15,122 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  username      String    @unique
+  id                       String    @id @default(cuid())
+  email                    String    @unique
+  username                 String    @unique
   /// Slug tuỳ chỉnh cho URL chia sẻ trang cá nhân /u/[slug]. Người dùng tự đặt
   /// (chữ thường/số/gạch ngang). NULL = dùng username. Resolve /u/[x] ưu tiên
   /// khớp username rồi tới profileSlug; đặt slug phải không trùng username /
   /// profileSlug của người khác.
-  profileSlug   String?   @unique
-  password      String? // Nullable cho OAuth users
-  avatar        String?
-  displayName   String?
-  bio           String?   @db.Text
-  role          UserRole  @default(USER)
+  profileSlug              String?   @unique
+  password                 String? // Nullable cho OAuth users
+  avatar                   String?
+  displayName              String?
+  bio                      String?   @db.Text
+  role                     UserRole  @default(USER)
   /// Mẫu giọng đọc của tác giả (clip 3–10s, lưu Garage) — VieNeu-TTS clone
   /// giọng này khi sinh audio AI cho chương thuộc truyện của họ. Ưu tiên hơn
   /// ttsVoicePreset. NULL = không clone.
-  ttsVoiceUrl   String?
+  ttsVoiceUrl              String?
   /// Giọng preset VieNeu tác giả chọn (id từ GET /tts/voices, vd 'Adam').
   /// Chỉ dùng khi không có ttsVoiceUrl. NULL = giọng mặc định server.
-  ttsVoicePreset String?
+  ttsVoicePreset           String?
   /// Hạn gói tháng giọng đọc AI (mua bằng xu, 30 ngày/lần, gia hạn cộng dồn).
   /// NULL hoặc quá khứ = chưa có gói → không tự tạo audio AI được khi admin
   /// đặt Settings.ttsSubscriptionCoinCost > 0.
   ttsSubscriptionExpiresAt DateTime?
-  isActive      Boolean   @default(true)
-  emailVerified Boolean   @default(false)
+  isActive                 Boolean   @default(true)
+  emailVerified            Boolean   @default(false)
   /// Cho phép tài khoản xem nội dung người lớn (MATURE) — quyền do phụ huynh/
   /// người giám hộ cấp cho tài khoản trẻ, hoặc tự xác nhận 18+. Mặc định tắt.
-  allowAdultContent Boolean @default(false)
+  allowAdultContent        Boolean   @default(false)
   /// Mã mời bạn bè (sinh khi user mở trang Nhiệm vụ lần đầu). NULL = chưa có.
-  referralCode  String?   @unique
+  referralCode             String?   @unique
   /// Người đã mời user này (gắn lúc đăng ký qua ?ref=MA).
-  referredById  String?
+  referredById             String?
   /// Đã trả thưởng mời bạn cho cặp (người mời, user này) — chỉ trả 1 lần.
-  referralRewardedAt DateTime?
+  referralRewardedAt       DateTime?
   /// Thể loại yêu thích chọn lúc mới vào (id Category) — gợi ý "Dành cho bạn".
-  favoriteCategoryIds String[] @default([])
+  favoriteCategoryIds      String[]  @default([])
   /// Đã qua bước chọn thể loại (chọn xong hoặc bỏ qua) — không hỏi lại.
-  genreOnboardedAt DateTime?
+  genreOnboardedAt         DateTime?
   /// Soft-delete timestamp. Khi user tự xoá tài khoản trong app (Apple
   /// §5.1.1(v)): PII bị nullify, email/username đổi thành placeholder
   /// unique theo id, isActive = false, deletedAt = now(). NULL = tài khoản
   /// hoạt động bình thường.
-  deletedAt     DateTime?
-  refreshToken  String? // Optional: cho refresh token strategy
+  deletedAt                DateTime?
+  refreshToken             String? // Optional: cho refresh token strategy
   // OAuth fields
-  provider      String? // 'local', 'google', 'facebook'
-  providerId    String? // OAuth provider user ID
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  provider                 String? // 'local', 'google', 'facebook'
+  providerId               String? // OAuth provider user ID
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
 
   // Relations
-  uploadedChapters        Chapter[]                @relation("ChapterUploader")
-  comments                Comment[]
-  commentLikes            CommentLike[]
-  favorites               Favorite[]
-  follows                 Follow[]
-  ratings                 Rating[]
-  readingHistory          ReadingHistory[]
-  authoredStories         Story[]                  @relation("StoryAuthor")
-  viewLogs                ViewLog[]
-  audioListens            AudioListen[]
-  approvalRequests        ApprovalRequest[]        @relation("ApprovalRequests")
-  reviewedApprovals       ApprovalRequest[]        @relation("ReviewedApprovals")
-  createdAds              Ad[]                     @relation("AdCreator")
-  createdCampaigns        Campaign[]               @relation("CampaignCreator")
-  adImpressions           AdImpression[]           @relation("AdImpressionUser")
-  adClicks                AdClick[]                @relation("AdClickUser")
-  adBookings              AdBooking[]              @relation("AdBookingUser")
-  reviewedAdBookings      AdBooking[]              @relation("AdBookingReviewer")
-  oauthCodes              OAuthCode[]
-  emailVerificationTokens EmailVerificationToken[]
-  passwordResetTokens     PasswordResetToken[]
-  refreshTokens           RefreshToken[]
-  createdNotifications    Notification[]           @relation("NotificationCreator")
-  pushTokens              UserPushToken[]
-  wallet                  UserWallet?
-  chapterPurchases        ChapterPurchase[]
-  storyPurchases          StoryPurchase[]
-  storyItems              StoryItem[]              @relation("StoryItemAuthor")
-  storyItemPurchases      StoryItemPurchase[]      @relation("StoryItemBuyer")
-  sentDonations           AuthorDonation[]         @relation("DonationSender")
-  receivedDonations       AuthorDonation[]         @relation("DonationReceiver")
-  uploadedImages          UserImage[]
-  payments                Payment[]
-  withdrawalRequests      WithdrawalRequest[]      @relation("WithdrawalRequester")
-  processedWithdrawals    WithdrawalRequest[]      @relation("WithdrawalProcessor")
+  uploadedChapters         Chapter[]                @relation("ChapterUploader")
+  comments                 Comment[]
+  commentLikes             CommentLike[]
+  favorites                Favorite[]
+  follows                  Follow[]
+  ratings                  Rating[]
+  readingHistory           ReadingHistory[]
+  authoredStories          Story[]                  @relation("StoryAuthor")
+  viewLogs                 ViewLog[]
+  audioListens             AudioListen[]
+  approvalRequests         ApprovalRequest[]        @relation("ApprovalRequests")
+  reviewedApprovals        ApprovalRequest[]        @relation("ReviewedApprovals")
+  createdAds               Ad[]                     @relation("AdCreator")
+  createdCampaigns         Campaign[]               @relation("CampaignCreator")
+  adImpressions            AdImpression[]           @relation("AdImpressionUser")
+  adClicks                 AdClick[]                @relation("AdClickUser")
+  adBookings               AdBooking[]              @relation("AdBookingUser")
+  reviewedAdBookings       AdBooking[]              @relation("AdBookingReviewer")
+  oauthCodes               OAuthCode[]
+  emailVerificationTokens  EmailVerificationToken[]
+  passwordResetTokens      PasswordResetToken[]
+  refreshTokens            RefreshToken[]
+  createdNotifications     Notification[]           @relation("NotificationCreator")
+  pushTokens               UserPushToken[]
+  wallet                   UserWallet?
+  chapterPurchases         ChapterPurchase[]
+  storyPurchases           StoryPurchase[]
+  storyItems               StoryItem[]              @relation("StoryItemAuthor")
+  storyItemPurchases       StoryItemPurchase[]      @relation("StoryItemBuyer")
+  sentDonations            AuthorDonation[]         @relation("DonationSender")
+  receivedDonations        AuthorDonation[]         @relation("DonationReceiver")
+  uploadedImages           UserImage[]
+  payments                 Payment[]
+  withdrawalRequests       WithdrawalRequest[]      @relation("WithdrawalRequester")
+  processedWithdrawals     WithdrawalRequest[]      @relation("WithdrawalProcessor")
   // Apple §1.2 — UGC report + block.
-  ugcReportsFiled         UgcReport[]              @relation("UgcReportReporter")
-  ugcReportsReviewed      UgcReport[]              @relation("UgcReportResolver")
-  blocks                  UserBlock[]              @relation("UserBlockBlocker")
-  blockedBy               UserBlock[]              @relation("UserBlockBlocked")
+  ugcReportsFiled          UgcReport[]              @relation("UgcReportReporter")
+  ugcReportsReviewed       UgcReport[]              @relation("UgcReportResolver")
+  blocks                   UserBlock[]              @relation("UserBlockBlocker")
+  blockedBy                UserBlock[]              @relation("UserBlockBlocked")
   // Art feed (mục Nghệ thuật / Khám phá).
-  artPosts                ArtPost[]
-  artLikes                ArtLike[]
-  artComments             ArtComment[]
-  artStories              ArtStory[]
-  artStoryViews           ArtStoryView[]
+  artPosts                 ArtPost[]
+  artLikes                 ArtLike[]
+  artComments              ArtComment[]
+  artStories               ArtStory[]
+  artStoryViews            ArtStoryView[]
   // Báo bug từ người dùng (web + mobile).
-  bugReports              BugReport[]              @relation("BugReporter")
+  bugReports               BugReport[]              @relation("BugReporter")
   // Theo dõi tác giả (khác với Follow theo truyện). Phục vụ điều kiện
   // bật kiếm tiền (≥100 followers) + nút "Theo dõi tác giả" ở profile MXH.
-  authorFollowsFollowing  AuthorFollow[]           @relation("AuthorFollowFollower")
-  authorFollowers         AuthorFollow[]           @relation("AuthorFollowTarget")
-  paintings               Painting[]
+  authorFollowsFollowing   AuthorFollow[]           @relation("AuthorFollowFollower")
+  authorFollowers          AuthorFollow[]           @relation("AuthorFollowTarget")
+  paintings                Painting[]
   // Phase 3 — giữ chân người đọc
-  referredBy              User?                    @relation("UserReferral", fields: [referredById], references: [id], onDelete: SetNull)
-  referrals               User[]                   @relation("UserReferral")
-  dailyCheckIns           DailyCheckIn[]
-  dailyActivities         UserDailyActivity[]
-  missionClaims           UserMissionClaim[]
-  giftCodeRedemptions     GiftCodeRedemption[]
-  createdGiftCodes        GiftCode[]               @relation("GiftCodeCreator")
-  webPushSubscriptions    WebPushSubscription[]
+  referredBy               User?                    @relation("UserReferral", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals                User[]                   @relation("UserReferral")
+  dailyCheckIns            DailyCheckIn[]
+  dailyActivities          UserDailyActivity[]
+  missionClaims            UserMissionClaim[]
+  giftCodeRedemptions      GiftCodeRedemption[]
+  sponsorClaims            SponsorClaim[]
+  submittedSponsorPrograms SponsorProgram[]         @relation("SponsorSubmitter")
+  createdGiftCodes         GiftCode[]               @relation("GiftCodeCreator")
+  webPushSubscriptions     WebPushSubscription[]
 
   @@index([email])
   @@index([username])
@@ -140,53 +142,54 @@ model User {
 }
 
 model Story {
-  id               String            @id @default(cuid())
-  title            String
-  slug             String            @unique
-  description      String?
-  coverImage       String?
-  authorId         String
-  authorName       String?
-  status           StoryStatus       @default(DRAFT)
-  accessType       StoryAccessType   @default(FREE) // Spec mục 4
-  price            Int               @default(0) // Coin price for VIP whole-story unlock (accessType=VIP)
-  isPublished      Boolean           @default(false)
-  viewCount        Int               @default(0)
-  likeCount        Int               @default(0)
-  followCount      Int               @default(0)
-  rating           Float             @default(0)
-  ratingCount      Int               @default(0)
-  isRecommended    Boolean           @default(false)
+  id                     String                 @id @default(cuid())
+  title                  String
+  slug                   String                 @unique
+  description            String?
+  coverImage             String?
+  authorId               String
+  authorName             String?
+  status                 StoryStatus            @default(DRAFT)
+  accessType             StoryAccessType        @default(FREE) // Spec mục 4
+  price                  Int                    @default(0) // Coin price for VIP whole-story unlock (accessType=VIP)
+  isPublished            Boolean                @default(false)
+  viewCount              Int                    @default(0)
+  likeCount              Int                    @default(0)
+  followCount            Int                    @default(0)
+  rating                 Float                  @default(0)
+  ratingCount            Int                    @default(0)
+  isRecommended          Boolean                @default(false)
   /// Tác giả opt-in nhận xu từ quảng cáo hiển thị trong truyện này.
   /// Mặc định off — phải đủ điều kiện monetization mới bật được (xem
   /// MonetizationService.assertEligibleForAdvancedFeatures).
-    adRevenueEnabled Boolean           @default(false)
-    /// Phân loại độ tuổi (ALL | MATURE) — nội dung người lớn bị ẩn với tài
-    /// khoản chưa bật xem nội dung người lớn (Families Policy).
-    maturity         StoryMaturity     @default(ALL)
-    country          String?
-  tags             String[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  lastChapterAt    DateTime?
+  adRevenueEnabled       Boolean                @default(false)
+  /// Phân loại độ tuổi (ALL | MATURE) — nội dung người lớn bị ẩn với tài
+  /// khoản chưa bật xem nội dung người lớn (Families Policy).
+  maturity               StoryMaturity          @default(ALL)
+  country                String?
+  tags                   String[]
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  lastChapterAt          DateTime?
   /// Thời điểm truyện được duyệt/xuất bản LẦN ĐẦU — "Mới nhất" sort theo cột
   /// này thay vì createdAt (truyện viết lâu mới được duyệt vẫn lên đầu).
-  publishedAt      DateTime?
-  chapters         Chapter[]
-  comments         Comment[]
-  favorites        Favorite[]
-  follows          Follow[]
-  ratings          Rating[]
-  author           User              @relation("StoryAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  storyCategories  StoryCategory[]
-  storyTags        StoryTag[]
-  viewLogs         ViewLog[]
-  audioListens     AudioListen[]
-  approvalRequests ApprovalRequest[] @relation("StoryApprovals")
-  readingHistory   ReadingHistory[]
-  storyPurchases   StoryPurchase[]
-  storyItems       StoryItem[]
-  storyItemPurchases StoryItemPurchase[]
+  publishedAt            DateTime?
+  chapters               Chapter[]
+  comments               Comment[]
+  favorites              Favorite[]
+  follows                Follow[]
+  ratings                Rating[]
+  author                 User                   @relation("StoryAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  storyCategories        StoryCategory[]
+  storyTags              StoryTag[]
+  viewLogs               ViewLog[]
+  audioListens           AudioListen[]
+  approvalRequests       ApprovalRequest[]      @relation("StoryApprovals")
+  readingHistory         ReadingHistory[]
+  storyPurchases         StoryPurchase[]
+  sponsorPrograms        SponsorProgram[]
+  storyItems             StoryItem[]
+  storyItemPurchases     StoryItemPurchase[]
   homepageSectionStories HomepageSectionStory[]
 
   @@index([slug])
@@ -209,39 +212,39 @@ model Story {
 }
 
 model Chapter {
-  id             String           @id @default(cuid())
-  storyId        String
-  title          String
-  slug           String
-  content        String
-  images         String[]
+  id                 String           @id @default(cuid())
+  storyId            String
+  title              String
+  slug               String
+  content            String
+  images             String[]
   /// URL file audio do tác giả tải lên (nghe thay vì đọc). null = không có,
   /// reader sẽ fallback sang text-to-speech trên client.
-  audioUrl       String?
+  audioUrl           String?
   /// URL audio AI (VieNeu-TTS) do server sinh từ nội dung chương. Chỉ sinh cho
   /// chương miễn phí đã xuất bản; sinh 1 lần rồi cache vĩnh viễn trên Garage.
-  ttsAudioUrl    String?
+  ttsAudioUrl        String?
   /// Trạng thái job sinh audio AI. null = chưa ai yêu cầu.
-  ttsAudioStatus TtsAudioStatus?
+  ttsAudioStatus     TtsAudioStatus?
   /// Tên giọng đọc AI đã dùng để sinh audio (hiển thị khi đang tạo).
-  ttsVoiceName   String?
-  order          Int
-  isPublished    Boolean          @default(false)
+  ttsVoiceName       String?
+  order              Int
+  isPublished        Boolean          @default(false)
   /// Lịch tự xuất bản: khi != null và đã tới giờ, cron ChaptersCron sẽ tự
   /// set isPublished=true (chỉ với truyện đã publish). null = không đặt lịch.
   scheduledPublishAt DateTime?
-  viewCount      Int              @default(0)
-  wordCount      Int              @default(0)
-  readingTime    Int              @default(0)
-  uploaderId     String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  story          Story            @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  uploader       User?            @relation("ChapterUploader", fields: [uploaderId], references: [id])
-  comments       Comment[]
-  readingHistory ReadingHistory[]
-  viewLogs       ViewLog[]
-  audioListens   AudioListen[]
+  viewCount          Int              @default(0)
+  wordCount          Int              @default(0)
+  readingTime        Int              @default(0)
+  uploaderId         String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  story              Story            @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  uploader           User?            @relation("ChapterUploader", fields: [uploaderId], references: [id])
+  comments           Comment[]
+  readingHistory     ReadingHistory[]
+  viewLogs           ViewLog[]
+  audioListens       AudioListen[]
 
   approvalRequests ApprovalRequest[] @relation("ChapterApprovals")
   price            Int               @default(0) // Coin price to unlock
@@ -267,24 +270,24 @@ enum TtsAudioStatus {
 }
 
 model Comment {
-  id        String    @id @default(cuid())
+  id        String        @id @default(cuid())
   userId    String
   storyId   String?
   chapterId String?
   content   String
   parentId  String?
-  isDeleted Boolean   @default(false)
-  likeCount Int       @default(0) // denormalised — cập nhật cùng transaction với CommentLike
+  isDeleted Boolean       @default(false)
+  likeCount Int           @default(0) // denormalised — cập nhật cùng transaction với CommentLike
   /// Ghim bình luận (cột có sẵn trên prod từ trước, khai báo để schema khớp DB).
-  isPinned  Boolean   @default(false)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  chapter   Chapter?  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
-  replies   Comment[] @relation("CommentReplies")
+  isPinned  Boolean       @default(false)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  chapter   Chapter?      @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  parent    Comment?      @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[]     @relation("CommentReplies")
   likes     CommentLike[]
-  story     Story?    @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  story     Story?        @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([storyId])
@@ -673,18 +676,18 @@ model Campaign {
 }
 
 model Ad {
-  id             String         @id @default(cuid())
+  id             String          @id @default(cuid())
   title          String?
-  description    String?        @db.Text
+  description    String?         @db.Text
   // imageUrl required ở DB-level (default '') để zero-downtime; nhưng ở DTO chỉ
   // bắt buộc khi sourceType = SELF_SERVED. 3rd-party (AdSense/AdMob/FAN/Custom)
   // có thể bỏ trống — slot ID nằm trong networkConfig.
-  imageUrl       String         @default("")
+  imageUrl       String          @default("")
   linkUrl        String?
-  type           AdType         @default(BANNER)
-  position       AdPosition     @default(BOTTOM)
+  type           AdType          @default(BANNER)
+  position       AdPosition      @default(BOTTOM)
   // Nguồn ad — quyết định cách render ở client (image vs 3rd-party SDK/script).
-  sourceType     AdSourceType   @default(SELF_SERVED)
+  sourceType     AdSourceType    @default(SELF_SERVED)
   // Config riêng cho mỗi sourceType:
   // - GOOGLE_ADSENSE: { adUnitId: string, format?: 'auto'|'rectangle'|'horizontal', responsive?: boolean }
   // - GOOGLE_ADMOB:   { adUnitId: string, format?: 'banner'|'interstitial'|'native' }
@@ -695,14 +698,14 @@ model Ad {
   // Platform target (chỉ áp dụng cho 3rd-party): 'web' | 'mobile' | 'all'.
   // SELF_SERVED hiện thị mọi nơi (kept null).
   platform       String?
-  isActive       Boolean        @default(true)
+  isActive       Boolean         @default(true)
   startDate      DateTime?
   endDate        DateTime?
-  clickCount     Int            @default(0)
-  viewCount      Int            @default(0)
-  impressions    Int            @default(0) // Total impressions (show count)
+  clickCount     Int             @default(0)
+  viewCount      Int             @default(0)
+  impressions    Int             @default(0) // Total impressions (show count)
   popupInterval  Int? // Number of chapters to read before showing popup (only for POPUP type)
-  priority       Int            @default(0) // Higher priority = shown first
+  priority       Int             @default(0) // Higher priority = shown first
   campaignId     String?
   targetAudience Json? // Targeting rules: {categories: [], roles: [], devices: [], minChaptersRead: 0}
   // Cấu hình hiển thị runtime, override hardcode mặc định component:
@@ -712,10 +715,10 @@ model Ad {
   // Chỉ áp dụng khi ad bind vào slot có position=INLINE.
   inlineRule     Json?
   createdById    String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  campaign       Campaign?      @relation(fields: [campaignId], references: [id], onDelete: SetNull)
-  createdBy      User?          @relation("AdCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  campaign       Campaign?       @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  createdBy      User?           @relation("AdCreator", fields: [createdById], references: [id], onDelete: SetNull)
   adImpressions  AdImpression[]
   adClicks       AdClick[]
   slotBindings   AdSlotBinding[]
@@ -738,32 +741,32 @@ model Ad {
 /// có thể bật/tắt và bind ads vào. Khác với Ad.position (category chung),
 /// slot có key duy nhất gắn cụ thể với pageKey + position.
 model AdSlot {
-  id        String          @id @default(cuid())
+  id                 String          @id @default(cuid())
   /// Key duy nhất tham chiếu từ frontend, vd 'home.top', 'reading.inline'.
-  key       String          @unique
+  key                String          @unique
   /// Route page chứa slot này: 'home' | 'stories.list' | 'stories.detail' |
   /// 'reading' | 'search' | 'profile' | 'library'.
-  pageKey   String
-  position  AdPosition
+  pageKey            String
+  position           AdPosition
   /// Friendly label cho admin UI, vd 'Banner đầu trang chủ'.
-  label     String
+  label              String
   /// Số ads tối đa hiển thị đồng thời trong slot (sidebar stack, banner rotate).
-  maxAds    Int             @default(1)
-  enabled   Boolean         @default(true)
+  maxAds             Int             @default(1)
+  enabled            Boolean         @default(true)
   /// Filter type bắt buộc của ad bind vào slot. Null = chấp nhận mọi type.
-  adType    AdType?
+  adType             AdType?
   /// Filter platform: 'web' | 'mobile' | 'all'. Null = all.
-  platform  String?
+  platform           String?
   /// Giá thuê slot (VND/ngày) niêm yết trên trang /quang-cao. 0 = chưa niêm yết.
-  pricePerDay        Int     @default(0)
+  pricePerDay        Int             @default(0)
   /// Cho phép khách tự đặt slot này từ trang /quang-cao.
-  isPublicForBooking Boolean @default(false)
+  isPublicForBooking Boolean         @default(false)
   /// Mô tả public: kích thước banner đề xuất, vị trí hiển thị, lưu ý.
   bookingNote        String?
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  bindings  AdSlotBinding[]
-  bookings  AdBooking[]
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  bindings           AdSlotBinding[]
+  bookings           AdBooking[]
 
   @@index([pageKey, enabled])
   @@index([key])
@@ -773,14 +776,14 @@ model AdSlot {
 /// Bảng nối many-to-many giữa Ad và AdSlot — 1 ad có thể bind nhiều slot,
 /// 1 slot có thể chứa nhiều ad (theo maxAds + priority).
 model AdSlotBinding {
-  id       String  @id @default(cuid())
+  id       String @id @default(cuid())
   adId     String
   slotId   String
   /// Priority binding (cao hơn show trước trong slot này). Tách khỏi
   /// Ad.priority vì cùng 1 ad có thể có priority khác nhau ở từng slot.
-  priority Int     @default(0)
-  ad       Ad      @relation(fields: [adId], references: [id], onDelete: Cascade)
-  slot     AdSlot  @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  priority Int    @default(0)
+  ad       Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
+  slot     AdSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
 
   @@unique([adId, slotId])
   @@index([slotId])
@@ -918,114 +921,114 @@ model Page {
 }
 
 model Settings {
-  id                         String   @id @default(cuid())
-  siteName                   String   @default("Web Truyện HungYeu")
-  siteDescription            String?  @db.Text
-  siteLogo                   String?
-  siteFavicon                String?
-  siteEmail                  String?
-  sitePhone                  String?
-  siteAddress                String?  @db.Text
-  siteFacebook               String?
-  siteTwitter                String?
-  siteX                      String? // X (formerly Twitter)
-  siteYoutube                String?
-  siteInstagram              String?
-  siteTikTok                 String?
-  siteLinkedIn               String?
-  siteThreads                String?
-  maintenanceMode            Boolean  @default(false)
-  maintenanceMessage         String?  @db.Text
+  id                          String   @id @default(cuid())
+  siteName                    String   @default("Web Truyện HungYeu")
+  siteDescription             String?  @db.Text
+  siteLogo                    String?
+  siteFavicon                 String?
+  siteEmail                   String?
+  sitePhone                   String?
+  siteAddress                 String?  @db.Text
+  siteFacebook                String?
+  siteTwitter                 String?
+  siteX                       String? // X (formerly Twitter)
+  siteYoutube                 String?
+  siteInstagram               String?
+  siteTikTok                  String?
+  siteLinkedIn                String?
+  siteThreads                 String?
+  maintenanceMode             Boolean  @default(false)
+  maintenanceMessage          String?  @db.Text
   // ─── Footer / Banner ───
   // Khi bật, banner ảnh hiện ở đáy mọi trang (trừ trang cá nhân + admin).
   // footerBannerSlides = JSON mảng `[{image, link?}]` cho SLIDESHOW nhiều ảnh
   // (mỗi ảnh 1 link riêng tuỳ chọn); mảng nhiều phần tử → tự chạy slide.
   // footerBannerImage/Link (ảnh đơn cũ) giữ để tương thích + fallback khi slides rỗng.
-  footerBannerEnabled        Boolean  @default(false)
-  footerBannerImage          String?
-  footerBannerLink           String?
-  footerBannerSlides         Json     @default("[]")
-  allowRegistration          Boolean  @default(true)
-  requireEmailVerification   Boolean  @default(false)
+  footerBannerEnabled         Boolean  @default(false)
+  footerBannerImage           String?
+  footerBannerLink            String?
+  footerBannerSlides          Json     @default("[]")
+  allowRegistration           Boolean  @default(true)
+  requireEmailVerification    Boolean  @default(false)
   // Donation rev-share: % the platform keeps when a user donates coins to an
   // author. 0 = author keeps 100%. Capped at 50 in the DTO validator.
-  donationPlatformFeePercent Int      @default(2)
+  donationPlatformFeePercent  Int      @default(2)
   // Spec mục 17 — chapter / VIP story sale rev-share. Tracked separately from
   // donations so support can tune them independently (e.g. lower fee on sales
   // to encourage authors to set paid content). Backfilled = donation fee.
-  chapterSaleFeePercent      Int      @default(2)
+  chapterSaleFeePercent       Int      @default(2)
   // Spec — phí % nền tảng giữ khi người mua VẬT PHẨM của truyện (giao dịch xu
   // với tác giả). Tách riêng để admin chỉnh độc lập với phí chương/ủng hộ.
-  itemSaleFeePercent         Int      @default(2)
+  itemSaleFeePercent          Int      @default(2)
   // Spec mục 17 — số xu tối thiểu tác giả được phép yêu cầu rút.
-  minWithdrawalCoins         Int      @default(1000)
+  minWithdrawalCoins          Int      @default(1000)
   // Spec mục 2 — cho phép chuyển xu giữa user ("nếu cho phép"). Mặc định tắt.
-  allowCoinTransfer          Boolean  @default(false)
+  allowCoinTransfer           Boolean  @default(false)
   // Cho phép độc giả TẢI XUỐNG file audio chương (audio tác giả + audio AI).
   // Mặc định tắt: player ẩn nút download (controlsList=nodownload — chặn mềm,
   // URL vẫn public trên CDN).
-  chapterAudioDownloadEnabled Boolean @default(false)
+  chapterAudioDownloadEnabled Boolean  @default(false)
   // Chống copy nội dung chương trên trang đọc (chặn bôi đen/copy/chuột phải —
   // chặn mềm phía client; tác giả truyện + admin được miễn). Mặc định bật.
-  copyProtectionEnabled       Boolean @default(true)
+  copyProtectionEnabled       Boolean  @default(true)
   // ─── Auto-scroll sync: đồng bộ cuộn + highlight đoạn văn khi nghe audio ───
   // Master toggle — bật/tắt toàn bộ tính năng auto-scroll trên trang đọc.
-  audioScrollSyncEnabled      Boolean @default(true)
+  audioScrollSyncEnabled      Boolean  @default(true)
   // Bật auto-scroll cho audio do tác giả tải lên (file MP3).
-  audioScrollSyncAuthorAudio  Boolean @default(false)
+  audioScrollSyncAuthorAudio  Boolean  @default(false)
   // Bật auto-scroll cho Web Speech API (giọng đọc thiết bị).
-  audioScrollSyncWebSpeech    Boolean @default(false)
+  audioScrollSyncWebSpeech    Boolean  @default(false)
   // ─── Giọng đọc AI (TTS) ───
   // Tự xếp hàng sinh audio AI ngay khi chương được xuất bản. Mặc định TẮT:
   // mỗi chương tốn nhiều phút CPU worker, admin chủ động bật khi đủ máy.
-  ttsAutoGenerateOnPublish    Boolean @default(false)
+  ttsAutoGenerateOnPublish    Boolean  @default(false)
   // Bảng giá GÓI THÁNG giọng đọc AI: mảng `[{months, coins}]` (vd 1 tháng
   // 10000 xu, 2 tháng 15000, 3 tháng 20000). Tác giả mua gói rồi tạo không
   // giới hạn chương trong thời hạn (User.ttsSubscriptionExpiresAt, 1 tháng
   // = 30 ngày). Mảng RỖNG = miễn phí cho mọi tác giả. Admin không cần gói.
-  ttsSubscriptionPlans        Json    @default("[]")
+  ttsSubscriptionPlans        Json     @default("[]")
   // ─── Thưởng giữ chân (xu thưởng — chỉ mua chương, không ra tiền) ───
-  rewardsEnabled              Boolean @default(true)
+  rewardsEnabled              Boolean  @default(true)
   // Xu thưởng theo ngày trong chuỗi điểm danh (ngày 1..n, hết mảng thì lặp lại).
-  checkinRewards              Json    @default("[2,2,3,3,5,5,10]")
+  checkinRewards              Json     @default("[2,2,3,3,5,5,10]")
   // Nhiệm vụ ngày [{key: 'read'|'listen'|'comment', target, reward}].
-  dailyMissions               Json    @default("[{\"key\":\"read\",\"target\":3,\"reward\":5},{\"key\":\"listen\",\"target\":1,\"reward\":3},{\"key\":\"comment\",\"target\":1,\"reward\":2}]")
+  dailyMissions               Json     @default("[{\"key\":\"read\",\"target\":3,\"reward\":5},{\"key\":\"listen\",\"target\":1,\"reward\":3},{\"key\":\"comment\",\"target\":1,\"reward\":2}]")
   // Mời bạn: thưởng khi người được mời xác minh email + điểm danh lần đầu.
-  referralEnabled             Boolean @default(true)
-  referralRewardReferrer      Int     @default(20)
-  referralRewardReferee       Int     @default(10)
+  referralEnabled             Boolean  @default(true)
+  referralRewardReferrer      Int      @default(20)
+  referralRewardReferee       Int      @default(10)
   // Số lượt mời được thưởng tối đa / người mời / 30 ngày (chống farm).
-  referralMonthlyCap          Int     @default(20)
+  referralMonthlyCap          Int      @default(20)
   // Quảng cáo — global kill switch + cấu hình network ID. Client gọi
   // GET /ads/config để lấy snapshot dạng JSON.
-  adsEnabled                 Boolean  @default(true)
-  googleAdsensePublisherId   String? // ca-pub-XXXXXXXXXXXXXXXX
-  admobAndroidAppId          String? // ca-app-pub-XXXX~YYYY (App ID, không phải unit ID)
-  admobIosAppId              String?
-  fanPlacementId             String? // Facebook Audience Network app ID
-  adsTxtContent              String?  @db.Text // Plain text serve qua GET /ads.txt
+  adsEnabled                  Boolean  @default(true)
+  googleAdsensePublisherId    String? // ca-pub-XXXXXXXXXXXXXXXX
+  admobAndroidAppId           String? // ca-app-pub-XXXX~YYYY (App ID, không phải unit ID)
+  admobIosAppId               String?
+  fanPlacementId              String? // Facebook Audience Network app ID
+  adsTxtContent               String?  @db.Text // Plain text serve qua GET /ads.txt
   // GDPR consent banner — bật theo region nếu cần. Mặc định bật (an toàn).
-  consentRequired            Boolean  @default(true)
+  consentRequired             Boolean  @default(true)
   // Danh sách hostname được phép dùng ảnh ngoài (vd: "i.pinimg.com"). Admin quản lý qua UI.
-  allowedImageDomains        String[] @default([])
+  allowedImageDomains         String[] @default([])
   // ─── Hình thức thanh toán ở Cửa hàng ───
   // Hiện cổng VNPay trong bộ chọn "Hình thức thanh toán". Tắt khi chưa cấu
   // hình VNPay → chỉ còn chuyển khoản (nếu bật). Backend cũng chặn tạo
   // thanh toán VNPay khi tắt.
-  vnpayPaymentEnabled        Boolean  @default(true)
+  vnpayPaymentEnabled         Boolean  @default(true)
   // ─── Thanh toán thủ công (chuyển khoản ngân hàng, admin xác nhận tay) ───
   // Kênh nạp xu offline: user tạo yêu cầu → chuyển khoản theo QR/STK → admin
   // "kích hoạt bằng tay" ở trang duyệt. Dùng khi chưa có cổng online (VNPay).
-  manualPaymentEnabled       Boolean  @default(false)
+  manualPaymentEnabled        Boolean  @default(false)
   // Mã BIN ngân hàng theo chuẩn VietQR (vd 970436 = Vietcombank). Dùng dựng URL
   // ảnh QR động qua img.vietqr.io. Bắt buộc khi bật manualPaymentEnabled.
-  manualPaymentBankBin       String?
-  manualPaymentBankName      String? // Tên ngân hàng hiển thị (vd "Vietcombank")
-  manualPaymentAccountNumber String? // Số tài khoản nhận tiền
-  manualPaymentAccountHolder String? // Tên chủ tài khoản
-  manualPaymentInstructions  String?  @db.Text // Ghi chú/hướng dẫn thêm cho user
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
+  manualPaymentBankBin        String?
+  manualPaymentBankName       String? // Tên ngân hàng hiển thị (vd "Vietcombank")
+  manualPaymentAccountNumber  String? // Số tài khoản nhận tiền
+  manualPaymentAccountHolder  String? // Tên chủ tài khoản
+  manualPaymentInstructions   String?  @db.Text // Ghi chú/hướng dẫn thêm cho user
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
 
   @@map("settings")
 }
@@ -1033,19 +1036,19 @@ model Settings {
 model HomepageSection {
   id          String   @id @default(cuid())
   key         String   @unique // e.g. 'newest', 'best-of-month', 'top-rated', 'recommended', 'most-liked'
-  label       String   // Display label for the chip/tab
-  sortPath    String   // Legacy field — kept for backward compat, not used for auto dispatch
+  label       String // Display label for the chip/tab
+  sortPath    String // Legacy field — kept for backward compat, not used for auto dispatch
   algorithm   String   @default("newest") // Algorithm: newest|best-of-month|top-rated|recommended|most-liked|most-followed|most-viewed|random
   limit       Int      @default(15) // Number of stories to fetch
   seeMorePath String?  @default("/truyen") // "Xem tất cả" link
-  sortBy      String?  // e.g. 'newest', 'popular', 'rating', 'viewCount' — for seeMore link query param
+  sortBy      String? // e.g. 'newest', 'popular', 'rating', 'viewCount' — for seeMore link query param
   mode        String   @default("auto") // 'auto' = algorithm, 'manual' = admin picks stories
   isActive    Boolean  @default(true)
   order       Int      @default(0) // Display order (lower = first)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  stories     HomepageSectionStory[]
+  stories HomepageSectionStory[]
 
   @@index([isActive])
   @@index([order])
@@ -1060,7 +1063,7 @@ model HomepageSectionStory {
   createdAt DateTime @default(now())
 
   section HomepageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  story   Story          @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  story   Story           @relation(fields: [storyId], references: [id], onDelete: Cascade)
 
   @@unique([sectionId, storyId])
   @@index([sectionId])
@@ -1633,21 +1636,21 @@ model UserBlock {
 // ─── Art Feed (mục Nghệ thuật / Khám phá) ───────────────────────────────────
 
 model ArtPost {
-  id           String       @id @default(cuid())
+  id           String   @id @default(cuid())
   userId       String
   imageUrl     String
-  caption      String?      @db.Text
+  caption      String?  @db.Text
   /// Dimensions gợi ý (px) — frontend dùng để tính masonry height trước khi ảnh tải.
   width        Int?
   height       Int?
-  likeCount    Int          @default(0)
-  commentCount Int          @default(0)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  likeCount    Int      @default(0)
+  commentCount Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  likes        ArtLike[]
-  comments     ArtComment[]
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes    ArtLike[]
+  comments ArtComment[]
 
   @@index([userId])
   @@index([createdAt])
@@ -1659,8 +1662,8 @@ model ArtLike {
   postId    String
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post      ArtPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post ArtPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@id([userId, postId])
   @@index([postId])
@@ -1674,8 +1677,8 @@ model ArtComment {
   content   String   @db.Text
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post      ArtPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post ArtPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([postId, createdAt])
   @@map("art_comments")
@@ -1690,8 +1693,8 @@ model ArtStory {
   viewCount Int      @default(0)
   createdAt DateTime @default(now())
 
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  views     ArtStoryView[]
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  views ArtStoryView[]
 
   @@index([userId])
   @@index([expiresAt])
@@ -1699,12 +1702,12 @@ model ArtStory {
 }
 
 model ArtStoryView {
-  userId    String
-  storyId   String
-  viewedAt  DateTime @default(now())
+  userId   String
+  storyId  String
+  viewedAt DateTime @default(now())
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  story     ArtStory  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  story ArtStory @relation(fields: [storyId], references: [id], onDelete: Cascade)
 
   @@id([userId, storyId])
   @@map("art_story_views")
@@ -1773,8 +1776,8 @@ model Painting {
   title       String         @db.VarChar(200)
   description String?        @db.Text
   imageUrl    String
-  price       Int?           // VNĐ; null = thương lượng
-  contactInfo Json?          // { phone?, zalo?, facebook? }
+  price       Int? // VNĐ; null = thương lượng
+  contactInfo Json? // { phone?, zalo?, facebook? }
   status      PaintingStatus @default(AVAILABLE)
   viewCount   Int            @default(0)
   likeCount   Int            @default(0)
@@ -1786,4 +1789,88 @@ model Painting {
   @@index([authorId])
   @@index([status, createdAt])
   @@map("paintings")
+}
+
+enum SponsorRewardType {
+  PRODUCT // hiện vật / voucher — nhà tài trợ tự giao
+  CASH // tiền mặt — nhà tài trợ tự chuyển khoản, nền tảng chỉ ghi nhận
+  STORY_ACCESS // tặng truyện: mở khoá miễn phí (StoryPurchase pricePaid=0)
+}
+
+enum SponsorApprovalStatus {
+  PENDING // nhà tài trợ gửi, chờ admin duyệt
+  APPROVED
+  REJECTED
+}
+
+enum SponsorClaimStatus {
+  PENDING // đã nhận suất, chờ nhà tài trợ trao
+  FULFILLED // đã trao
+}
+
+/// Quỹ thưởng do nhà tài trợ (nhãn hàng / cá nhân / tác giả) góp. Ai điểm danh
+/// đủ `requiredCheckinDays` ngày VÀ làm đủ nhiệm vụ `requiredMissionDays` ngày
+/// trong [startsAt, endsAt] thì nhận 1 suất. KHÔNG đụng ví xu — xu thưởng vẫn
+/// chỉ dùng mua nội dung, không rút được.
+model SponsorProgram {
+  id                  String                @id @default(cuid())
+  title               String
+  description         String?
+  sponsorName         String
+  sponsorLogo         String?
+  rewardType          SponsorRewardType
+  rewardNote          String // mô tả phần thưởng hiển thị cho người dùng
+  storyId             String? // bắt buộc khi STORY_ACCESS
+  slots               Int
+  claimedCount        Int                   @default(0)
+  requiredCheckinDays Int                   @default(0)
+  requiredMissionDays Int                   @default(0)
+  startsAt            DateTime
+  endsAt              DateTime
+  isActive            Boolean               @default(true)
+  createdById         String?
+  /// Quy trình duyệt: admin tạo → APPROVED ngay; nhà tài trợ gửi → PENDING chờ admin.
+  approvalStatus      SponsorApprovalStatus @default(APPROVED)
+  submittedById       String? // người dùng gửi đề xuất (null = admin tạo)
+  contactInfo         String? // cách liên hệ nhà tài trợ (chỉ admin xem)
+  rejectReason        String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  story               Story?                @relation(fields: [storyId], references: [id], onDelete: SetNull)
+  submittedBy         User?                 @relation("SponsorSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
+  claims              SponsorClaim[]
+  notices             SponsorNotice[]
+
+  @@index([isActive, endsAt])
+  @@index([submittedById])
+  @@map("sponsor_programs")
+}
+
+model SponsorClaim {
+  id          String             @id @default(cuid())
+  programId   String
+  userId      String
+  contact     String? // địa chỉ / tài khoản nhận (không cần với STORY_ACCESS)
+  status      SponsorClaimStatus @default(PENDING)
+  createdAt   DateTime           @default(now())
+  fulfilledAt DateTime?
+  program     SponsorProgram     @relation(fields: [programId], references: [id], onDelete: Cascade)
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, userId])
+  @@index([userId])
+  @@map("sponsor_claims")
+}
+
+/// Đã gửi thông báo "đủ điều kiện" / "sắp hết hạn" cho user ở quỹ nào — mỗi loại 1 lần.
+model SponsorNotice {
+  id        String         @id @default(cuid())
+  programId String
+  userId    String
+  kind      String // 'ELIGIBLE' | 'ENDING'
+  createdAt DateTime       @default(now())
+  program   SponsorProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, userId, kind])
+  @@map("sponsor_notices")
 }
