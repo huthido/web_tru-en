@@ -15,6 +15,7 @@ interface Book {
   coverImage?: string | null;
   slug?: string;
   storyId?: string;
+  hasAudio?: boolean;
 }
 
 interface BookSectionProps {
@@ -127,6 +128,7 @@ export function BookSection({
                     coverImage={book.coverImage}
                     slug={book.slug}
                     storyId={book.storyId}
+                    hasAudio={book.hasAudio}
                   />
                 </div>
               ))}

@@ -787,7 +787,7 @@ function ChapterAudioPlayerInner(props, ref) {
     // --- Trường hợp 1: có file audio của tác giả ---
     if (audioUrl) {
         return (
-            <div className="mb-6 p-4 bg-surface-container rounded-lg shadow-sm">
+            <div className="mb-6 p-4 bg-surface-container rounded-lg shadow-md sticky top-[72px] md:top-[80px] z-30">
                 <div className="flex items-center gap-2 mb-3 text-sm font-medium text-on-surface">
                     <Headphones size={18} className="text-primary" />
                     <span>Nghe chương này</span>
@@ -805,7 +805,7 @@ function ChapterAudioPlayerInner(props, ref) {
     // --- Trường hợp 2: audio AI (VieNeu-TTS) đã sinh xong ---
     if (aiUrl) {
         return (
-            <div className="mb-6 p-4 bg-surface-container rounded-lg shadow-sm">
+            <div className="mb-6 p-4 bg-surface-container rounded-lg shadow-md sticky top-[72px] md:top-[80px] z-30">
                 <div className="flex flex-wrap items-center gap-2 mb-3 text-sm font-medium text-on-surface">
                     <Headphones size={18} className="text-primary" />
                     <span>Nghe chương này</span>
@@ -847,7 +847,7 @@ function ChapterAudioPlayerInner(props, ref) {
     if (!ttsSupported && !showAiSection) return null;
 
     return (
-        <div className="mb-6 p-4 bg-surface-container rounded-lg shadow-sm">
+        <div className="mb-6 p-4 bg-surface-container rounded-lg shadow-md sticky top-[72px] md:top-[80px] z-30">
             <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 text-sm font-medium text-on-surface">
                     <Headphones size={18} className="text-primary" />

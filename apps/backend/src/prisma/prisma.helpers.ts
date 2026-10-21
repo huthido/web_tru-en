@@ -1,7 +1,23 @@
 import { Prisma } from '@prisma/client';
 
+/**
+ * Lấy tối đa 1 chương đã đăng có audio (tác giả tải lên hoặc giọng AI đã sinh
+ * xong) — chỉ để biết truyện "có audio" và hiện badge trên thẻ truyện. Client
+ * coi `chapters.length > 0` là có audio. Các include cần danh sách chương thật
+ * (storyWithChaptersInclude) tự ghi đè khoá `chapters`.
+ */
+export const audioChapterProbe = {
+    where: {
+        isPublished: true,
+        OR: [{ ttsAudioStatus: 'READY' as const }, { audioUrl: { not: null } }],
+    },
+    select: { id: true },
+    take: 1,
+};
+
 // Common include types for Story queries
 export const storyInclude = {
+    chapters: audioChapterProbe,
     author: {
         select: {
             id: true,
@@ -156,6 +172,7 @@ export const storyCardSelect = {
     lastChapterAt: true,
     publishedAt: true,
     author: storyInclude.author,
+    chapters: audioChapterProbe,
     _count: storyInclude._count,
 } satisfies Prisma.StorySelect;
 
@@ -185,6 +202,7 @@ export const safeStorySelect = {
     author: storyInclude.author,
     storyCategories: storyInclude.storyCategories,
     storyTags: storyInclude.storyTags,
+    chapters: audioChapterProbe,
     _count: storyInclude._count,
 } satisfies Prisma.StorySelect;
 

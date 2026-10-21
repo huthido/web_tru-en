@@ -16,6 +16,13 @@ interface BookCardProps {
   storyId?: string;
   showLikeButton?: boolean;
   iconType?: 'like' | 'follow' | 'none';
+  /** Truyện có ít nhất một chương đã đăng kèm audio → hiện badge tai nghe. */
+  hasAudio?: boolean;
+}
+
+/** Backend gắn `chapters` (tối đa 1 chương có audio) vào mỗi truyện trong danh sách. */
+export function storyHasAudio(story: any): boolean {
+  return Array.isArray(story?.chapters) && story.chapters.length > 0;
 }
 
 function formatViewCount(count: number): string {
@@ -34,7 +41,7 @@ function formatRating(r?: number): string {
 }
 
 export const BookCard = memo(function BookCard({
-  id, title, author, viewCount, rating, coverImage, slug,
+  id, title, author, viewCount, rating, coverImage, slug, hasAudio,
 }: BookCardProps) {
   const href = slug ? `/truyen/${slug}` : `/truyen/${id}`;
 
@@ -80,6 +87,18 @@ export const BookCard = memo(function BookCard({
               </div>
             )}
           </Link>
+          {hasAudio && (
+            <span
+              className="absolute top-2 left-2 z-20 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm pointer-events-none"
+              title="Có audio nghe truyện"
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+              </svg>
+              Audio
+            </span>
+          )}
         </div>
 
         {/* Info */}

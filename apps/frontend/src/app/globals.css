@@ -533,19 +533,35 @@ textarea::placeholder {
   color: #9ca3af;
 }
 
-/* Audio scroll sync — paragraph đang được đọc bởi TTS */
+/* Audio scroll sync — đoạn đang được đọc bởi TTS.
+   Chỉ dùng box-shadow + pseudo-element nằm NGOÀI đoạn: không đổi padding/margin
+   nên chiều rộng và cách ngắt dòng của chữ giữ nguyên, không bị "dãn". */
 p.audio-sync-active {
+  position: relative;
   background-color: rgba(99, 102, 241, 0.08);
-  border-left: 3px solid rgb(99, 102, 241);
-  padding-left: 0.75rem;
-  margin-left: -0.75rem;
-  border-radius: 0 4px 4px 0;
-  transition: background-color 0.3s ease, border-color 0.3s ease, padding 0.3s ease;
+  box-shadow: 0 0 0 0.5rem rgba(99, 102, 241, 0.08);
+  border-radius: 2px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+p.audio-sync-active::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: -0.5rem;
+  bottom: -0.5rem;
+  width: 3px;
+  border-radius: 2px;
+  background-color: rgb(99, 102, 241);
 }
 
 .dark p.audio-sync-active {
   background-color: rgba(129, 140, 248, 0.12);
-  border-left-color: rgb(129, 140, 248);
+  box-shadow: 0 0 0 0.5rem rgba(129, 140, 248, 0.12);
+}
+
+.dark p.audio-sync-active::before {
+  background-color: rgb(129, 140, 248);
 }
 
 /* Quill editor height for chapter editing */

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { shouldUnoptimizeImage } from '@/utils/image-utils';
-import { BookCard } from '@/components/books/book-card';
+import { BookCard, storyHasAudio } from '@/components/books/book-card';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useContinueReading } from '@/lib/api/hooks/use-reading-history';
 import { useRecommendedStoriesForUser } from '@/lib/api/hooks/use-stories';
@@ -112,6 +112,7 @@ export function ForYouRow() {
               coverImage={story.coverImage}
               slug={story.slug}
               storyId={story.id}
+              hasAudio={storyHasAudio(story)}
             />
           </div>
         ))}

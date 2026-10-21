@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { JsonLd } from '@/components/seo/json-ld';
 import { absoluteUrl } from '@/lib/seo/site-url';
-import { BookCard } from '@/components/books/book-card';
+import { BookCard, storyHasAudio } from '@/components/books/book-card';
 import { Breadcrumbs, DiscoveryShell } from '@/components/discovery/discovery-shell';
 import { FilterTabs } from '@/components/discovery/filter-tabs';
 import { PaginationLinks } from '@/components/discovery/pagination-links';
@@ -163,6 +163,7 @@ export default async function GenrePage({ params, searchParams }: Props) {
                   coverImage={story.coverImage}
                   slug={story.slug}
                   storyId={story.id}
+                  hasAudio={storyHasAudio(story)}
                 />
               </li>
             ))}

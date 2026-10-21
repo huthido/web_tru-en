@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Header } from '@/components/layouts/header';
 import { Sidebar } from '@/components/layouts/sidebar';
 import { AdSlot } from '@/components/ads/ad-slot';
-import { BookCard } from '@/components/books/book-card';
+import { BookCard, storyHasAudio } from '@/components/books/book-card';
 import { Loading } from '@/components/ui/loading';
 import { useStories } from '@/lib/api/hooks/use-stories';
 import { useCategories } from '@/lib/api/hooks/use-categories';
@@ -386,6 +386,7 @@ function SearchContent() {
                                             slug={story.slug}
                                             storyId={story.id}
                                             iconType="like"
+                                            hasAudio={storyHasAudio(story)}
                                         />
                                     ))}
                                 </div>

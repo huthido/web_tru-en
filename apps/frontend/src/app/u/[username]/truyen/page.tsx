@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { Loading } from '@/components/ui/loading';
-import { BookCard } from '@/components/books/book-card';
+import { BookCard, storyHasAudio } from '@/components/books/book-card';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useAuthorProfile, useAuthorStories } from '@/lib/api/hooks/use-authors';
 import { usePageLimit } from '@/hooks/use-page-limit';
@@ -51,6 +51,7 @@ export default function ProfileStoriesPage() {
             rating={s.rating}
             ratingCount={s.ratingCount}
             coverImage={s.coverImage}
+            hasAudio={storyHasAudio(s)}
           />
         ))}
       </div>

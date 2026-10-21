@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect as useClientEffect, useRef, useCallback, useState } from 'react';
 import { useAuth } from '@/lib/api/hooks/use-auth';
 import { useSettings } from '@/lib/api/hooks/use-settings';
-import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, UserCircle, HelpCircle, Plus, Bug, Megaphone, PanelLeftClose, PanelLeftOpen, Menu, Gift, Trophy, type LucideIcon } from 'lucide-react';
+import { Home, BookOpen, Camera, Palette, Library, Store, Upload, LayoutDashboard, Wallet, Settings, UserCircle, HelpCircle, Plus, Bug, Megaphone, Menu, Gift, Trophy, type LucideIcon } from 'lucide-react';
 import { SiGoogleplay } from '@/components/ui/brand-icons';
 import { BrandMark } from '@/components/ui/brand-mark';
 import { MobileAccountSheet } from '@/components/layouts/mobile-account-sheet';
@@ -77,19 +77,6 @@ export function Sidebar() {
     if (navRef.current) sessionStorage.setItem('sidebar-scroll', String(navRef.current.scrollTop));
   }, []);
 
-  // Thu gọn/mở rộng: trạng thái sống ở html[data-sidebar] để CSS toàn cục
-  // (globals.css) điều khiển cả rail lẫn offset `md:ml-60` của mọi trang —
-  // không cần React state nên SSR/hydration không lệch.
-  const toggleCollapsed = useCallback(() => {
-    const root = document.documentElement;
-    const next = root.dataset.sidebar === 'collapsed' ? 'expanded' : 'collapsed';
-    if (next === 'collapsed') root.dataset.sidebar = 'collapsed';
-    else delete root.dataset.sidebar;
-    try {
-      localStorage.setItem('sidebar', next);
-    } catch {}
-  }, []);
-
   const canCreateStories = !!user;
 
   const uploadHref = canCreateStories ? '/tac-gia/truyen/tao' : '/dang-nhap?redirect=/tac-gia/truyen/tao';
@@ -134,17 +121,6 @@ export function Sidebar() {
     <>
       {/* Desktop Sidebar — Vivid Reader expanded rail */}
       <aside className="sidebar-rail hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col py-8 bg-surface-container border-r border-outline-variant/40 transition-colors duration-300 z-40">
-        {/* Nút thu gọn nổi trên mép phải sidebar — dễ thấy trên web, hoạt động cả khi thu gọn */}
-        <button
-          type="button"
-          onClick={toggleCollapsed}
-          aria-label="Thu gọn hoặc mở rộng menu"
-          title="Thu gọn / mở rộng menu"
-          className="hidden md:flex absolute -right-3 top-5 w-7 h-7 rounded-full bg-surface-container border border-outline-variant/40 shadow-sm items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors z-50"
-        >
-          <PanelLeftClose size={14} className="sidebar-when-expanded flex-shrink-0" />
-          <PanelLeftOpen size={14} className="sidebar-when-collapsed flex-shrink-0" />
-        </button>
         {/* Logo / wordmark */}
         <Link
           href="/"
@@ -193,18 +169,6 @@ export function Sidebar() {
 
         {/* Secondary section + user card */}
         <div className="flex-shrink-0 px-3 pt-3 mt-2 border-t border-outline-variant/30 space-y-1.5">
-          {/* Nút thu gọn/mở rộng sidebar (hữu ích trên iPad/tablet) */}
-          <button
-            type="button"
-            onClick={toggleCollapsed}
-            aria-label="Thu gọn hoặc mở rộng menu"
-            className="sidebar-center flex items-center gap-3 w-full px-5 py-2 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors duration-200 active:scale-[0.98] font-semibold text-sm"
-          >
-            <PanelLeftClose size={18} className="sidebar-when-expanded flex-shrink-0" />
-            <PanelLeftOpen size={18} className="sidebar-when-collapsed flex-shrink-0" />
-            <span className="sidebar-label">Thu gọn</span>
-          </button>
-
           <div className="sidebar-bottom-row flex items-stretch gap-1">
             {bottomLinks.map((l) => {
               const Icon = l.icon;

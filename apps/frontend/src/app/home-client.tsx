@@ -11,6 +11,7 @@ import { ContinueReadingRow, ForYouRow } from '@/components/home/personal-rows';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { Story } from '@/lib/api/stories.service';
+import { storyHasAudio } from '@/components/books/book-card';
 
 interface SectionStory {
   id: string;
@@ -151,6 +152,7 @@ function AutoSectionContent({ sectionId, limit, label, seeMoreLink }: { sectionI
       author: story.authorName || story.author?.displayName || story.author?.username || 'N/A',
       viewCount: story.viewCount || 0, rating: story.rating || 0, ratingCount: story.ratingCount || 0,
       coverImage: story.coverImage, slug: story.slug, storyId: story.id,
+      hasAudio: storyHasAudio(story),
     })),
     [stories]
   );
