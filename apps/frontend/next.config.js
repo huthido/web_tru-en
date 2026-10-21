@@ -21,6 +21,10 @@ const withPWA = require('next-pwa')({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
+  // App Router: next-pwa đưa app-build-manifest.json vào danh sách tải trước
+  // nhưng file này không được phục vụ (404) → Workbox huỷ cả lần cài service
+  // worker. Loại ra để SW cài được.
+  buildExcludes: [/app-build-manifest\.json$/],
   runtimeCaching: [
     // Đọc offline: HTML (và payload RSC khi chuyển trang) của chương đã mở —
     // nội dung chương nằm sẵn trong HTML render phía server, nên mất mạng vẫn

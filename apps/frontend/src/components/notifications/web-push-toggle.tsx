@@ -30,8 +30,17 @@ function isIosNotInstalled(): boolean {
     return ios && !standalone;
 }
 
-/** Đợi service worker sẵn sàng, tối đa `ms` (dev không đăng ký SW → không treo). */
-async function readyRegistration(ms = 8000): Promise<ServiceWorkerRegistration | null> {
+/**
+ * Đăng ký service worker (nếu chưa có) rồi đợi nó hoạt động, tối đa `ms`.
+ *
+ * next-pwa 5.6 chỉ tự đăng ký SW cho Pages Router (entry main.js) — site
+ * dùng App Router nên SW không bao giờ tự đăng ký. Cố ý KHÔNG đăng ký cho mọi
+ * khách (lần cài tải trước ~180 file / vài MB); chỉ đăng ký khi người dùng
+ * chủ động bật thông báo. Lần cài đầu có thể mất vài chục giây trên 3G.
+ */
+async function ensureRegistration(ms = 60000): Promise<ServiceWorkerRegistration | null> {
+    const existing = await navigator.serviceWorker.getRegistration();
+    if (!existing) await navigator.serviceWorker.register('/sw.js', { scope: '/' });
     return Promise.race([
         navigator.serviceWorker.ready,
         new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
@@ -56,6 +65,7 @@ export function WebPushToggle({ className = '' }: { className?: string }) {
     const { data: config } = useWebPushConfig();
     const [state, setState] = useState<'loading' | 'on' | 'off' | 'denied'>('loading');
     const [busy, setBusy] = useState(false);
+    const [preparing, setPreparing] = useState(false);
     const supported = pushSupported();
 
     useEffect(() => {
@@ -94,7 +104,9 @@ export function WebPushToggle({ className = '' }: { className?: string }) {
                 setState(perm === 'denied' ? 'denied' : 'off');
                 return;
             }
-            const reg = await readyRegistration();
+            setPreparing(true);
+            const reg = await ensureRegistration();
+            setPreparing(false);
             if (!reg) throw new Error('no-sw');
             const sub = (await reg.pushManager.getSubscription())
                 || (await reg.pushManager.subscribe({
@@ -107,6 +119,7 @@ export function WebPushToggle({ className = '' }: { className?: string }) {
         } catch {
             showToast('Không bật được thông báo. Hãy thử lại hoặc kiểm tra quyền của trình duyệt.', 'error');
         } finally {
+            setPreparing(false);
             setBusy(false);
         }
     };
@@ -146,7 +159,7 @@ export function WebPushToggle({ className = '' }: { className?: string }) {
                 } ${className}`}
         >
             {busy ? <Loader2 size={16} className="animate-spin" /> : on ? <BellOff size={16} /> : <Bell size={16} />}
-            {on ? 'Tắt thông báo trên thiết bị' : 'Bật thông báo trên thiết bị'}
+            {preparing ? 'Đang chuẩn bị… (lần đầu có thể mất ít phút)' : on ? 'Tắt thông báo trên thiết bị' : 'Bật thông báo trên thiết bị'}
         </button>
     );
 }
