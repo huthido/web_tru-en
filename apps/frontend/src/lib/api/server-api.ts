@@ -39,11 +39,22 @@ export function internalApiHeaders(): Record<string, string> {
   return secret ? { 'x-internal-ssr': secret } : {};
 }
 
+/**
+ * Đường dẫn ghép từ slug trên URL (vd `/stories/${slug}`) không được thoát ra
+ * endpoint khác: chặn `..`, `\` và dạng mã hoá của `.`/`/`/`\` trong phần path.
+ * (Request SSR mang khoá nội bộ được miễn giới hạn → không để bị lợi dụng.)
+ */
+export function isSafeApiPath(path: string): boolean {
+  const p = path.split('?')[0];
+  return !/(^|\/)\.\.(\/|$)|\\|%2e|%2f|%5c/i.test(p);
+}
+
 export async function serverGet<T = any>(
   path: string,
   options: { revalidate?: number } = {}
 ): Promise<T | null> {
   if (!API_URL) return null;
+  if (!isSafeApiPath(path)) return null;
 
   const { revalidate = 300 } = options;
 

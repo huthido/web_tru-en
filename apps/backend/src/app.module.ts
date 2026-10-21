@@ -120,15 +120,17 @@ import { HomepageSectionsModule } from './homepage-sections/homepage-sections.mo
   ],
   controllers: [HealthController],
   providers: [
+    // Thứ tự quan trọng: JwtAuthGuard chạy trước để throttler đếm theo user
+    // khi đã đăng nhập (không phụ thuộc IP có thể bị giả).
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard, // Global JWT guard (can be overridden with @Public())
+    },
     {
       provide: APP_GUARD,
       // Bỏ qua request SSR nội bộ của frontend (xem guard) — tránh mọi khách
       // dùng chung một hạn mức theo IP container frontend.
       useClass: InternalAwareThrottlerGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard, // Global JWT guard (can be overridden with @Public())
     },
     MaintenanceMiddleware, // Add to providers for type resolution
   ],

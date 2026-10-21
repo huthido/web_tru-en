@@ -32,4 +32,15 @@ export class InternalAwareThrottlerGuard extends ThrottlerGuard {
         }
         return super.shouldSkip(context);
     }
+
+    /**
+     * Đã đăng nhập → đếm theo TÀI KHOẢN thay vì IP: IP lấy từ X-Forwarded-For
+     * có thể bị giả nếu ai đó gọi thẳng cổng backend (không qua proxy). Cần
+     * JwtAuthGuard chạy TRƯỚC guard này (xem thứ tự APP_GUARD ở app.module).
+     */
+    protected async getTracker(req: Record<string, any>): Promise<string> {
+        const userId = req?.user?.id;
+        if (typeof userId === 'string' && userId) return `user:${userId}`;
+        return super.getTracker(req);
+    }
 }
