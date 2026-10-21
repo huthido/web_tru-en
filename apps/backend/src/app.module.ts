@@ -1,7 +1,8 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { InternalAwareThrottlerGuard } from './common/guards/internal-aware-throttler.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -121,7 +122,9 @@ import { HomepageSectionsModule } from './homepage-sections/homepage-sections.mo
   providers: [
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      // Bỏ qua request SSR nội bộ của frontend (xem guard) — tránh mọi khách
+      // dùng chung một hạn mức theo IP container frontend.
+      useClass: InternalAwareThrottlerGuard,
     },
     {
       provide: APP_GUARD,

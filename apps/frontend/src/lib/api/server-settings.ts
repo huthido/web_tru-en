@@ -1,3 +1,4 @@
+import { internalApiHeaders } from './server-api';
 /**
  * Server-side settings fetcher for use in generateMetadata
  * This is used in server components and cannot use the client-side apiClient
@@ -49,6 +50,7 @@ export async function getServerSettings(): Promise<ServerSettings | null> {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                ...internalApiHeaders(),
             },
             // Don't cache settings for too long, but cache for a short time for performance
             next: { revalidate: 60 }, // Revalidate every 60 seconds

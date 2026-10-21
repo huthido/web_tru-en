@@ -226,6 +226,9 @@ services:
       WEB_PUSH_VAPID_PUBLIC_KEY: ${WEB_PUSH_VAPID_PUBLIC_KEY:-}
       WEB_PUSH_VAPID_PRIVATE_KEY: ${WEB_PUSH_VAPID_PRIVATE_KEY:-}
       WEB_PUSH_SUBJECT: ${WEB_PUSH_SUBJECT:-}
+      # Khoá chung để request SSR của frontend không bị giới hạn theo IP
+      # container (Coolify tự sinh SERVICE_PASSWORD_*; trống = tắt, như cũ).
+      INTERNAL_API_SECRET: ${SERVICE_PASSWORD_64_INTERNALAPI:-}
     ports:
       - "${BACKEND_PORT:-3009}:3009"
     volumes:
@@ -320,6 +323,8 @@ services:
       # SSR gọi backend qua Docker network nội bộ — tránh self-signed cert /
       # pending Let's Encrypt ở public HTTPS Traefik.
       INTERNAL_API_URL: ${INTERNAL_API_URL:-http://backend:3009}
+      # Phải TRÙNG với backend (xem INTERNAL_API_SECRET ở service backend).
+      INTERNAL_API_SECRET: ${SERVICE_PASSWORD_64_INTERNALAPI:-}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     healthcheck:

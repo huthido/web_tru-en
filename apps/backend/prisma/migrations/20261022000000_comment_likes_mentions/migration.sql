@@ -47,3 +47,6 @@ END $$;
 UPDATE "comments" c
 SET "likeCount" = (SELECT COUNT(*) FROM "comment_likes" l WHERE l."commentId" = c."id")
 WHERE c."likeCount" <> (SELECT COUNT(*) FROM "comment_likes" l WHERE l."commentId" = c."id");
+
+-- Bảng xếp hạng theo kỳ: groupBy storyId trong cửa sổ createdAt.
+CREATE INDEX IF NOT EXISTS "view_logs_createdAt_storyId_idx" ON "view_logs"("createdAt", "storyId");

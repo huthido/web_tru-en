@@ -13,6 +13,26 @@ import { getPaginationParams, createPaginatedResult } from '../common/utils/pagi
 
 const SSE_CHANNEL = 'notifications:sse';
 
+/** Gửi thông báo cho follower tối đa ngần này người cùng lúc — tránh dồn hàng
+ *  nghìn truy vấn vào pool kết nối DB (20) khi tác giả có nhiều người theo dõi. */
+const FANOUT_CONCURRENCY = 10;
+
+/** Như Promise.allSettled nhưng chỉ chạy tối đa `limit` tác vụ song song. */
+async function settleWithLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<unknown>) {
+    let next = 0;
+    const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+        while (next < items.length) {
+            const item = items[next++];
+            try {
+                await fn(item);
+            } catch {
+                /* best-effort: lỗi một người không chặn người khác */
+            }
+        }
+    });
+    await Promise.all(workers);
+}
+
 @Injectable()
 export class NotificationsService implements OnModuleInit {
     private readonly logger = new Logger(NotificationsService.name);
@@ -95,15 +115,13 @@ export class NotificationsService implements OnModuleInit {
                     ...(cursor ? { cursor, skip: 1 } : {}),
                 });
                 if (followers.length === 0) break;
-                await Promise.allSettled(
-                    followers.map((f) =>
+                await settleWithLimit(followers, FANOUT_CONCURRENCY, (f) =>
                         this.notifyUser(f.userId, {
                             title: `Chương mới: ${chapter.title}`,
                             content: `"${chapter.story.title}" vừa cập nhật chương mới.`,
                             type: NotificationType.STORY_NEW_CHAPTER,
                             actionUrl: `/truyen/${chapter.story.slug}/chuong/${chapter.slug}`,
                         }),
-                    ),
                 );
                 totalNotified += followers.length;
                 if (followers.length < BATCH) break;
@@ -176,15 +194,13 @@ export class NotificationsService implements OnModuleInit {
                     ...(cursor ? { cursor, skip: 1 } : {}),
                 });
                 if (followers.length === 0) break;
-                await Promise.allSettled(
-                    followers.map((f) =>
+                await settleWithLimit(followers, FANOUT_CONCURRENCY, (f) =>
                         this.notifyUser(f.userId, {
                             title: `Truyện mới từ ${authorName}`,
                             content: story.title,
                             type: NotificationType.AUTHOR_NEW_STORY,
                             actionUrl: `/truyen/${story.slug}`,
                         }),
-                    ),
                 );
                 totalNotified += followers.length;
                 if (followers.length < BATCH) break;

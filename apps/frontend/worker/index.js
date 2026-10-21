@@ -3,6 +3,12 @@
 // `worker/` vào sw.js lúc build). Nhận Web Push từ backend
 // (WebPushService) và mở đúng trang khi người dùng bấm thông báo.
 
+// Bản deploy mới (service worker mới) → xoá cache trang chương đã lưu: HTML
+// cũ trỏ tới file CSS/JS đã bị xoá nên mở offline sẽ mất giao diện.
+self.addEventListener('activate', function (event) {
+  event.waitUntil(caches.delete('chapter-pages').catch(function () {}));
+});
+
 self.addEventListener('push', function (event) {
   var data = {};
   try {

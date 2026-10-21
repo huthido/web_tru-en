@@ -33,6 +33,8 @@ export function extractMentions(content: string, max = MAX_MENTIONS_PER_COMMENT)
   return out;
 }
 
+const MENTION_DEDUPE_MS = 60 * 60 * 1000;
+
 @Injectable()
 export class CommentsService {
   private readonly logger = new Logger(CommentsService.name);
@@ -276,6 +278,8 @@ export class CommentsService {
    * chính người viết, và chủ bình luận cha (đã nhận thông báo "trả lời").
    * Tối đa MAX_MENTIONS_PER_COMMENT người; username khớp không phân biệt hoa thường.
    */
+  private recentMentions = new Map<string, number>();
+
   private async notifyMentions(
     comment: {
       id: string;
@@ -326,9 +330,20 @@ export class CommentsService {
       parentUserId = parent?.userId ?? null;
     }
 
-    const recipients = Array.from(new Set(users.map((u) => u.id))).filter(
-      (id) => id !== comment.userId && id !== parentUserId,
-    );
+    // Mỗi cặp (người nhắc → người được nhắc) chỉ báo 1 lần / giờ — chặn spam
+    // @tên liên tục vào một người (bình luận đã giới hạn 6/phút ở controller).
+    const now = Date.now();
+    const recipients = Array.from(new Set(users.map((u) => u.id))).filter((id) => {
+      if (id === comment.userId || id === parentUserId) return false;
+      const key = `${comment.userId}:${id}`;
+      const last = this.recentMentions.get(key);
+      if (last && now - last < MENTION_DEDUPE_MS) return false;
+      this.recentMentions.set(key, now);
+      return true;
+    });
+    if (this.recentMentions.size > 20000) {
+      for (const [k, at] of this.recentMentions) if (now - at > MENTION_DEDUPE_MS) this.recentMentions.delete(k);
+    }
     if (recipients.length === 0) return;
 
     let actionUrl: string | undefined;

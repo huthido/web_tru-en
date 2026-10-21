@@ -402,6 +402,7 @@ model ViewLog {
   @@index([userId])
   @@index([createdAt])
   @@index([ipAddress])
+  @@index([createdAt, storyId]) // bảng xếp hạng theo kỳ (groupBy storyId trong cửa sổ thời gian)
   @@map("view_logs")
 }
 

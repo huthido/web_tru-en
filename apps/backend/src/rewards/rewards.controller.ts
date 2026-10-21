@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/co
 import { UserRole } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsDateString, IsInt, IsOptional, IsString, MaxLength, Min, Max } from 'class-validator';
+import { Throttle } from '@nestjs/throttler';
 import { RewardsService } from './rewards.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -73,11 +74,14 @@ export class RewardsController {
         return { code: await this.rewards.ensureReferralCode(user.id) };
     }
 
+    @Throttle({ default: { limit: 5, ttl: 60000 } })
     @Post('referral/attach')
     attach(@CurrentUser() user: any, @Body() dto: CodeDto) {
         return this.rewards.attachReferrer(user.id, dto.code);
     }
 
+    // Chống dò mã: 5 lần thử / phút.
+    @Throttle({ default: { limit: 5, ttl: 60000 } })
     @Post('gift-code/redeem')
     redeem(@CurrentUser() user: any, @Body() dto: CodeDto) {
         return this.rewards.redeemGiftCode(user.id, dto.code);

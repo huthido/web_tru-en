@@ -30,7 +30,7 @@ interface CreateGiftCodeBody {
 }
 
 const QUERY_KEY = ['admin', 'gift-codes'];
-const CODE_RE = /^[A-Z0-9_-]{4,64}$/;
+const CODE_RE = /^[A-Z0-9_-]{6,64}$/;
 
 // Client đã bóc envelope {success,data} — vẫn phòng hờ trường hợp còn lồng `data`.
 const unwrap = <T,>(payload: unknown): T => {
@@ -206,7 +206,7 @@ export default function AdminGiftCodesPage() {
         const c = code.trim().toUpperCase();
         if (c) {
             if (!CODE_RE.test(c)) {
-                setFormError('Mã chỉ gồm A-Z, 0-9, dấu _ hoặc -, dài 4–64 ký tự (để trống để tự sinh)');
+                setFormError('Mã chỉ gồm A-Z, 0-9, dấu _ hoặc -, dài 6–64 ký tự (để trống để tự sinh)');
                 return;
             }
             body.code = c;

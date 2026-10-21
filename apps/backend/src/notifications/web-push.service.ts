@@ -41,6 +41,8 @@ export function isAllowedPushEndpoint(endpoint: string): boolean {
     return PUSH_HOST_SUFFIXES.some((s) => (s.charAt(0) === '.' ? host.endsWith(s) : host === s));
 }
 
+const MAX_SUBSCRIPTIONS_PER_USER = 10;
+
 @Injectable()
 export class WebPushService implements OnModuleInit {
     private readonly logger = new Logger(WebPushService.name);
@@ -112,6 +114,16 @@ export class WebPushService implements OnModuleInit {
                 lastUsed: new Date(),
             },
         });
+        // Tối đa 10 trình duyệt/thiết bị mỗi tài khoản — bỏ bớt bản cũ nhất.
+        const extra = await this.prisma.webPushSubscription.findMany({
+            where: { userId },
+            orderBy: { lastUsed: 'desc' },
+            skip: MAX_SUBSCRIPTIONS_PER_USER,
+            select: { id: true },
+        });
+        if (extra.length > 0) {
+            await this.prisma.webPushSubscription.deleteMany({ where: { id: { in: extra.map((e) => e.id) } } });
+        }
         return { subscribed: true };
     }
 
@@ -152,7 +164,10 @@ export class WebPushService implements OnModuleInit {
                     );
                 } catch (e: any) {
                     const code = e?.statusCode;
-                    if (code === 404 || code === 410) dead.push(s.id);
+                    // 404/410 = trình duyệt đã huỷ; không có statusCode + lỗi khoá
+                    // (mã hoá thất bại trước khi gửi) = bản ghi hỏng → xoá luôn.
+                    const badKeys = !code && /key|public|auth|encrypt|curve/i.test(String(e?.message ?? ''));
+                    if (code === 404 || code === 410 || badKeys) dead.push(s.id);
                     else this.logger.warn(`Web push failed (${code ?? 'net'}): ${e?.message ?? e}`);
                 }
             }),

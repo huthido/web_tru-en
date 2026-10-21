@@ -3,6 +3,18 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { authService, LoginRequest, RegisterRequest, ChangePasswordRequest } from '../auth.service';
 import { hasSessionHint, setSessionHint } from '../session-hint';
+import { rewardsService } from '../rewards.service';
+
+async function unregisterWebPushForThisBrowser(): Promise<void> {
+  try {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = reg ? await reg.pushManager.getSubscription() : null;
+    if (sub) await rewardsService.webPushUnsubscribe(sub.endpoint);
+  } catch {
+    /* best-effort — không chặn đăng xuất */
+  }
+}
 
 export const useAuth = () => {
   const router = useRouter();
@@ -101,7 +113,12 @@ export const useAuth = () => {
 
   // Logout mutation
   const logoutMutation = useMutation({
-    mutationFn: () => authService.logout(),
+    mutationFn: async () => {
+      // Gỡ đăng ký Web Push của trình duyệt này khỏi tài khoản TRƯỚC khi đăng
+      // xuất (cần còn phiên) — máy dùng chung không nhận thông báo của người cũ.
+      await unregisterWebPushForThisBrowser();
+      return authService.logout();
+    },
     onSuccess: () => {
       setSessionHint(false);
       queryClient.setQueryData(['auth', 'me'], null);

@@ -29,6 +29,16 @@ function unwrap<T>(body: any): T {
   return body as T;
 }
 
+/**
+ * Header cho request render phía server → backend bỏ qua giới hạn request
+ * theo IP (mọi SSR đến từ cùng IP container frontend). INTERNAL_API_SECRET là
+ * env server-only (KHÔNG có tiền tố NEXT_PUBLIC_) nên không lọt xuống trình duyệt.
+ */
+export function internalApiHeaders(): Record<string, string> {
+  const secret = process.env.INTERNAL_API_SECRET;
+  return secret ? { 'x-internal-ssr': secret } : {};
+}
+
 export async function serverGet<T = any>(
   path: string,
   options: { revalidate?: number } = {}
@@ -39,7 +49,7 @@ export async function serverGet<T = any>(
 
   try {
     const response = await fetch(`${BASE_URL}${path.startsWith('/') ? path : `/${path}`}`, {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...internalApiHeaders() },
       next: { revalidate },
     });
 

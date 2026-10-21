@@ -1171,7 +1171,7 @@ export class WalletService implements OnModuleInit {
         const [aggregate, salesCount, recent, currentFeePercent] = await Promise.all([
             this.prisma.chapterPurchase.aggregate({
                 where,
-                _sum: { pricePaid: true, netAmount: true, platformFee: true },
+                _sum: { pricePaid: true, netAmount: true, platformFee: true, bonusPaid: true },
             }),
             this.prisma.chapterPurchase.count({ where }),
             this.prisma.chapterPurchase.findMany({
@@ -1190,15 +1190,20 @@ export class WalletService implements OnModuleInit {
             this.getChapterSaleFeePercent(),
         ]);
 
+        // Phần người mua trả bằng xu thưởng không chia cho tác giả → không tính
+        // vào doanh thu gốc (để gốc − phí = thực nhận); báo riêng totalBonusPaid.
+        const totalBonusPaid = aggregate._sum.bonusPaid || 0;
         return {
-            totalGross: aggregate._sum.pricePaid || 0,
+            totalGross: (aggregate._sum.pricePaid || 0) - totalBonusPaid,
+            totalBonusPaid,
             totalNet: aggregate._sum.netAmount || 0,
             totalPlatformFee: aggregate._sum.platformFee || 0,
             platformFeePercent: currentFeePercent,
             salesCount,
             sales: recent.map(s => ({
                 id: s.id,
-                amount: s.pricePaid,       // gross — what the buyer paid
+                amount: s.pricePaid - s.bonusPaid, // gross phần xu thật (bỏ phần xu thưởng)
+                bonusPaid: s.bonusPaid,
                 netAmount: s.netAmount,    // what you actually received
                 platformFee: s.platformFee,
                 createdAt: s.createdAt,
@@ -1219,7 +1224,7 @@ export class WalletService implements OnModuleInit {
         const [aggregate, salesCount, recent, currentFeePercent] = await Promise.all([
             this.prisma.storyPurchase.aggregate({
                 where,
-                _sum: { pricePaid: true, netAmount: true, platformFee: true },
+                _sum: { pricePaid: true, netAmount: true, platformFee: true, bonusPaid: true },
             }),
             this.prisma.storyPurchase.count({ where }),
             this.prisma.storyPurchase.findMany({
@@ -1238,15 +1243,20 @@ export class WalletService implements OnModuleInit {
             this.getChapterSaleFeePercent(),
         ]);
 
+        // Phần người mua trả bằng xu thưởng không chia cho tác giả → không tính
+        // vào doanh thu gốc (để gốc − phí = thực nhận); báo riêng totalBonusPaid.
+        const totalBonusPaid = aggregate._sum.bonusPaid || 0;
         return {
-            totalGross: aggregate._sum.pricePaid || 0,
+            totalGross: (aggregate._sum.pricePaid || 0) - totalBonusPaid,
+            totalBonusPaid,
             totalNet: aggregate._sum.netAmount || 0,
             totalPlatformFee: aggregate._sum.platformFee || 0,
             platformFeePercent: currentFeePercent,
             salesCount,
             sales: recent.map(s => ({
                 id: s.id,
-                amount: s.pricePaid,
+                amount: s.pricePaid - s.bonusPaid,
+                bonusPaid: s.bonusPaid,
                 netAmount: s.netAmount,
                 platformFee: s.platformFee,
                 createdAt: s.createdAt,

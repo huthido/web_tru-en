@@ -373,9 +373,11 @@ export class RewardsService {
         await this.assertEligibleUser(userId);
 
         const gift = await this.prisma.giftCode.findUnique({ where: { code } });
-        if (!gift || !gift.isActive) throw new BadRequestException('Mã quà tặng không tồn tại hoặc đã tắt');
-        if (gift.expiresAt && gift.expiresAt.getTime() < Date.now()) {
-            throw new BadRequestException('Mã quà tặng đã hết hạn');
+        // Một thông báo chung cho mọi trường hợp mã không dùng được — không để
+        // lộ mã nào tồn tại (chống dò mã).
+        const INVALID = 'Mã quà tặng không hợp lệ hoặc đã hết lượt/hết hạn';
+        if (!gift || !gift.isActive || (gift.expiresAt && gift.expiresAt.getTime() < Date.now())) {
+            throw new BadRequestException(INVALID);
         }
         const used = await this.prisma.giftCodeRedemption.findUnique({
             where: { giftCodeId_userId: { giftCodeId: gift.id, userId } },
@@ -391,7 +393,7 @@ export class RewardsService {
                         where: { id: gift.id, usedCount: { lt: gift.maxUses } },
                         data: { usedCount: { increment: 1 } },
                     });
-                if (affected.count === 0) throw new BadRequestException('Mã quà tặng đã hết lượt');
+                if (affected.count === 0) throw new BadRequestException(INVALID);
                 await tx.giftCodeRedemption.create({ data: { giftCodeId: gift.id, userId, reward: gift.reward } });
                 await this.wallet.creditBonus(
                     tx, userId, gift.reward, TransactionType.GIFTCODE_REWARD,
@@ -418,8 +420,8 @@ export class RewardsService {
 
     async createGiftCode(adminId: string, dto: { code?: string; reward: number; maxUses?: number | null; expiresAt?: string | null; note?: string | null }) {
         const code = (dto.code ? String(dto.code) : RewardsService.randomCode(10)).trim().toUpperCase();
-        if (!/^[A-Z0-9_-]{4,64}$/.test(code)) {
-            throw new BadRequestException('Mã chỉ gồm chữ, số, gạch ngang/gạch dưới (4–64 ký tự)');
+        if (!/^[A-Z0-9_-]{6,64}$/.test(code)) {
+            throw new BadRequestException('Mã chỉ gồm chữ, số, gạch ngang/gạch dưới (6–64 ký tự)');
         }
         try {
             return await this.prisma.giftCode.create({

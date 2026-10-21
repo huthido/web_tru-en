@@ -8,7 +8,12 @@ import { getStoryServer } from '@/lib/api/server-stories';
  * layout và áp dụng cả cho trang chương con.
  */
 export const runtime = 'nodejs';
+// Route động không có generateStaticParams → mặc định Next vẽ lại MỖI request
+// (sharp + Satori ~150–400ms CPU). force-static: vẽ lần đầu rồi cache ISR 1 giờ.
+export const dynamic = 'force-static';
 export const revalidate = 3600;
+/** Không để fetch treo (mặc định undici chờ tới 300s). */
+const FETCH_TIMEOUT_MS = 3000;
 export const alt = 'Truyện trên YÊU';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
@@ -20,10 +25,10 @@ const ACCENT = '#ff8fb1';
 async function loadFont(text: string, weight: number): Promise<ArrayBuffer | null> {
     try {
         const cssUrl = `https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@${weight}&text=${encodeURIComponent(text)}`;
-        const css = await (await fetch(cssUrl, { next: { revalidate: 86400 } })).text();
+        const css = await (await fetch(cssUrl, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), next: { revalidate: 86400 } })).text();
         const match = css.match(/src: url\(([^)]+)\) format\('(opentype|truetype)'\)/);
         if (!match) return null;
-        const res = await fetch(match[1], { next: { revalidate: 86400 } });
+        const res = await fetch(match[1], { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), next: { revalidate: 86400 } });
         return res.ok ? await res.arrayBuffer() : null;
     } catch {
         return null;
@@ -55,7 +60,7 @@ async function loadCover(raw?: string | null): Promise<string | null> {
     if (!url) return null;
     try {
         // Không đi theo chuyển hướng (redirect có thể dẫn sang host không được phép).
-        const res = await fetch(url, { redirect: 'manual', next: { revalidate: 86400 } });
+        const res = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), next: { revalidate: 86400 } });
         if (!res.ok || res.status >= 300) return null;
         const input = Buffer.from(await res.arrayBuffer());
         if (input.length > 8 * 1024 * 1024) return null;

@@ -1,13 +1,14 @@
 import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsString, IsUrl, MaxLength, ValidateNested } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsUrl, Matches, MaxLength, ValidateNested } from 'class-validator';
 
+/** Khoá base64url của PushSubscription: p256dh = 65 byte (~87 ký tự), auth = 16 byte (~22 ký tự). */
 class WebPushKeysDto {
     @IsString()
-    @MaxLength(200)
+    @Matches(/^[A-Za-z0-9_-]{80,100}={0,2}$/, { message: 'p256dh không hợp lệ' })
     p256dh!: string;
 
     @IsString()
-    @MaxLength(100)
+    @Matches(/^[A-Za-z0-9_-]{20,30}={0,2}$/, { message: 'auth không hợp lệ' })
     auth!: string;
 }
 

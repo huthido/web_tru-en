@@ -64,6 +64,10 @@ const config: Config = {
           DEFAULT: 'rgb(var(--md-on-tertiary) / <alpha-value>)',
           container: 'rgb(var(--md-on-tertiary-container) / <alpha-value>)',
         },
+        // Màu báo lỗi (text-error, bg-error/10…) — trước chưa khai báo nên class không có tác dụng.
+        error: {
+          DEFAULT: 'rgb(220 38 38 / <alpha-value>)',
+        },
         outline: {
           DEFAULT: 'rgb(var(--md-outline) / <alpha-value>)',
           variant: 'rgb(var(--md-outline-variant) / <alpha-value>)',

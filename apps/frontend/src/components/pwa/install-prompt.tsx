@@ -78,7 +78,7 @@ export default function InstallPrompt() {
 
     const ios = mode === 'ios';
     return (
-        <div className="fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
+        <div className="fixed top-[68px] md:top-auto md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-in fade-in duration-300">
             <div className="bg-surface-container rounded-xl shadow-2xl border border-outline-variant p-4 flex items-start gap-4">
                 <div className="bg-primary/10 p-3 rounded-full text-primary shrink-0">
                     {ios ? <Share size={24} /> : <Download size={24} />}

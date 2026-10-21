@@ -51,6 +51,9 @@ export const PUBLIC_STORY_WHERE = {
 export const MATURITY_WHERE = (allowAdultContent: boolean) =>
   allowAdultContent ? {} : { maturity: StoryMaturity.ALL };
 
+/** groupBy lấy dư gấp ngần này rồi mới lọc truyện công khai/18+ (bỏ lọc quan hệ trong groupBy). */
+const RANKING_OVERFETCH = 3;
+
 @Injectable()
 export class StoriesService {
   constructor(
@@ -1627,31 +1630,33 @@ export class StoriesService {
     if (metric === 'views') {
       const rows: any[] = await (this.prisma.viewLog.groupBy as any)({
         by: ['storyId'],
-        where: { createdAt: { gte: since }, storyId: { not: null }, story: { is: storyWhere } },
+        // Không lọc quan hệ story ở đây (Prisma biến thành subquery quét toàn
+        // bảng view_logs); lấy dư rồi bước findMany bên dưới lọc public/18+.
+        where: { createdAt: { gte: since }, storyId: { not: null } },
         _count: { _all: true },
         orderBy: { _count: { storyId: 'desc' } },
-        take: limit,
+        take: limit * RANKING_OVERFETCH,
       });
       ranked = rows.map((r) => ({ storyId: r.storyId, value: r._count?._all ?? 0 }));
     } else if (metric === 'follows') {
       const rows: any[] = await (this.prisma.follow.groupBy as any)({
         by: ['storyId'],
-        where: { createdAt: { gte: since }, story: { is: storyWhere } },
+        where: { createdAt: { gte: since } },
         _count: { _all: true },
         orderBy: { _count: { storyId: 'desc' } },
-        take: limit,
+        take: limit * RANKING_OVERFETCH,
       });
       ranked = rows.map((r) => ({ storyId: r.storyId, value: r._count?._all ?? 0 }));
     } else {
       const rows: any[] = await (this.prisma.rating.groupBy as any)({
         by: ['storyId'],
-        where: { updatedAt: { gte: since }, story: { is: storyWhere } },
+        where: { updatedAt: { gte: since } },
         _avg: { rating: true },
         _count: { _all: true },
         // Một lượt 5★ lẻ không được đứng đầu bảng.
         having: { storyId: { _count: { gte: StoriesService.RANKING_MIN_RATINGS_WINDOW } } },
         orderBy: [{ _avg: { rating: 'desc' } }, { _count: { storyId: 'desc' } }],
-        take: limit,
+        take: limit * RANKING_OVERFETCH,
       });
       ranked = rows.map((r) => ({
         storyId: r.storyId,
@@ -1670,6 +1675,7 @@ export class StoriesService {
     const byId = new Map(stories.map((s) => [s.id, s]));
     const items = ranked
       .filter((r) => byId.has(r.storyId))
+      .slice(0, limit)
       .map((r, i) => ({
         ...byId.get(r.storyId)!,
         rank: i + 1,

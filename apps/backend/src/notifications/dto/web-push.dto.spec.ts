@@ -8,7 +8,7 @@ const meta = { type: 'body' as const, metatype: WebPushSubscribeDto };
 describe('WebPushSubscribeDto', () => {
     const base = {
         endpoint: 'https://fcm.googleapis.com/fcm/send/abc',
-        keys: { p256dh: 'BPx', auth: 'xyz' },
+        keys: { p256dh: 'B' + 'x'.repeat(86), auth: 'a'.repeat(22) },
     };
 
     it('nhận đúng PushSubscription.toJSON() của Chrome (có expirationTime: null)', async () => {

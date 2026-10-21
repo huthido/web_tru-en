@@ -51,8 +51,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: storyUrl,
       siteName: 'YÊU',
-      // Ảnh chia sẻ do opengraph-image.tsx sinh (ưu tiên hơn giá trị này); giữ
-      // ảnh bìa làm dự phòng nếu route ảnh lỗi.
+      // Trang truyện dùng ảnh do opengraph-image.tsx sinh (file metadata thay thế
+      // hẳn giá trị này); trang chương có openGraph.images riêng nên vẫn dùng bìa.
       images: [{ url: coverImage, width: 600, height: 800, alt: story.title }],
       locale: 'vi_VN',
     },

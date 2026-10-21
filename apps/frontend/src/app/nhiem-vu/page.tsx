@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
     BookOpen, CalendarCheck, Check, Copy, Gift, Headphones, Loader2, MessageCircle, Share2, Sparkles, Ticket, UserPlus,
@@ -260,6 +260,11 @@ function GiftCodeCard({ enabled }: { enabled: boolean }) {
 
 export default function MissionsPage() {
     const { isAuthenticated, isLoading: authLoading } = useAuth();
+    // Trạng thái đăng nhập chỉ biết được ở trình duyệt (cờ phiên trong
+    // localStorage) → render khung chờ tới khi mount để HTML server và lần
+    // render đầu ở client trùng nhau (tránh lỗi hydration).
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
     const { data: status, isLoading } = useRewardsStatus(isAuthenticated);
     const { data: pushConfig } = useWebPushConfig();
 
@@ -283,7 +288,7 @@ export default function MissionsPage() {
                         </p>
                     </div>
 
-                    {!authLoading && !isAuthenticated ? (
+                    {mounted && !authLoading && !isAuthenticated ? (
                         <Card className="text-center">
                             <p className="text-on-surface-variant mb-4">Đăng nhập để điểm danh, làm nhiệm vụ và nhận xu thưởng.</p>
                             <Link href="/dang-nhap?redirect=/nhiem-vu" className="inline-block px-6 py-2.5 rounded-xl bg-primary text-on-primary font-semibold">

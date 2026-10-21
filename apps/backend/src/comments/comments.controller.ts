@@ -20,6 +20,17 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { UserRole } from '@prisma/client';
+import { Throttle } from '@nestjs/throttler';
+
+/** page/limit từ query: số nguyên dương, limit tối đa 50 (chặn ?limit=100000 / số âm). */
+function clampPage(v?: string): number | undefined {
+  const n = v ? parseInt(v, 10) : NaN;
+  return Number.isFinite(n) && n > 0 ? Math.min(n, 10000) : undefined;
+}
+function clampLimit(v?: string): number | undefined {
+  const n = v ? parseInt(v, 10) : NaN;
+  return Number.isFinite(n) && n > 0 ? Math.min(n, 50) : undefined;
+}
 
 const parseSort = (sort?: string): CommentSort => (sort === 'top' ? 'top' : 'newest');
 
@@ -54,8 +65,8 @@ export class CommentsController {
       return await this.commentsService.findAll(
         storyId,
         undefined,
-        page ? parseInt(page) : undefined,
-        limit ? parseInt(limit) : undefined,
+        clampPage(page),
+        clampLimit(limit),
         parseSort(sort),
         user?.id
       );
@@ -77,8 +88,8 @@ export class CommentsController {
     return this.commentsService.findAll(
       undefined,
       chapterId,
-      page ? parseInt(page) : undefined,
-      limit ? parseInt(limit) : undefined,
+      clampPage(page),
+      clampLimit(limit),
       parseSort(sort),
       user?.id
     );
@@ -90,6 +101,8 @@ export class CommentsController {
     return this.commentsService.findOne(commentId);
   }
 
+  // Chống spam bình luận/@nhắc tên: 6 bình luận/phút mỗi IP.
+  @Throttle({ default: { limit: 6, ttl: 60000 } })
   @Post('stories/:storyId')
   @UseGuards(JwtAuthGuard)
   async createStoryComment(
@@ -105,6 +118,8 @@ export class CommentsController {
     );
   }
 
+  // Chống spam bình luận/@nhắc tên: 6 bình luận/phút mỗi IP.
+  @Throttle({ default: { limit: 6, ttl: 60000 } })
   @Post('chapters/:chapterId')
   @UseGuards(JwtAuthGuard)
   async createChapterComment(
@@ -139,6 +154,8 @@ export class CommentsController {
     return this.commentsService.unlike(commentId, user.id);
   }
 
+  // Chống spam bình luận/@nhắc tên: 6 bình luận/phút mỗi IP.
+  @Throttle({ default: { limit: 6, ttl: 60000 } })
   @Post(':commentId/reply')
   @UseGuards(JwtAuthGuard)
   async replyToComment(
