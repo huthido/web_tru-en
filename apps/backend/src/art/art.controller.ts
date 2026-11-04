@@ -56,6 +56,12 @@ export class ArtController {
     return this.artService.deletePost(id, user.id);
   }
 
+  @Public()
+  @Post('posts/:id/view')
+  async viewPost(@Param('id') id: string) {
+    return this.artService.incrementView(id);
+  }
+
   // ── Upload ────────────────────────────────────────────────────────────────
 
   @Post('upload')

@@ -120,6 +120,7 @@ model User {
   authorFollowsFollowing   AuthorFollow[]           @relation("AuthorFollowFollower")
   authorFollowers          AuthorFollow[]           @relation("AuthorFollowTarget")
   paintings                Painting[]
+  paintingLikes            PaintingLike[]
   // Phase 3 — giữ chân người đọc
   referredBy               User?                    @relation("UserReferral", fields: [referredById], references: [id], onDelete: SetNull)
   referrals                User[]                   @relation("UserReferral")
@@ -1645,6 +1646,7 @@ model ArtPost {
   height       Int?
   likeCount    Int      @default(0)
   commentCount Int      @default(0)
+  viewCount    Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -1783,12 +1785,26 @@ model Painting {
   likeCount   Int            @default(0)
   authorId    String
   author      User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes       PaintingLike[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
   @@index([authorId])
   @@index([status, createdAt])
   @@map("paintings")
+}
+
+model PaintingLike {
+  userId     String
+  paintingId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  painting Painting @relation(fields: [paintingId], references: [id], onDelete: Cascade)
+
+  @@id([userId, paintingId])
+  @@index([paintingId])
+  @@map("painting_likes")
 }
 
 enum SponsorRewardType {

@@ -49,6 +49,14 @@ export function useMarkPaintingSold() {
   });
 }
 
+export function useTogglePaintingLike() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: paintingsService.toggleLike,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['paintings'] }),
+  });
+}
+
 export function useUploadPaintingImage() {
   return useMutation({ mutationFn: paintingsService.uploadImage });
 }

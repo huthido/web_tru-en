@@ -39,7 +39,7 @@ export class PaintingsService {
     limit?: number;
     status?: string;
     authorId?: string;
-  }) {
+  }, currentUserId?: string) {
     const page = Math.max(1, params.page ?? 1);
     const limit = Math.min(params.limit ?? 20, 50);
     const skip = (page - 1) * limit;
@@ -60,7 +60,7 @@ export class PaintingsService {
     const [items, total] = await Promise.all([
       this.prisma.painting.findMany({
         where,
-        select: PAINTING_SELECT,
+        select: this.selectFor(currentUserId),
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
@@ -69,7 +69,7 @@ export class PaintingsService {
     ]);
 
     return {
-      items,
+      items: items.map((p) => this.withLiked(p)),
       meta: {
         total,
         page,
@@ -79,19 +79,56 @@ export class PaintingsService {
     };
   }
 
-  async getOne(id: string) {
+  async getOne(id: string, currentUserId?: string) {
     const painting = await this.prisma.painting.findUnique({
       where: { id },
-      select: PAINTING_SELECT,
+      select: this.selectFor(currentUserId),
     });
     if (!painting) throw new NotFoundException('Không tìm thấy tranh');
+    return this.withLiked(painting);
+  }
 
-    await this.prisma.painting.update({
+  /** Tăng lượt xem (client tự chống đếm lặp trong phiên). */
+  async incrementView(id: string) {
+    const r = await this.prisma.painting.updateMany({
       where: { id },
       data: { viewCount: { increment: 1 } },
     });
+    if (r.count === 0) throw new NotFoundException('Không tìm thấy tranh');
+    return { success: true };
+  }
 
-    return painting;
+  async toggleLike(id: string, userId: string) {
+    const exists = await this.prisma.painting.findUnique({ where: { id }, select: { id: true } });
+    if (!exists) throw new NotFoundException('Không tìm thấy tranh');
+    const key = { userId_paintingId: { userId, paintingId: id } };
+    const existing = await this.prisma.paintingLike.findUnique({ where: key });
+    if (existing) {
+      await this.prisma.$transaction([
+        this.prisma.paintingLike.delete({ where: key }),
+        this.prisma.painting.update({ where: { id }, data: { likeCount: { decrement: 1 } } }),
+      ]);
+      return { liked: false };
+    }
+    await this.prisma.$transaction([
+      this.prisma.paintingLike.create({ data: { userId, paintingId: id } }),
+      this.prisma.painting.update({ where: { id }, data: { likeCount: { increment: 1 } } }),
+    ]);
+    return { liked: true };
+  }
+
+  private selectFor(currentUserId?: string) {
+    return {
+      ...PAINTING_SELECT,
+      likes: currentUserId
+        ? { where: { userId: currentUserId }, select: { userId: true } }
+        : false,
+    } as const;
+  }
+
+  private withLiked<T extends { likes?: unknown }>(p: T) {
+    const { likes, ...rest } = p as any;
+    return { ...rest, likedByMe: Array.isArray(likes) && likes.length > 0 };
   }
 
   async create(authorId: string, dto: CreatePaintingDto) {

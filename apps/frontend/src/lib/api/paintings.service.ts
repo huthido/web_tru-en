@@ -23,6 +23,7 @@ export interface Painting {
   status: 'AVAILABLE' | 'SOLD';
   viewCount: number;
   likeCount: number;
+  likedByMe?: boolean;
   createdAt: string;
   author: PaintingAuthor;
 }
@@ -87,6 +88,15 @@ export const paintingsService = {
   delete: async (id: string) => {
     const r = await apiClient.delete(`/paintings/${id}`);
     return r.data;
+  },
+
+  viewPainting: async (id: string) => {
+    await apiClient.post(`/paintings/${id}/view`);
+  },
+
+  toggleLike: async (id: string): Promise<{ liked: boolean }> => {
+    const r = await apiClient.post<{ liked: boolean }>(`/paintings/${id}/like`);
+    return r.data as unknown as { liked: boolean };
   },
 
   markSold: async (id: string): Promise<Painting> => {

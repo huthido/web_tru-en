@@ -39,14 +39,27 @@ export class PaintingsController {
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('status') status?: string,
     @Query('authorId') authorId?: string,
+    @CurrentUser() user?: any,
   ) {
-    return this.paintingsService.getList({ page, limit, status, authorId });
+    return this.paintingsService.getList({ page, limit, status, authorId }, user?.id);
   }
 
   @Public()
   @Get(':id')
-  async getOne(@Param('id') id: string) {
-    return this.paintingsService.getOne(id);
+  async getOne(@Param('id') id: string, @CurrentUser() user?: any) {
+    return this.paintingsService.getOne(id, user?.id);
+  }
+
+  @Public()
+  @Post(':id/view')
+  async view(@Param('id') id: string) {
+    return this.paintingsService.incrementView(id);
+  }
+
+  @Post(':id/like')
+  @UseGuards(JwtAuthGuard)
+  async toggleLike(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.paintingsService.toggleLike(id, user.id);
   }
 
   @Post('upload-image')

@@ -1,5 +1,6 @@
 'use client';
 
+import { Heart, Eye } from 'lucide-react';
 import { Painting } from '@/lib/api/paintings.service';
 
 interface Props {
@@ -43,6 +44,10 @@ export function PaintingCard({ painting, onClick }: Props) {
         <p className={`text-sm font-bold mt-1.5 ${painting.status === 'SOLD' ? 'line-through text-on-surface-variant' : 'text-primary'}`}>
           {priceText}
         </p>
+        <div className="flex items-center gap-3 mt-1.5 text-xs text-on-surface-variant">
+          <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5" />{painting.likeCount}</span>
+          <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" />{painting.viewCount}</span>
+        </div>
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ export interface ArtPost {
   height?: number | null;
   likeCount: number;
   commentCount: number;
+  viewCount?: number;
   likedByMe: boolean;
   createdAt: string;
   user: ArtUser;
@@ -80,6 +81,11 @@ export const artService = {
   toggleLike: async (postId: string): Promise<{ liked: boolean }> => {
     const r = await apiClient.post<{ liked: boolean }>(`/art/posts/${postId}/like`);
     return r.data as unknown as { liked: boolean };
+  },
+
+  /** Ghi nhận 1 lượt xem (gọi một lần mỗi bài trong phiên). */
+  viewPost: async (postId: string) => {
+    await apiClient.post(`/art/posts/${postId}/view`);
   },
 
   getComments: async (postId: string, cursor?: string): Promise<CommentsResponse> => {

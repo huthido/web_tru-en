@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { usePaintings } from '@/lib/api/hooks/use-paintings';
-import { Painting } from '@/lib/api/paintings.service';
+import { Painting, paintingsService } from '@/lib/api/paintings.service';
 import { PaintingCard } from './painting-card';
 import { PaintingUploadModal } from './painting-upload-modal';
 import { PaintingDetailModal } from './painting-detail-modal';
@@ -16,6 +16,13 @@ interface Props {
 export function PaintingTab({ currentUserId, isLoggedIn }: Props) {
   const [showUpload, setShowUpload] = useState(false);
   const [selected, setSelected] = useState<Painting | null>(null);
+
+  // Link chia sẻ /tranh?tranh=<id> → mở thẳng chi tiết tranh đó.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('tranh');
+    if (!id) return;
+    paintingsService.getOne(id).then(setSelected).catch(() => {});
+  }, []);
 
   const {
     data,

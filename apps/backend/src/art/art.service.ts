@@ -15,6 +15,7 @@ const POST_SELECT = {
   height: true,
   likeCount: true,
   commentCount: true,
+  viewCount: true,
   createdAt: true,
   user: {
     select: {
@@ -81,6 +82,16 @@ export class ArtService {
     if (!post) throw new NotFoundException('Bài đăng không tồn tại');
     if (post.userId !== userId) throw new ForbiddenException('Không có quyền xóa');
     await this.prisma.artPost.delete({ where: { id } });
+    return { success: true };
+  }
+
+  /** Tăng lượt xem (client tự chống đếm lặp trong phiên). */
+  async incrementView(id: string) {
+    const r = await this.prisma.artPost.updateMany({
+      where: { id },
+      data: { viewCount: { increment: 1 } },
+    });
+    if (r.count === 0) throw new NotFoundException('Bài đăng không tồn tại');
     return { success: true };
   }
 

@@ -1,14 +1,18 @@
 'use client';
 
-import { useState } from 'react';
-import { X, Phone, MessageCircle, Facebook, MessageSquare, CheckCheck, Flag } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, Phone, MessageCircle, Facebook, MessageSquare, CheckCheck, Flag, Heart, Eye } from 'lucide-react';
 import { ReportModal } from '@/components/reports/report-modal';
-import { Painting } from '@/lib/api/paintings.service';
+import { Painting, paintingsService } from '@/lib/api/paintings.service';
+import { ShareButton } from '@/components/common/share-button';
 import { useToastContext } from '@/components/providers/toast-provider';
-import { useMarkPaintingSold } from '@/lib/api/hooks/use-paintings';
+import { useMarkPaintingSold, useTogglePaintingLike } from '@/lib/api/hooks/use-paintings';
 
 const safeUrl = (url: string): string =>
   /^https?:\/\//i.test(url) ? url : '#';
+
+/** Tranh đã đếm lượt xem trong phiên này. */
+const viewedPaintings = new Set<string>();
 
 interface Props {
   painting: Painting;
@@ -20,6 +24,34 @@ export function PaintingDetailModal({ painting, currentUserId, onClose }: Props)
   const isOwner = currentUserId === painting.author.id;
   const [showReport, setShowReport] = useState(false);
   const { showToast } = useToastContext();
+  const [liked, setLiked] = useState(!!painting.likedByMe);
+  const [likeCount, setLikeCount] = useState(painting.likeCount);
+  const [viewCount, setViewCount] = useState(painting.viewCount);
+  const { mutate: toggleLike } = useTogglePaintingLike();
+
+  useEffect(() => {
+    if (viewedPaintings.has(painting.id)) return;
+    viewedPaintings.add(painting.id);
+    setViewCount((v) => v + 1);
+    paintingsService.viewPainting(painting.id).catch(() => {});
+  }, [painting.id]);
+
+  const handleLike = () => {
+    if (!currentUserId) {
+      showToast('Đăng nhập để thả tim nhé', 'info');
+      return;
+    }
+    const next = !liked;
+    setLiked(next);
+    setLikeCount((c) => Math.max(0, c + (next ? 1 : -1)));
+    toggleLike(painting.id, {
+      onError: () => {
+        setLiked(!next);
+        setLikeCount((c) => Math.max(0, c + (next ? -1 : 1)));
+      },
+    });
+  };
+
   const { mutateAsync: markSold, isPending: isMarking } = useMarkPaintingSold();
 
   const priceText = painting.price != null
@@ -87,6 +119,28 @@ export function PaintingDetailModal({ painting, currentUserId, onClose }: Props)
                 </p>
                 <p className="text-xs text-on-surface-variant">Tác giả</p>
               </div>
+            </div>
+
+            {/* Tương tác */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleLike}
+                className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                  liked ? 'text-rose-500' : 'text-on-surface-variant hover:text-rose-500'
+                }`}
+              >
+                <Heart className="w-5 h-5" fill={liked ? 'currentColor' : 'none'} />
+                <span>{likeCount}</span>
+              </button>
+              <span className="flex items-center gap-1.5 text-sm text-on-surface-variant" title="Lượt xem">
+                <Eye className="w-5 h-5" />
+                <span>{viewCount}</span>
+              </span>
+              <ShareButton
+                path={`/tranh?tranh=${painting.id}`}
+                title={painting.title}
+                label="Chia sẻ"
+              />
             </div>
 
             {/* Giá */}

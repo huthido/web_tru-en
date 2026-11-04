@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Heart, MessageCircle, Trash2, MoreHorizontal } from 'lucide-react';
-import { ArtPost } from '@/lib/api/art.service';
+import { Heart, MessageCircle, Trash2, MoreHorizontal, Eye } from 'lucide-react';
+import { ShareButton } from '@/components/common/share-button';
+import { ArtPost, artService } from '@/lib/api/art.service';
 import { useToggleArtLike, useDeleteArtPost } from '@/lib/api/hooks/use-art';
 import { ArtCommentDrawer } from './art-comment-drawer';
 
@@ -29,18 +30,42 @@ function timeAgo(iso: string) {
   return new Date(iso).toLocaleDateString('vi-VN');
 }
 
+/** Bài đã đếm lượt xem trong phiên này — tránh đếm lặp khi cuộn qua lại. */
+const viewedPosts = new Set<string>();
+
 export function ArtCard({ post, currentUserId }: Props) {
   const [showComments, setShowComments] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const { mutate: toggleLike } = useToggleArtLike();
   const { mutate: deletePost } = useDeleteArtPost();
 
+  const articleRef = useRef<HTMLElement | null>(null);
+  const [viewDelta, setViewDelta] = useState(0);
+
+  // Tính 1 lượt xem khi thẻ bài lọt vào màn hình.
+  useEffect(() => {
+    const el = articleRef.current;
+    if (!el || viewedPosts.has(post.id) || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !viewedPosts.has(post.id)) {
+          viewedPosts.add(post.id);
+          io.disconnect();
+          artService.viewPost(post.id).then(() => setViewDelta(1)).catch(() => {});
+        }
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [post.id]);
+
   const authorName = post.user.displayName || post.user.username;
   const isOwner = currentUserId === post.user.id;
 
   return (
     <>
-      <article className="bg-surface border border-outline-variant/20 rounded-2xl overflow-hidden shadow-sm">
+      <article id={`bai-${post.id}`} ref={articleRef} className="bg-surface border border-outline-variant/20 rounded-2xl overflow-hidden shadow-sm">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3">
           <Link href={`/u/${post.user.username}`} className="flex-shrink-0">
@@ -111,6 +136,17 @@ export function ArtCard({ post, currentUserId }: Props) {
             <MessageCircle className="w-5 h-5" />
             <span>{formatNum(post.commentCount)}</span>
           </button>
+          <ShareButton
+            path={`/nghe-thuat#bai-${post.id}`}
+            title={post.caption || `Ảnh của ${authorName}`}
+          />
+          <span
+            className="ml-auto flex items-center gap-1.5 text-sm text-on-surface-variant"
+            title="Lượt xem"
+          >
+            <Eye className="w-5 h-5" />
+            <span>{formatNum((post.viewCount ?? 0) + viewDelta)}</span>
+          </span>
         </div>
 
         {/* Caption + comment link */}
