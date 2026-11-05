@@ -21,6 +21,7 @@ import { SearchIndexerService } from '../search/search-indexer.service';
 import { WalletService } from '../wallet/wallet.service';
 import { MonetizationService } from '../monetization/monetization.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { selectRecommended } from './recommend-rotation';
 
 /**
  * Điều kiện "truyện đáng hiển thị cho khách" dùng chung cho trang chủ và danh
@@ -1255,7 +1256,8 @@ export class StoriesService {
     }
   }
 
-  // Get recommended stories (prioritize isRecommended, then algorithm: weighted score)
+  // Kệ Đề xuất: xoay theo giờ VN, xem recommend-rotation.ts.
+  // Trước đây không có cờ isRecommended thì kệ này chính là "Mới nhất" (thứ tự cố định).
   async getRecommended(limit: number = 15, allowAdultContent = false) {
     try {
       const stories = await this.prisma.story.findMany({
@@ -1265,72 +1267,8 @@ export class StoriesService {
         },
         select: storyCardSelect,
       });
-
-      if (stories.length === 0) {
-        return [];
-      }
-
-      // Check if isRecommended field exists (column may not exist in DB yet)
-      const hasIsRecommended = stories.length > 0 && 'isRecommended' in (stories[0] as any);
-      const recommendedStories = hasIsRecommended
-        ? stories.filter(s => (s as any).isRecommended)
-        : [];
-      const nonRecommendedStories = hasIsRecommended
-        ? stories.filter(s => !(s as any).isRecommended)
-        : stories;
-
-      // Calculate recommendation score for all stories
-      // Score = (rating * 0.4) + (normalizedViewCount * 0.3) + (normalizedFollowCount * 0.2) + (normalizedLikeCount * 0.1)
-      const maxViewCount = Math.max(...stories.map(s => s.viewCount), 1);
-      const maxFollowCount = Math.max(...stories.map(s => s.followCount), 1);
-      const maxLikeCount = Math.max(...stories.map(s => s.likeCount), 1);
-
-      const scoredStories = stories.map(story => {
-        const normalizedViewCount = (story.viewCount / maxViewCount) * 100;
-        const normalizedFollowCount = (story.followCount / maxFollowCount) * 100;
-        const normalizedLikeCount = (story.likeCount / maxLikeCount) * 100;
-
-        // Rating is already 0-5, multiply by 20 to get 0-100 scale
-        const ratingScore = story.rating * 20;
-
-        const score =
-          (ratingScore * 0.4) +
-          (normalizedViewCount * 0.3) +
-          (normalizedFollowCount * 0.2) +
-          (normalizedLikeCount * 0.1);
-
-        return { ...story, recommendationScore: score };
-      });
-
-      // Sort: recommended first (by score), then non-recommended (by score)
-      const sortedRecommended = hasIsRecommended
-        ? scoredStories
-          .filter(s => (s as any).isRecommended)
-          .sort((a, b) => b.recommendationScore - a.recommendationScore)
-        : [];
-
-      const sortedNonRecommended = hasIsRecommended
-        ? scoredStories
-          .filter(s => !(s as any).isRecommended)
-          .sort((a, b) => b.recommendationScore - a.recommendationScore)
-        : scoredStories.sort((a, b) => b.recommendationScore - a.recommendationScore);
-
-      // Combine: recommended first, then non-recommended
-      const combined = [...sortedRecommended, ...sortedNonRecommended];
-
-      // If no recommended stories, return newest stories
-      if (!hasIsRecommended || recommendedStories.length === 0) {
-        return nonRecommendedStories
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-          .slice(0, limit);
-      }
-
-      // Return top stories (prioritizing recommended)
-      return combined
-        .slice(0, limit)
-        .map(({ recommendationScore, ...story }) => story);
+      return selectRecommended(stories, limit);
     } catch (error: any) {
-      // If column doesn't exist, fallback to newest stories
       if (error?.message?.includes('isRecommended')) {
         return this.getNewest(limit, allowAdultContent);
       }
