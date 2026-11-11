@@ -4,6 +4,7 @@ import { Hydrate } from '@/components/providers/hydrate';
 import { serverGet } from '@/lib/api/server-api';
 import { JsonLd } from '@/components/seo/json-ld';
 import { absoluteUrl } from '@/lib/seo/site-url';
+import { homeSectionBatch } from '@/lib/home-section-batch';
 import HomeClient from './home-client';
 
 export const revalidate = 300;
@@ -38,12 +39,13 @@ export default async function HomePage() {
       .filter((s) => s.mode === 'auto' && s.id)
       .map(async (section) => {
         try {
+          const limit = homeSectionBatch(section.limit).desktop;
           const stories = await serverGet<any[]>(
-            `/stories/homepage/section/${section.id}?limit=${section.limit}`,
+            `/stories/homepage/section/${section.id}?limit=${limit}`,
             { revalidate }
           );
           if (Array.isArray(stories)) {
-            queryClient.setQueryData(['stories', 'homepage', 'section', section.id, section.limit], stories);
+            queryClient.setQueryData(['stories', 'homepage', 'section', section.id, limit], stories);
           }
         } catch {
           // Skip failed sections

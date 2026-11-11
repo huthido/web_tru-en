@@ -94,7 +94,10 @@ export class StoriesController {
         }
         const limitNum = limit ? parseInt(limit.toString(), 10) : section.limit;
         const adultOk = user?.role === 'ADMIN' || user?.allowAdultContent === true;
-        return this.storiesService.getByAlgorithm(section.algorithm, Math.min(limitNum, 50), adultOk);
+        // Trần 150: trang chủ hiện 30 truyện/lượt và nút "Xem thêm" xin thêm 30 mỗi lần
+        // (khớp HOME_SECTION_MAX ở apps/frontend/src/lib/home-section-batch.ts).
+        const safeLimit = Number.isFinite(limitNum) && limitNum > 0 ? Math.min(limitNum, 150) : section.limit;
+        return this.storiesService.getByAlgorithm(section.algorithm, safeLimit, adultOk);
     }
 
     /**

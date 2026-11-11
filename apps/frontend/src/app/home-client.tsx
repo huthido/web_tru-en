@@ -8,10 +8,11 @@ import { AdSlot } from '@/components/ads/ad-slot';
 import { BookSectionSkeleton } from '@/components/ui/loading';
 import { BookSection } from '@/components/books/book-section';
 import { ContinueReadingRow, ForYouRow } from '@/components/home/personal-rows';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { Story } from '@/lib/api/stories.service';
 import { storyHasAudio } from '@/components/books/book-card';
+import { homeSectionBatch, HOME_SECTION_MAX } from '@/lib/home-section-batch';
 
 interface SectionStory {
   id: string;
@@ -43,17 +44,20 @@ interface HomeClientProps {
   initialSections?: SectionConfig[];
 }
 
-/** Fetch stories for auto-mode sections by sectionId (dynamic algorithm dispatch). */
-function useSectionStories(sectionId: string, limit: number, enabled: boolean) {
-  return useQuery<Story[]>({
+/** Query truyện của section auto theo sectionId (backend dispatch thuật toán). Dùng chung cho useQuery và fetchQuery. */
+function sectionStoriesQuery(sectionId: string, limit: number) {
+  return {
     queryKey: ['stories', 'homepage', 'section', sectionId, limit],
-    queryFn: async () => {
+    queryFn: async (): Promise<Story[]> => {
       const response = await apiClient.get<Story[]>(`/stories/homepage/section/${sectionId}?limit=${limit}`);
       return Array.isArray(response.data) ? response.data : [];
     },
-    enabled,
     staleTime: 5 * 60 * 1000,
-  });
+  };
+}
+
+function useSectionStories(sectionId: string, limit: number, enabled: boolean) {
+  return useQuery<Story[]>({ ...sectionStoriesQuery(sectionId, limit), enabled });
 }
 
 export default function HomeClient({ initialSections }: HomeClientProps) {
@@ -122,9 +126,9 @@ export default function HomeClient({ initialSections }: HomeClientProps) {
 
           {activeSection ? (
             activeSection.mode === 'manual' ? (
-              <ManualSectionContent section={activeSection} seeMoreLink={seeMoreUrl} />
+              <ManualSectionContent key={activeSection.key} section={activeSection} seeMoreLink={seeMoreUrl} />
             ) : (
-              <AutoSectionContent sectionId={activeSection.id} limit={activeSection.limit} label={activeSection.label} seeMoreLink={seeMoreUrl} />
+              <AutoSectionContent key={activeSection.key} sectionId={activeSection.id} limit={activeSection.limit} label={activeSection.label} seeMoreLink={seeMoreUrl} />
             )
           ) : (
             <BookSectionSkeleton />
@@ -142,9 +146,51 @@ export default function HomeClient({ initialSections }: HomeClientProps) {
   );
 }
 
-/** Auto mode: fetch stories from backend API by sectionId (dynamic algorithm). */
+/**
+ * Auto mode: fetch stories from backend API by sectionId (dynamic algorithm).
+ * Mỗi lượt hiện gấp đôi `limit` của section (30 màn lớn / 24 màn nhỏ); "Xem thêm"
+ * hiện thêm một lượt. Backend chỉ nhận `limit` (không có offset) nên lượt sau
+ * xin lại danh sách dài hơn; lượt đầu (đã SSR) vẫn là query riêng nên request
+ * "Xem thêm" có lỗi thì lưới đang hiện không mất, bấm lại là thử lại.
+ */
 function AutoSectionContent({ sectionId, limit, label, seeMoreLink }: { sectionId: string; limit: number; label: string; seeMoreLink: string }) {
-  const { data: stories = [], isLoading } = useSectionStories(sectionId, limit, true);
+  const batch = homeSectionBatch(limit);
+  const queryClient = useQueryClient();
+  const { data: firstPage = [], isLoading } = useSectionStories(sectionId, batch.desktop, true);
+  const [pages, setPages] = useState(1);
+  const [more, setMore] = useState<{ limit: number; stories: Story[] } | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const stories = more ? more.stories : firstPage;
+  const fetchedLimit = more ? more.limit : batch.desktop;
+  const mobileLimit = batch.mobile * pages;
+  const desktopLimit = batch.desktop * pages;
+  // Trả về đủ số đã xin ⇒ backend có thể còn truyện.
+  const serverMayHaveMore = stories.length >= fetchedLimit && fetchedLimit < HOME_SECTION_MAX;
+  const showMore: false | 'all' | 'mobile' =
+    loadingMore || serverMayHaveMore || stories.length > desktopLimit ? 'all'
+      : stories.length > mobileLimit ? 'mobile'
+        : false;
+
+  const handleShowMore = async () => {
+    if (loadingMore) return;
+    if (!serverMayHaveMore) {
+      // Hết truyện ở backend, chỉ còn phần đang bị giấu trên màn nhỏ.
+      setPages((p) => p + 1);
+      return;
+    }
+    const nextLimit = Math.min(fetchedLimit + batch.desktop, HOME_SECTION_MAX);
+    setLoadingMore(true);
+    try {
+      const next = await queryClient.fetchQuery(sectionStoriesQuery(sectionId, nextLimit));
+      setMore({ limit: nextLimit, stories: next });
+      setPages((p) => p + 1);
+    } catch {
+      // Lỗi mạng: giữ nguyên lưới, nút vẫn còn để bấm lại.
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const books = useMemo(
     () => stories.map((story: Story) => ({
@@ -159,13 +205,20 @@ function AutoSectionContent({ sectionId, limit, label, seeMoreLink }: { sectionI
 
   if (isLoading) return <BookSectionSkeleton />;
   return (
-    <BookSection title={label} hideTitle books={books} seeMoreLink={seeMoreLink} showLikeButton={false} mobileLimit={12} desktopLimit={15} />
+    <BookSection title={label} hideTitle books={books} seeMoreLink={seeMoreLink} showLikeButton={false}
+      mobileLimit={mobileLimit} desktopLimit={desktopLimit}
+      showMore={showMore} onShowMore={handleShowMore} showMoreLoading={loadingMore} />
   );
 }
 
 /** Manual mode: display pre-selected stories from DB. */
 function ManualSectionContent({ section, seeMoreLink }: { section: SectionConfig; seeMoreLink: string }) {
   const sectionStories = section.stories || [];
+  // Truyện manual đã nằm sẵn trong config section → "Xem thêm" chỉ việc hiện thêm, không fetch.
+  const batch = homeSectionBatch(section.limit);
+  const [pages, setPages] = useState(1);
+  const mobileLimit = batch.mobile * pages;
+  const desktopLimit = batch.desktop * pages;
 
   const books = useMemo(
     () => sectionStories
@@ -188,6 +241,9 @@ function ManualSectionContent({ section, seeMoreLink }: { section: SectionConfig
   }
 
   return (
-    <BookSection title={section.label} hideTitle books={books} seeMoreLink={seeMoreLink} showLikeButton={false} mobileLimit={12} desktopLimit={15} />
+    <BookSection title={section.label} hideTitle books={books} seeMoreLink={seeMoreLink} showLikeButton={false}
+      mobileLimit={mobileLimit} desktopLimit={desktopLimit}
+      showMore={books.length > desktopLimit ? 'all' : books.length > mobileLimit ? 'mobile' : false}
+      onShowMore={() => setPages((p) => p + 1)} />
   );
 }

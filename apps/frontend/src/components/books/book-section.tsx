@@ -32,6 +32,13 @@ interface BookSectionProps {
   mobileLimit?: number;
   /** Số card tối đa trên màn hình lớn (xl trở lên, lưới 5 cột). Mặc định bằng mobileLimit. */
   desktopLimit?: number;
+  /**
+   * Nút "Xem thêm" dưới lưới. 'all' = hiện ở mọi cỡ màn; 'mobile' = chỉ dưới xl
+   * (màn lớn đã hiện hết, màn nhỏ còn truyện đang bị mobileLimit giấu).
+   */
+  showMore?: false | 'all' | 'mobile';
+  onShowMore?: () => void;
+  showMoreLoading?: boolean;
 }
 
 const GRID = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4';
@@ -47,6 +54,9 @@ export function BookSection({
   hideTitle = false,
   mobileLimit = 12,
   desktopLimit = mobileLimit,
+  showMore = false,
+  onShowMore,
+  showMoreLoading = false,
 }: BookSectionProps) {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
@@ -115,7 +125,8 @@ export function BookSection({
                   style={{
                     opacity: isVisible ? 1 : 0,
                     transform: isVisible ? 'translateY(0)' : 'translateY(16px)',
-                    transitionDelay: isVisible ? `${index * 25}ms` : '0ms',
+                    // Chặn ở 14 để lưới dài (30+ thẻ) không phải chờ cả giây mới hiện hết.
+                    transitionDelay: isVisible ? `${Math.min(index, 14) * 25}ms` : '0ms',
                   }}
                 >
                   <BookCard
@@ -141,6 +152,19 @@ export function BookSection({
                 {[...Array(4)].map((_, i) => (
                   <BookCardSkeleton key={`more-${i}`} />
                 ))}
+              </div>
+            )}
+
+            {showMore && onShowMore && (
+              <div className={`mt-6 flex justify-center ${showMore === 'mobile' ? 'xl:hidden' : ''}`}>
+                <button
+                  type="button"
+                  onClick={onShowMore}
+                  disabled={showMoreLoading}
+                  className="min-w-[160px] px-6 py-2.5 rounded-full text-sm font-semibold border border-outline-variant/60 bg-surface-container text-on-surface hover:bg-surface-variant transition-all duration-200 active:scale-95 disabled:opacity-60 disabled:cursor-wait"
+                >
+                  {showMoreLoading ? 'Đang tải…' : 'Xem thêm'}
+                </button>
               </div>
             )}
           </>
