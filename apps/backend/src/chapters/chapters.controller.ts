@@ -76,10 +76,17 @@ export class ChaptersController {
             chapterSlug,
             user?.id
         );
-        // Increment view count (async, don't wait)
-        this.chaptersService
-            .incrementViewCount(storySlug, chapterSlug)
-            .catch(() => { });
+        // Lượt xem = người đọc THẬT SỰ mở được nội dung. Không tính lượt mở
+        // trang chương đang khoá (chỉ thấy teaser paywall) và lượt của chính
+        // tác giả/admin — nếu không, chương trả phí có lượt xem cao hơn hẳn
+        // lượt mua và tác giả tưởng thống kê sai. (async, don't wait)
+        const isOwnerOrAdmin =
+            !!user && (chapter.story?.authorId === user.id || user.role === UserRole.ADMIN);
+        if (!chapter.isLocked && !isOwnerOrAdmin) {
+            this.chaptersService
+                .incrementViewCount(storySlug, chapterSlug)
+                .catch(() => { });
+        }
         return chapter;
     }
 

@@ -203,6 +203,21 @@ export class WalletService implements OnModuleInit {
         return { paidNet, paidFee: paid - paidNet };
     }
 
+    /**
+     * Câu thông báo gửi tác giả khi có lượt mua chương/truyện VIP, hoặc `null`
+     * nếu KHÔNG thông báo. Lượt mở khoá mà tác giả không nhận xu nào (trả hết
+     * bằng xu thưởng) chỉ ghi nhận vào ChapterPurchase/StoryPurchase để thống
+     * kê — không báo, vì "bạn nhận 0 xu" làm tác giả tưởng bị mất tiền.
+     * `subject` ví dụ: `Chương "Tên chương"`.
+     */
+    static saleNoticeText(subject: string, authorNet: number, bonusPaid: number): string | null {
+        if (authorNet <= 0) return null;
+        if (bonusPaid > 0) {
+            return `${subject} vừa được mua — bạn nhận ${authorNet} xu (người đọc trả ${bonusPaid} xu bằng xu thưởng, phần đó không tính doanh thu).`;
+        }
+        return `${subject} vừa được mua — bạn nhận ${authorNet} xu.`;
+    }
+
     /** 1 "tháng" gói giọng đọc AI = 30 ngày; gia hạn cộng dồn vào hạn còn lại. */
     static readonly TTS_SUBSCRIPTION_DAYS_PER_MONTH = 30;
 
@@ -832,14 +847,22 @@ export class WalletService implements OnModuleInit {
                 newBalance: updatedBuyerWallet.balance,
                 pricePaid: chapter.price,
                 authorNet: paidNet,
+                bonusPaid: fromBonus,
             };
         });
 
-        if (!chapterResult.alreadyOwned) {
+        const chapterNotice = chapterResult.alreadyOwned
+            ? null
+            : WalletService.saleNoticeText(
+                `Chương "${chapter.title}"`,
+                (chapterResult as any).authorNet ?? 0,
+                (chapterResult as any).bonusPaid ?? 0,
+            );
+        if (chapterNotice) {
             this.notifyAuthor(
                 authorId,
                 'Có người mua chương 📖',
-                `Chương "${chapter.title}" vừa được mua — bạn nhận ${(chapterResult as any).authorNet ?? 0} xu.`,
+                chapterNotice,
                 { type: NotificationType.CHAPTER_PURCHASED, actionUrl: '/tac-gia/thu-nhap' },
             );
         }
@@ -1030,14 +1053,22 @@ export class WalletService implements OnModuleInit {
                 newBalance: updatedBuyerWallet.balance,
                 pricePaid: story.price,
                 authorNet: paidNet,
+                bonusPaid: fromBonus,
             };
         });
 
-        if (!storyResult.alreadyOwned) {
+        const storyNotice = storyResult.alreadyOwned
+            ? null
+            : WalletService.saleNoticeText(
+                `Truyện "${story.title}"`,
+                (storyResult as any).authorNet ?? 0,
+                (storyResult as any).bonusPaid ?? 0,
+            );
+        if (storyNotice) {
             this.notifyAuthor(
                 authorId,
                 'Có người mua truyện VIP 👑',
-                `Truyện "${story.title}" vừa được mua — bạn nhận ${(storyResult as any).authorNet ?? 0} xu.`,
+                storyNotice,
                 { type: NotificationType.STORY_PURCHASED, actionUrl: '/tac-gia/thu-nhap' },
             );
         }

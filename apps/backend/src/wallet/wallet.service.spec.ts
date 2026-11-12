@@ -450,7 +450,8 @@ describe('WalletService — xu thưởng (bonusBalance)', () => {
         };
         (svc as any).prisma.$transaction = async (fn: any) => fn(tx);
         (svc as any).getChapterSaleFeePercent = async () => 10;
-        (svc as any).notifyAuthor = () => undefined;
+        const notify = jest.fn();
+        (svc as any).notifyAuthor = notify;
 
         await svc.payForChapter('buyer', 'author', { id: 'c1', title: 'Chương 1', price: 50 });
 
@@ -459,5 +460,15 @@ describe('WalletService — xu thưởng (bonusBalance)', () => {
         expect(tx.chapterPurchase.create).toHaveBeenCalledWith({
             data: expect.objectContaining({ bonusPaid: 50, netAmount: 0, platformFee: 0 }),
         });
+        // Chỉ ghi nhận để thống kê — KHÔNG thông báo "bạn nhận 0 xu" cho tác giả.
+        expect(notify).not.toHaveBeenCalled();
+    });
+
+    it('saleNoticeText: không thông báo khi tác giả không nhận xu', () => {
+        expect(WalletService.saleNoticeText('Chương "A"', 18, 0))
+            .toBe('Chương "A" vừa được mua — bạn nhận 18 xu.');
+        expect(WalletService.saleNoticeText('Chương "A"', 18, 30))
+            .toBe('Chương "A" vừa được mua — bạn nhận 18 xu (người đọc trả 30 xu bằng xu thưởng, phần đó không tính doanh thu).');
+        expect(WalletService.saleNoticeText('Chương "A"', 0, 50)).toBeNull();
     });
 });
